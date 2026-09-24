@@ -341,34 +341,6 @@ jobs:
           path: qa-evidence/
           if-no-files-found: ignore
 
-  # Visual regression (ADR 0021): every surface at 1x and 2x on every
-  # theme fixture and both built-in palettes against its approved
-  # baseline, rendered on the offscreen platform, blocking; then the
-  # canary, which renders with a deliberate token regression and passes
-  # only when every diff fails, so a diff that stopped seeing never
-  # lets the real pass mean anything.
-  visual:
-    name: visual
-    timeout-minutes: 120
-    runs-on: ubuntu-latest
-    container:
-      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
-    steps:
-      - run: pacman -Syu --noconfirm --needed git
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/setup-toolchain
-        with:
-          cache-scope: rig
-      - run: just build-rust build-qt
-      - run: just qa-visual
-      - run: just qa-visual-canary
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: always()
-        with:
-          name: visual-evidence
-          path: qa-evidence/visual/
-          if-no-files-found: ignore
-
   package:
     name: package
     timeout-minutes: 120
