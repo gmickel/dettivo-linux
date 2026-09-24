@@ -33,7 +33,9 @@ impl Run<'_, '_> {
             .map_err(|e| format!("{section}: control for {key}: {e}"))?;
         let control = element.role.clone();
         let typed = typed_value(key, kind, &self.ctx.profile.root, &self.bin_dir);
-        let settle = Duration::from_secs(5);
+        // A poll, so a fast desktop returns at once; a CI runner needs longer
+        // for the write, the daemon's reload and the route's refresh.
+        let settle = Duration::from_secs(15);
         let landed: Result<(Value, String), String> = if key == "dictation.vocabulary"
             || key == "polish.transforms"
         {
@@ -178,6 +180,6 @@ impl Run<'_, '_> {
         self.driver
             .click(self.app, &fresh)
             .map_err(|e| e.to_string())?;
-        self.wait_get(key, Duration::from_secs(5), moved)
+        self.wait_get(key, Duration::from_secs(15), moved)
     }
 }

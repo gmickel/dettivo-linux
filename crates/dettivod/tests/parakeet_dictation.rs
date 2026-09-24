@@ -101,7 +101,13 @@ fn a_parakeet_dictation_returns_the_fixture_words_with_the_provider_selected_ove
     assert_eq!(v2["is_downloaded"], true);
     assert_eq!(v2["is_english_only"], true);
 
-    let started = daemon.result("dictation.start", json!({"language": "en", "mode": "raw"}));
+    // Start can join the cold Parakeet preload the selection began, and
+    // stop waits on the decode: both get the engine window on a CI runner.
+    let started = daemon.result_within(
+        "dictation.start",
+        json!({"language": "en", "mode": "raw"}),
+        Duration::from_secs(120),
+    );
     assert_eq!(started["job"]["state"], "running");
     let status = daemon.result("dictation.status", json!({}));
     assert!(
@@ -112,8 +118,6 @@ fn a_parakeet_dictation_returns_the_fixture_words_with_the_provider_selected_ove
         "{status}"
     );
     std::thread::sleep(Duration::from_millis(6500));
-    // Stop waits on a cold Parakeet 0.6B load and decode on the CPU, which
-    // outruns the default window on a two-core CI runner.
     let stopped = daemon.result_within("dictation.stop", json!({}), Duration::from_secs(120));
     assert_eq!(stopped["job"]["state"], "succeeded", "{stopped}");
     let sessions = daemon.tree.root().join("state/dettivo/sessions/job_dict_1");
