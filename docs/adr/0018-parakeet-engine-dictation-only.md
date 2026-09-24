@@ -1,6 +1,6 @@
 # 0018. Parakeet runs on parakeet.cpp through an in-repo binding; its timestamps keep it dictation-only for now
 
-Status: Accepted 2026-09-04
+Status: Accepted 2026-09-04; extended by [0068](0068-parakeet-ultra-is-a-catalogue-option.md) (Parakeet Ultra in the catalogue)
 
 ## What this gives you
 

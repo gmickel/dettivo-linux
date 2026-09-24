@@ -18,7 +18,9 @@ pub fn languages_for(model_name: &str) -> Option<&'static [&'static str]> {
     let name = model_name.to_lowercase();
     if name.contains("tdt-0.6b-v2") || name.contains("tdt_ctc") && name.contains("110m") {
         Some(&["en"])
-    } else if name.contains("tdt-0.6b-v3") {
+    } else if name.contains("tdt-0.6b-v3") || name.contains("parakeet-ultra") {
+        // Parakeet Ultra is Moondream's post-train of v3: same vocabulary,
+        // same 25 languages.
         Some(LANGUAGES_V3)
     } else {
         None
@@ -148,6 +150,10 @@ mod tests {
         );
         assert_eq!(
             languages_for("nvidia/parakeet-tdt-0.6b-v3"),
+            Some(LANGUAGES_V3)
+        );
+        assert_eq!(
+            languages_for("moondream/parakeet-ultra"),
             Some(LANGUAGES_V3)
         );
         assert_eq!(languages_for("nvidia/parakeet-ctc-1.1b"), None);
