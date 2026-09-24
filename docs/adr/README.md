@@ -72,6 +72,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0065](0065-dettivo-for-linux-is-gpl-3-or-later.md) | Dettivo for Linux is licensed GPL-3.0-or-later | Accepted 2026-09-24 |
 | [0066](0066-visual-checks-are-optional-not-a-gate.md) | Visual checks are optional tools; neither CI nor the release gate runs them | Accepted 2026-09-24 |
 | [0067](0067-the-engines-compile-ggml-for-one-x86-64-baseline.md) | The engines compile ggml for one x86-64 baseline, never for the build machine's CPU | Accepted 2026-09-24 |
+| [0068](0068-parakeet-ultra-is-a-catalogue-option.md) | Parakeet Ultra, Moondream's post-train of v3, is a catalogue option beside v2 and v3 | Accepted 2026-09-24 |
 
 ## Writing a record
 

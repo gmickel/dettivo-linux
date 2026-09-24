@@ -189,6 +189,24 @@ quantization = "q8_0"
 default = true
 recommended_for = "25 European languages · word timestamps · fastest on GPU"
 
+# Moondream's post-train of Parakeet TDT 0.6B v3 (moondream/parakeet-ultra,
+# CC-BY-4.0), converted for parakeet.cpp by trevest/parakeet-ultra-GGUF:
+# the same architecture, vocabulary and 25 languages as v3 (ADR 0068).
+[[models]]
+provider = "parakeet"
+id = "parakeet-ultra"
+display_name = "Parakeet Ultra 0.6B"
+kind = "stt"
+file_name = "parakeet-ultra.q8_0.gguf"
+size_bytes = 940663680
+url = "https://huggingface.co/trevest/parakeet-ultra-GGUF/resolve/main/parakeet-ultra.q8_0.gguf"
+sha256 = "665168ed7c8d123e0037985d13287afb88fa745a456c937c8ad647da31c2a379"
+license = "CC-BY-4.0"
+redistribution = "Moondream post-train of NVIDIA Parakeet TDT 0.6B v3, GGUF from trevest/parakeet-ultra-GGUF; attribution required"
+languages = ["multilingual"]
+quantization = "q8_0"
+recommended_for = "v3 retrained by Moondream · lower word error on their benchmarks · same size"
+
 # The language models behind Enhanced and meeting analysis (ADR 0005, ADR
 # 0026): the macOS catalogue in GGUF at the 4-bit footprint (Q4_K_M from
 # the unsloth conversions of the Qwen releases). `roles` says what each is
