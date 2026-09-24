@@ -1,0 +1,34 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32013,
+      "data": {
+        "app_code": "CONFLICT",
+        "details": {
+          "kind": "engineWithoutTimestamps",
+          "provider": "parakeet",
+          "settings": "settings.models"
+        },
+        "retryable": false
+      },
+      "message": "Provider parakeet is not meeting-capable: its timestamps are not precise enough for the meeting merger; pick a meeting-capable provider under Settings > Models (dettivo app open settings.models)"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "meetings.start",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.start",
+    "params": {
+      "acknowledge_meeting_disclosure": true,
+      "capture": {
+        "microphone": true,
+        "system_audio": true
+      },
+      "title": "Weekly sync"
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "capabilities": {
+    "speech.methods": [
+      "speech.providers.list",
+      "speech.selection.get",
+      "speech.selection.set"
+    ]
+  },
+  "method": "speech.providers.list",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "speech.providers.list",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "default_model_id": "ggml-large-v3-turbo",
+      "default_provider_id": "local",
+      "providers": [
+        {
+          "default_model_id": "ggml-large-v3-turbo",
+          "display_name": "Whisper (local)",
+          "id": "local",
+          "kind": "local",
+          "models": [
+            {
+              "approximate_size_bytes": 1620000000,
+              "id": "ggml-large-v3-turbo",
+              "is_downloaded": true,
+              "is_english_only": false,
+              "is_recommended": true,
+              "label": "Large v3 Turbo",
+              "path": "/home/user/.local/share/dettivo/models/ggml-large-v3-turbo.bin",
+              "required_free_bytes": 1700000000
+            }
+          ],
+          "runtime_available": true,
+          "supports_dictation": true,
+          "supports_meetings": true,
+          "supports_model_deletion": true,
+          "supports_streaming": false,
+          "supports_timestamps": true,
+          "unavailable_reason": null
+        }
+      ],
+      "speaker_models": [
+        {
+          "can_refresh_fallback_labels": true,
+          "detail": "Speaker labels for meetings",
+          "display_name": "Community diarization",
+          "fallback_behavior": "single speaker",
+          "id": "pyannote-community-1",
+          "is_downloaded": false,
+          "path": null,
+          "platform": "sherpa-onnx",
+          "recommended_action": "download",
+          "runtime_available": true,
+          "size_bytes": 6300000,
+          "supports_download": true,
+          "unavailable_reason": null
+        }
+      ]
+    }
+  }
+}

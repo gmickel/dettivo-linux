@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@300;400;600&display=swap">
+  <style>
+    :root{--bg:#0D0D0D;--fg:#EBDBB2;--fg2:rgba(235,219,178,.62);--fg3:rgba(235,219,178,.38);--line:rgba(235,219,178,.14);--line2:rgba(235,219,178,.35);--fill:rgba(235,219,178,.03);--gold:#F5BF03;--gold2:#BFA75D;--gold3:#A3850E;--red:#D35F5F}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:"Cascadia Mono",ui-monospace,"CaskaydiaMono Nerd Font","JetBrains Mono",monospace;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+    a{color:var(--gold2)} a:hover{color:var(--gold)}
+    .label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg3)}
+    .num{font-variant-numeric:tabular-nums}
+    .btn{height:28px;padding:0 10px;border:1px solid var(--line2);background:var(--fill);color:var(--fg);display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:12px;box-sizing:border-box}
+    .btn.sm{height:24px;font-size:11px;padding:0 8px}
+    .btn.primary{border-color:rgba(245,191,3,.9);background:rgba(245,191,3,.14);color:var(--gold)}
+    .card{border:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+    .card .cap{padding:8px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+    .card .bd{padding:20px;display:flex;flex-direction:column;gap:10px;flex:1;justify-content:center}
+    .shim{height:2px;background:linear-gradient(90deg,rgba(245,191,3,.15) 0%,rgba(245,191,3,.9) 45%,rgba(245,191,3,.15) 100%);width:160px}
+    .key{display:inline-flex;align-items:center;height:20px;padding:0 6px;border:1px solid var(--line2);font-size:11px;color:var(--fg);min-width:14px;justify-content:center}
+    .hk{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center;font-size:12px}
+  </style>
+</helmet>
+<div style="width:1280px;min-height:1200px;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);padding:40px 48px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--line2);padding-bottom:14px">
+    <span class="label">Empty, loading and error states · keyboard hint sheet</span>
+    <span style="font-size:20px;font-weight:600;letter-spacing:-.02em">Nothing is ever blank, and nothing ever shouts</span>
+    <span style="color:var(--fg2)">Every state is one sentence that says what is true and one action that fixes it. No illustrations, no spinners, no exclamation marks.</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:20px">
+    <div class="card" style="height:220px"><div class="cap"><span class="label">history · empty</span></div><div class="bd"><div style="font-size:16px;font-weight:600">Nothing dictated yet.</div><div style="color:var(--fg2)">Hold <span class="key">F9</span> in any app and it will show up here.</div></div></div>
+    <div class="card" style="height:220px"><div class="cap"><span class="label">meetings · empty</span></div><div class="bd"><div style="font-size:16px;font-weight:600">No meetings recorded.</div><div style="color:var(--fg2)">Start one from the bar or with <span class="key">n</span>. Audio files can be imported too.</div><div><div class="btn sm">Import audio</div></div></div></div>
+    <div class="card" style="height:220px"><div class="cap"><span class="label">search · no results</span></div><div class="bd"><div style="font-size:16px;font-weight:600">No match for "merger".</div><div style="color:var(--fg2)">Search covers dictations, meeting transcripts, notes and analysis.</div></div></div>
+    <div class="card" style="height:220px"><div class="cap"><span class="label">engine · loading</span><span class="label num">4.2 s</span></div><div class="bd"><div style="display:flex;align-items:center;gap:12px"><span style="width:8px;height:8px;background:var(--gold3)"></span><span class="shim"></span></div><div style="color:var(--fg2)">Warming Parakeet v3 on Vulkan. First dictation after a restart takes a moment; later ones will not.</div></div></div>
+    <div class="card" style="height:220px"><div class="cap"><span class="label">engine · crashed</span><span class="label">dettivo-engine-whisper</span></div><div class="bd"><div style="display:flex;align-items:center;gap:10px"><span style="width:8px;height:8px;background:var(--red)"></span><span style="font-size:16px;font-weight:600">Whisper stopped unexpectedly.</span></div><div style="color:var(--fg2)">Your meeting kept recording. It restarts on the next request; three crashes in a row switch it to CPU.</div><div style="display:flex;gap:8px"><div class="btn sm">Restart now</div><div class="btn sm">Show log</div></div></div></div>
+    <div class="card" style="height:220px"><div class="cap"><span class="label">download · failed</span><span class="label">sha256 mismatch</span></div><div class="bd"><div style="display:flex;align-items:center;gap:10px"><span style="width:8px;height:8px;background:var(--red)"></span><span style="font-size:16px;font-weight:600">Checksum did not match.</span></div><div style="color:var(--fg2)">The file was quarantined and nothing was loaded. Retrying downloads from the catalogue source again.</div><div style="display:flex;gap:8px"><div class="btn sm">Retry</div><div class="btn sm">Show source</div></div></div></div>
+    <div class="card" style="height:220px"><div class="cap"><span class="label">microphone · missing</span></div><div class="bd"><div style="display:flex;align-items:center;gap:10px"><span style="width:8px;height:8px;background:var(--red)"></span><span style="font-size:16px;font-weight:600">No input device.</span></div><div style="color:var(--fg2)">PipeWire reports no source. Plug in a microphone or pick one in Settings › General. History and meetings still open.</div></div></div>
+    <div class="card" style="height:220px"><div class="cap"><span class="label">insertion · fell back</span></div><div class="bd"><div style="font-size:16px;font-weight:600">Copied instead of typed.</div><div style="color:var(--fg2)">The focused window did not accept a virtual keyboard. Press <span class="key">Ctrl</span> <span class="key">V</span>, or pin a backend for chromium in Settings › Insertion.</div></div></div>
+    <div class="card" style="height:220px"><div class="cap"><span class="label">meeting · recovered</span></div><div class="bd"><div style="font-size:16px;font-weight:600">A meeting was interrupted.</div><div style="color:var(--fg2)">Customer call · Nordwind, 52 min, 12 of 14 chunks saved. Recover it from the journal or discard it.</div><div style="display:flex;gap:8px"><div class="btn sm primary">Recover</div><div class="btn sm">Discard</div></div></div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="card"><div class="cap"><span class="label">keyboard hint sheet · press ?</span><span class="label">closes on any key</span></div>
+      <div class="bd" style="justify-content:flex-start;gap:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 32px">
+          <div class="hk"><span class="key">j</span><span>next item</span><span class="key">k</span><span>previous item</span><span class="key">enter</span><span>open or insert</span><span class="key">/</span><span>search</span><span class="key">?</span><span>this sheet</span></div>
+          <div class="hk"><span class="key">n</span><span>new meeting</span><span class="key">i</span><span>import audio</span><span class="key">r</span><span>re-run</span><span class="key">e</span><span>export</span><span class="key">d</span><span>delete</span></div>
+        </div>
+        <div style="font-size:11px;color:var(--fg3)">Global keys stay with Hyprland: F9 hold, Super+Ctrl+X toggle, Super+Shift+D open. Escape closes anything.</div>
+      </div>
+    </div>
+    <div class="card"><div class="cap"><span class="label">rules</span></div>
+      <div class="bd" style="justify-content:flex-start;gap:8px;font-size:12px;color:var(--fg2)">
+        <div>State sentence first, in body size and weight 600. Reason second, in muted. Action third, as a small button or a key.</div>
+        <div>Urgent colour appears only as the 8 px square and never as a background.</div>
+        <div>Every error names the process or file involved so the CLI and journal say the same thing.</div>
+        <div>Loading states show the shimmer thread and an elapsed time; nothing spins.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@300;400;600&display=swap">
+  <style>
+    :root{--bg:#0D0D0D;--fg:#EBDBB2;--fg2:rgba(235,219,178,.62);--fg3:rgba(235,219,178,.38);--line:rgba(235,219,178,.14);--line2:rgba(235,219,178,.35);--fill:rgba(235,219,178,.03);--gold:#F5BF03;--gold2:#BFA75D;--gold3:#A3850E;--red:#D35F5F}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:"Cascadia Mono",ui-monospace,"CaskaydiaMono Nerd Font","JetBrains Mono",monospace;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+    a{color:var(--gold2)} a:hover{color:var(--gold)}
+    .label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg3)}
+    .num{font-variant-numeric:tabular-nums}
+    .nav{display:flex;align-items:center;gap:10px;height:32px;padding:0 12px;color:var(--fg2)}
+    .nav.on{color:var(--fg);background:rgba(163,133,14,.18);box-shadow:inset 2px 0 0 var(--gold3)}
+    .btn{height:28px;padding:0 10px;border:1px solid var(--line2);background:var(--fill);color:var(--fg);display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:12px;box-sizing:border-box}
+    .btn.primary{border-color:rgba(245,191,3,.9);background:rgba(245,191,3,.14);color:var(--gold)}
+    .chip{font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:1px 6px;border:1px solid var(--line);color:var(--fg2)}
+    .chip.gold{border-color:rgba(245,191,3,.5);color:var(--gold)}
+    .day{padding:14px 16px 6px}
+    .item{display:flex;gap:12px;padding:10px 16px;border-top:1px solid var(--line);align-items:flex-start}
+    .item.sel{background:rgba(163,133,14,.18);box-shadow:inset 2px 0 0 var(--gold3)}
+    .item .t{width:40px;color:var(--fg3);flex:none;padding-top:1px}
+    .item .body{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+    .item .txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .item .meta{display:flex;gap:8px;align-items:center;font-size:11px;color:var(--fg3)}
+    .block{border:1px solid var(--line);display:flex;flex-direction:column}
+    .block .hd{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line)}
+    .block .bd{padding:14px 16px;line-height:1.7}
+    .kv{display:grid;grid-template-columns:110px 1fr;gap:4px 12px;font-size:12px}
+    .kv .k{color:var(--fg3)}
+    .bars{display:flex;align-items:center;gap:2px;height:28px;flex:1}
+    .bars i{display:block;width:2px;background:rgba(235,219,178,.35)}
+    .bars i.p{background:var(--gold)}
+  </style>
+</helmet>
+<div style="width:1280px;height:820px;box-sizing:border-box;background:var(--bg);display:grid;grid-template-columns:200px 400px 1fr;border:1px solid var(--line)">
+
+  <div style="display:flex;flex-direction:column;border-right:1px solid var(--line);padding:14px 0">
+    <div style="display:flex;align-items:center;gap:10px;padding:0 12px 18px">
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#F5BF03" stroke-width="1.5" stroke-linecap="square"><path d="M2 9V7M5 12V4M8 10V6M11 13V3M14 9V7"/></svg>
+      <span style="font-weight:600;letter-spacing:.02em">dettivo</span>
+    </div>
+    <div class="label" style="padding:0 12px 6px">Workspace</div>
+    <div class="nav"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="10" height="10"/><path d="M3 8h10M8 3v10"/></svg>Home</div>
+    <div class="nav on"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/></svg>History</div>
+    <div class="nav"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5.5" cy="5.5" r="2.5"/><circle cx="11" cy="6.5" r="2"/><path d="M1.5 13a4 4 0 0 1 8 0M9.5 13a3 3 0 0 1 5 0"/></svg>Meetings</div>
+    <div class="label" style="padding:18px 12px 6px">System</div>
+    <div class="nav"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h12M2 12h12"/><circle cx="5" cy="4" r="1.5" fill="#0D0D0D"/><circle cx="11" cy="8" r="1.5" fill="#0D0D0D"/><circle cx="7" cy="12" r="1.5" fill="#0D0D0D"/></svg>Settings</div>
+    <div class="nav"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M2.5 4.5 6 8l-3.5 3.5M8 12h6"/></svg>Agents</div>
+    <div style="flex:1"></div>
+    <div style="padding:0 12px;display:flex;flex-direction:column;gap:6px;font-size:11px;color:var(--fg3)">
+      <div style="display:flex;justify-content:space-between"><span>parakeet v3</span><span style="color:var(--gold)">warm</span></div>
+      <div style="display:flex;justify-content:space-between"><span>qwen3 4b</span><span>idle</span></div>
+      <div style="display:flex;justify-content:space-between"><span>socket</span><span>peer</span></div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;border-right:1px solid var(--line);min-height:0">
+    <div style="padding:14px 16px 10px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:16px;font-weight:600">History</span><span class="label num">312 items</span></div>
+      <div style="height:28px;border:2px solid rgba(245,191,3,.9);padding:0 9px;display:flex;align-items:center;gap:8px;box-sizing:border-box"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><span>merger</span><span style="width:1px;height:14px;background:var(--gold)"></span><span style="flex:1"></span><span class="label">3 hits</span></div>
+      <div style="display:flex;gap:8px"><span class="chip gold">all</span><span class="chip">dictation</span><span class="chip">meeting</span><span class="chip">import</span></div>
+    </div>
+    <div style="overflow:hidden;display:flex;flex-direction:column">
+      <div class="day"><span class="label">Today · Wed 3 Sep</span></div>
+      <div class="item sel"><span class="t num">13:12</span><div class="body"><span class="txt">Add a regression test for the <span style="color:var(--gold);background:rgba(245,191,3,.12)">merger</span> overlap case before we ship.</span><div class="meta"><span>ghostty</span><span>·</span><span>Enhanced</span><span>·</span><span class="num">4 s</span></div></div></div>
+      <div class="item"><span class="t num">12:58</span><div class="body"><span class="txt">Reply to Mara: yes, keep the Vulkan build as the default package.</span><div class="meta"><span>chromium</span><span>·</span><span>Enhanced</span><span>·</span><span class="num">6 s</span></div></div></div>
+      <div class="item"><span class="t num">12:40</span><div class="body"><span class="txt">Summarise the diarization thresholds in the spec.</span><div class="meta"><span>cursor</span><span>·</span><span>Raw</span><span>·</span><span class="num">3 s</span></div></div></div>
+      <div class="item"><span class="t num">11:05</span><div class="body"><span class="txt">Dettivo Linux kickoff</span><div class="meta"><span class="chip">meeting</span><span class="num">41 min</span><span>·</span><span>3 speakers</span></div></div></div>
+      <div class="day"><span class="label">Yesterday</span></div>
+      <div class="item"><span class="t num">17:22</span><div class="body"><span class="txt">The <span style="color:var(--gold);background:rgba(245,191,3,.12)">merger</span> should prefer the earlier boundary text when both sources overlap.</span><div class="meta"><span>foot</span><span>·</span><span>Polish</span><span>·</span><span class="num">7 s</span></div></div></div>
+      <div class="item"><span class="t num">16:48</span><div class="body"><span class="txt">Push the branch and open a draft PR with the benchmark table.</span><div class="meta"><span>ghostty</span><span>·</span><span>Enhanced</span><span>·</span><span class="num">5 s</span></div></div></div>
+      <div class="item"><span class="t num">09:14</span><div class="body"><span class="txt">Weekly sync with Tobias</span><div class="meta"><span class="chip">meeting</span><span class="num">28 min</span><span>·</span><span>2 speakers</span></div></div></div>
+      <div class="day"><span class="label">Mon 1 Sep</span></div>
+      <div class="item"><span class="t num">15:30</span><div class="body"><span class="txt">Rename the <span style="color:var(--gold);background:rgba(245,191,3,.12)">merger</span> config to LiveMeetingTranscriptionConfig everywhere.</span><div class="meta"><span>cursor</span><span>·</span><span>Enhanced</span><span>·</span><span class="num">4 s</span></div></div></div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;padding:14px 24px 20px;gap:18px;min-height:0">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:0">
+        <div style="font-size:20px;font-weight:600;letter-spacing:-.02em">Dictation</div>
+        <div style="font-size:12px;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span class="num">Wed 3 Sep · 13:12</span> · inserted into ghostty</div>
+      </div>
+      <div style="display:flex;gap:8px;flex:none">
+        <div class="btn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M2 3h6M2 8h12M2 13h9M12.5 3l2 2-2 2"/></svg>Insert again</div>
+        <div class="btn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 8a5 5 0 1 1-1.5-3.5"/><path d="M13 2v3h-3"/></svg>Re-run</div>
+        <div class="btn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 13.5h11"/></svg>Export</div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="hd"><span class="label">Enhanced</span><div style="display:flex;gap:10px;align-items:center"><span class="chip gold">inserted</span><span class="label">qwen3 4b · code preset</span></div></div>
+      <div class="bd">Add a regression test for the merger overlap case before we ship.</div>
+    </div>
+
+    <div class="block">
+      <div class="hd"><span class="label">Raw</span><span class="label">parakeet v3 · 0.4 s</span></div>
+      <div class="bd" style="color:var(--fg2);font-weight:300">um add a regression test for the the merger overlap case before we ship</div>
+    </div>
+
+    <div class="block">
+      <div class="hd"><span class="label">Audio</span><span class="label num">4.2 s · 16 kHz</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 12px">
+        <div class="btn" style="width:28px;padding:0;justify-content:center"><svg width="12" height="12" viewBox="0 0 16 16" fill="#EBDBB2"><path d="M4 2l10 6-10 6z"/></svg></div>
+        <div class="bars"><i class="p" style="height:6px"></i><i class="p" style="height:12px"></i><i class="p" style="height:20px"></i><i class="p" style="height:14px"></i><i class="p" style="height:8px"></i><i class="p" style="height:18px"></i><i class="p" style="height:24px"></i><i class="p" style="height:10px"></i><i style="height:16px"></i><i style="height:22px"></i><i style="height:9px"></i><i style="height:14px"></i><i style="height:20px"></i><i style="height:6px"></i><i style="height:12px"></i><i style="height:18px"></i><i style="height:8px"></i><i style="height:15px"></i><i style="height:22px"></i><i style="height:11px"></i><i style="height:7px"></i><i style="height:17px"></i><i style="height:13px"></i><i style="height:5px"></i><i style="height:19px"></i><i style="height:9px"></i><i style="height:14px"></i><i style="height:6px"></i><i style="height:21px"></i><i style="height:12px"></i><i style="height:8px"></i><i style="height:16px"></i><i style="height:10px"></i><i style="height:4px"></i><i style="height:13px"></i><i style="height:18px"></i><i style="height:7px"></i><i style="height:11px"></i><i style="height:15px"></i><i style="height:5px"></i></div>
+        <span class="num" style="font-size:11px;color:var(--fg3)">0:01 / 0:04</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:24px">
+      <div class="kv">
+        <span class="k">app</span><span>ghostty</span>
+        <span class="k">mode</span><span>Enhanced · code</span>
+        <span class="k">engine</span><span>parakeet-v3 · Vulkan</span>
+        <span class="k">language</span><span>en</span>
+      </div>
+      <div class="kv">
+        <span class="k">stop to insert</span><span class="num">0.9 s</span>
+        <span class="k">insertion</span><span>virtual keyboard</span>
+        <span class="k">replacements</span><span>1 · "the the"</span>
+        <span class="k">id</span><span style="color:var(--fg3)">3f1c…9a2e</span>
+      </div>
+    </div>
+
+    <div style="flex:1"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--fg3)">
+      <span>j / k move · enter insert · r re-run · e export · d delete</span>
+      <span style="color:var(--red)">delete</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

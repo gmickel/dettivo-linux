@@ -1,0 +1,36 @@
+{
+  "capabilities": {
+    "formats.dictation_export": [
+      "txt",
+      "md",
+      "json"
+    ]
+  },
+  "error": {
+    "error": {
+      "code": -32010,
+      "data": {
+        "app_code": "INVALID_PARAMS",
+        "details": {},
+        "retryable": false
+      },
+      "message": "srt is not a dictation export format"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "transcripts.export",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transcripts.export",
+    "params": {
+      "format": "srt",
+      "ref": {
+        "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+        "kind": "dictation"
+      },
+      "transfer_id": "xfer_out_2"
+    }
+  }
+}

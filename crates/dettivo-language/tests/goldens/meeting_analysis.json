@@ -1,0 +1,305 @@
+{
+  "source": "Dettivo meeting analysis contract: summary, decisions, action items with owner and due (ADR 0036)",
+  "cases": [
+    {
+      "name": "clean json answer",
+      "transcript": "[Gordon] Okay, so the roadmap for Q2.\n[Mara] The budget is agreed, we can hire two engineers.\n[Mara] And the API gateway rollout moves to Thursday.\n[Gordon] Right, I will write the runbook by Wednesday.",
+      "outputs": [
+        "{\"summary\": \"The Q2 roadmap review agreed the budget and moved the API gateway rollout to Thursday.\", \"decisions\": [\"Hire two engineers in Q2\", \"Move the API gateway rollout to Thursday\"], \"action_items\": [{\"text\": \"Write the rollout runbook\", \"owner\": \"Gordon\", \"due\": \"Wednesday\"}]}"
+      ],
+      "expected": {
+        "summary": "The Q2 roadmap review agreed the budget and moved the API gateway rollout to Thursday.",
+        "decisions": ["Hire two engineers in Q2", "Move the API gateway rollout to Thursday"],
+        "action_items": [{"text": "Write the rollout runbook", "owner": "Gordon", "due": "Wednesday"}]
+      },
+      "calls": 1,
+      "parts": 1
+    },
+    {
+      "name": "thinking block, code fence and camel case keys",
+      "transcript": "[you] Thanks for taking the call.\n[remote] We measured forty milliseconds of latency on the Vulkan backend.",
+      "outputs": [
+        "<think>The call is short. Latency was measured.</think>\n```json\n{\"summary\": \"A short vendor call; the Vulkan backend measured forty milliseconds of latency.\", \"decisions\": [], \"actionItems\": [{\"task\": \"Send the pricing sheet\", \"assignee\": \"remote\", \"dueDate\": null}]}\n```"
+      ],
+      "expected": {
+        "summary": "A short vendor call; the Vulkan backend measured forty milliseconds of latency.",
+        "decisions": [],
+        "action_items": [{"text": "Send the pricing sheet", "owner": "remote", "due": null}]
+      },
+      "calls": 1,
+      "parts": 1
+    },
+    {
+      "name": "degenerate answer then a repaired one",
+      "transcript": "[you] Let us ship on Thursday.\n[remote] Agreed.",
+      "outputs": [
+        "Sure! Here is what I can help you with.",
+        "{\"summary\": \"The two agreed to ship on Thursday.\", \"decisions\": [\"Ship on Thursday\"], \"action_items\": []}"
+      ],
+      "expected": {
+        "summary": "The two agreed to ship on Thursday.",
+        "decisions": ["Ship on Thursday"],
+        "action_items": []
+      },
+      "calls": 2,
+      "parts": 1,
+      "repair_prompt_contains": "no JSON object in the output"
+    },
+    {
+      "name": "degenerate twice fails naming why",
+      "transcript": "[you] Let us ship on Thursday.",
+      "outputs": ["", "{\"summary\": \"\"}"],
+      "failure": "invalid_output",
+      "failure_contains": "empty output; after the repair pass: empty summary",
+      "calls": 2
+    },
+    {
+      "name": "empty transcript asks no model",
+      "transcript": "   \n",
+      "outputs": [],
+      "failure": "emptyTranscript",
+      "calls": 0
+    },
+    {
+      "name": "a provider timeout is provider unavailable",
+      "transcript": "[you] Hello there.",
+      "outputs": ["__TIMEOUT__"],
+      "failure": "provider_unavailable",
+      "calls": 1
+    },
+    {
+      "name": "a long transcript runs map then reduce",
+      "chunk_chars": 200,
+      "transcript": "[Gordon] We start with the hiring plan for the second quarter and the two open roles.\n[Mara] The budget for both roles is agreed and recruiting starts on Monday morning.\n[Gordon] Next the API gateway rollout, which moves from Tuesday to Thursday because of the load test.\n[Mara] I will write the rollout runbook by Wednesday and send it to ops for review.\n[Gordon] Last item, the café lease renewal; Mara pings the landlord this week.",
+      "outputs": [
+        "{\"summary\": \"Part one: hiring for Q2 with two roles and the budget agreed.\", \"decisions\": [\"Open two roles in Q2\"], \"action_items\": [{\"text\": \"Start recruiting\", \"owner\": \"Mara\", \"due\": \"Monday\"}]}",
+        "{\"summary\": \"Part two: the API gateway rollout moved to Thursday and the runbook is due Wednesday.\", \"decisions\": [\"Move the rollout to Thursday\"], \"action_items\": [{\"text\": \"Write the rollout runbook\", \"owner\": \"Mara\", \"due\": \"Wednesday\"}]}",
+        "{\"summary\": \"Part three: the café lease renewal.\", \"decisions\": [], \"action_items\": [{\"text\": \"Ping the landlord about the café lease\", \"owner\": \"Mara\", \"due\": \"this week\"}]}",
+        "{\"summary\": \"The meeting agreed the Q2 hiring budget, moved the API gateway rollout to Thursday and assigned the café lease renewal.\", \"decisions\": [\"Open two roles in Q2\", \"Move the rollout to Thursday\"], \"action_items\": [{\"text\": \"Start recruiting\", \"owner\": \"Mara\", \"due\": \"Monday\"}, {\"text\": \"Write the rollout runbook\", \"owner\": \"Mara\", \"due\": \"Wednesday\"}, {\"text\": \"Ping the landlord about the café lease\", \"owner\": \"Mara\", \"due\": \"this week\"}]}"
+      ],
+      "expected": {
+        "summary": "The meeting agreed the Q2 hiring budget, moved the API gateway rollout to Thursday and assigned the café lease renewal.",
+        "decisions": ["Open two roles in Q2", "Move the rollout to Thursday"],
+        "action_items": [
+          {"text": "Start recruiting", "owner": "Mara", "due": "Monday"},
+          {"text": "Write the rollout runbook", "owner": "Mara", "due": "Wednesday"},
+          {"text": "Ping the landlord about the café lease", "owner": "Mara", "due": "this week"}
+        ]
+      },
+      "calls": 4,
+      "parts": 3,
+      "merge_prompt_contains": "Part 3:"
+    },
+    {
+      "name": "a cut-off part is halved on its lines and the halves join the reduce",
+      "chunk_chars": 200,
+      "transcript": "[Gordon] We start with the hiring plan for the second quarter and the two open roles.\n[Mara] The budget for both roles is agreed and recruiting starts on Monday morning.\n[Gordon] Next the API gateway rollout, which moves from Tuesday to Thursday because of the load test.\n[Mara] I will write the rollout runbook by Wednesday and send it to ops for review.\n[Gordon] Last item, the café lease renewal; Mara pings the landlord this week.",
+      "outputs": [
+        "{\"summary\": \"Part one: hiring for Q2 with two roles and the budget agreed, recruiting from Monday, and",
+        "{\"summary\": \"Two roles open in Q2.\", \"decisions\": [\"Open two roles in Q2\"], \"action_items\": []}",
+        "{\"summary\": \"The budget is agreed; recruiting starts Monday.\", \"decisions\": [\"Open two roles in Q2.\"], \"action_items\": [{\"text\": \"Start recruiting\", \"owner\": \"Mara\", \"due\": \"Monday\"}]}",
+        "{\"summary\": \"The rollout moved to Thursday; the runbook is due Wednesday.\", \"decisions\": [\"Move the rollout to Thursday\"], \"action_items\": [{\"text\": \"Write the rollout runbook\", \"owner\": \"Mara\", \"due\": \"Wednesday\"}]}",
+        "{\"summary\": \"The café lease renewal.\", \"decisions\": [], \"action_items\": [{\"text\": \"Ping the landlord about the café lease\", \"owner\": \"Mara\", \"due\": \"this week\"}]}",
+        "{\"summary\": \"The meeting opened two Q2 roles with the budget agreed, moved the API gateway rollout to Thursday and assigned the café lease renewal.\"}"
+      ],
+      "expected": {
+        "summary": "The meeting opened two Q2 roles with the budget agreed, moved the API gateway rollout to Thursday and assigned the café lease renewal.",
+        "decisions": [
+          "Open two roles in Q2",
+          "Move the rollout to Thursday"
+        ],
+        "action_items": [
+          {
+            "text": "Start recruiting",
+            "owner": "Mara",
+            "due": "Monday"
+          },
+          {
+            "text": "Write the rollout runbook",
+            "owner": "Mara",
+            "due": "Wednesday"
+          },
+          {
+            "text": "Ping the landlord about the café lease",
+            "owner": "Mara",
+            "due": "this week"
+          }
+        ]
+      },
+      "calls": 6,
+      "parts": 4,
+      "merge_system_prompt_contains": "You combine the summaries",
+      "merge_prompt_contains": "Part 4:\nThe café lease renewal.",
+      "prompts_in_order": [
+        "[Gordon] We start with the hiring plan for the second quarter and the two open roles.\n[Mara] The budget for both roles is agreed and recruiting starts on Monday morning.",
+        "[Gordon] We start with the hiring plan for the second quarter and the two open roles.",
+        "[Mara] The budget for both roles is agreed and recruiting starts on Monday morning.",
+        "[Gordon] Next the API gateway rollout, which moves from Tuesday to Thursday because of the load test.\n[Mara] I will write the rollout runbook by Wednesday and send it to ops for review.",
+        "[Gordon] Last item, the café lease renewal; Mara pings the landlord this week."
+      ]
+    },
+    {
+      "name": "a thinking block the budget cut short is split, never repaired",
+      "transcript": "[Gordon] Next the API gateway rollout, which moves from Tuesday to Thursday because of the load test.\n[Mara] I will write the rollout runbook by Wednesday and send it to ops for review.",
+      "outputs": [
+        "__LENGTH__:<think>The rollout moved because of the load test, and the runbook",
+        "{\"summary\": \"The rollout moved to Thursday.\", \"decisions\": [\"Move the rollout to Thursday\"], \"action_items\": []}",
+        "{\"summary\": \"Mara writes the runbook by Wednesday.\", \"decisions\": [], \"action_items\": [{\"text\": \"Write the rollout runbook\", \"owner\": \"Mara\", \"due\": \"Wednesday\"}]}",
+        "{\"summary\": \"The rollout moved to Thursday and Mara writes the runbook by Wednesday.\"}"
+      ],
+      "expected": {
+        "summary": "The rollout moved to Thursday and Mara writes the runbook by Wednesday.",
+        "decisions": [
+          "Move the rollout to Thursday"
+        ],
+        "action_items": [
+          {
+            "text": "Write the rollout runbook",
+            "owner": "Mara",
+            "due": "Wednesday"
+          }
+        ]
+      },
+      "calls": 4,
+      "parts": 2,
+      "merge_system_prompt_contains": "You combine the summaries",
+      "prompts_in_order": [
+        "[Gordon] Next the API gateway rollout, which moves from Tuesday to Thursday because of the load test.\n[Mara] I will write the rollout runbook by Wednesday and send it to ops for review.",
+        "[Gordon] Next the API gateway rollout, which moves from Tuesday to Thursday because of the load test.",
+        "[Mara] I will write the rollout runbook by Wednesday and send it to ops for review."
+      ]
+    },
+    {
+      "name": "a prompt that does not fit the context is halved",
+      "transcript": "[Gordon] We start with the hiring plan for the second quarter and the two open roles.\n[Mara] The budget for both roles is agreed and recruiting starts on Monday morning.",
+      "outputs": [
+        "__TOO_LONG__",
+        "{\"summary\": \"Two roles open in Q2.\", \"decisions\": [\"Open two roles in Q2\"], \"action_items\": []}",
+        "{\"summary\": \"Recruiting starts Monday.\", \"decisions\": [], \"action_items\": [{\"text\": \"Start recruiting\", \"owner\": \"Mara\", \"due\": \"Monday\"}]}",
+        "{\"summary\": \"Two roles open in Q2 and recruiting starts Monday.\"}"
+      ],
+      "expected": {
+        "summary": "Two roles open in Q2 and recruiting starts Monday.",
+        "decisions": [
+          "Open two roles in Q2"
+        ],
+        "action_items": [
+          {
+            "text": "Start recruiting",
+            "owner": "Mara",
+            "due": "Monday"
+          }
+        ]
+      },
+      "calls": 4,
+      "parts": 2
+    },
+    {
+      "name": "a part that stays cut off after every split fails naming why",
+      "transcript": "[Gordon] word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word",
+      "outputs": [
+        "{\"summary\": \"Gordon said",
+        "{\"summary\": \"Gordon said",
+        "{\"summary\": \"Gordon said",
+        "{\"summary\": \"Gordon said",
+        "{\"summary\": \"Gordon said"
+      ],
+      "failure": "invalid_output",
+      "failure_contains": "could not be split further after 4 splits",
+      "calls": 5
+    },
+    {
+      "name": "a cut-off combined summary fails naming why",
+      "transcript": "[Gordon] We start with the hiring plan for the second quarter and the two open roles.\n[Mara] The budget for both roles is agreed and recruiting starts on Monday morning.\n[Gordon] Next the API gateway rollout, which moves from Tuesday to Thursday because of the load test.",
+      "chunk_chars": 200,
+      "outputs": [
+        "{\"summary\": \"Two roles open in Q2.\", \"decisions\": [\"Open two roles in Q2\"], \"action_items\": []}",
+        "{\"summary\": \"The rollout moved to Thursday.\", \"decisions\": [\"Move the rollout to Thursday\"], \"action_items\": []}",
+        "{\"summary\": \"Two roles open in Q2 and"
+      ],
+      "failure": "invalid_output",
+      "failure_contains": "combined summary was cut off",
+      "calls": 3
+    },
+    {
+      "name": "a merge group the context rejects is combined in smaller groups",
+      "transcript": "[Gordon] We start with the hiring plan for the second quarter, the two open roles and the budget that finance signed off last week.\n[Mara] The budget for both roles is agreed, recruiting starts on Monday morning and the agency sends the first candidates in two weeks.\n[Gordon] Next the API gateway rollout, which moves from Tuesday to Thursday because of the load test that ops still has to finish.\n[Mara] I will write the rollout runbook by Wednesday and send it to ops for review before the change board meets on Thursday.",
+      "chunk_chars": 200,
+      "outputs": [
+        "{\"summary\": \"One: two roles open in Q2.\", \"decisions\": [\"Open two roles in Q2\"], \"action_items\": []}",
+        "{\"summary\": \"Two: recruiting starts Monday.\", \"decisions\": [], \"action_items\": [{\"text\": \"Start recruiting\", \"owner\": \"Mara\", \"due\": \"Monday\"}]}",
+        "{\"summary\": \"Three: the rollout moved to Thursday.\", \"decisions\": [\"Move the rollout to Thursday\"], \"action_items\": []}",
+        "{\"summary\": \"Four: the runbook is due Wednesday.\", \"decisions\": [], \"action_items\": [{\"text\": \"Write the rollout runbook\", \"owner\": \"Mara\", \"due\": \"Wednesday\"}]}",
+        "__TOO_LONG__",
+        "{\"summary\": \"Two roles open in Q2 and recruiting starts Monday.\"}",
+        "{\"summary\": \"The rollout moved to Thursday and the runbook is due Wednesday.\"}",
+        "{\"summary\": \"Hiring starts Monday and the rollout moved to Thursday with the runbook due Wednesday.\"}"
+      ],
+      "expected": {
+        "summary": "Hiring starts Monday and the rollout moved to Thursday with the runbook due Wednesday.",
+        "decisions": ["Open two roles in Q2", "Move the rollout to Thursday"],
+        "action_items": [
+          {"text": "Start recruiting", "owner": "Mara", "due": "Monday"},
+          {"text": "Write the rollout runbook", "owner": "Mara", "due": "Wednesday"}
+        ]
+      },
+      "calls": 8,
+      "parts": 4,
+      "merge_system_prompt_contains": "You combine the summaries",
+      "prompts_in_order": [
+        "Part 1 of 4.",
+        "Part 2 of 4.",
+        "Part 3 of 4.",
+        "Part 4 of 4.",
+        "Part 1:\nOne: two roles open in Q2.\nPart 2:\nTwo: recruiting starts Monday.\nPart 3:\nThree: the rollout moved to Thursday.\nPart 4:\nFour: the runbook is due Wednesday.\n",
+        "Part 1:\nOne: two roles open in Q2.\nPart 2:\nTwo: recruiting starts Monday.\n",
+        "Part 1:\nThree: the rollout moved to Thursday.\nPart 2:\nFour: the runbook is due Wednesday.\n",
+        "Part 1:\nTwo roles open in Q2 and recruiting starts Monday.\nPart 2:\nThe rollout moved to Thursday and the runbook is due Wednesday.\n"
+      ]
+    },
+    {
+      "name": "a cut-off merge over three summaries recovers on the pair and passes the odd one through",
+      "transcript": "[Gordon] We start with the hiring plan for the second quarter, the two open roles and the budget that finance signed off last week.\n[Mara] The budget for both roles is agreed, recruiting starts on Monday morning and the agency sends the first candidates in two weeks.\n[Gordon] Next the API gateway rollout, which moves from Tuesday to Thursday because of the load test that ops still has to finish.",
+      "chunk_chars": 200,
+      "outputs": [
+        "{\"summary\": \"One: two roles open in Q2.\", \"decisions\": [\"Open two roles in Q2\"], \"action_items\": []}",
+        "{\"summary\": \"Two: recruiting starts Monday.\", \"decisions\": [], \"action_items\": [{\"text\": \"Start recruiting\", \"owner\": \"Mara\", \"due\": \"Monday\"}]}",
+        "{\"summary\": \"Three: the rollout moved to Thursday.\", \"decisions\": [\"Move the rollout to Thursday\"], \"action_items\": []}",
+        "__LENGTH__:{\"summary\": \"Two roles open in Q2, recruiting starts Monday and",
+        "{\"summary\": \"Recruiting starts Monday and the rollout moved to Thursday.\"}",
+        "{\"summary\": \"Two roles open in Q2, recruiting starts Monday and the rollout moved to Thursday.\"}"
+      ],
+      "expected": {
+        "summary": "Two roles open in Q2, recruiting starts Monday and the rollout moved to Thursday.",
+        "decisions": ["Open two roles in Q2", "Move the rollout to Thursday"],
+        "action_items": [{"text": "Start recruiting", "owner": "Mara", "due": "Monday"}]
+      },
+      "calls": 6,
+      "parts": 3,
+      "prompts_in_order": [
+        "Part 1 of 3.",
+        "Part 2 of 3.",
+        "Part 3 of 3.",
+        "Part 3:\nThree: the rollout moved to Thursday.\n",
+        "Part 1:\nTwo: recruiting starts Monday.\nPart 2:\nThree: the rollout moved to Thursday.\n",
+        "Part 1:\nOne: two roles open in Q2.\nPart 2:\nRecruiting starts Monday and the rollout moved to Thursday.\n"
+      ]
+    },
+    {
+      "name": "a pair that still cannot be combined after the split fails naming why",
+      "transcript": "[Gordon] We start with the hiring plan for the second quarter, the two open roles and the budget that finance signed off last week.\n[Mara] The budget for both roles is agreed, recruiting starts on Monday morning and the agency sends the first candidates in two weeks.\n[Gordon] Next the API gateway rollout, which moves from Tuesday to Thursday because of the load test that ops still has to finish.\n[Mara] I will write the rollout runbook by Wednesday and send it to ops for review before the change board meets on Thursday.",
+      "chunk_chars": 200,
+      "outputs": [
+        "{\"summary\": \"One: two roles open in Q2.\", \"decisions\": [\"Open two roles in Q2\"], \"action_items\": []}",
+        "{\"summary\": \"Two: recruiting starts Monday.\", \"decisions\": [], \"action_items\": [{\"text\": \"Start recruiting\", \"owner\": \"Mara\", \"due\": \"Monday\"}]}",
+        "{\"summary\": \"Three: the rollout moved to Thursday.\", \"decisions\": [\"Move the rollout to Thursday\"], \"action_items\": []}",
+        "{\"summary\": \"Four: the runbook is due Wednesday.\", \"decisions\": [], \"action_items\": [{\"text\": \"Write the rollout runbook\", \"owner\": \"Mara\", \"due\": \"Wednesday\"}]}",
+        "__TOO_LONG__",
+        "{\"summary\": \"Two roles open in Q2 and"
+      ],
+      "failure": "invalid_output",
+      "failure_contains": "two summaries could not be combined",
+      "calls": 6
+    }
+  ]
+}

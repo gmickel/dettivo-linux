@@ -1,0 +1,25 @@
+{
+  "capabilities": {
+    "auth.ipc_mode": "peer"
+  },
+  "error": {
+    "error": {
+      "code": -32011,
+      "data": {
+        "app_code": "UNAUTHORIZED_CLIENT",
+        "details": {},
+        "retryable": false
+      },
+      "message": "Unauthorized client"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "system.ping",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "system.ping",
+    "params": {}
+  }
+}

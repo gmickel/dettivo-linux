@@ -1,0 +1,48 @@
+{
+  "description": "Export transcript via transfer pipeline to a file.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "format": {
+        "enum": [
+          "txt",
+          "md",
+          "json",
+          "srt",
+          "vtt"
+        ],
+        "type": "string"
+      },
+      "out_path": {
+        "type": "string"
+      },
+      "ref": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "dictation",
+              "meeting"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "type": "object"
+      }
+    },
+    "required": [
+      "ref",
+      "format"
+    ],
+    "type": "object"
+  },
+  "name": "export_transcript",
+  "title": "Export Transcript"
+}

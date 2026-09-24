@@ -1,0 +1,912 @@
+{
+  "schema_version": 1,
+  "generated_unix": 1789372341,
+  "date": "2026-09-14",
+  "git_sha": "19613bb5be85decc2d005b26921cb5cf938eb60b",
+  "quick": false,
+  "iterations": 10,
+  "tier": "cpu",
+  "tier_reason": "DETTIVO_FORCE_CPU=1 forces the CPU tier",
+  "forced_cpu": true,
+  "notes": [
+    "the insert leg of first_insert runs through the mock inserter; the dictation pack's first_insert_timing measures the real chain",
+    "the CPU run is --cpu on the GPU desktop until a CPU-only VM exists (S-16 boundary)"
+  ],
+  "host": {
+    "hostname": "thor",
+    "cpu": "AMD Ryzen 9 7950X3D 16-Core Processor",
+    "memory_bytes": 66570436608,
+    "kernel": "7.2.3-arch1-3",
+    "gpu": {
+      "name": "NVIDIA GeForce RTX 4090",
+      "driver": "NVIDIA",
+      "driver_info": "610.57.04",
+      "kind": "discrete"
+    },
+    "gpu_reason": null
+  },
+  "load_average": {
+    "start": [
+      8.08,
+      7.72,
+      7.69
+    ],
+    "end": [
+      3.7,
+      5.99,
+      7.16
+    ]
+  },
+  "engines": [
+    {
+      "binary": "dettivo-engine-whisper",
+      "path": "target/release/dettivo-engine-whisper"
+    },
+    {
+      "binary": "dettivo-engine-parakeet",
+      "path": "target/release/dettivo-engine-parakeet"
+    },
+    {
+      "binary": "dettivo-engine-llm",
+      "path": "target/release/dettivo-engine-llm"
+    }
+  ],
+  "models": [
+    {
+      "provider": "whisper",
+      "id": "large-v3-turbo",
+      "path": "/home/gordon/.local/share/dettivo/models/whisper/large-v3-turbo/ggml-large-v3-turbo.bin",
+      "sha256": "317eb69c11673c9de1e1f0d459b253999804ec71ac4c23c17ecf5fbe24e259a1"
+    },
+    {
+      "provider": "parakeet",
+      "id": "parakeet-v3",
+      "path": "/home/gordon/.local/share/dettivo/models/parakeet/parakeet-v3/tdt-0.6b-v3-q8_0.gguf",
+      "sha256": "4d69a4a6683f4f2d952bad794c1357ca6eb628027695b4699c5a9ad4cd07d757"
+    },
+    {
+      "provider": "llm",
+      "id": "qwen3-4b-instruct-2507",
+      "path": "/home/gordon/.local/share/dettivo/models/llm/qwen3-4b-instruct-2507/Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+      "sha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597"
+    }
+  ],
+  "fixtures": [
+    {
+      "name": "jfk.wav",
+      "path": "/home/gordon/.local/share/dettivo/models/fixtures/jfk.wav",
+      "sha256": "59dfb9a4acb36fe2a2affc14bacbee2920ff435cb13cc314a08c13f66ba7860e",
+      "bytes": 352078
+    },
+    {
+      "name": "long.wav",
+      "path": "qa-evidence/run-1789372341-2001422/bench/long.wav",
+      "sha256": "089b2e3c57963d986f894df4dadb17a2bd67a08996ce9fe1980ef4505d62d21f",
+      "bytes": 9856044
+    },
+    {
+      "name": "polish-goldens",
+      "path": "/home/gordon/work/dettivo-linux-wt/final-candidate/crates/dettivo-language/tests/goldens/polish_fallback.json",
+      "sha256": "634d1aaea646af9424c78239765d783a81131044286929b58d0e8a1db4fbd309",
+      "bytes": 5839
+    }
+  ],
+  "steps": [
+    {
+      "name": "first_insert",
+      "status": "measured",
+      "reason": null,
+      "comparison": {
+        "nfr": "NFR-2",
+        "metric": "first_insert_p50",
+        "unit": "ms",
+        "target": 1500.0,
+        "initial": 2500.0,
+        "direction": "at_most",
+        "value": 356.0,
+        "met": true
+      },
+      "results": [
+        {
+          "backend": "cpu",
+          "cold_ms": 6077,
+          "failures": [],
+          "figure": 6059.0,
+          "insert_leg": "mock",
+          "met": false,
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "qualified": true,
+          "reason": "DETTIVO_FORCE_CPU=1",
+          "runs": [
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": true,
+              "insert_ms": 0,
+              "job_id": "job_dict_1",
+              "outcome": "inserted",
+              "total_ms": 6077,
+              "transcribe_ms": 6036
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_2",
+              "outcome": "inserted",
+              "total_ms": 6076,
+              "transcribe_ms": 6035
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_3",
+              "outcome": "inserted",
+              "total_ms": 6043,
+              "transcribe_ms": 6002
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_4",
+              "outcome": "inserted",
+              "total_ms": 6214,
+              "transcribe_ms": 6174
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_5",
+              "outcome": "inserted",
+              "total_ms": 6059,
+              "transcribe_ms": 6019
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_6",
+              "outcome": "inserted",
+              "total_ms": 6232,
+              "transcribe_ms": 6192
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_7",
+              "outcome": "inserted",
+              "total_ms": 6076,
+              "transcribe_ms": 6036
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_8",
+              "outcome": "inserted",
+              "total_ms": 6013,
+              "transcribe_ms": 5973
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_9",
+              "outcome": "inserted",
+              "total_ms": 6273,
+              "transcribe_ms": 6232
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_10",
+              "outcome": "inserted",
+              "total_ms": 6047,
+              "transcribe_ms": 6007
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_11",
+              "outcome": "inserted",
+              "total_ms": 5974,
+              "transcribe_ms": 5934
+            }
+          ],
+          "split_p50": {
+            "capture_ms": 20,
+            "insert_ms": 0,
+            "transcribe_ms": 6019
+          },
+          "warm": {
+            "iterations": 10,
+            "max": 6273,
+            "min": 5974,
+            "p50": 6059,
+            "p95": 6273,
+            "samples": [
+              6076,
+              6043,
+              6214,
+              6059,
+              6232,
+              6076,
+              6013,
+              6273,
+              6047,
+              5974
+            ]
+          },
+          "warm_completed": 10,
+          "warm_required": 10
+        },
+        {
+          "backend": "cpu",
+          "cold_ms": 381,
+          "failures": [],
+          "figure": 356.0,
+          "insert_leg": "mock",
+          "met": true,
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "qualified": true,
+          "reason": "DETTIVO_FORCE_CPU=1",
+          "runs": [
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": true,
+              "insert_ms": 0,
+              "job_id": "job_dict_1",
+              "outcome": "inserted",
+              "total_ms": 381,
+              "transcribe_ms": 341
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_2",
+              "outcome": "inserted",
+              "total_ms": 360,
+              "transcribe_ms": 319
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_3",
+              "outcome": "inserted",
+              "total_ms": 360,
+              "transcribe_ms": 320
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_4",
+              "outcome": "inserted",
+              "total_ms": 350,
+              "transcribe_ms": 309
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_5",
+              "outcome": "inserted",
+              "total_ms": 350,
+              "transcribe_ms": 310
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_6",
+              "outcome": "inserted",
+              "total_ms": 357,
+              "transcribe_ms": 316
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_7",
+              "outcome": "inserted",
+              "total_ms": 349,
+              "transcribe_ms": 308
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_8",
+              "outcome": "inserted",
+              "total_ms": 350,
+              "transcribe_ms": 309
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_9",
+              "outcome": "inserted",
+              "total_ms": 356,
+              "transcribe_ms": 315
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_10",
+              "outcome": "inserted",
+              "total_ms": 364,
+              "transcribe_ms": 323
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_11",
+              "outcome": "inserted",
+              "total_ms": 358,
+              "transcribe_ms": 318
+            }
+          ],
+          "split_p50": {
+            "capture_ms": 20,
+            "insert_ms": 0,
+            "transcribe_ms": 315
+          },
+          "warm": {
+            "iterations": 10,
+            "max": 364,
+            "min": 349,
+            "p50": 356,
+            "p95": 364,
+            "samples": [
+              360,
+              360,
+              350,
+              350,
+              357,
+              349,
+              350,
+              356,
+              364,
+              358
+            ]
+          },
+          "warm_completed": 10,
+          "warm_required": 10
+        }
+      ],
+      "duration_ms": 291646
+    },
+    {
+      "name": "stt_throughput",
+      "status": "measured",
+      "reason": null,
+      "comparison": {
+        "nfr": "NFR-5",
+        "metric": "stt_realtime_factor",
+        "unit": "x realtime",
+        "target": 5.0,
+        "initial": 2.0,
+        "direction": "at_least",
+        "value": 23.99,
+        "met": true
+      },
+      "results": [
+        {
+          "audio_ms": 308000,
+          "backend": "cpu",
+          "clip_wall_ms": 12170,
+          "figure": 2.39,
+          "iterations": 1,
+          "met": false,
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "realtime_factor": 2.39,
+          "reason": "backend=Cpu reason=DETTIVO_FORCE_CPU=1",
+          "wall_ms": 128782
+        },
+        {
+          "audio_ms": 308000,
+          "backend": "cpu",
+          "clip_wall_ms": 735,
+          "figure": 23.99,
+          "iterations": 1,
+          "met": true,
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "realtime_factor": 23.99,
+          "reason": "backend=Cpu reason=DETTIVO_FORCE_CPU=1 model_name=\"nvidia/parakeet-tdt-0.6b-v3\"",
+          "wall_ms": 12839
+        }
+      ],
+      "duration_ms": 154686
+    },
+    {
+      "name": "llm_rewrite",
+      "status": "measured",
+      "reason": "recorded; no NFR names a rewrite budget beyond [llm] timeout_ms",
+      "comparison": null,
+      "results": [
+        {
+          "backend": "cpu",
+          "latency": {
+            "iterations": 18,
+            "max": 5827,
+            "min": 804,
+            "p50": 1588,
+            "p95": 5827,
+            "samples": [
+              804,
+              1238,
+              3199,
+              826,
+              2139,
+              5827,
+              1476,
+              1833,
+              1478,
+              811,
+              1588,
+              3146,
+              1495,
+              1683,
+              2061,
+              1466,
+              1675,
+              1805
+            ]
+          },
+          "load_ms": 800,
+          "model": "qwen3-4b-instruct-2507",
+          "provider": "llm",
+          "rewrites": [
+            {
+              "case": "applies_basic_rewrite_for_command_like_input",
+              "finish_reason": "stop",
+              "tokens": 0,
+              "tokens_per_second": null,
+              "wall_ms": 804
+            },
+            {
+              "case": "removes_common_fillers_when_enabled",
+              "finish_reason": "stop",
+              "tokens": 6,
+              "tokens_per_second": 13.7,
+              "wall_ms": 1238
+            },
+            {
+              "case": "leaves_sentence_punctuation_untouched_when_smart_punctuation_disabled",
+              "finish_reason": "stop",
+              "tokens": 33,
+              "tokens_per_second": 13.8,
+              "wall_ms": 3199
+            },
+            {
+              "case": "applies_post_processors_when_provided",
+              "finish_reason": "stop",
+              "tokens": 0,
+              "tokens_per_second": null,
+              "wall_ms": 826
+            },
+            {
+              "case": "applies_common_grammar_fixes_when_enabled",
+              "finish_reason": "stop",
+              "tokens": 18,
+              "tokens_per_second": 13.4,
+              "wall_ms": 2139
+            },
+            {
+              "case": "uses_question_mark_for_question_like_input",
+              "finish_reason": "stop",
+              "tokens": 68,
+              "tokens_per_second": 13.5,
+              "wall_ms": 5827
+            },
+            {
+              "case": "uses_question_mark_for_conversational_question_lead",
+              "finish_reason": "stop",
+              "tokens": 9,
+              "tokens_per_second": 13.3,
+              "wall_ms": 1476
+            },
+            {
+              "case": "uses_question_mark_for_german_question_lead",
+              "finish_reason": "stop",
+              "tokens": 14,
+              "tokens_per_second": 13.6,
+              "wall_ms": 1833
+            },
+            {
+              "case": "uses_question_mark_for_arabic_question_lead",
+              "finish_reason": "stop",
+              "tokens": 9,
+              "tokens_per_second": 13.3,
+              "wall_ms": 1478
+            },
+            {
+              "case": "uses_question_mark_for_japanese_question_suffix",
+              "finish_reason": "stop",
+              "tokens": 0,
+              "tokens_per_second": null,
+              "wall_ms": 811
+            },
+            {
+              "case": "eval_english_cleanup",
+              "finish_reason": "stop",
+              "tokens": 11,
+              "tokens_per_second": 14.0,
+              "wall_ms": 1588
+            },
+            {
+              "case": "eval_code_command",
+              "finish_reason": "stop",
+              "tokens": 32,
+              "tokens_per_second": 13.6,
+              "wall_ms": 3146
+            },
+            {
+              "case": "eval_chat_question",
+              "finish_reason": "stop",
+              "tokens": 9,
+              "tokens_per_second": 12.9,
+              "wall_ms": 1495
+            },
+            {
+              "case": "eval_spanish_cleanup",
+              "finish_reason": "stop",
+              "tokens": 12,
+              "tokens_per_second": 13.6,
+              "wall_ms": 1683
+            },
+            {
+              "case": "eval_german_question",
+              "finish_reason": "stop",
+              "tokens": 17,
+              "tokens_per_second": 13.5,
+              "wall_ms": 2061
+            },
+            {
+              "case": "eval_arabic_question",
+              "finish_reason": "stop",
+              "tokens": 9,
+              "tokens_per_second": 13.5,
+              "wall_ms": 1466
+            },
+            {
+              "case": "eval_mixed_language",
+              "finish_reason": "stop",
+              "tokens": 12,
+              "tokens_per_second": 13.7,
+              "wall_ms": 1675
+            },
+            {
+              "case": "eval_mention_path_preserved",
+              "finish_reason": "stop",
+              "tokens": 13,
+              "tokens_per_second": 12.9,
+              "wall_ms": 1805
+            }
+          ],
+          "system_prompt_sha256": "6c14d0bb449bf5e12000a0cd9afb3ae57b996cf5f0d7712a8e15a331cdf7a76c",
+          "tokens_per_second_p50": 13.5
+        }
+      ],
+      "duration_ms": 36174
+    },
+    {
+      "name": "idle_footprint",
+      "status": "measured",
+      "reason": null,
+      "comparison": {
+        "nfr": "NFR-6",
+        "metric": "daemon_idle_rss",
+        "unit": "bytes",
+        "target": 62914560.0,
+        "initial": 62914560.0,
+        "direction": "at_most",
+        "value": 25366528.0,
+        "met": true
+      },
+      "results": [
+        {
+          "engines": [
+            {
+              "backend": "cpu",
+              "binary": "dettivo-engine-whisper",
+              "loaded_memory_bytes": 989257728,
+              "unloaded": true,
+              "unloaded_after_ms": 6001
+            },
+            {
+              "backend": "cpu",
+              "binary": "dettivo-engine-llm",
+              "loaded_memory_bytes": 2779316224,
+              "unloaded": true,
+              "unloaded_after_ms": 36007
+            }
+          ],
+          "idle_seconds": 10,
+          "idled_ms": 300000,
+          "llm_model": "qwen3-4b-instruct-2507",
+          "llm_probe": "polish.test answered with model \"qwen3-4b-instruct-2507\"",
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "rss": {
+            "iterations": 27,
+            "max": 25366528,
+            "min": 25337856,
+            "p50": 25354240,
+            "p95": 25366528,
+            "samples": [
+              25337856,
+              25337856,
+              25341952,
+              25341952,
+              25341952,
+              25346048,
+              25346048,
+              25346048,
+              25350144,
+              25350144,
+              25350144,
+              25354240,
+              25354240,
+              25354240,
+              25354240,
+              25354240,
+              25354240,
+              25358336,
+              25358336,
+              25358336,
+              25362432,
+              25362432,
+              25362432,
+              25366528,
+              25366528,
+              25366528,
+              25366528
+            ]
+          },
+          "rss_idle_bytes": 25366528,
+          "rss_loaded_bytes": 25333760,
+          "still_alive": []
+        }
+      ],
+      "duration_ms": 324386
+    },
+    {
+      "name": "startup",
+      "status": "measured",
+      "reason": null,
+      "comparison": {
+        "nfr": "NFR-8",
+        "metric": "socket_ready_p50",
+        "unit": "ms",
+        "target": 300.0,
+        "initial": 300.0,
+        "direction": "at_most",
+        "value": 282.0,
+        "met": true
+      },
+      "results": [
+        {
+          "app_first_frame_met": true,
+          "app_first_frame_ms": 262,
+          "app_reason": null,
+          "app_rss_kb_after_5s": 235968,
+          "socket_ready": {
+            "iterations": 10,
+            "max": 302,
+            "min": 282,
+            "p50": 282,
+            "p95": 302,
+            "samples": [
+              282,
+              283,
+              282,
+              283,
+              282,
+              283,
+              302,
+              302,
+              282,
+              282
+            ]
+          }
+        }
+      ],
+      "duration_ms": 21761
+    }
+  ],
+  "targets": [
+    {
+      "nfr": "NFR-1",
+      "metric": "first_insert_p50",
+      "unit": "ms",
+      "direction": "at_most",
+      "initial": 1000.0,
+      "calibrated": 1000.0
+    },
+    {
+      "nfr": "NFR-2",
+      "metric": "first_insert_p50",
+      "unit": "ms",
+      "direction": "at_most",
+      "initial": 2500.0,
+      "calibrated": 1500.0
+    },
+    {
+      "nfr": "NFR-4",
+      "metric": "stt_realtime_factor",
+      "unit": "x realtime",
+      "direction": "at_least",
+      "initial": 10.0,
+      "calibrated": 20.0
+    },
+    {
+      "nfr": "NFR-4",
+      "metric": "diarization_realtime_factor",
+      "unit": "x realtime",
+      "direction": "at_least",
+      "initial": 4.0,
+      "calibrated": 4.0
+    },
+    {
+      "nfr": "NFR-5",
+      "metric": "stt_realtime_factor",
+      "unit": "x realtime",
+      "direction": "at_least",
+      "initial": 2.0,
+      "calibrated": 5.0
+    },
+    {
+      "nfr": "NFR-6",
+      "metric": "daemon_idle_rss",
+      "unit": "bytes",
+      "direction": "at_most",
+      "initial": 62914560.0,
+      "calibrated": 62914560.0
+    },
+    {
+      "nfr": "NFR-8",
+      "metric": "socket_ready_p50",
+      "unit": "ms",
+      "direction": "at_most",
+      "initial": 300.0,
+      "calibrated": 300.0
+    },
+    {
+      "nfr": "NFR-8",
+      "metric": "app_first_frame",
+      "unit": "ms",
+      "direction": "at_most",
+      "initial": 300.0,
+      "calibrated": 300.0
+    }
+  ],
+  "meetings": {
+    "recorded_unix": 1789373425,
+    "date": "2026-09-14",
+    "git_sha": "19613bb5be85decc2d005b26921cb5cf938eb60b",
+    "pack_run_dir": "qa-evidence/run-1789373425-4042631/pack-meetings",
+    "pack_passed": true,
+    "forced_cpu": true,
+    "engine": "whisper",
+    "model": "base.en",
+    "backend": "cpu",
+    "audio_ms": 311701,
+    "wall_ms": 8809,
+    "fixture_sha256": "e94eada9bc47b163450d42dc71e58ca1aa3d27bb77077166bd94867705b003e3",
+    "meeting": {
+      "nfr": "NFR-5",
+      "metric": "stt_realtime_factor",
+      "unit": "x realtime",
+      "target": 5.0,
+      "initial": 2.0,
+      "direction": "at_least",
+      "value": 35.38,
+      "met": true
+    },
+    "diarization": {
+      "nfr": "NFR-4",
+      "metric": "diarization_realtime_factor",
+      "unit": "x realtime",
+      "target": 4.0,
+      "initial": 4.0,
+      "direction": "at_least",
+      "value": 16.11,
+      "met": true
+    },
+    "gpu_workload_proof": "skip: the run was on the cpu tier (--cpu): no GPU work expected; diarization used CPU: no CUDA proof expected",
+    "harness_cpu_pct": 2.4,
+    "harness_warning": null,
+    "token_coverage": {
+      "capture": "rig",
+      "diarization_status": "ready",
+      "expected": 8,
+      "found": 8,
+      "md_names_found": true,
+      "meeting_id": "7f222595-966d-415c-8aeb-a414352619d4",
+      "missing": [],
+      "speakers": [
+        "you -> Alice",
+        "speaker_00 -> Ben"
+      ],
+      "tokens": [
+        {
+          "found": true,
+          "source": "microphone",
+          "token": "alice"
+        },
+        {
+          "found": true,
+          "source": "microphone",
+          "token": "launch"
+        },
+        {
+          "found": true,
+          "source": "microphone",
+          "token": "checklist"
+        },
+        {
+          "found": true,
+          "source": "system",
+          "token": "ben"
+        },
+        {
+          "found": true,
+          "source": "system",
+          "token": "pricing"
+        },
+        {
+          "found": true,
+          "source": "system",
+          "token": "decision"
+        },
+        {
+          "found": true,
+          "source": "system",
+          "token": "ship"
+        },
+        {
+          "found": true,
+          "source": "system",
+          "token": "friday"
+        }
+      ]
+    }
+  }
+}

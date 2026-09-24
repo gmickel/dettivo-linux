@@ -1,0 +1,30 @@
+{
+  "capabilities": {},
+  "method": "meetings.search",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.search",
+    "params": {
+      "limit": 10,
+      "query": "follow up"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "items": [
+        {
+          "matched_field": "notes",
+          "ref": {
+            "id": "5eed0000-0000-4000-8000-00000000a001",
+            "kind": "meeting"
+          },
+          "score": null,
+          "snippet": "# Roadmap review\n\n- Budget for Q2 agreed\n- Mara owns the runbook\n- Follow up…"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T21:33:43.649093Z",
+  "depends_on": [],
+  "id": "fn-27-gpu-tiers-the-doctor-report-and-the.1",
+  "priority": null,
+  "spec": "fn-27-gpu-tiers-the-doctor-report-and-the",
+  "spec_path": ".flow/tasks/fn-27-gpu-tiers-the-doctor-report-and-the.1.md",
+  "status": "todo",
+  "title": "Implement fn-27: tier detection, the FR-D5 doctor snapshot, dettivo-qa bench with its report, the calibration ADR",
+  "updated_at": "2026-09-04T21:33:43.649093Z"
+}

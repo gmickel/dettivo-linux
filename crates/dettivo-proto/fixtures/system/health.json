@@ -1,0 +1,20 @@
+{
+  "capabilities": {},
+  "method": "system.health",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "system.health",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "active_jobs": 0,
+      "ok": true,
+      "recording_state": "idle",
+      "uptime_seconds": 123
+    }
+  }
+}

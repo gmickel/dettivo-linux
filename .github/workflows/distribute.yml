@@ -1,0 +1,124 @@
+# Distribution (ADR 0064): a published release reaches the AUR and the
+# Omarchy plugin mirror with no hand step. The release workflow calls this
+# after its publish job has verified the uploaded tarball; a manual
+# dispatch re-runs it for a release that already exists, for instance the
+# first one or one whose distribution failed.
+#
+# Secrets: AUR_SSH_PRIVATE_KEY is a key registered with the AUR account
+# that maintains dettivo and dettivo-bin; OMARCHY_MIRROR_DEPLOY_KEY is a
+# write deploy key on gmickel/omarchy-dettivo. A missing secret fails its
+# job by name.
+
+name: distribute
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+    secrets:
+      AUR_SSH_PRIVATE_KEY:
+        required: false
+      OMARCHY_MIRROR_DEPLOY_KEY:
+        required: false
+  workflow_dispatch:
+    inputs:
+      version:
+        description: A published release, without the v (for example 0.1.0)
+        required: true
+        type: string
+
+concurrency:
+  group: distribute
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  aur:
+    name: aur
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      # git comes first: without it checkout falls back to a tarball with
+      # no history, and the tag's recipes could not be read.
+      - run: pacman -Syu --noconfirm --needed git openssh pacman-contrib
+      # The script runs from this workflow's revision, so a fix to it
+      # reaches releases tagged before the fix; the recipes come from the
+      # tag, so the AUR gets what that release shipped.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git checkout "v${VERSION}" -- packaging/aur/dettivo packaging/aur/dettivo-bin
+        env:
+          VERSION: ${{ inputs.version }}
+      # makepkg refuses root, so the recipes are pinned and pushed by an
+      # unprivileged user holding the key. The host key is pinned to the
+      # fingerprint the AUR publishes (SHA256:RFzBCUItH9LZS0cKB5UE6ceAYhBD5C8GeOBip8Z11+4).
+      - run: |
+          set -euo pipefail
+          if [ -z "${AUR_SSH_PRIVATE_KEY}" ]; then
+            echo "::error::AUR_SSH_PRIVATE_KEY is not set; see docs/RELEASING.md"
+            exit 1
+          fi
+          useradd -m builder
+          chown -R builder "$GITHUB_WORKSPACE"
+          install -d -m 700 -o builder -g builder /home/builder/.ssh
+          printf '%s\n' "$AUR_SSH_PRIVATE_KEY" | install -m 600 -o builder -g builder /dev/stdin /home/builder/.ssh/aur
+          echo 'aur.archlinux.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEuBKrPzbawxA/k2g6NcyV5jmqwJ2s+zpgZGZ7tpLIcN' |
+            install -m 644 -o builder -g builder /dev/stdin /home/builder/.ssh/known_hosts
+          printf 'Host aur.archlinux.org\n  User aur\n  IdentityFile ~/.ssh/aur\n  IdentitiesOnly yes\n' |
+            install -m 600 -o builder -g builder /dev/stdin /home/builder/.ssh/config
+          su builder -c 'git config --global user.name "Gordon Mickel" && git config --global user.email gordon@mickel.tech'
+          su builder -c "cd '$GITHUB_WORKSPACE' && DETTIVO_AUR_PUBLISH=1 packaging/aur/publish.sh '${VERSION}'"
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          VERSION: ${{ inputs.version }}
+
+  plugin-mirror:
+    name: plugin mirror
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: v${{ inputs.version }}
+      # The mirror's root equals omarchy/ at the tag byte for byte; each
+      # release is one commit and one tag there, so `omarchy plugin add`
+      # and Omarchy's plugin update see the released folder.
+      - run: |
+          set -euo pipefail
+          if [ -z "${DEPLOY_KEY}" ]; then
+            echo "::error::OMARCHY_MIRROR_DEPLOY_KEY is not set; see docs/RELEASING.md"
+            exit 1
+          fi
+          key="$RUNNER_TEMP/mirror-key"
+          printf '%s\n' "$DEPLOY_KEY" >"$key"
+          chmod 600 "$key"
+          export GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes"
+          mkdir -p ~/.ssh
+          echo 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl' >>~/.ssh/known_hosts
+          git clone git@github.com:gmickel/omarchy-dettivo.git "$RUNNER_TEMP/mirror"
+          scripts/omarchy/export-plugin.sh "$RUNNER_TEMP/mirror"
+          cd "$RUNNER_TEMP/mirror"
+          git config user.name "Gordon Mickel"
+          git config user.email gordon@mickel.tech
+          git add -A
+          if git diff --cached --quiet; then
+            echo "mirror: omarchy/ unchanged since the last release"
+          else
+            git commit -q -m "Release v${VERSION}"
+          fi
+          git tag -f "v${VERSION}"
+          git push -q origin HEAD:main
+          git push -q -f origin "v${VERSION}"
+          echo "mirror: gmickel/omarchy-dettivo at v${VERSION}"
+        env:
+          DEPLOY_KEY: ${{ secrets.OMARCHY_MIRROR_DEPLOY_KEY }}
+          VERSION: ${{ inputs.version }}

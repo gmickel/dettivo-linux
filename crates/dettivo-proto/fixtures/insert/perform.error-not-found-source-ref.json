@@ -1,0 +1,37 @@
+{
+  "capabilities": {
+    "insert.methods": [
+      "insert.undo",
+      "insert.target",
+      "insert.allow_self_target"
+    ]
+  },
+  "error": {
+    "error": {
+      "code": -32012,
+      "data": {
+        "app_code": "NOT_FOUND",
+        "details": {
+          "kind": "dictation"
+        },
+        "retryable": false
+      },
+      "message": "Transcript not found"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "insert.perform",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "insert.perform",
+    "params": {
+      "mode": "raw",
+      "source_ref": {
+        "id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "kind": "dictation"
+      }
+    }
+  }
+}

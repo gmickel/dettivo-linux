@@ -1,0 +1,74 @@
+{
+  "branch": "fn-38-beauty-pass-every-surface-against-the",
+  "coverage_note": "All eight spec requirements have evidence. Existing Gordon approval and native/Xvfb keyboard proof are retained. The combined final build/test/lint gate passes 1012 Rust and 79 Qt tests; package and prefix-install checks pass. This spec QA receipt does not replace the merged-code release gate or Copilot policy. The follow-up meetings pack passes 14 required steps; GPU inference attribution remains an external skip.",
+  "evidence_root": "/home/gordon/work/dettivo-linux-wt/fn-38/.flow/tmp/qa-fn-38-beauty-pass-every-surface-against-the",
+  "head_sha": "3155f82db0b6a579ce8068caef079cbe86320c75",
+  "id": "fn-38-beauty-pass-every-surface-against-the",
+  "mode": "interactive",
+  "open_p0p1": [],
+  "qa_outcome": "SHIP",
+  "report": "docs/reports/qa/2026-09-13-visual-approval.md",
+  "rid_coverage": {
+    "covered": 8,
+    "rids": [
+      {
+        "coverage": "backend_cli",
+        "id": "R1",
+        "observation": "Verified under approved visual contract"
+      },
+      {
+        "coverage": "live",
+        "id": "R2",
+        "observation": "Verified under approved visual contract"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R3",
+        "observation": "Verified under approved visual contract"
+      },
+      {
+        "coverage": "live",
+        "id": "R4",
+        "observation": "Native AT-SPI and CUA each pass all 15 routes, 15 exact reverse-Tab checks and all 4 conventions; both complete Xvfb drivers also pass."
+      },
+      {
+        "coverage": "live",
+        "id": "R5",
+        "observation": "Verified under approved visual contract"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R6",
+        "observation": "Gordon approval recorded for exact package"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R7",
+        "observation": "Verified under approved visual contract"
+      },
+      {
+        "id": "R8",
+        "coverage": "live",
+        "observation": "Release package passes real namcap and all 19 prefix-install rows, including installed Home rendering, Vulkan backend and CPU fallback. Fresh seeded meetings drives pass AT-SPI and CUA after waiting for export dismissal."
+      }
+    ],
+    "total": 8
+  },
+  "tested_code_commit": "b8d4193b3fde75191f8bd1671f9d018a191cb602",
+  "timestamp": "2026-09-13T23:26:44.863277+00:00",
+  "type": "qa_verdict",
+  "verdict": "SHIP",
+  "verification_reports": [
+    "docs/reports/qa/2026-09-13-visual-approval.md",
+    "/tmp/fn38-native-atspi-verified.json",
+    "/tmp/fn38-native-cua-verified.json",
+    "/tmp/dettivo-final-complete-gate.json",
+    "/home/gordon/work/dettivo-linux/qa-evidence/final-review-20260913T125300Z/visual/visual-report.json",
+    "/tmp/dettivo-rename-diagnosis/gate.log",
+    "/tmp/dettivo-packaging-repair-install.json",
+    "/tmp/dettivo-packaging-repair-home.png",
+    "docs/reports/qa/2026-09-14-meeting-soak.json",
+    "/tmp/dettivo-meetings-release-followup-runtime/run-1789341753-3059732/pack-meetings/meetings-pack.json"
+  ],
+  "combined_tested_code_commit": "0e79924f837a02eb9ed3c64212336c7180813d15"
+}

@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/dictation/status"
+  },
+  "expect": {
+    "status": 200,
+    "content_type": "application/json",
+    "body_keys": [
+      "is_active"
+    ]
+  }
+}

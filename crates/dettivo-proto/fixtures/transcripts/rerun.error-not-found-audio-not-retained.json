@@ -1,0 +1,38 @@
+{
+  "capabilities": {
+    "history.methods": [
+      "transcripts.delete",
+      "transcripts.rerun",
+      "transcripts.stats",
+      "transcripts.cancel"
+    ]
+  },
+  "error": {
+    "error": {
+      "code": -32012,
+      "data": {
+        "app_code": "NOT_FOUND",
+        "details": {
+          "reason": "audio_not_retained"
+        },
+        "retryable": false
+      },
+      "message": "dictation 7c9e6679-7425-40de-944b-e07fc1f90ae7 has no retained audio"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "transcripts.rerun",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transcripts.rerun",
+    "params": {
+      "model": "tiny.en",
+      "ref": {
+        "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+        "kind": "dictation"
+      }
+    }
+  }
+}

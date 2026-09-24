@@ -1,0 +1,907 @@
+{
+  "schema_version": 1,
+  "generated_unix": 1789371410,
+  "date": "2026-09-14",
+  "git_sha": "dfe92a02fc8e979e51c60a89b33517e18c34ed82",
+  "quick": false,
+  "iterations": 10,
+  "tier": "gpu",
+  "tier_reason": "a Vulkan device is installed and dettivo-engine-whisper runs on it",
+  "forced_cpu": false,
+  "notes": [
+    "the insert leg of first_insert runs through the mock inserter; the dictation pack's first_insert_timing measures the real chain"
+  ],
+  "host": {
+    "hostname": "thor",
+    "cpu": "AMD Ryzen 9 7950X3D 16-Core Processor",
+    "memory_bytes": 66570436608,
+    "kernel": "7.2.3-arch1-3",
+    "gpu": {
+      "name": "NVIDIA GeForce RTX 4090",
+      "driver": "NVIDIA",
+      "driver_info": "610.57.04",
+      "kind": "discrete"
+    },
+    "gpu_reason": null
+  },
+  "load_average": {
+    "start": [
+      21.65,
+      10.96,
+      6.59
+    ],
+    "end": [
+      16.11,
+      12.19,
+      8.81
+    ]
+  },
+  "engines": [
+    {
+      "binary": "dettivo-engine-whisper",
+      "path": "target/release/dettivo-engine-whisper"
+    },
+    {
+      "binary": "dettivo-engine-parakeet",
+      "path": "target/release/dettivo-engine-parakeet"
+    },
+    {
+      "binary": "dettivo-engine-llm",
+      "path": "target/release/dettivo-engine-llm"
+    }
+  ],
+  "models": [
+    {
+      "provider": "whisper",
+      "id": "large-v3-turbo",
+      "path": "/home/gordon/.local/share/dettivo/models/whisper/large-v3-turbo/ggml-large-v3-turbo.bin",
+      "sha256": "317eb69c11673c9de1e1f0d459b253999804ec71ac4c23c17ecf5fbe24e259a1"
+    },
+    {
+      "provider": "parakeet",
+      "id": "parakeet-v3",
+      "path": "/home/gordon/.local/share/dettivo/models/parakeet/parakeet-v3/tdt-0.6b-v3-q8_0.gguf",
+      "sha256": "4d69a4a6683f4f2d952bad794c1357ca6eb628027695b4699c5a9ad4cd07d757"
+    },
+    {
+      "provider": "llm",
+      "id": "qwen3-4b-instruct-2507",
+      "path": "/home/gordon/.local/share/dettivo/models/llm/qwen3-4b-instruct-2507/Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+      "sha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597"
+    }
+  ],
+  "fixtures": [
+    {
+      "name": "jfk.wav",
+      "path": "/home/gordon/.local/share/dettivo/models/fixtures/jfk.wav",
+      "sha256": "59dfb9a4acb36fe2a2affc14bacbee2920ff435cb13cc314a08c13f66ba7860e",
+      "bytes": 352078
+    },
+    {
+      "name": "long.wav",
+      "path": "qa-evidence/run-1789371410-335988/bench/long.wav",
+      "sha256": "089b2e3c57963d986f894df4dadb17a2bd67a08996ce9fe1980ef4505d62d21f",
+      "bytes": 9856044
+    },
+    {
+      "name": "polish-goldens",
+      "path": "/home/gordon/work/dettivo-linux-wt/final-candidate/crates/dettivo-language/tests/goldens/polish_fallback.json",
+      "sha256": "634d1aaea646af9424c78239765d783a81131044286929b58d0e8a1db4fbd309",
+      "bytes": 5839
+    }
+  ],
+  "steps": [
+    {
+      "name": "first_insert",
+      "status": "measured",
+      "reason": null,
+      "comparison": {
+        "nfr": "NFR-1",
+        "metric": "first_insert_p50",
+        "unit": "ms",
+        "target": 1000.0,
+        "initial": 1000.0,
+        "direction": "at_most",
+        "value": 298.0,
+        "met": true
+      },
+      "results": [
+        {
+          "backend": "vulkan",
+          "cold_ms": 9107,
+          "failures": [],
+          "figure": 298.0,
+          "insert_leg": "mock",
+          "met": true,
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "qualified": true,
+          "reason": "Vulkan backend built in and a device is installed; ggml enumerates 2 Vulkan device(s)",
+          "runs": [
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": true,
+              "insert_ms": 0,
+              "job_id": "job_dict_1",
+              "outcome": "inserted",
+              "total_ms": 9107,
+              "transcribe_ms": 9067
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_2",
+              "outcome": "inserted",
+              "total_ms": 179,
+              "transcribe_ms": 138
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_3",
+              "outcome": "inserted",
+              "total_ms": 340,
+              "transcribe_ms": 300
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_4",
+              "outcome": "inserted",
+              "total_ms": 314,
+              "transcribe_ms": 273
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_5",
+              "outcome": "inserted",
+              "total_ms": 293,
+              "transcribe_ms": 253
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_6",
+              "outcome": "inserted",
+              "total_ms": 309,
+              "transcribe_ms": 269
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_7",
+              "outcome": "inserted",
+              "total_ms": 264,
+              "transcribe_ms": 223
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_8",
+              "outcome": "inserted",
+              "total_ms": 318,
+              "transcribe_ms": 277
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_9",
+              "outcome": "inserted",
+              "total_ms": 298,
+              "transcribe_ms": 257
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_10",
+              "outcome": "inserted",
+              "total_ms": 298,
+              "transcribe_ms": 257
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_11",
+              "outcome": "inserted",
+              "total_ms": 291,
+              "transcribe_ms": 251
+            }
+          ],
+          "split_p50": {
+            "capture_ms": 20,
+            "insert_ms": 0,
+            "transcribe_ms": 257
+          },
+          "warm": {
+            "iterations": 10,
+            "max": 340,
+            "min": 179,
+            "p50": 298,
+            "p95": 340,
+            "samples": [
+              179,
+              340,
+              314,
+              293,
+              309,
+              264,
+              318,
+              298,
+              298,
+              291
+            ]
+          },
+          "warm_completed": 10,
+          "warm_required": 10
+        },
+        {
+          "backend": "vulkan",
+          "cold_ms": 3094,
+          "failures": [],
+          "figure": 145.0,
+          "insert_leg": "mock",
+          "met": true,
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "qualified": true,
+          "reason": "Vulkan backend built in and a device is installed (Vulkan0)",
+          "runs": [
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": true,
+              "insert_ms": 0,
+              "job_id": "job_dict_1",
+              "outcome": "inserted",
+              "total_ms": 3094,
+              "transcribe_ms": 3054
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_2",
+              "outcome": "inserted",
+              "total_ms": 132,
+              "transcribe_ms": 92
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_3",
+              "outcome": "inserted",
+              "total_ms": 145,
+              "transcribe_ms": 105
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_4",
+              "outcome": "inserted",
+              "total_ms": 140,
+              "transcribe_ms": 99
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_5",
+              "outcome": "inserted",
+              "total_ms": 156,
+              "transcribe_ms": 116
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_6",
+              "outcome": "inserted",
+              "total_ms": 149,
+              "transcribe_ms": 109
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_7",
+              "outcome": "inserted",
+              "total_ms": 149,
+              "transcribe_ms": 109
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_8",
+              "outcome": "inserted",
+              "total_ms": 163,
+              "transcribe_ms": 122
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_9",
+              "outcome": "inserted",
+              "total_ms": 164,
+              "transcribe_ms": 123
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 20,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_10",
+              "outcome": "inserted",
+              "total_ms": 89,
+              "transcribe_ms": 49
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_11",
+              "outcome": "inserted",
+              "total_ms": 144,
+              "transcribe_ms": 123
+            }
+          ],
+          "split_p50": {
+            "capture_ms": 20,
+            "insert_ms": 0,
+            "transcribe_ms": 109
+          },
+          "warm": {
+            "iterations": 10,
+            "max": 164,
+            "min": 89,
+            "p50": 145,
+            "p95": 164,
+            "samples": [
+              132,
+              145,
+              140,
+              156,
+              149,
+              149,
+              163,
+              164,
+              89,
+              144
+            ]
+          },
+          "warm_completed": 10,
+          "warm_required": 10
+        }
+      ],
+      "duration_ms": 237203
+    },
+    {
+      "name": "stt_throughput",
+      "status": "measured",
+      "reason": null,
+      "comparison": {
+        "nfr": "NFR-4",
+        "metric": "stt_realtime_factor",
+        "unit": "x realtime",
+        "target": 20.0,
+        "initial": 10.0,
+        "direction": "at_least",
+        "value": 74.49,
+        "met": true
+      },
+      "results": [
+        {
+          "audio_ms": 308000,
+          "backend": "vulkan",
+          "clip_wall_ms": 1016,
+          "figure": 74.49,
+          "iterations": 1,
+          "met": true,
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "realtime_factor": 74.49,
+          "reason": "backend=Vulkan reason=Vulkan backend built in and a device is installed; ggml enumerates 2 Vulkan device(s)",
+          "wall_ms": 4135
+        },
+        {
+          "audio_ms": 308000,
+          "backend": "vulkan",
+          "clip_wall_ms": 1246,
+          "figure": 101.75,
+          "iterations": 1,
+          "met": true,
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "realtime_factor": 101.75,
+          "reason": "backend=Vulkan reason=Vulkan backend built in and a device is installed (Vulkan0) model_name=\"nvidia/parakeet-tdt-0.6b-v3\"",
+          "wall_ms": 3027
+        }
+      ],
+      "duration_ms": 9705
+    },
+    {
+      "name": "llm_rewrite",
+      "status": "measured",
+      "reason": "recorded; no NFR names a rewrite budget beyond [llm] timeout_ms",
+      "comparison": null,
+      "results": [
+        {
+          "backend": "vulkan",
+          "latency": {
+            "iterations": 18,
+            "max": 2102,
+            "min": 1134,
+            "p50": 1359,
+            "p95": 2102,
+            "samples": [
+              1719,
+              1330,
+              1547,
+              1521,
+              1311,
+              1633,
+              1276,
+              1299,
+              1285,
+              2102,
+              1450,
+              1834,
+              1420,
+              1864,
+              1359,
+              1232,
+              1134,
+              1194
+            ]
+          },
+          "load_ms": 1472,
+          "model": "qwen3-4b-instruct-2507",
+          "provider": "llm",
+          "rewrites": [
+            {
+              "case": "applies_basic_rewrite_for_command_like_input",
+              "finish_reason": "stop",
+              "tokens": 37,
+              "tokens_per_second": 149.8,
+              "wall_ms": 1719
+            },
+            {
+              "case": "removes_common_fillers_when_enabled",
+              "finish_reason": "stop",
+              "tokens": 6,
+              "tokens_per_second": null,
+              "wall_ms": 1330
+            },
+            {
+              "case": "leaves_sentence_punctuation_untouched_when_smart_punctuation_disabled",
+              "finish_reason": "stop",
+              "tokens": 43,
+              "tokens_per_second": 573.3,
+              "wall_ms": 1547
+            },
+            {
+              "case": "applies_post_processors_when_provided",
+              "finish_reason": "stop",
+              "tokens": 37,
+              "tokens_per_second": 755.1,
+              "wall_ms": 1521
+            },
+            {
+              "case": "applies_common_grammar_fixes_when_enabled",
+              "finish_reason": "stop",
+              "tokens": 16,
+              "tokens_per_second": null,
+              "wall_ms": 1311
+            },
+            {
+              "case": "uses_question_mark_for_question_like_input",
+              "finish_reason": "stop",
+              "tokens": 68,
+              "tokens_per_second": 422.4,
+              "wall_ms": 1633
+            },
+            {
+              "case": "uses_question_mark_for_conversational_question_lead",
+              "finish_reason": "stop",
+              "tokens": 9,
+              "tokens_per_second": null,
+              "wall_ms": 1276
+            },
+            {
+              "case": "uses_question_mark_for_german_question_lead",
+              "finish_reason": "stop",
+              "tokens": 14,
+              "tokens_per_second": null,
+              "wall_ms": 1299
+            },
+            {
+              "case": "uses_question_mark_for_arabic_question_lead",
+              "finish_reason": "stop",
+              "tokens": 9,
+              "tokens_per_second": null,
+              "wall_ms": 1285
+            },
+            {
+              "case": "uses_question_mark_for_japanese_question_suffix",
+              "finish_reason": "stop",
+              "tokens": 9,
+              "tokens_per_second": 14.3,
+              "wall_ms": 2102
+            },
+            {
+              "case": "eval_english_cleanup",
+              "finish_reason": "stop",
+              "tokens": 11,
+              "tokens_per_second": null,
+              "wall_ms": 1450
+            },
+            {
+              "case": "eval_code_command",
+              "finish_reason": "stop",
+              "tokens": 36,
+              "tokens_per_second": 99.4,
+              "wall_ms": 1834
+            },
+            {
+              "case": "eval_chat_question",
+              "finish_reason": "stop",
+              "tokens": 9,
+              "tokens_per_second": null,
+              "wall_ms": 1420
+            },
+            {
+              "case": "eval_spanish_cleanup",
+              "finish_reason": "stop",
+              "tokens": 12,
+              "tokens_per_second": 30.6,
+              "wall_ms": 1864
+            },
+            {
+              "case": "eval_german_question",
+              "finish_reason": "stop",
+              "tokens": 17,
+              "tokens_per_second": null,
+              "wall_ms": 1359
+            },
+            {
+              "case": "eval_arabic_question",
+              "finish_reason": "stop",
+              "tokens": 9,
+              "tokens_per_second": null,
+              "wall_ms": 1232
+            },
+            {
+              "case": "eval_mixed_language",
+              "finish_reason": "stop",
+              "tokens": 12,
+              "tokens_per_second": null,
+              "wall_ms": 1134
+            },
+            {
+              "case": "eval_mention_path_preserved",
+              "finish_reason": "stop",
+              "tokens": 13,
+              "tokens_per_second": null,
+              "wall_ms": 1194
+            }
+          ],
+          "system_prompt_sha256": "6c14d0bb449bf5e12000a0cd9afb3ae57b996cf5f0d7712a8e15a331cdf7a76c",
+          "tokens_per_second_p50": 149.8
+        }
+      ],
+      "duration_ms": 29514
+    },
+    {
+      "name": "idle_footprint",
+      "status": "measured",
+      "reason": null,
+      "comparison": {
+        "nfr": "NFR-6",
+        "metric": "daemon_idle_rss",
+        "unit": "bytes",
+        "target": 62914560.0,
+        "initial": 62914560.0,
+        "direction": "at_most",
+        "value": 24485888.0,
+        "met": true
+      },
+      "results": [
+        {
+          "engines": [
+            {
+              "backend": "vulkan",
+              "binary": "dettivo-engine-whisper",
+              "loaded_memory_bytes": 270868480,
+              "unloaded": true,
+              "unloaded_after_ms": 2000
+            }
+          ],
+          "idle_seconds": 10,
+          "idled_ms": 300000,
+          "llm_model": null,
+          "llm_probe": "polish.test answered with model \"deterministic\"",
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "rss": {
+            "iterations": 30,
+            "max": 24485888,
+            "min": 24449024,
+            "p50": 24469504,
+            "p95": 24485888,
+            "samples": [
+              24449024,
+              24449024,
+              24453120,
+              24453120,
+              24453120,
+              24457216,
+              24457216,
+              24457216,
+              24461312,
+              24461312,
+              24461312,
+              24465408,
+              24465408,
+              24465408,
+              24469504,
+              24469504,
+              24469504,
+              24473600,
+              24473600,
+              24473600,
+              24477696,
+              24477696,
+              24477696,
+              24481792,
+              24481792,
+              24481792,
+              24485888,
+              24485888,
+              24485888,
+              24485888
+            ]
+          },
+          "rss_idle_bytes": 24485888,
+          "rss_loaded_bytes": 24440832,
+          "still_alive": []
+        }
+      ],
+      "duration_ms": 328824
+    },
+    {
+      "name": "startup",
+      "status": "measured",
+      "reason": null,
+      "comparison": {
+        "nfr": "NFR-8",
+        "metric": "socket_ready_p50",
+        "unit": "ms",
+        "target": 300.0,
+        "initial": 300.0,
+        "direction": "at_most",
+        "value": 383.0,
+        "met": false
+      },
+      "results": [
+        {
+          "app_first_frame_met": false,
+          "app_first_frame_ms": 310,
+          "app_reason": null,
+          "app_rss_kb_after_5s": 235576,
+          "socket_ready": {
+            "iterations": 10,
+            "max": 443,
+            "min": 363,
+            "p50": 383,
+            "p95": 443,
+            "samples": [
+              443,
+              383,
+              382,
+              384,
+              383,
+              383,
+              363,
+              383,
+              383,
+              403
+            ]
+          }
+        }
+      ],
+      "duration_ms": 23263
+    }
+  ],
+  "targets": [
+    {
+      "nfr": "NFR-1",
+      "metric": "first_insert_p50",
+      "unit": "ms",
+      "direction": "at_most",
+      "initial": 1000.0,
+      "calibrated": 1000.0
+    },
+    {
+      "nfr": "NFR-2",
+      "metric": "first_insert_p50",
+      "unit": "ms",
+      "direction": "at_most",
+      "initial": 2500.0,
+      "calibrated": 1500.0
+    },
+    {
+      "nfr": "NFR-4",
+      "metric": "stt_realtime_factor",
+      "unit": "x realtime",
+      "direction": "at_least",
+      "initial": 10.0,
+      "calibrated": 20.0
+    },
+    {
+      "nfr": "NFR-4",
+      "metric": "diarization_realtime_factor",
+      "unit": "x realtime",
+      "direction": "at_least",
+      "initial": 4.0,
+      "calibrated": 4.0
+    },
+    {
+      "nfr": "NFR-5",
+      "metric": "stt_realtime_factor",
+      "unit": "x realtime",
+      "direction": "at_least",
+      "initial": 2.0,
+      "calibrated": 5.0
+    },
+    {
+      "nfr": "NFR-6",
+      "metric": "daemon_idle_rss",
+      "unit": "bytes",
+      "direction": "at_most",
+      "initial": 62914560.0,
+      "calibrated": 62914560.0
+    },
+    {
+      "nfr": "NFR-8",
+      "metric": "socket_ready_p50",
+      "unit": "ms",
+      "direction": "at_most",
+      "initial": 300.0,
+      "calibrated": 300.0
+    },
+    {
+      "nfr": "NFR-8",
+      "metric": "app_first_frame",
+      "unit": "ms",
+      "direction": "at_most",
+      "initial": 300.0,
+      "calibrated": 300.0
+    }
+  ],
+  "meetings": {
+    "recorded_unix": 1789377187,
+    "date": "2026-09-14",
+    "git_sha": "bf4c3bd7a9b7af67aafc047a2c24afe7c04967d5",
+    "pack_run_dir": "qa-evidence/run-1789377187-2464678/pack-meetings",
+    "pack_passed": true,
+    "forced_cpu": false,
+    "engine": "whisper",
+    "model": "large-v3-turbo",
+    "backend": "vulkan",
+    "audio_ms": 311701,
+    "wall_ms": 12029,
+    "fixture_sha256": "e94eada9bc47b163450d42dc71e58ca1aa3d27bb77077166bd94867705b003e3",
+    "meeting": {
+      "nfr": "NFR-4",
+      "metric": "stt_realtime_factor",
+      "unit": "x realtime",
+      "target": 20.0,
+      "initial": 10.0,
+      "direction": "at_least",
+      "value": 25.91,
+      "met": true
+    },
+    "diarization": {
+      "nfr": "NFR-4",
+      "metric": "diarization_realtime_factor",
+      "unit": "x realtime",
+      "target": 4.0,
+      "initial": 4.0,
+      "direction": "at_least",
+      "value": 16.14,
+      "met": true
+    },
+    "gpu_workload_proof": "skip: workload attribution unavailable: engine pid 2776922 has a GPU allocation in 23 of 23 samples; process presence does not prove inference execution; diarization used CPU: no CUDA proof expected",
+    "harness_cpu_pct": 2.2,
+    "harness_warning": null,
+    "token_coverage": {
+      "capture": "rig",
+      "diarization_status": "ready",
+      "expected": 8,
+      "found": 8,
+      "md_names_found": true,
+      "meeting_id": "df717db4-0385-4ee0-8d10-5ae543477e51",
+      "missing": [],
+      "speakers": [
+        "you -> Alice",
+        "speaker_00 -> Ben"
+      ],
+      "tokens": [
+        {
+          "found": true,
+          "source": "microphone",
+          "token": "alice"
+        },
+        {
+          "found": true,
+          "source": "microphone",
+          "token": "launch"
+        },
+        {
+          "found": true,
+          "source": "microphone",
+          "token": "checklist"
+        },
+        {
+          "found": true,
+          "source": "system",
+          "token": "ben"
+        },
+        {
+          "found": true,
+          "source": "system",
+          "token": "pricing"
+        },
+        {
+          "found": true,
+          "source": "system",
+          "token": "decision"
+        },
+        {
+          "found": true,
+          "source": "system",
+          "token": "ship"
+        },
+        {
+          "found": true,
+          "source": "system",
+          "token": "friday"
+        }
+      ]
+    }
+  }
+}

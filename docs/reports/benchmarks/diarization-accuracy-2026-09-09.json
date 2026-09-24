@@ -1,0 +1,2496 @@
+{
+  "schema_version": 1,
+  "delivery_acceptance": {
+    "date": "2026-09-10",
+    "accepted_by": "Gordon Mickel",
+    "scope": "Deliver current fn-42 and fn-56 implementation to main with known limitations",
+    "historical_accuracy_gates_passed": false,
+    "historical_cuda_speed_target_met": false,
+    "experimental_model_promoted": false,
+    "production_readiness_claimed": false,
+    "public_release_authorized": false
+  },
+  "stock_and_direct_reference_evaluations": {
+    "calibrated_mixed_vbx": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/community1-public/calibrated-vbx-all21/summary.json",
+      "sha256": "2030ad8c559013073923d9af4ff6f2fc4e7b15d06d842828d69361862762eebe",
+      "profiles": 18,
+      "scored_rows": 378,
+      "successful_profiles": 0
+    },
+    "stock_community1": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/stock-pyannote/runs/all21-rnwld0lx/report.json",
+      "sha256": "dd740103eb74ed7d6174053eba3123348c134e6a7e09ab5af612ac7ca1c8d246",
+      "verification": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/stock-pyannote/runs/all21-rnwld0lx/verification.json",
+      "backend": "cuda",
+      "recordings": 21,
+      "combined_der": 0.1416332529194799,
+      "combined_confusion": 0.034982862225612005,
+      "combined_exact_counts": 13,
+      "max_recording_der": 0.2077461396790459,
+      "quality_pass": false,
+      "inference_network_and_reference_access": false,
+      "heldout_proof": false
+    },
+    "diaper_ami_adapted_cpu": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/diaper-ami-probe/cpu-ami/meeting-summary.json",
+      "sha256": "c53b0d3c0f449779d91446dd1d59a540123a1972eb8b33f58d5c496f4c2b870e",
+      "recordings": ["ES2011a", "TS3004a", "ES2004a"],
+      "all_three_scored": true,
+      "combined_der": 0.4071301069792913,
+      "combined_confusion": 0.13062147050308523,
+      "exact_counts": 0,
+      "hard_address_space_cap_gib": 32,
+      "swap_used": false,
+      "within_cpu_cache_release_control_exact": true,
+      "cpu_cuda_quality_parity_established": false,
+      "training_overlap_established": false,
+      "heldout_proof": false,
+      "product_selected": false
+    },
+    "diaper_cache_release": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/diaper-ami-probe/cache-release/summary.json",
+      "sha256": "0d79d8cd3ed57a67d39029e212d53f919b831a0e258bd006a1db51063ccb3d19",
+      "recordings": 3,
+      "all_logits_probabilities_labels_rttm_scores_exact": true,
+      "peak_gpu_process_mib_before_after": {
+        "bauzd": [10232, 5648],
+        "aufkn": [3740, 3134],
+        "gzvkx": [4110, 3180]
+      },
+      "earlier_tiling_numerical_gates_failed": true,
+      "accuracy_improved": false,
+      "product_selected": false
+    },
+    "diaper_three_clips": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/diaper-probe/summary.json",
+      "sha256": "89e98f70965962ab42aee27fd205e80c0f1201588cfdb774aef3b2758c425d87",
+      "recordings": 3,
+      "product_selected": false,
+      "matching_aufkn_count_was_false_recovery": true
+    }
+  },
+  "corrected_frontend_comparisons": {
+    "titanet": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/titanet-frontend/summary-all21.json",
+      "sha256": "281c70c55eeb26dd0eec22e31a25ef5915412cc1ef7d1d8a5cc6fbad8fec0354",
+      "completed_trials": 126,
+      "profiles_passing_all_cohorts": 0,
+      "best_combined_der": 0.1590308281739778,
+      "best_combined_exact_counts": 10,
+      "product_selected": false
+    },
+    "wespeaker": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/wespeaker-preprocessing/summary-all21.json",
+      "sha256": "9ffd1181e99def30866b7818151b418be869e39124280268c311347111c0c32e",
+      "completed_trials": 189,
+      "profiles_passing_all_cohorts": 0,
+      "best_combined_der": 0.14361710614112097,
+      "best_combined_exact_counts": 14,
+      "product_selected": false
+    },
+    "eres2net": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/eres-frontend/summary.json",
+      "sha256": "e0cff17c0cbf5245b047e1b7cbeabf105c103c1a4fdedc038d57db04bfd8e12a",
+      "scope": "Four development recordings; source-contract correction and separate recalibration",
+      "product_selected": false
+    },
+    "mixed_component_vbx": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/community1-public/cached-vbx-all21/summary.json",
+      "sha256": "2a8dc92b9c38d52469da85d21ed7a75b6c0547c053b208681479f841b967c76f",
+      "ordinary_combined_der": 0.14028982995518788,
+      "distinct_slot_combined_der": 0.14215672049150707,
+      "combined_exact_counts_both_arms": 13,
+      "exact_community1_reproduction": false,
+      "product_selected": false
+    },
+    "public_encoder_three_recordings": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/community1-public/public-embedding-three/vbx/summary.json",
+      "sha256": "797748a9ab2f2e1a42059b66b3008cc2e5c09ea15b09122f68e766f62858dcf6",
+      "embedding_rows_compared": 4949,
+      "score_and_count_results_equal_older_encoder": true,
+      "complete_pipeline_equivalence_proven": false
+    }
+  },
+  "round3_mechanism_comparison": {
+    "scope": "Development-only probes; no candidate selected or fresh validation performed",
+    "chunk_constraints": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/chunk-constraints/aggregate-all21.json",
+      "sha256": "fdabf4bfc898a3f22a92c632615761daf4cc8e3351f10067fba0db4964ae17ab",
+      "combined_der": 0.15973070157353325,
+      "combined_exact_counts": 14,
+      "quality_pass": false
+    },
+    "embedding_fusion": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/embedding-fusion/aggregate-all21.json",
+      "sha256": "156652db38173f602aed8e36ae5e2ab5cb2e6521a69432f7734aaa15f0d04c3e",
+      "all_cohorts_failed_every_tested_weight": true
+    },
+    "short_windows": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/window-probe/mechanism-2s/summary.json",
+      "sha256": "907666844624417fa5ac9c32caf1ecec098a3270d680bb1b9136d8db7adef4e8",
+      "general_repair_selected": false
+    },
+    "cuda_recovery_run": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/native-development-cuda-v4-20260909-213503/report.json",
+      "sha256": "5d989695199b0d54ce6140335305a1f068a1e683ad8e5c632074d8bbb9474832",
+      "recording": "crixb",
+      "execution_pass": true,
+      "der": 0.06297399436331028,
+      "pre_reboot_der_exact_match": true
+    }
+  },
+  "round3_embedding_comparison": {
+    "scope": "Twenty-one development recordings only; fresh validation untouched",
+    "replacement_selected": false,
+    "titanet": {
+      "summary": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/titanet/replay-expanded/summary.json",
+      "summary_sha256": "1b2f14d3795e7f7fa15f7697c4aaa8359012f49605fd7664b4951030019a80e6",
+      "unique_replays": 350,
+      "expanded_rows": 210,
+      "expanded_reused_rows": 70,
+      "best_combined_profile": "tau0.5-clean2.0-support",
+      "combined_der": 0.1516310917059303,
+      "combined_confusion": 0.04722211179962408,
+      "combined_exact_counts": 12,
+      "quality_pass": false
+    },
+    "wespeaker": {
+      "interpretation_limit": "Downloaded-model metadata omits feature mean normalization required by the publisher reference. These as-tested negatives are retained; see corrected_frontend_comparisons for the complete corrected evaluation.",
+      "summary": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/wespeaker/summary.json",
+      "summary_sha256": "725fe1695dd3158428da90eaf45a2ca365d2918ccb9fc69a09d55b93d5fda295",
+      "unique_replays": 378,
+      "best_combined_profile": "tau0.3-clean2.0-merge1",
+      "combined_der": 0.2234362496465541,
+      "combined_confusion": 0.11766452386936056,
+      "combined_exact_counts": 8,
+      "quality_pass": false
+    },
+    "mask_diagnosis": {
+      "report": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round3/mask-audit.json",
+      "sha256": "5cccb4546d620669e5abd39b4a4ebe467b14742fec6e359e68d2600cd75d5a95",
+      "inference_performed": false,
+      "product_fallback_implemented": false
+    },
+    "gpu_recovery": {
+      "observed_utc_minute": "2026-09-09T19:24Z",
+      "device": "NVIDIA GeForce RTX 4090",
+      "driver": "610.57.04",
+      "nvidia_smi_exit": 0,
+      "agent_initiated_reboot": false,
+      "new_candidate_parity_verified": false
+    }
+  },
+  "selection": {
+    "selection_rule": "Three official-test AMI recordings with participant groups held out from local development; first alphabetical VoxConverse dev recording with >=120s and exactly 2,3,5,6 annotated speakers. Second alphabetical recording per count reserved for development. No heldout model outputs inspected for selection. Local holdout does not prove absence from pretrained-model training data.",
+    "revision": 2,
+    "revision_reason": "Before any heldout inference, replace official-train TS3007a with official-test TS3003a. Original selection and manifest retained as v1; no gates changed.",
+    "heldout": {
+      "ami": [
+        "ES2004a",
+        "TS3003a",
+        "EN2002c"
+      ],
+      "voxconverse": [
+        "blwmj",
+        "ampme",
+        "afjiv",
+        "edixl"
+      ]
+    },
+    "development": {
+      "ami": [
+        "ES2002a",
+        "IS1009b",
+        "EN2001b"
+      ],
+      "voxconverse": [
+        "crixb",
+        "asxwr",
+        "bauzd",
+        "ggvel"
+      ]
+    },
+    "gates": {
+      "pooled_der_max": 0.15,
+      "recording_der_max": 0.25,
+      "pooled_confusion_max": 0.05,
+      "exact_count_fraction_min": 0.8,
+      "max_count_ratio": 2,
+      "cpu_cuda_pooled_der_delta_max": 0.01
+    },
+    "protocol": "Zero collar, overlap included; published AMI words/UEM; VoxConverse0.3 RTTM and full WAV duration UEM.",
+    "freeze_rule": "Freeze models and parameters before heldout inference; if used for tuning after failure these records become development and a new unseen holdout is required."
+  },
+  "records": [
+    {
+      "id": "ES2004a",
+      "corpus": "ami",
+      "split": "heldout",
+      "seconds": 1049.3546875,
+      "audio_sha256": "8dc456d01130138c757301a705286e11da65580ccf6363edc5adac1c5568d5be",
+      "source_url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Mix-Headset.wav",
+      "reference_speakers": 4,
+      "rttm_sha256": "9869c6146c2fd9595403edb36c2caeda65c12ffa2c0af4ce48d6814b673fd5a9",
+      "uem_sha256": "514373eae2841ddf15fb07938a7d74bbecc2acad8afc2a28a93e0f7b24bfb446"
+    },
+    {
+      "id": "TS3003a",
+      "corpus": "ami",
+      "split": "heldout",
+      "seconds": 1505.642625,
+      "audio_sha256": "26c67afc10b3e18baf8abb85f9bd9d105b0a0041282f0eefb8c8e43dca4d2bda",
+      "source_url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/TS3003a/audio/TS3003a.Mix-Headset.wav",
+      "reference_speakers": 4,
+      "rttm_sha256": "57137f098ee3be9b8d77c9faa4b16e9155e821bdbf21b974dd8771d7e646d185",
+      "uem_sha256": "88c25acf7872a0813ec26fc88f5fdc2e6a69eedf4c7c3b66a571b77df669e8fd"
+    },
+    {
+      "id": "EN2002c",
+      "corpus": "ami",
+      "split": "heldout",
+      "seconds": 2972.256,
+      "audio_sha256": "89512766fe09a0d402f6329dc94f9bca61f2dba5d4a3119ebb9781628ad1c2d0",
+      "source_url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/EN2002c/audio/EN2002c.Mix-Headset.wav",
+      "reference_speakers": 3,
+      "rttm_sha256": "e595fa5953a923cbd62ffc881bd9725df98a6587bc14730dd279937773953bca",
+      "uem_sha256": "d79841d470555dde6f0d17dbb4fb8585ab516bf1aa932228cc42e66652ba3d39"
+    },
+    {
+      "id": "blwmj",
+      "corpus": "voxconverse",
+      "split": "heldout",
+      "seconds": 259.160875,
+      "audio_sha256": "a87c8cde2e2e760770fef066bb0ab62669144a3d89d7b227ab9082a3dc57aaaf",
+      "source_url": "https://www.robots.ox.ac.uk/~vgg/data/voxconverse/data/voxconverse_dev_wav.zip",
+      "reference_speakers": 2,
+      "rttm_sha256": "063b45d9011461e044fa0aaedb93dc59f1c74e6117916a0a95f080a5af7e7677",
+      "uem_sha256": "e08bda08afd1736ecf9cb362ef1c80acc054aa4e856612979c24f0e86a47d5a2"
+    },
+    {
+      "id": "ampme",
+      "corpus": "voxconverse",
+      "split": "heldout",
+      "seconds": 148.32,
+      "audio_sha256": "c4cbc00c63adf719c010bac9b8202857ae2ca7637e4b3b6a7a5e26e987d12c2e",
+      "source_url": "https://www.robots.ox.ac.uk/~vgg/data/voxconverse/data/voxconverse_dev_wav.zip",
+      "reference_speakers": 3,
+      "rttm_sha256": "0bba54230960204b44f169a98b36df50d97a6318b2312cda28a3796bcfa9eff1",
+      "uem_sha256": "290844d856b6d37dfc0599be64ef8891600858854941a54b4a0ff8597302e7fa"
+    },
+    {
+      "id": "afjiv",
+      "corpus": "voxconverse",
+      "split": "heldout",
+      "seconds": 151.248,
+      "audio_sha256": "208eb00b0dfca6bd149837ca6bc736983f45b4dfe8606973460bd2cadf5f902f",
+      "source_url": "https://www.robots.ox.ac.uk/~vgg/data/voxconverse/data/voxconverse_dev_wav.zip",
+      "reference_speakers": 5,
+      "rttm_sha256": "58a764b4b5864b14dd39d91e420370d1f45cabc4bcf354a8e7516538b996d51f",
+      "uem_sha256": "bc5875c446c89aa13999ccf4d237c2912511205d56717c91e8c32066d77a4f03"
+    },
+    {
+      "id": "edixl",
+      "corpus": "voxconverse",
+      "split": "heldout",
+      "seconds": 311.688,
+      "audio_sha256": "0c77b32eb0bc9011b534e2f1c9ffdc5a36054be00006e05966c5c859a0c991e9",
+      "source_url": "https://www.robots.ox.ac.uk/~vgg/data/voxconverse/data/voxconverse_dev_wav.zip",
+      "reference_speakers": 6,
+      "rttm_sha256": "c8bb215a2acd2dd2b0dfe909ef167be4a50bcfa96ad5b3c93e784161a0b57598",
+      "uem_sha256": "d9f22e4bdef4fe8b32ed120064fa4457624dc03d38995a907a6aaed2de4c2d30"
+    },
+    {
+      "id": "crixb",
+      "corpus": "voxconverse",
+      "split": "development",
+      "seconds": 300.264,
+      "audio_sha256": "f7962e0b70dbd9036f648889f5c4d69ff5b122989e3820e7c32b5abdcff2a74d",
+      "source_url": "https://www.robots.ox.ac.uk/~vgg/data/voxconverse/data/voxconverse_dev_wav.zip",
+      "reference_speakers": 2,
+      "rttm_sha256": "bf35b373e06224ac7571742f1903a3720577179b5fe1387fe501ac3aa2d88f79",
+      "uem_sha256": "2e0fc327c627ee01617ec7a785ba0aa252a30e1d7181460e217a7e8aa1e944ac"
+    },
+    {
+      "id": "asxwr",
+      "corpus": "voxconverse",
+      "split": "development",
+      "seconds": 237.7665625,
+      "audio_sha256": "d2e83acb899135b7e33a4488f5b72e3ac27af69ba515c3d35adc254b517f5e76",
+      "source_url": "https://www.robots.ox.ac.uk/~vgg/data/voxconverse/data/voxconverse_dev_wav.zip",
+      "reference_speakers": 3,
+      "rttm_sha256": "9fb37050e71851454d4cc9cac5aaa44e2abdd5ec2c1eb0d3603f5cae6ba2f38c",
+      "uem_sha256": "da072d3b94d42851ae99ccf401b680caa0a89b15e28614ea585d61e5731e5138"
+    },
+    {
+      "id": "bauzd",
+      "corpus": "voxconverse",
+      "split": "development",
+      "seconds": 500.28,
+      "audio_sha256": "d4b3be4550a0570e3245937a8e3d2da24efbf585928ed2af25d691a6b0ffd405",
+      "source_url": "https://www.robots.ox.ac.uk/~vgg/data/voxconverse/data/voxconverse_dev_wav.zip",
+      "reference_speakers": 5,
+      "rttm_sha256": "b219fe6eb11f660f4fe3d3b4e91a3e886618eac06752f5fa07135cd30c3cd88c",
+      "uem_sha256": "bf2a504d77d1a32f45a44a24f7eb2b04e0ff094c61c59d950d7bf02d249d3e54"
+    },
+    {
+      "id": "ggvel",
+      "corpus": "voxconverse",
+      "split": "development",
+      "seconds": 142.92,
+      "audio_sha256": "fb480b9fcec060862fcfc3f37eaeb9088b5d4de6d742940fb2264ddcc8b64720",
+      "source_url": "https://www.robots.ox.ac.uk/~vgg/data/voxconverse/data/voxconverse_dev_wav.zip",
+      "reference_speakers": 6,
+      "rttm_sha256": "8523a041f4194e69c27fac2060fade5447d07aef17c9cfe5d4fc6eb6e7322361",
+      "uem_sha256": "3530a3980e3d2ce07ab06bd849ff9572d70387f6a68d48f9c2fe481d37113296"
+    },
+    {
+      "id": "ES2002a",
+      "corpus": "ami",
+      "split": "development",
+      "seconds": 1272.64,
+      "audio_sha256": "9c76866990fcc8b84006dc32d273ad99df439090b748ebe72103bb78c3216ee7",
+      "source_url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2002a/audio/ES2002a.Mix-Headset.wav",
+      "reference_speakers": 4,
+      "rttm_sha256": "3153efc675b16b7c47c6e49a3b48602613b3dfcf0ca16f590fb7541176c0f0b2",
+      "uem_sha256": "684314dfa676ae080a891f75c9f1efaaf7df4905674d29939b758ada92c491f7"
+    },
+    {
+      "id": "IS1009b",
+      "corpus": "ami",
+      "split": "development",
+      "seconds": 2052.3333125,
+      "audio_sha256": "07c2891ae6ad7c507b2a4f15b2dcd0a2343491df9e4e6a58f9db0d0b2c5e1382",
+      "source_url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/IS1009b/audio/IS1009b.Mix-Headset.wav",
+      "reference_speakers": 4,
+      "rttm_sha256": "5cb6ae3948c09ce8356991cc79bb593abc1f0d23f1dbadeeb88e17e055283e67",
+      "uem_sha256": "2370ae36daa0067211ef8508b537410304b53af11f0390f52c29c6ab2094f258"
+    },
+    {
+      "id": "EN2001b",
+      "corpus": "ami",
+      "split": "development",
+      "seconds": 3451.8826875,
+      "audio_sha256": "1db444de2d5b2eaa73d1831bff84ae97b9d73cc286c51cf6c8c588ca44d41296",
+      "source_url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/EN2001b/audio/EN2001b.Mix-Headset.wav",
+      "reference_speakers": 4,
+      "rttm_sha256": "1b827152e7c821db24703be480cbdbfb071528552f386e18ed9dc479f4b47b02",
+      "uem_sha256": "fe5f760ef61869e7bec0043e5ba386da719bf5d7c44c15fe8563bbc4913d3e71"
+    }
+  ],
+  "ami_reference_commit": "67c2d539286e89f68952d5dcf83912bd9f01dfae",
+  "voxconverse_reference_commit": "24bf60be297701cd7e4ef18550c6d390c1b87365",
+  "voxconverse_dev_archive_md5": "2a6e07e7473d9841abb132554a698a36",
+  "scorer_validation": {
+    "scorer_sha256": "c2aeef5976ffe931d442795da1d85ea6dc86edc2618e3c46882e080085e7a405",
+    "randomized_hungarian_checks_against_scipy": 1000,
+    "real_candidates_against_pyannote_and_independent_sweep": 256,
+    "passed": true
+  },
+  "model_freeze": {
+    "schema_version": 1,
+    "frozen_unix": 1788953467.4563727,
+    "code_head": "23cfd5812b1c146ad2d45cda6cdc95e38ee8670c",
+    "observed_head": "23cfd5812b1c146ad2d45cda6cdc95e38ee8670c",
+    "gate": {
+      "command": "make build test lint",
+      "exit": 0,
+      "log": "/tmp/fn56-full-gate-defaults-fixed.log",
+      "log_sha256": "f5ac8809043a0f9cf754f8e5d6a0163af8f20b1a261b2a364c6b7a1b7a9ab9f5"
+    },
+    "native_parity_passed": true,
+    "transport": "rpc",
+    "model_dir": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+    "model_id": "diarization-en",
+    "diarize_params": {
+      "clustering_threshold": 0.6
+    },
+    "extra_args": [],
+    "parameters": {
+      "automatic_speaker_count": true,
+      "linkage": "average cosine, native float32",
+      "minimum_clean_embedding_seconds": 2,
+      "minimum_population": "min(15,max(1,round-half-even(Ntrain/100)))",
+      "centroid_reassignment": true,
+      "min_duration_on": 0,
+      "min_duration_off": 0,
+      "threads": 4
+    },
+    "targets": {
+      "cpu": {
+        "engine": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/dettivo-engine-diarize",
+        "library_dirs": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3"
+        ],
+        "library_files": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libsherpa-onnx-c-api.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libonnxruntime.so"
+        ]
+      },
+      "cuda": {
+        "engine": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/dettivo-engine-diarize",
+        "library_dirs": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3",
+          "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/usr/lib",
+          "/opt/cuda/lib64"
+        ],
+        "library_files": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libsherpa-onnx-c-api.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_cuda.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_shared.so"
+        ]
+      }
+    },
+    "artifacts": {
+      "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/dettivo-engine-diarize": "c28302d3f17737dc73ec72430ffee6ee383267acf4ed171dec2f527db994800e",
+      "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libsherpa-onnx-c-api.so": "e49a7796fd6f4540a5dde331d982d8af7b98b2d60d9353d35def9f5d37a63820",
+      "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libonnxruntime.so": "c85f471e1bd5059a4556038f7f5288fa41141647613688452ae7de4879150903",
+      "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/dettivo-engine-diarize": "2eae525dca1adcc041741b3c238e9d5f07d4f17acc3314c51a22fc44a01882db",
+      "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libsherpa-onnx-c-api.so": "8fde0cf804615cba5e7c11b8d7b098cb4bd41cf01d8ccdbe231a26acda0a12cd",
+      "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime.so": "bd6591e07bac04657dddd92a4407f4b5aab8268e25b55d901e886648eeb7b8f6",
+      "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_cuda.so": "2e37efc8c17fb24f3d248b2fba74496e9c30f743492500aad834c618f99dd942",
+      "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_shared.so": "c6a12593396095f5670160e284c35d1700b7708cf3037b7042e2a5200ccae772",
+      "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en/segmentation.onnx": "220ad67ca923bef2fa91f2390c786097bf305bceb5e261d4af67b38e938e1079",
+      "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en/embedding.onnx": "c59158379255ad66e161679cca6af8d52d51e389e3224ab7d7a7baae295c2db5",
+      "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/run_heldout.py": "e15d7ef27cfc71aa4a0be05026a52b89f8fe2e4cbc569ae8be38736d75593230",
+      "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/rpc_audio.py": "071be304afe195a826205558f84a55ad5e8472137860ea78f95cae69839cb06c",
+      "/home/gordon/work/dettivo-linux/Cargo.lock": "9041adaea40cb2473fae59592231d96f19b9d8d05908d9d27ee773f15d4f3c75",
+      "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/calibrated_clustering.h": "b095c363f8b8356429a2d9f5e84ca3e85e30c4909304e4f50557e145a5aba91e",
+      "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/patches/diarization-calibration.patch": "6716823f4c5a44663b795b219d0ebd9377dd30d62400430ae008a3eae6c799df",
+      "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/build.rs": "4e0c02b244a1c3caa20f56005d3d8babc1b268abe44a5859831db06622ef0564",
+      "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/source_build.rs": "f5811bdde1b65610f0439535d7a0046a52f596a7628387cb8f412613e381e35b",
+      "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/src/lib.rs": "1e39f6ea9bef8c1212594fe107a85668297aa19bde80a4b493d9f92d0b9136ce",
+      "/home/gordon/work/dettivo-linux/crates/dettivo-engine-diarize/src/engine.rs": "8d6ec841f07bfd22f28cdc64f505c6a9639cd6c792fb0b2e2bcd2c0742a81fcb",
+      "/home/gordon/work/dettivo-linux/crates/dettivo-engine-diarize/src/main.rs": "174188af35f8e4ab22a7f76f973adef5f85b4cb9e39cca0964302857a80f9976",
+      "/home/gordon/work/dettivo-linux/crates/dettivo-engine-diarize/src/provider.rs": "16053d817c7376f0b6aec33780144a4777c02d317566b302b4d83d6e6d55479c",
+      "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/src/host_diarize.rs": "bfb8baee7bf92c32e8c93ae85c15500f7916c90ffffe6aa65054fd0bafb4a0fd",
+      "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/src/messages.rs": "dc64f62045fff60163f5a808de36e69257d13460262727b31e53526da6a1cca1",
+      "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/src/frame.rs": "2b252012ad508a8699b20b7aca0f61871da5b219cb96ee9e23c45f14e163d134",
+      "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/diarize.rs": "452c23090037c4c78020fa4532a51746ab6595f236cf66f92289707427386c0d",
+      "/home/gordon/work/dettivo-linux/crates/dettivo-speech/catalogue/v1.toml": "b50d4077b1d68af8daf1d9e3ebd77811a781ed3a80c53b893843bb24529a0de5",
+      "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/audio_schema.rs": "fa264830e54182261e911c7c68854ae15715fa7c2edfce848eeb01fd52e0282d",
+      "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/default_toml.rs": "54b753c18af1efd9b605550cea1d5074443412a14dcab24b4b9aec4a1ebf9479",
+      "/home/gordon/work/dettivo-linux/crates/dettivo-meeting/src/diarize.rs": "f195d35ebd6909a593e5d2d4cb895bd857254f8d92ce1c20cb32fd03e75e8c66",
+      "/home/gordon/work/dettivo-linux/crates/dettivod/src/diarization.rs": "659cbf2ee4b7b6803a43850bbcd39337d45fd87c3877aafc5654e174d6ab5a5a",
+      "/home/gordon/work/dettivo-linux/scripts/qa/diarization_score.py": "c2aeef5976ffe931d442795da1d85ea6dc86edc2618e3c46882e080085e7a405"
+    },
+    "selection_sha256": "558145b3e627e26fd2253fceba39a6ed2ab94ce84dc3318755a70f7d968cb025",
+    "manifest_sha256": "dbcefd2a4f099e475758a5097568e4cab3ef6d5d80b582f34188ce969b220374",
+    "development_evidence": [
+      "native-development-rpc-cpu-v2-20260909-124517/report.json",
+      "native-development-rpc-cpu-v3-20260909-125950/report.json",
+      "native-development-rpc-cuda-v3-20260909-130129/report.json",
+      "pcm-equivalence/float32-comparison.log"
+    ],
+    "rule": "No model, parameter, runtime, scorer, or runner changes during heldout. A failed set used for tuning becomes development and requires a new unseen local holdout."
+  },
+  "heldout_evaluation": {
+    "terminal_exit": 2,
+    "started_unix": 1788953508.013364,
+    "finished_unix": 1788954449.269396,
+    "report_sha256": "cf39f3df3ac64d6afb331db05f648a0e369c4e6d53d2831a6f72459d2dc4a339",
+    "summary": {
+      "cpu": {
+        "der": 0.1640757032385463,
+        "missed": 0.10787316034025146,
+        "false_alarm": 0.021330264660001822,
+        "confusion": 0.03487227823829303,
+        "max_der": 0.1957138061358197,
+        "exact_count_fraction": 0.5714285714285714,
+        "max_count_ratio": 1.3333333333333333,
+        "quality_pass": false
+      },
+      "cuda": {
+        "der": 0.16417505818310527,
+        "missed": 0.10789244304330732,
+        "false_alarm": 0.02132748664345988,
+        "confusion": 0.034955128496338084,
+        "max_der": 0.19575062538578994,
+        "exact_count_fraction": 0.5714285714285714,
+        "max_count_ratio": 1.3333333333333333,
+        "quality_pass": false
+      },
+      "provider_der_delta": 0.00009935494455895477,
+      "quality_pass": false
+    },
+    "measurements": [
+      {
+        "id": "ES2004a",
+        "provider": "cpu",
+        "pid": 2332403,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 78.22977408114821,
+        "cpu_seconds": 308.85047999999995,
+        "max_rss_kib": 498320,
+        "gpu_seen": false,
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "d38777b81a09212d294fd6af4af2653d199e38fa6a9497727d1bcdbbb64eea70",
+          "pcm_bytes": 33579350,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cpu",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "provider = cpu"
+          },
+          "exchange_pass": true,
+          "frame_count": 467
+        },
+        "score": {
+          "der": 0.1957138061358197,
+          "missed": 0.12123496096076584,
+          "false_alarm": 0.03515805204509275,
+          "confusion": 0.039320793129961125,
+          "reference_speaker_seconds": 923.43,
+          "missed_speaker_seconds": 111.952,
+          "false_alarm_speaker_seconds": 32.466,
+          "confusion_speaker_seconds": 36.31,
+          "reference_speakers": 4,
+          "hypothesis_speakers": 5,
+          "recording": "ES2004a",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "9869c6146c2fd9595403edb36c2caeda65c12ffa2c0af4ce48d6814b673fd5a9",
+          "uem_sha256": "514373eae2841ddf15fb07938a7d74bbecc2acad8afc2a28a93e0f7b24bfb446",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true,
+        "sampled_gpu_peak_mib": null
+      },
+      {
+        "id": "ES2004a",
+        "provider": "cuda",
+        "pid": 2337872,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 71.68645478785038,
+        "cpu_seconds": 71.712214,
+        "max_rss_kib": 1163912,
+        "gpu_seen": true,
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_cuda.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_shared.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "d38777b81a09212d294fd6af4af2653d199e38fa6a9497727d1bcdbbb64eea70",
+          "pcm_bytes": 33579350,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cuda",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "CUDA provider libraries resolved and a CUDA device is available"
+          },
+          "exchange_pass": true,
+          "frame_count": 380
+        },
+        "score": {
+          "der": 0.19575062538578994,
+          "missed": 0.12127178021073606,
+          "false_alarm": 0.03515805204509275,
+          "confusion": 0.039320793129961125,
+          "reference_speaker_seconds": 923.43,
+          "missed_speaker_seconds": 111.986,
+          "false_alarm_speaker_seconds": 32.466,
+          "confusion_speaker_seconds": 36.31,
+          "reference_speakers": 4,
+          "hypothesis_speakers": 5,
+          "recording": "ES2004a",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "9869c6146c2fd9595403edb36c2caeda65c12ffa2c0af4ce48d6814b673fd5a9",
+          "uem_sha256": "514373eae2841ddf15fb07938a7d74bbecc2acad8afc2a28a93e0f7b24bfb446",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true,
+        "sampled_gpu_peak_mib": 846
+      },
+      {
+        "id": "TS3003a",
+        "provider": "cuda",
+        "pid": 2342574,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 91.80499690817669,
+        "cpu_seconds": 92.194434,
+        "max_rss_kib": 1204396,
+        "gpu_seen": true,
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_cuda.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_shared.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "cdc51092817dc38595637331f5221fed5496f272e8acc7cda69c5911d91aa649",
+          "pcm_bytes": 48180564,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cuda",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "CUDA provider libraries resolved and a CUDA device is available"
+          },
+          "exchange_pass": true,
+          "frame_count": 461
+        },
+        "score": {
+          "der": 0.16565298587474805,
+          "missed": 0.10544132152785088,
+          "false_alarm": 0.03260543254929023,
+          "confusion": 0.027606231797606934,
+          "reference_speaker_seconds": 1025.964,
+          "missed_speaker_seconds": 108.179,
+          "false_alarm_speaker_seconds": 33.452,
+          "confusion_speaker_seconds": 28.323,
+          "reference_speakers": 4,
+          "hypothesis_speakers": 5,
+          "recording": "TS3003a",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "57137f098ee3be9b8d77c9faa4b16e9155e821bdbf21b974dd8771d7e646d185",
+          "uem_sha256": "88c25acf7872a0813ec26fc88f5fdc2e6a69eedf4c7c3b66a571b77df669e8fd",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true,
+        "sampled_gpu_peak_mib": 844
+      },
+      {
+        "id": "TS3003a",
+        "provider": "cpu",
+        "pid": 2348374,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 104.29006885597482,
+        "cpu_seconds": 410.51083500000004,
+        "max_rss_kib": 566060,
+        "gpu_seen": false,
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "cdc51092817dc38595637331f5221fed5496f272e8acc7cda69c5911d91aa649",
+          "pcm_bytes": 48180564,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cpu",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "provider = cpu"
+          },
+          "exchange_pass": true,
+          "frame_count": 585
+        },
+        "score": {
+          "der": 0.1656373907856416,
+          "missed": 0.10542475174567528,
+          "false_alarm": 0.032622002331465824,
+          "confusion": 0.027590636708500493,
+          "reference_speaker_seconds": 1025.964,
+          "missed_speaker_seconds": 108.162,
+          "false_alarm_speaker_seconds": 33.469,
+          "confusion_speaker_seconds": 28.307,
+          "reference_speakers": 4,
+          "hypothesis_speakers": 5,
+          "recording": "TS3003a",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "57137f098ee3be9b8d77c9faa4b16e9155e821bdbf21b974dd8771d7e646d185",
+          "uem_sha256": "88c25acf7872a0813ec26fc88f5fdc2e6a69eedf4c7c3b66a571b77df669e8fd",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true,
+        "sampled_gpu_peak_mib": null
+      },
+      {
+        "id": "EN2002c",
+        "provider": "cpu",
+        "pid": 2355307,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 238.42512201471254,
+        "cpu_seconds": 940.42871,
+        "max_rss_kib": 794580,
+        "gpu_seen": false,
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "16d9c0e938a6f6301ac0a03b2e8e23c2a26cdfd3ae93f6559232cfb3214ba9b3",
+          "pcm_bytes": 95112192,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cpu",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "provider = cpu"
+          },
+          "exchange_pass": true,
+          "frame_count": 1438
+        },
+        "score": {
+          "der": 0.18650811690253735,
+          "missed": 0.1299054324030099,
+          "false_alarm": 0.013123123302747904,
+          "confusion": 0.04347956119677956,
+          "reference_speaker_seconds": 3343.64,
+          "missed_speaker_seconds": 434.357,
+          "false_alarm_speaker_seconds": 43.879,
+          "confusion_speaker_seconds": 145.38,
+          "reference_speakers": 3,
+          "hypothesis_speakers": 4,
+          "recording": "EN2002c",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "e595fa5953a923cbd62ffc881bd9725df98a6587bc14730dd279937773953bca",
+          "uem_sha256": "d79841d470555dde6f0d17dbb4fb8585ab516bf1aa932228cc42e66652ba3d39",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true,
+        "sampled_gpu_peak_mib": null
+      },
+      {
+        "id": "EN2002c",
+        "provider": "cuda",
+        "pid": 2382996,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 212.3888903078623,
+        "cpu_seconds": 213.49405299999998,
+        "max_rss_kib": 1438588,
+        "gpu_seen": true,
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_cuda.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_shared.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "16d9c0e938a6f6301ac0a03b2e8e23c2a26cdfd3ae93f6559232cfb3214ba9b3",
+          "pcm_bytes": 95112192,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cuda",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "CUDA provider libraries resolved and a CUDA device is available"
+          },
+          "exchange_pass": true,
+          "frame_count": 1213
+        },
+        "score": {
+          "der": 0.18667500089722577,
+          "missed": 0.12992547044538288,
+          "false_alarm": 0.013123123302747904,
+          "confusion": 0.043626407149095,
+          "reference_speaker_seconds": 3343.64,
+          "missed_speaker_seconds": 434.424,
+          "false_alarm_speaker_seconds": 43.879,
+          "confusion_speaker_seconds": 145.871,
+          "reference_speakers": 3,
+          "hypothesis_speakers": 4,
+          "recording": "EN2002c",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "e595fa5953a923cbd62ffc881bd9725df98a6587bc14730dd279937773953bca",
+          "uem_sha256": "d79841d470555dde6f0d17dbb4fb8585ab516bf1aa932228cc42e66652ba3d39",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true,
+        "sampled_gpu_peak_mib": 846
+      },
+      {
+        "id": "blwmj",
+        "provider": "cuda",
+        "pid": 2397091,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 15.074487317353487,
+        "cpu_seconds": 15.261089,
+        "max_rss_kib": 1082476,
+        "gpu_seen": true,
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_cuda.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_shared.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "716606ec646ecda5d262a55ae3748f8f2de4b5b70d140663addaddba0492ada2",
+          "pcm_bytes": 8293148,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cuda",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "CUDA provider libraries resolved and a CUDA device is available"
+          },
+          "exchange_pass": true,
+          "frame_count": 75
+        },
+        "score": {
+          "der": 0.018539719626168225,
+          "missed": 0.004049844236760125,
+          "false_alarm": 0.012141744548286605,
+          "confusion": 0.0023481308411214953,
+          "reference_speaker_seconds": 256.8,
+          "missed_speaker_seconds": 1.04,
+          "false_alarm_speaker_seconds": 3.118,
+          "confusion_speaker_seconds": 0.603,
+          "reference_speakers": 2,
+          "hypothesis_speakers": 2,
+          "recording": "blwmj",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "063b45d9011461e044fa0aaedb93dc59f1c74e6117916a0a95f080a5af7e7677",
+          "uem_sha256": "e08bda08afd1736ecf9cb362ef1c80acc054aa4e856612979c24f0e86a47d5a2",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true,
+        "sampled_gpu_peak_mib": 844
+      },
+      {
+        "id": "blwmj",
+        "provider": "cpu",
+        "pid": 2398209,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 26.60713882697746,
+        "cpu_seconds": 104.978646,
+        "max_rss_kib": 417448,
+        "gpu_seen": false,
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "716606ec646ecda5d262a55ae3748f8f2de4b5b70d140663addaddba0492ada2",
+          "pcm_bytes": 8293148,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cpu",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "provider = cpu"
+          },
+          "exchange_pass": true,
+          "frame_count": 154
+        },
+        "score": {
+          "der": 0.018539719626168225,
+          "missed": 0.004049844236760125,
+          "false_alarm": 0.012141744548286605,
+          "confusion": 0.0023481308411214953,
+          "reference_speaker_seconds": 256.8,
+          "missed_speaker_seconds": 1.04,
+          "false_alarm_speaker_seconds": 3.118,
+          "confusion_speaker_seconds": 0.603,
+          "reference_speakers": 2,
+          "hypothesis_speakers": 2,
+          "recording": "blwmj",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "063b45d9011461e044fa0aaedb93dc59f1c74e6117916a0a95f080a5af7e7677",
+          "uem_sha256": "e08bda08afd1736ecf9cb362ef1c80acc054aa4e856612979c24f0e86a47d5a2",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true,
+        "sampled_gpu_peak_mib": null
+      },
+      {
+        "id": "ampme",
+        "provider": "cpu",
+        "pid": 2400442,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 14.387498394120485,
+        "cpu_seconds": 56.499988,
+        "max_rss_kib": 417448,
+        "gpu_seen": false,
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "45d15617c8b7f8b857bf59af5e174341a11f62e9a7cbbfcbcb8ade5183c28f20",
+          "pcm_bytes": 4746240,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cpu",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "provider = cpu"
+          },
+          "exchange_pass": true,
+          "frame_count": 81
+        },
+        "score": {
+          "der": 0.04860705950991832,
+          "missed": 0.023497666277712954,
+          "false_alarm": 0.025109393232205367,
+          "confusion": 0,
+          "reference_speaker_seconds": 137.12,
+          "missed_speaker_seconds": 3.222,
+          "false_alarm_speaker_seconds": 3.443,
+          "confusion_speaker_seconds": 0,
+          "reference_speakers": 3,
+          "hypothesis_speakers": 3,
+          "recording": "ampme",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "0bba54230960204b44f169a98b36df50d97a6318b2312cda28a3796bcfa9eff1",
+          "uem_sha256": "290844d856b6d37dfc0599be64ef8891600858854941a54b4a0ff8597302e7fa",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true,
+        "sampled_gpu_peak_mib": null
+      },
+      {
+        "id": "ampme",
+        "provider": "cuda",
+        "pid": 2404500,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 8.59716974105686,
+        "cpu_seconds": 8.742561,
+        "max_rss_kib": 1090348,
+        "gpu_seen": true,
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_cuda.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_shared.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "45d15617c8b7f8b857bf59af5e174341a11f62e9a7cbbfcbcb8ade5183c28f20",
+          "pcm_bytes": 4746240,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cuda",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "CUDA provider libraries resolved and a CUDA device is available"
+          },
+          "exchange_pass": true,
+          "frame_count": 44
+        },
+        "score": {
+          "der": 0.04860705950991832,
+          "missed": 0.023497666277712954,
+          "false_alarm": 0.025109393232205367,
+          "confusion": 0,
+          "reference_speaker_seconds": 137.12,
+          "missed_speaker_seconds": 3.222,
+          "false_alarm_speaker_seconds": 3.443,
+          "confusion_speaker_seconds": 0,
+          "reference_speakers": 3,
+          "hypothesis_speakers": 3,
+          "recording": "ampme",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "0bba54230960204b44f169a98b36df50d97a6318b2312cda28a3796bcfa9eff1",
+          "uem_sha256": "290844d856b6d37dfc0599be64ef8891600858854941a54b4a0ff8597302e7fa",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true,
+        "sampled_gpu_peak_mib": 844
+      },
+      {
+        "id": "afjiv",
+        "provider": "cuda",
+        "pid": 2405655,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 8.74915924994275,
+        "cpu_seconds": 8.89294,
+        "max_rss_kib": 1087988,
+        "gpu_seen": true,
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_cuda.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_shared.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "140838ab5c60bba359760040599cdcc7b5dd3ab620acb5448c95c94bf0b9df93",
+          "pcm_bytes": 4839936,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cuda",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "CUDA provider libraries resolved and a CUDA device is available"
+          },
+          "exchange_pass": true,
+          "frame_count": 44
+        },
+        "score": {
+          "der": 0.10401973471368489,
+          "missed": 0.0011565836298932384,
+          "false_alarm": 0.09602879327078616,
+          "confusion": 0.0068343578130055,
+          "reference_speaker_seconds": 123.64,
+          "missed_speaker_seconds": 0.143,
+          "false_alarm_speaker_seconds": 11.873,
+          "confusion_speaker_seconds": 0.845,
+          "reference_speakers": 5,
+          "hypothesis_speakers": 5,
+          "recording": "afjiv",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "58a764b4b5864b14dd39d91e420370d1f45cabc4bcf354a8e7516538b996d51f",
+          "uem_sha256": "bc5875c446c89aa13999ccf4d237c2912511205d56717c91e8c32066d77a4f03",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true,
+        "sampled_gpu_peak_mib": 848
+      },
+      {
+        "id": "afjiv",
+        "provider": "cpu",
+        "pid": 2406239,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 14.831275235395879,
+        "cpu_seconds": 58.285824999999996,
+        "max_rss_kib": 417448,
+        "gpu_seen": false,
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "140838ab5c60bba359760040599cdcc7b5dd3ab620acb5448c95c94bf0b9df93",
+          "pcm_bytes": 4839936,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cpu",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "provider = cpu"
+          },
+          "exchange_pass": true,
+          "frame_count": 86
+        },
+        "score": {
+          "der": 0.10401973471368489,
+          "missed": 0.0011565836298932384,
+          "false_alarm": 0.09602879327078616,
+          "confusion": 0.0068343578130055,
+          "reference_speaker_seconds": 123.64,
+          "missed_speaker_seconds": 0.143,
+          "false_alarm_speaker_seconds": 11.873,
+          "confusion_speaker_seconds": 0.845,
+          "reference_speakers": 5,
+          "hypothesis_speakers": 5,
+          "recording": "afjiv",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "58a764b4b5864b14dd39d91e420370d1f45cabc4bcf354a8e7516538b996d51f",
+          "uem_sha256": "bc5875c446c89aa13999ccf4d237c2912511205d56717c91e8c32066d77a4f03",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true,
+        "sampled_gpu_peak_mib": null
+      },
+      {
+        "id": "edixl",
+        "provider": "cpu",
+        "pid": 2407204,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 32.43895474728197,
+        "cpu_seconds": 128.03772600000002,
+        "max_rss_kib": 417552,
+        "gpu_seen": false,
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v3/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "af97fc04591aecafecb4ec8c7d4e2992d86f04b447baa3a4258eff65def3c22a",
+          "pcm_bytes": 9974016,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cpu",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "provider = cpu"
+          },
+          "exchange_pass": true,
+          "frame_count": 175
+        },
+        "score": {
+          "der": 0.01776741776741777,
+          "missed": 0.00405011655011655,
+          "false_alarm": 0.007387982387982388,
+          "confusion": 0.006329318829318829,
+          "reference_speaker_seconds": 308.88,
+          "missed_speaker_seconds": 1.251,
+          "false_alarm_speaker_seconds": 2.282,
+          "confusion_speaker_seconds": 1.955,
+          "reference_speakers": 6,
+          "hypothesis_speakers": 6,
+          "recording": "edixl",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "c8bb215a2acd2dd2b0dfe909ef167be4a50bcfa96ad5b3c93e784161a0b57598",
+          "uem_sha256": "d9f22e4bdef4fe8b32ed120064fa4457624dc03d38995a907a6aaed2de4c2d30",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true,
+        "sampled_gpu_peak_mib": null
+      },
+      {
+        "id": "edixl",
+        "provider": "cuda",
+        "pid": 2409317,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 16.547458732966334,
+        "cpu_seconds": 16.737218000000002,
+        "max_rss_kib": 1090388,
+        "gpu_seen": true,
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_cuda.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libonnxruntime_providers_shared.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v3/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "af97fc04591aecafecb4ec8c7d4e2992d86f04b447baa3a4258eff65def3c22a",
+          "pcm_bytes": 9974016,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cuda",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "CUDA provider libraries resolved and a CUDA device is available"
+          },
+          "exchange_pass": true,
+          "frame_count": 80
+        },
+        "score": {
+          "der": 0.01776741776741777,
+          "missed": 0.00405011655011655,
+          "false_alarm": 0.007387982387982388,
+          "confusion": 0.006329318829318829,
+          "reference_speaker_seconds": 308.88,
+          "missed_speaker_seconds": 1.251,
+          "false_alarm_speaker_seconds": 2.282,
+          "confusion_speaker_seconds": 1.955,
+          "reference_speakers": 6,
+          "hypothesis_speakers": 6,
+          "recording": "edixl",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "c8bb215a2acd2dd2b0dfe909ef167be4a50bcfa96ad5b3c93e784161a0b57598",
+          "uem_sha256": "d9f22e4bdef4fe8b32ed120064fa4457624dc03d38995a907a6aaed2de4c2d30",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true,
+        "sampled_gpu_peak_mib": 848
+      }
+    ],
+    "retirement": {
+      "round": 1,
+      "terminal_exit": 2,
+      "runs_completed": 14,
+      "frozen_candidate_sha256": "e30a4f0ebbeede7b8f5668a3ce0cb9a03e4e809209ea64ed76fd40c0cb974683",
+      "verdict": "failed pooled DER and exact-count gates",
+      "cpu_pooled_der": 0.1640757032385463,
+      "cuda_pooled_der": 0.16417505818310527,
+      "exact_count_fraction_each_provider": 0.5714285714285714,
+      "retired_recordings": [
+        "ES2004a",
+        "TS3003a",
+        "EN2002c",
+        "blwmj",
+        "ampme",
+        "afjiv",
+        "edixl"
+      ],
+      "new_role": "development only; never reused as unseen heldout proof after subsequent tuning",
+      "original_evidence_preserved": true,
+      "quality_thresholds_unchanged": true,
+      "next_step": "Calibrate on all fourteen original plus retired development recordings, then freeze a new candidate and evaluate a new untouched local holdout."
+    }
+  },
+  "freeze_sha256": "e30a4f0ebbeede7b8f5668a3ce0cb9a03e4e809209ea64ed76fd40c0cb974683",
+  "native_development": {
+    "cpu_all_seven": {
+      "version": "v2 automatic path; unchanged in v3",
+      "pooled_der": 0.112253044,
+      "pooled_confusion": 0.024042639,
+      "exact_counts": 6,
+      "recordings": 7,
+      "max_recording_der": 0.208164228
+    },
+    "v3_cpu_cuda_spot": {
+      "recordings": [
+        "ES2002a",
+        "ggvel"
+      ],
+      "exact_score_parity": true,
+      "exact_cpu_v2_v3_turn_parity": true
+    },
+    "float32_replay": {
+      "recordings": [
+        "ES2002a",
+        "IS1009b"
+      ],
+      "exact_normalized_rpc_turn_parity": true
+    },
+    "full_gate": {
+      "head": "23cfd5812b1c146ad2d45cda6cdc95e38ee8670c",
+      "command": "make build test lint",
+      "exit": 0,
+      "rust_passed": 898,
+      "qt_passed": 74
+    }
+  },
+  "current_status": "Gordon accepted delivery of the existing native implementation to main on 2026-09-10 with known limitations. Rounds 1 and 2 remain failed; twenty-one recordings are development data and no replacement candidate passed the accuracy gates. Existing paired native development evidence is retained; the second held-out CUDA evaluation remains incomplete. NVIDIA local evaluation authorization does not authorize deployment or redistribution. Delivery acceptance does not claim high accuracy or production readiness.",
+  "round2_evaluation": {
+    "freeze": {
+      "schema_version": 1,
+      "round": 2,
+      "frozen_unix": 1788960632.3683624,
+      "code_head": "9971ff1913fd15ab6b6c3cedb20006268f101aa1",
+      "observed_head": "9971ff1913fd15ab6b6c3cedb20006268f101aa1",
+      "gate": {
+        "command": "make build test lint",
+        "exit": 0,
+        "log": "/tmp/fn56-v4-full-gate.log",
+        "log_sha256": "54c58e623c5403d7b826665589e7e8871c16949e62719d629d2b5b654be92d53"
+      },
+      "native_parity_passed": true,
+      "transport": "rpc",
+      "model_dir": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+      "model_id": "diarization-en",
+      "diarize_params": {
+        "clustering_threshold": 0.6
+      },
+      "extra_args": [],
+      "parameters": {
+        "automatic_speaker_count": true,
+        "clustering_threshold": 0.6,
+        "linkage": "average cosine using native float32 distances",
+        "minimum_clean_embedding_seconds": 2,
+        "minimum_population": "min(15,max(1,round-half-even(Ntrain/100)))",
+        "centroid_consolidation": {
+          "cost": "2*cosine_distance*n_a*n_b/(n_a+n_b)/minimum_population",
+          "maximum_cost": 1.5,
+          "enabled_when_minimum_population_exceeds": 1,
+          "centroid_update": "population-weighted raw means, followed by normalization",
+          "assignment": "nearest retained consolidated centroid for every raw embedding"
+        },
+        "voiced_count_threshold_float32": 0.4,
+        "overlap_count_threshold_float32": 1.2,
+        "extra_global_rank_support": false,
+        "min_duration_on": 0.1,
+        "min_duration_off": 0.1,
+        "threads": 4,
+        "explicit_speaker_count": "legacy complete linkage, count rounding, min-on 0.3 and min-off 0.5"
+      },
+      "targets": {
+        "cpu": {
+          "engine": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/dettivo-engine-diarize",
+          "library_dirs": [
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4"
+          ],
+          "library_files": [
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libsherpa-onnx-c-api.so",
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libonnxruntime.so"
+          ]
+        },
+        "cuda": {
+          "engine": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/dettivo-engine-diarize",
+          "library_dirs": [
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4",
+            "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/usr/lib",
+            "/opt/cuda/lib64"
+          ],
+          "library_files": [
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libsherpa-onnx-c-api.so",
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libonnxruntime.so",
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libonnxruntime_providers_cuda.so",
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libonnxruntime_providers_shared.so"
+          ]
+        }
+      },
+      "artifacts": {
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/build-receipt.json": "e3375bf0b99055be298f0480e2ad1d76f5380552c84c913cd571b99d9542ad81",
+        "/tmp/fn56-v4-cpu-build.log": "99f71393b9903dca098310bb446022a4bdee195ea9996f351a787195555210a6",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/dettivo-engine-diarize": "c73bdf6dc9c5747e8fc0b905720d5ead508292611fb97e4a8a039f03854f9ca0",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libsherpa-onnx-c-api.so": "122c5b7f41a524545948c1bc7f42f550d4ca15a5c7fb8e649f520f48a00e8da0",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libonnxruntime.so": "c85f471e1bd5059a4556038f7f5288fa41141647613688452ae7de4879150903",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en/segmentation.onnx": "220ad67ca923bef2fa91f2390c786097bf305bceb5e261d4af67b38e938e1079",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en/embedding.onnx": "c59158379255ad66e161679cca6af8d52d51e389e3224ab7d7a7baae295c2db5",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/run_heldout.py": "31c523c04fc53b9c088c8aae26c18facbdfe1dfacf8e12b9a5f500758165b8ab",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/rpc_audio.py": "071be304afe195a826205558f84a55ad5e8472137860ea78f95cae69839cb06c",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/run_development.py": "983eb0a95930a3482f19e857e715bc52c19487e15b5ec9ef3a3dc4466c0bbf07",
+        "/home/gordon/work/dettivo-linux/scripts/qa/diarization_score.py": "c2aeef5976ffe931d442795da1d85ea6dc86edc2618e3c46882e080085e7a405",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/voiced-probe/results-hysteresis/ES2002a-voiced0.4.json": "f9d0787429efc2c6717092953829d0e2ec684977f1bd602340d8749f64cf6909",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/voiced-probe/results-hysteresis/IS1009b-voiced0.4.json": "62b6bf7da00772addd939a73d2651526a45cb60c4a12c6512a8aaafd6b80af9a",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/voiced-probe/results-hysteresis/EN2001b-voiced0.4.json": "2274e75653341aaa3e93e861844f78b17cd67cc2df6f1b764eb1454de282357b",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/voiced-probe/results-hysteresis/crixb-voiced0.4.json": "5bec4ea44b7607be7408dc9e73d4c672e92f32402795292670af2d691c62374d",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/voiced-probe/results-hysteresis/asxwr-voiced0.4.json": "3be89fcacde7c0a7478e4abc8f7d80086ada11bafaa894e8b0f007a9a5ed3964",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/voiced-probe/results-hysteresis/bauzd-voiced0.4.json": "726c89388848847799d2ffed353040a7039efcea36886c5063f6465fd6c70273",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/voiced-probe/results-hysteresis/ggvel-voiced0.4.json": "4b523e33ccfa6435e444f816c87e62b537cf1627d111fc0902e2326bd9b6f883",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/voiced-probe/results-hysteresis/ES2004a-voiced0.4.json": "7ac6c7018a7328aa34ef2feb6acb9b6c79e57856c792ba6a3f72d18aced14552",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/voiced-probe/results-hysteresis/TS3003a-voiced0.4.json": "a8af63fc2f7c06fbc72b2036ce7f6e398e816c8f8bc33e30dd80cde7ada78550",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/voiced-probe/results-hysteresis/EN2002c-voiced0.4.json": "ef3b173b15ccefd91b86c5b16136b0640fae24d68b6a0486a64ec22b85a6759d",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/voiced-probe/results-hysteresis/blwmj-voiced0.4.json": "9d7afea9785a8f10b1f46fada4440955fd0f955bb54df208b5ab3be64a710c88",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/voiced-probe/results-hysteresis/ampme-voiced0.4.json": "d48b1d5366e054280433358141cc7c73024f588e4cc38727d4a1ff173455375f",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/voiced-probe/results-hysteresis/afjiv-voiced0.4.json": "92d4d07989553f43d8d25abc0fe97d395171c74712301366d2f4ad9fe998d84f",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/voiced-probe/results-hysteresis/edixl-voiced0.4.json": "d04dbbec9fd65b012af84e6f479b6f710d73d61bcce652331694fee7c4943a96",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/native-development-cpu-v4-20260909-150157/report.json": "80ae4e3bd4672684b54dec6952185ca0e2f39be41a70244e8d5e4d9315047624",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/build-receipt.json": "6729b8b505b8752cdf1e716c691a9afb91f673fbf9b27bf47acf5317b477670b",
+        "/tmp/fn56-v4-cuda-build.log": "38197250c0e651ffd7564ecad675d0376ff3af74987bed0f5b9b91b74e11d044",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/dettivo-engine-diarize": "f5ac4e80a9391d689d28d672b6cfd584d32781dc39dea26b28b76010292b1273",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libsherpa-onnx-c-api.so": "6386cfa8e8ad143bbe804569f90d49eef4afd1f37963d2c047ba8c1b16b1aebb",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libonnxruntime.so": "bd6591e07bac04657dddd92a4407f4b5aab8268e25b55d901e886648eeb7b8f6",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libonnxruntime_providers_cuda.so": "2e37efc8c17fb24f3d248b2fba74496e9c30f743492500aad834c618f99dd942",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libonnxruntime_providers_shared.so": "c6a12593396095f5670160e284c35d1700b7708cf3037b7042e2a5200ccae772",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/native-development-cuda-v4-20260909-150351/report.json": "ecf179f8e02453b68d3c36ff915438c16c617d6f41b0dde65bcfabefbea5c570",
+        "/home/gordon/work/dettivo-linux/Cargo.lock": "9041adaea40cb2473fae59592231d96f19b9d8d05908d9d27ee773f15d4f3c75",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/audio_schema.rs": "fa264830e54182261e911c7c68854ae15715fa7c2edfce848eeb01fd52e0282d",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/default_toml.rs": "54b753c18af1efd9b605550cea1d5074443412a14dcab24b4b9aec4a1ebf9479",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/edit.rs": "79bce538630bf54f7ed595337065e6148a126a4adc4b2c80100ae687e7668a0e",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/import_schema.rs": "fc150d8191c89db6ff98da389c8408c30aaace506687b13e0bb4dfaeef72c5a8",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/keys.rs": "5a8ffbca152a4c89b9a51a26f14efcad3b9399a5ab64c4f289dd02f797f73d0a",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/llm_schema.rs": "5c5275a21035039848b9f30d6bd6a63150b50e10665b34e1801afe2181574cb2",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/mod.rs": "d4c6b1acb6d498f5767e4538616733d80db67dbab744fbd5b04a75e9c3c16f5a",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/omarchy_schema.rs": "0850b74a72035206be903b0ad754f3c255d4c8a75d852103f9d0d8456d45f12f",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/polish_schema.rs": "6fe84251413e484c9f6ec30e7ae30f05d67764919082230b9e5fbbfebfc9cdcb",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/rest_schema.rs": "bc2c439a411dcf45b9195cb24a4bf8dcc9242c82ef816380cad932d3ec7ab824",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/schema.rs": "f6350b2c515c1c9b73da10da4a43a3e57284d323864a38baf76107cfbfade399",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/speech_schema.rs": "5b19eb41aa2044560b3ef3e0a878e1cc7270be4ff5a1f530a086c6fa2eb2742b",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-core/src/config/validate.rs": "1423cba785d5b488d909c6e2e440164ce6b63ff31a5504f3160e0997ddaa4114",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-diarize/Cargo.toml": "e36cdedee87f51fd8d599cf8a1e742850cd3ba14d41db99c598e032ce2d9c852",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-diarize/build.rs": "e1b3eaeb87552155413fd2ee95d3a88b482748c60fcbfa657e428458182a98f0",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-diarize/src/engine.rs": "2fd6e0412fac50977ff84d815b191df65435cd5ca9f5caa26fd13cebf195aadb",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-diarize/src/main.rs": "174188af35f8e4ab22a7f76f973adef5f85b4cb9e39cca0964302857a80f9976",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-diarize/src/provider.rs": "16053d817c7376f0b6aec33780144a4777c02d317566b302b4d83d6e6d55479c",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-diarize/tests/cli.rs": "5487ab17f1d055540fd2ad83cab177f87abf790c82855624df78cbc669088ddc",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-diarize/tests/protocol.rs": "e6ddc9d503016d428cbf2b65a5ceabc57de36ae6856883252529c9d33038a11c",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-diarize/tests/smoke.rs": "fb3568822c9b5b5e2af77b2f8528710da7f2587c0ca681fa6877facfaa81794a",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/Cargo.toml": "1741e26e136d1d31bf974532f635dddef422a5436b6bf43f9504c71f011e2889",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/examples/fake-engine.rs": "8de20e8ad82833097e7608a3c2c2efa1e21ac7109012f80a32e2b6c1c80948f6",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/README.md": "0ebbbb7ad9dc2757f150a5ebd2a6e7cbff9d3b91f490684cceb71c62dd3def5b",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/event.error.json": "437620f127f91e593de34c12ccf4579de294429582373b0fd7d1d332d1b02ca5",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/event.loaded.json": "865430c7ab41fe72c37615c569904b5c4c49cccfe6c2ca3addd04e042c6c5abf",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/event.partial.json": "49adb868e7e4d967406c3ae062a7374d0bc3d86067b49dbfaab75b2b85b274b9",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/event.progress.chunks.json": "cb287ae2301c5cab03c84dcd8efbce693247fb6596341d2675dee4627443a6b2",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/event.progress.json": "6cc0ae7d3853249ee108fc14920f463a2d1a0cddb475b7876641f29801033ac1",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/request.cancel.json": "88f0c34620f9b72f6c59197c92bf547e8b00cc7941cdfaa26df4e05867876d77",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/request.diarize.json": "cabcd00b219656a28da51ac11d699fb6ed49673e9c76d6c8005301e778e77a76",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/request.generate.json": "db304f9ea7383e4a9b5f7236cbdfac0fb333a5ae058bb6332374ad94457319e1",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/request.load.json": "e9e6c1a75b65e6cbf34ae4f235dda256b00550abede45c37283415f30ca27c9d",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/request.load.lora.json": "72e2d756424766f391a92cb38fb68165d9b1ffe8cf4c93b245acee1970da4d41",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/request.load.threads.json": "5b1918dd45c57c51e73a49e25c39b818425d3da8c3e360e563d869892e944eb8",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/request.recognize.json": "fe434e534d4d4b2c077951ce0a458f60b0445bfd26b99e7fb5110ea6e50fb99c",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/request.status.json": "0e8aeb14b806bc3909c411bda7ea1c3f0444a75fa63937dc39d35992b9c3c1ff",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/request.unload.json": "8e9f122421688757500c251f6272fdfcf6ea4aab731746390ef043093aee189e",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/response.cancel.json": "3535cdf582efce5c7ec3a578df2a47834188ccdd31050178187ddfcfe23a5af7",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/response.diarize.json": "a6d75a59859155c64199e67856014d5ff0564b25081101699dd1933b80fe740b",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/response.error.json": "5931b3fa16e91e4879cf3911288d73513d4dfbcaa952ef50d5aebc630eb31c14",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/response.generate.json": "a8b8d2367f512dcb04a98b0f9c8e940a604a93284544db39fd3e82e26fb78ffc",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/response.load.json": "7b72980bbf8326a278904ac31f69989aa8deac2037f14b54770db51f90bbc2b0",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/response.recognize.json": "e282e22d7e8768e1580995bb1e8cbc284229e742d8347279adcaaa395a5db355",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/response.recognize.words.json": "8f6855dc27981774c383802c7dccb304a74eead4b6be00620f4ca3b86e8b3762",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/response.status.json": "8a2a703b4620d827b7e39bb249fe437fb2655656a575275179cf87258c507ce7",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/response.status.memory.json": "d53e56515f0e1b519ce86785e6632c75f1265912913beefa1449d9a0a9a5020a",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/fixtures/response.unload.json": "5c5a270553d692c6f473cc06cd09a3ba9dcb26a870302ffa2795f97a305eca25",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/src/backend.rs": "9e37012bd1daa4133e11bdb3e05b7fa04cf98ff689f0d6e1ba06e22cefe3b10f",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/src/frame.rs": "2b252012ad508a8699b20b7aca0f61871da5b219cb96ee9e23c45f14e163d134",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/src/host.rs": "9c0a1b4a09c0c19f208af1aa29b9b8823a83518568bdd97ccc5423fafb10e48c",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/src/host_diarize.rs": "bfb8baee7bf92c32e8c93ae85c15500f7916c90ffffe6aa65054fd0bafb4a0fd",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/src/host_diarize_tests.rs": "2fdec34dcc26f2a5429930d26031d6e8bc963011586982ef748fb43e4377c2ed",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/src/host_llm.rs": "4791d9f59fe576d0c11fea3a6a4fdb70313693b98fc91288f40345c69607a2e9",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/src/lib.rs": "c301445541879c095e37a3a1bf68849d219c46ac32d13e6ce44fd1093e417651",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/src/messages.rs": "dc64f62045fff60163f5a808de36e69257d13460262727b31e53526da6a1cca1",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-engine-proto/tests/fixtures.rs": "0cbab47572391c0621645df43a752f359016d6c65449377f1dfbb1f8d0b083fc",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-meeting/src/diarize.rs": "f195d35ebd6909a593e5d2d4cb895bd857254f8d92ce1c20cb32fd03e75e8c66",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/Cargo.toml": "9fc5fcae4fc8649b86d1f4e656d494b17a53a46ba178b3a9fbeafc7f803f443d",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/catalogue/v1.toml": "b50d4077b1d68af8daf1d9e3ebd77811a781ed3a80c53b893843bb24529a0de5",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/catalogue.rs": "f5168b6ddb0d5b94ecb889bf9e2be8b678c3bc4476fc75f275a56906baccf478",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/diarize.rs": "452c23090037c4c78020fa4532a51746ab6595f236cf66f92289707427386c0d",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/download.rs": "de6b809f627ed2f1129be3caa855ac2f44ffd317683db07282b1702f455f9054",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/engines.rs": "9f71227f53d96af6c6ad4cba84d291aa56af63c244d70044d6d84edcc8c146a1",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/fixture_server.rs": "98b7f7a5af18ad8babe002adc1301f99d30259092a29514e5b30d6668358c3c4",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/lib.rs": "957ae925392837fc8117d31a3e4d0df2d05a79761bb5550ccd371774b7fb1268",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/llm/mod.rs": "6c94466bfe96f2b7d81339c31e4e0b2d9af24d6a6c11f3163eb6b9d180d9383f",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/llm/sideload.rs": "70b2df31370ee7dc1499bdfdb3b2ce8731e35de300d26d7bd327b2c09fa07518",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/models.rs": "b68877c2ac5999c7106264170d219a70c533718d85309dd9b8fd718d7f28006c",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/models_tests.rs": "c10d7b06e323602ca943537d0a631667fca50d6391acde6196303d61cf63ec6e",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/preload.rs": "6d6a8220602be0fdff3419e5f832f84cb8570e72b85ca74182e75cc8f7272aec",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/process.rs": "7283987d1e7dc6b1b354b05d4e7beeca1b45a4dc038f8442cb85c5687f743115",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/supervisor.rs": "efdaf165c3c831142f5da153f251c65b05fce60eaef2bd72c72ac99737bd4602",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/supervisor_types.rs": "e790279cb155fd4c373a3a974cec7dbe8338265816517261644283de27c779c7",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/src/tier.rs": "c55125ecf0b24737fce558b1590c1419ed23f50198a21d1cc63a86d0bbddb804",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/tests/downloads.rs": "f8e0753dc8d1c61ca2c3e1d7ad3912e43352a10fac93360ac3b9a87f53ab38af",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/tests/llm.rs": "1ac16c6f15628b6f7da36fcb16c16c069a3eb1bf1d0fb827f5c8a8291ccae68a",
+        "/home/gordon/work/dettivo-linux/crates/dettivo-speech/tests/supervisor.rs": "1bfa835524d6b4f8ef2eb396efdf317b271ce6d6c5d0efc1e5dfc0cdee5b3694",
+        "/home/gordon/work/dettivo-linux/crates/dettivod/src/diarization.rs": "659cbf2ee4b7b6803a43850bbcd39337d45fd87c3877aafc5654e174d6ab5a5a",
+        "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/Cargo.toml": "1ac4a334a43b82eb5f7e58d49a6fb5fd92e6a7b82d44cf4c81143b0dfb5ca6ac",
+        "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/build.rs": "4e0c02b244a1c3caa20f56005d3d8babc1b268abe44a5859831db06622ef0564",
+        "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/calibrated_clustering.h": "7ccb83cad22d78ecd5f9d5ba09bc3099a5e18a5541a265b5a1578a74f4f3f54e",
+        "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/patches/cuda-conv-default.patch": "a4fee29b10dbc251eb94d44bd34c8f8b812293deb0d7c682cdc8f4705ec6f562",
+        "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/patches/diarization-calibration.patch": "1b9dc07f92284e9c6be4e708624c0ef703998fa74287a26b5ebd3d0c15b70d00",
+        "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/source_build.rs": "f5811bdde1b65610f0439535d7a0046a52f596a7628387cb8f412613e381e35b",
+        "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/src/lib.rs": "1e39f6ea9bef8c1212594fe107a85668297aa19bde80a4b493d9f92d0b9136ce",
+        "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/tests/calibrated_clustering.cc": "5af5949edaa9becf44c676e92ba0d37ed8e585ddb9baadecee48e0e52947c25b",
+        "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/tests/cuda_patch.rs": "30f4137ddce1ea93d1c65f598176c164b0f6e0f29633cb9fee596d70b7b3761c",
+        "/home/gordon/work/dettivo-linux/crates/sherpa-onnx-sys/wrapper.h": "c32b45611548cc9a8edb714d5342ef8c7136bc6f95f28066b34604b66029c45a",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/freeze_candidate.py": "723b3170b91af46131001b63b3a8c26d4bab76beef94c6965c9c255a4f064767",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/candidate-parameters-v4.json": "9bc7c20bfda9bba42e78177cde8e068a1788c81c996984363eeaece2e83946b3",
+        "/tmp/fn56-v4-full-gate.log": "54c58e623c5403d7b826665589e7e8871c16949e62719d629d2b5b654be92d53"
+      },
+      "selection_sha256": "f8dd5475c3573e761b07c1432179f75885a83b0e161514042db3f7d34119d8a0",
+      "manifest_sha256": "f7dfabb0cb65747d25ec13712cfb145613dbd8874095d717ad0f7c3bafdb9164",
+      "development_evidence": [
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/native-development-cpu-v4-20260909-150157/report.json",
+        "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/native-development-cuda-v4-20260909-150351/report.json"
+      ],
+      "rule": "No model, parameter, runtime, scorer, runner or input changes during heldout. A failed cohort used for tuning is development and needs a new untouched local holdout."
+    },
+    "freeze_sha256": "fd38d49c8f620c1e19d3e55c26d144990f753e078e0eea7fe7dbd7f4947ad9e7",
+    "selection": {
+      "round": 2,
+      "revision": 1,
+      "heldout": {
+        "ami": [
+          "ES2011a",
+          "TS3004a",
+          "IB4001"
+        ],
+        "voxconverse": [
+          "djngn",
+          "aufkn",
+          "bxpwa",
+          "gzvkx"
+        ]
+      },
+      "development": {
+        "ami": [
+          "ES2002a",
+          "IS1009b",
+          "EN2001b",
+          "ES2004a",
+          "TS3003a",
+          "EN2002c"
+        ],
+        "voxconverse": [
+          "crixb",
+          "asxwr",
+          "bauzd",
+          "ggvel",
+          "blwmj",
+          "ampme",
+          "afjiv",
+          "edixl"
+        ]
+      },
+      "selection_rule": "Two new AMI scenario recording groups (ES2011a, TS3004a) plus the first alphabetical non-scenario AMI development recording (IB4001); third alphabetical VoxConverse dev recording with at least120s and exactly2,3,5,6 reference speakers. No model inference or output inspection on these recordings preceded selection.",
+      "split_caveat": "These are locally untouched recordings/groups from publisher development splits. All official AMI test groups have now appeared in local development or round1. This is not an official-test result and does not prove exclusion from pretrained-model training or original publisher tuning.",
+      "gates": {
+        "pooled_der_max": 0.15,
+        "recording_der_max": 0.25,
+        "pooled_confusion_max": 0.05,
+        "exact_count_fraction_min": 0.8,
+        "max_count_ratio": 2,
+        "cpu_cuda_pooled_der_delta_max": 0.01
+      },
+      "protocol": "Zero collar, overlap included; published AMI words/UEM; VoxConverse0.3 RTTM and full WAV duration UEM.",
+      "freeze_rule": "Freeze models and parameters before heldout inference; if used for tuning after failure these records become development and a new unseen holdout is required.",
+      "round1_status": "All14 original frozen runs completed with exit2. Entire first7 heldout recordings retired into development; failure preserved unchanged."
+    },
+    "retirement": {
+      "status": "retired from local holdout after accuracy failure",
+      "retired_unix": 1788961578.8204896,
+      "freeze_sha256": "fd38d49c8f620c1e19d3e55c26d144990f753e078e0eea7fe7dbd7f4947ad9e7",
+      "original_report_sha256": "089d8a7d4f82774f722864a5e499acc66b53de3f5155f386679166c9d8c9c86e",
+      "cpu_report_sha256": "89e56489d55e36ebfb0cc953b4b4f57a241a62c0549a1411351043edf41b6bb1",
+      "recordings": [
+        "ES2011a",
+        "TS3004a",
+        "IB4001",
+        "djngn",
+        "aufkn",
+        "bxpwa",
+        "gzvkx"
+      ],
+      "cpu": {
+        "der": 0.17719541143626277,
+        "missed": 0.04827848477389798,
+        "false_alarm": 0.05745813459461736,
+        "confusion": 0.07145879206774744,
+        "recordings": 7,
+        "max_der": 0.29220951054516514,
+        "exact_counts": 2,
+        "max_count_ratio": 1,
+        "quality_pass": false
+      },
+      "cuda_attempted": 3,
+      "cuda_valid": 2,
+      "original_attempt": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/heldout-v4/report.json",
+      "cpu_continuation": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/round2/heldout-v4-cpu-continuation/report.json",
+      "full_paired_validation": false,
+      "cuda_status": "Interrupted by GPU Xid79 / backend_unavailable; remaining CUDA results do not exist",
+      "failed_quality_gates": [
+        "pooled DER <= 15%",
+        "each recording DER <= 25%",
+        "pooled confusion <= 5%",
+        "exact automatic count >= 80%"
+      ],
+      "gates_unchanged": true,
+      "original_freeze_artifacts_unchanged": true,
+      "future_use": "These seven recordings are development only. Any further candidate requires a new untouched local holdout.",
+      "execution_note": "The original six-attempt report is preserved. The separate CPU continuation used the identical frozen native CPU runtime, original PCM, model, parameters and scoring/evaluation functions."
+    },
+    "cpu": {
+      "summary": {
+        "cpu": {
+          "der": 0.17719541143626277,
+          "missed": 0.04827848477389798,
+          "false_alarm": 0.05745813459461736,
+          "confusion": 0.07145879206774744,
+          "recordings": 7,
+          "max_der": 0.29220951054516514,
+          "exact_counts": 2,
+          "max_count_ratio": 1,
+          "quality_pass": false
+        },
+        "cpu_cuda_comparison": "incomplete"
+      },
+      "started_unix": 1788961351.4680614,
+      "finished_unix": 1788961441.177178,
+      "continuation_script_sha256": "9cb64bd1500a06177e02c9626601419b4899a853fcc571fbb9460740e3a1ccfc",
+      "runs": [
+        {
+          "id": "ES2011a",
+          "provider": "cpu",
+          "pid": 3026144,
+          "exit": 0,
+          "timed_out": false,
+          "valid": true,
+          "wall_seconds": 82.8967719040811,
+          "cpu_seconds": 326.674857,
+          "max_rss_kib": 514188,
+          "gpu_seen": false,
+          "sampler_errors": [],
+          "mapped_libraries": [
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libonnxruntime.so",
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libsherpa-onnx-c-api.so"
+          ],
+          "library_identity_pass": true,
+          "protocol": {
+            "pcm_sha256": "13d3454735f46e8769717ca873f01f2ebbe2d02bee6befe28a51a0c09b1dd998",
+            "pcm_bytes": 35643052,
+            "diarize_params": {
+              "clustering_threshold": 0.6
+            },
+            "transport": "engine RPC with original PCM16",
+            "loaded": {
+              "backend": "cpu",
+              "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+              "reason": "provider = cpu"
+            },
+            "exchange_pass": true,
+            "frame_count": 486
+          },
+          "score": {
+            "der": 0.18349359999147377,
+            "missed": 0.0639904932429552,
+            "false_alarm": 0.06680028882636313,
+            "confusion": 0.052702817922155434,
+            "reference_speaker_seconds": 938.28,
+            "missed_speaker_seconds": 60.041,
+            "false_alarm_speaker_seconds": 62.677375,
+            "confusion_speaker_seconds": 49.45,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 3,
+            "recording": "ES2011a",
+            "collar_seconds": 0,
+            "overlap_included": true,
+            "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+            "scorer": "stdlib event sweep + Hungarian assignment",
+            "rttm_sha256": "2372b3775e1093a128cc30852f2119affacb2f44c7e815413bd3a84df2bb414b",
+            "uem_sha256": "23a134e8caae6279d95f43dc03f079fcd77e36e1ac29e97b1879be7c8f48a860",
+            "independent_crosscheck": "pyannote.metrics"
+          },
+          "execution_pass": true
+        },
+        {
+          "id": "TS3004a",
+          "provider": "cpu",
+          "pid": 3046016,
+          "exit": 0,
+          "timed_out": false,
+          "valid": true,
+          "wall_seconds": 88.3978322292678,
+          "cpu_seconds": 348.88702,
+          "max_rss_kib": 534972,
+          "gpu_seen": false,
+          "sampler_errors": [],
+          "mapped_libraries": [
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libonnxruntime.so",
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libsherpa-onnx-c-api.so"
+          ],
+          "library_identity_pass": true,
+          "protocol": {
+            "pcm_sha256": "4a345138a021ad6fff7bc0ff002bf21abdd736388de65e75285edfa8c872e0f3",
+            "pcm_bytes": 43050324,
+            "diarize_params": {
+              "clustering_threshold": 0.6
+            },
+            "transport": "engine RPC with original PCM16",
+            "loaded": {
+              "backend": "cpu",
+              "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+              "reason": "provider = cpu"
+            },
+            "exchange_pass": true,
+            "frame_count": 537
+          },
+          "score": {
+            "der": 0.29220951054516514,
+            "missed": 0.06323617190608834,
+            "false_alarm": 0.07501890171110227,
+            "confusion": 0.15395443692797453,
+            "reference_speaker_seconds": 1005.2,
+            "missed_speaker_seconds": 63.565,
+            "false_alarm_speaker_seconds": 75.409,
+            "confusion_speaker_seconds": 154.755,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 3,
+            "recording": "TS3004a",
+            "collar_seconds": 0,
+            "overlap_included": true,
+            "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+            "scorer": "stdlib event sweep + Hungarian assignment",
+            "rttm_sha256": "44fdf4bf57d1168027c31f1e8312e66550e1d789d4c34332dbad372b9852b2af",
+            "uem_sha256": "582f1eb1871cf7ff2328329d03021d6ac7e6a3dadc48ba52c979876b560e3430",
+            "independent_crosscheck": "pyannote.metrics"
+          },
+          "execution_pass": true
+        },
+        {
+          "id": "IB4001",
+          "provider": "cpu",
+          "pid": 3051565,
+          "exit": 0,
+          "timed_out": false,
+          "valid": true,
+          "wall_seconds": 130.23280568001792,
+          "cpu_seconds": 514.011731,
+          "max_rss_kib": 609132,
+          "gpu_seen": false,
+          "sampler_errors": [
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: GPU is lost.  Reboot the system to recover this GPU",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error"
+          ],
+          "mapped_libraries": [
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libonnxruntime.so",
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libsherpa-onnx-c-api.so"
+          ],
+          "library_identity_pass": true,
+          "protocol": {
+            "pcm_sha256": "444b5e3faf51c866c2459a5d4f0b761a355f7ca6457b2dc84d61d407c2efcca5",
+            "pcm_bytes": 56980822,
+            "diarize_params": {
+              "clustering_threshold": 0.6
+            },
+            "transport": "engine RPC with original PCM16",
+            "loaded": {
+              "backend": "cpu",
+              "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+              "reason": "provider = cpu"
+            },
+            "exchange_pass": true,
+            "frame_count": 798
+          },
+          "score": {
+            "der": 0.19108927835705003,
+            "missed": 0.05161284188508224,
+            "false_alarm": 0.06970303933065002,
+            "confusion": 0.06977339714131778,
+            "reference_speaker_seconds": 1577.65,
+            "missed_speaker_seconds": 81.427,
+            "false_alarm_speaker_seconds": 109.967,
+            "confusion_speaker_seconds": 110.078,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 4,
+            "recording": "IB4001",
+            "collar_seconds": 0,
+            "overlap_included": true,
+            "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+            "scorer": "stdlib event sweep + Hungarian assignment",
+            "rttm_sha256": "6bb16b067661c7a6b2c9d7ceb54917a647bccec7b7ef4fb1479e3fd5e49f08bb",
+            "uem_sha256": "866eecb60980bdd342744154f0ece8b3ac0e396692001da342c3073f036a4c26",
+            "independent_crosscheck": "pyannote.metrics"
+          },
+          "execution_pass": true
+        },
+        {
+          "id": "djngn",
+          "provider": "cpu",
+          "pid": 3080135,
+          "exit": 0,
+          "timed_out": false,
+          "valid": true,
+          "wall_seconds": 15.083241395186633,
+          "cpu_seconds": 59.547582999999996,
+          "max_rss_kib": 362712,
+          "gpu_seen": false,
+          "sampler_errors": [
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error"
+          ],
+          "mapped_libraries": [
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libonnxruntime.so",
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libsherpa-onnx-c-api.so"
+          ],
+          "library_identity_pass": true,
+          "protocol": {
+            "pcm_sha256": "1872dde840282638aae3d1d637bc3d532e1a36d5473fe247e095fb8d5b766f1e",
+            "pcm_bytes": 5523750,
+            "diarize_params": {
+              "clustering_threshold": 0.6
+            },
+            "transport": "engine RPC with original PCM16",
+            "loaded": {
+              "backend": "cpu",
+              "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+              "reason": "provider = cpu"
+            },
+            "exchange_pass": true,
+            "frame_count": 88
+          },
+          "score": {
+            "der": 0.012487893462469734,
+            "missed": 0.0013256658595641646,
+            "false_alarm": 0.01116222760290557,
+            "confusion": 0,
+            "reference_speaker_seconds": 165.2,
+            "missed_speaker_seconds": 0.219,
+            "false_alarm_speaker_seconds": 1.844,
+            "confusion_speaker_seconds": 0,
+            "reference_speakers": 2,
+            "hypothesis_speakers": 2,
+            "recording": "djngn",
+            "collar_seconds": 0,
+            "overlap_included": true,
+            "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+            "scorer": "stdlib event sweep + Hungarian assignment",
+            "rttm_sha256": "a832d0ef7b5f85c8846924c56e91828868493da6ecb64c95905a989dd1f1a64a",
+            "uem_sha256": "e274a1c9f13627277496ff493c36e3bb47c41f3779042cd8a36b9afa8c41dd8d",
+            "independent_crosscheck": "pyannote.metrics"
+          },
+          "execution_pass": true
+        },
+        {
+          "id": "aufkn",
+          "provider": "cpu",
+          "pid": 3081138,
+          "exit": 0,
+          "timed_out": false,
+          "valid": true,
+          "wall_seconds": 15.354152282699943,
+          "cpu_seconds": 60.639313,
+          "max_rss_kib": 412856,
+          "gpu_seen": false,
+          "sampler_errors": [
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error"
+          ],
+          "mapped_libraries": [
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libonnxruntime.so",
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libsherpa-onnx-c-api.so"
+          ],
+          "library_identity_pass": true,
+          "protocol": {
+            "pcm_sha256": "6a1e9763c1fcb151cb09835c207fb7abeb238943079d233f391e13a56f1067cc",
+            "pcm_bytes": 5807616,
+            "diarize_params": {
+              "clustering_threshold": 0.6
+            },
+            "transport": "engine RPC with original PCM16",
+            "loaded": {
+              "backend": "cpu",
+              "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+              "reason": "provider = cpu"
+            },
+            "exchange_pass": true,
+            "frame_count": 89
+          },
+          "score": {
+            "der": 0.038427109974424556,
+            "missed": 0.02855392156862745,
+            "false_alarm": 0.007614023870417732,
+            "confusion": 0.002259164535379369,
+            "reference_speaker_seconds": 187.68,
+            "missed_speaker_seconds": 5.359,
+            "false_alarm_speaker_seconds": 1.429,
+            "confusion_speaker_seconds": 0.424,
+            "reference_speakers": 3,
+            "hypothesis_speakers": 2,
+            "recording": "aufkn",
+            "collar_seconds": 0,
+            "overlap_included": true,
+            "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+            "scorer": "stdlib event sweep + Hungarian assignment",
+            "rttm_sha256": "1570b675e5c02c8c17fa15bcfc669d9a896ccea2a65a6c78b8468db6893faec0",
+            "uem_sha256": "ba162f4c6ea93be51bcdceea37fd1b86b857e4ececbe38658f6eab0b182e56f9",
+            "independent_crosscheck": "pyannote.metrics"
+          },
+          "execution_pass": true
+        },
+        {
+          "id": "bxpwa",
+          "provider": "cpu",
+          "pid": 3082002,
+          "exit": 0,
+          "timed_out": false,
+          "valid": true,
+          "wall_seconds": 38.42636855179444,
+          "cpu_seconds": 152.231482,
+          "max_rss_kib": 412976,
+          "gpu_seen": false,
+          "sampler_errors": [
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error"
+          ],
+          "mapped_libraries": [
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libonnxruntime.so",
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libsherpa-onnx-c-api.so"
+          ],
+          "library_identity_pass": true,
+          "protocol": {
+            "pcm_sha256": "5b27530e3412174b723a48f5aeeee3939affed6a9b693a7286ec04d502310ca1",
+            "pcm_bytes": 13636608,
+            "diarize_params": {
+              "clustering_threshold": 0.6
+            },
+            "transport": "engine RPC with original PCM16",
+            "loaded": {
+              "backend": "cpu",
+              "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+              "reason": "provider = cpu"
+            },
+            "exchange_pass": true,
+            "frame_count": 216
+          },
+          "score": {
+            "der": 0.0241722672464914,
+            "missed": 0.012055248072741649,
+            "false_alarm": 0.007701620873690453,
+            "confusion": 0.0044153983000593,
+            "reference_speaker_seconds": 404.72,
+            "missed_speaker_seconds": 4.879,
+            "false_alarm_speaker_seconds": 3.117,
+            "confusion_speaker_seconds": 1.787,
+            "reference_speakers": 5,
+            "hypothesis_speakers": 4,
+            "recording": "bxpwa",
+            "collar_seconds": 0,
+            "overlap_included": true,
+            "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+            "scorer": "stdlib event sweep + Hungarian assignment",
+            "rttm_sha256": "042f6a883b4765a46fcdf4372c4c4e8d5b8dae3ff0d6520ec40ee703e14d59a3",
+            "uem_sha256": "be94599e42369d71920ff524513fe777d41e2ed839b7903cd4c3d238b1463329",
+            "independent_crosscheck": "pyannote.metrics"
+          },
+          "execution_pass": true
+        },
+        {
+          "id": "gzvkx",
+          "provider": "cpu",
+          "pid": 3084371,
+          "exit": 0,
+          "timed_out": false,
+          "valid": true,
+          "wall_seconds": 19.149215690325946,
+          "cpu_seconds": 75.687001,
+          "max_rss_kib": 420744,
+          "gpu_seen": false,
+          "sampler_errors": [
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error",
+            "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error"
+          ],
+          "mapped_libraries": [
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libonnxruntime.so",
+            "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cpu-v4/libsherpa-onnx-c-api.so"
+          ],
+          "library_identity_pass": true,
+          "protocol": {
+            "pcm_sha256": "352285f38f7afa0c8dd96a223c8c2b155337948f601a290321310962d32eacbf",
+            "pcm_bytes": 7206912,
+            "diarize_params": {
+              "clustering_threshold": 0.6
+            },
+            "transport": "engine RPC with original PCM16",
+            "loaded": {
+              "backend": "cpu",
+              "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+              "reason": "provider = cpu"
+            },
+            "exchange_pass": true,
+            "frame_count": 110
+          },
+          "score": {
+            "der": 0.05485365431243505,
+            "missed": 0.00965968133010045,
+            "false_alarm": 0.02024160027710426,
+            "confusion": 0.024952372705230343,
+            "reference_speaker_seconds": 230.96,
+            "missed_speaker_seconds": 2.231,
+            "false_alarm_speaker_seconds": 4.675,
+            "confusion_speaker_seconds": 5.763,
+            "reference_speakers": 6,
+            "hypothesis_speakers": 4,
+            "recording": "gzvkx",
+            "collar_seconds": 0,
+            "overlap_included": true,
+            "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+            "scorer": "stdlib event sweep + Hungarian assignment",
+            "rttm_sha256": "5dfdc05296d2133dcbf85ddbcb5109f16fdb2769c11c78372c1e5203f6a6d3c1",
+            "uem_sha256": "ad40d99fe2b01e64ea9eef6eb13035ddbf09f2f13f70c587735c79091b81bbc9",
+            "independent_crosscheck": "pyannote.metrics"
+          },
+          "execution_pass": true
+        }
+      ]
+    },
+    "cuda_attempts": [
+      {
+        "id": "ES2011a",
+        "provider": "cuda",
+        "pid": 3035227,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 69.32504413323477,
+        "cpu_seconds": 69.66816200000001,
+        "max_rss_kib": 1175480,
+        "gpu_seen": true,
+        "sampler_errors": [],
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libonnxruntime_providers_cuda.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libonnxruntime_providers_shared.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "13d3454735f46e8769717ca873f01f2ebbe2d02bee6befe28a51a0c09b1dd998",
+          "pcm_bytes": 35643052,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cuda",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "CUDA provider libraries resolved and a CUDA device is available"
+          },
+          "exchange_pass": true,
+          "frame_count": 371
+        },
+        "score": {
+          "der": 0.18354795476829944,
+          "missed": 0.06400861150189709,
+          "false_alarm": 0.06683652534424692,
+          "confusion": 0.052702817922155434,
+          "reference_speaker_seconds": 938.28,
+          "missed_speaker_seconds": 60.058,
+          "false_alarm_speaker_seconds": 62.711375,
+          "confusion_speaker_seconds": 49.45,
+          "reference_speakers": 4,
+          "hypothesis_speakers": 3,
+          "recording": "ES2011a",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "2372b3775e1093a128cc30852f2119affacb2f44c7e815413bd3a84df2bb414b",
+          "uem_sha256": "23a134e8caae6279d95f43dc03f079fcd77e36e1ac29e97b1879be7c8f48a860",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true
+      },
+      {
+        "id": "TS3004a",
+        "provider": "cuda",
+        "pid": 3039905,
+        "exit": 0,
+        "timed_out": false,
+        "valid": true,
+        "wall_seconds": 94.2781293541193,
+        "cpu_seconds": 94.695926,
+        "max_rss_kib": 1190032,
+        "gpu_seen": true,
+        "sampler_errors": [],
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libonnxruntime.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libonnxruntime_providers_cuda.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libonnxruntime_providers_shared.so",
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": true,
+        "protocol": {
+          "pcm_sha256": "4a345138a021ad6fff7bc0ff002bf21abdd736388de65e75285edfa8c872e0f3",
+          "pcm_bytes": 43050324,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "loaded": {
+            "backend": "cuda",
+            "model": "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/models/eres2net-en",
+            "reason": "CUDA provider libraries resolved and a CUDA device is available"
+          },
+          "exchange_pass": true,
+          "frame_count": 537
+        },
+        "score": {
+          "der": 0.2918702745722244,
+          "missed": 0.06328491842419419,
+          "false_alarm": 0.07495025865499404,
+          "confusion": 0.15363509749303622,
+          "reference_speaker_seconds": 1005.2,
+          "missed_speaker_seconds": 63.614,
+          "false_alarm_speaker_seconds": 75.34,
+          "confusion_speaker_seconds": 154.434,
+          "reference_speakers": 4,
+          "hypothesis_speakers": 3,
+          "recording": "TS3004a",
+          "collar_seconds": 0,
+          "overlap_included": true,
+          "protocol": "strict DER; UEM union; global optimal speaker assignment; microsecond half-even rounding",
+          "scorer": "stdlib event sweep + Hungarian assignment",
+          "rttm_sha256": "44fdf4bf57d1168027c31f1e8312e66550e1d789d4c34332dbad372b9852b2af",
+          "uem_sha256": "582f1eb1871cf7ff2328329d03021d6ac7e6a3dadc48ba52c979876b560e3430",
+          "independent_crosscheck": "pyannote.metrics"
+        },
+        "execution_pass": true
+      },
+      {
+        "id": "IB4001",
+        "provider": "cuda",
+        "pid": 3064214,
+        "exit": 0,
+        "timed_out": false,
+        "valid": false,
+        "wall_seconds": 0.061140598729252815,
+        "cpu_seconds": 0.014756,
+        "max_rss_kib": 407312,
+        "gpu_seen": false,
+        "sampler_errors": [
+          "Unable to determine the device handle for GPU0: 0000:01:00.0: Unknown Error"
+        ],
+        "mapped_libraries": [
+          "/home/gordon/work/dettivo-linux-wt/_factory/diarization-accuracy-gNIbaI/native-cuda-v4/libsherpa-onnx-c-api.so"
+        ],
+        "library_identity_pass": false,
+        "protocol": {
+          "pcm_sha256": "444b5e3faf51c866c2459a5d4f0b761a355f7ca6457b2dc84d61d407c2efcca5",
+          "pcm_bytes": 56980822,
+          "diarize_params": {
+            "clustering_threshold": 0.6
+          },
+          "transport": "engine RPC with original PCM16",
+          "exchange_pass": false,
+          "error": "Engine protocol error: {'code': 'backend_unavailable', 'message': 'libcudart.so.13: cudaGetDeviceCount returned 999, devices=0', 'request_id': 1}",
+          "frame_count": 1
+        },
+        "execution_pass": false
+      }
+    ],
+    "cuda_unattempted": [
+      "djngn",
+      "aufkn",
+      "bxpwa",
+      "gzvkx"
+    ],
+    "development": {
+      "cpu": {
+        "original": {
+          "der": 0.11467826574945691,
+          "missed": 0.03809210159861861,
+          "false_alarm": 0.051334813401659886,
+          "confusion": 0.025251350749178413,
+          "recordings": 7,
+          "max_der": 0.21967612609071613,
+          "exact_counts": 6,
+          "max_count_ratio": 1,
+          "quality_pass": true
+        },
+        "retired": {
+          "der": 0.14969603596648992,
+          "missed": 0.09208438503047811,
+          "false_alarm": 0.028522059248883153,
+          "confusion": 0.02908959168712866,
+          "recordings": 7,
+          "max_der": 0.18996567146399834,
+          "exact_counts": 7,
+          "max_count_ratio": 1,
+          "quality_pass": true
+        },
+        "combined": {
+          "der": 0.13078950450180193,
+          "missed": 0.0629332769151398,
+          "false_alarm": 0.04083895011636253,
+          "confusion": 0.02701727747029963,
+          "recordings": 14,
+          "max_der": 0.21967612609071613,
+          "exact_counts": 13,
+          "max_count_ratio": 1,
+          "quality_pass": true
+        }
+      },
+      "cuda": {
+        "original": {
+          "der": 0.11467116387233332,
+          "missed": 0.03809210159861862,
+          "false_alarm": 0.05132771152453629,
+          "confusion": 0.025251350749178413,
+          "recordings": 7,
+          "max_der": 0.21969521713252552,
+          "exact_counts": 6,
+          "max_count_ratio": 1,
+          "quality_pass": true
+        },
+        "retired": {
+          "der": 0.14969587255375216,
+          "missed": 0.0920869996342823,
+          "false_alarm": 0.028560624654994853,
+          "confusion": 0.029048248264475017,
+          "recordings": 7,
+          "max_der": 0.18996567146399834,
+          "exact_counts": 7,
+          "max_count_ratio": 1,
+          "quality_pass": true
+        },
+        "combined": {
+          "der": 0.13078559492549025,
+          "missed": 0.06293447986169724,
+          "false_alarm": 0.04085285918593298,
+          "confusion": 0.026998255877860027,
+          "recordings": 14,
+          "max_der": 0.21969521713252552,
+          "exact_counts": 13,
+          "max_count_ratio": 1,
+          "quality_pass": true
+        }
+      },
+      "cpu_all_fourteen_cached_disagreement": 0
+    },
+    "scope": "Seven complete CPU scores; only two valid CUDA scores. Quality failed independently of the infrastructure interruption. All seven recordings are now development data."
+  }
+}

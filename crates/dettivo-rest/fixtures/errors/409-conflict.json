@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/insert/perform",
+    "body": {
+      "expected_target_pid": "4242",
+      "mode": "raw",
+      "text": "Hello"
+    }
+  },
+  "expect": {
+    "status": 409,
+    "content_type": "application/json",
+    "error": {
+      "app_code": "CONFLICT",
+      "code": -32013
+    }
+  }
+}

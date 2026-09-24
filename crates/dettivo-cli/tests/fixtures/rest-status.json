@@ -1,0 +1,7 @@
+[
+  {"status": 200, "exit": 0, "authorized": true, "body": {"ok": true}},
+  {"status": 401, "exit": 3, "authorized": false, "body": {"error": {"message": "backend detail"}}},
+  {"status": 500, "exit": 1, "authorized": null, "body": {"error": {"message": "backend detail"}}},
+  {"status": 503, "exit": 2, "authorized": null, "body": {"error": {"message": "backend detail"}}},
+  {"status": null, "exit": 2, "authorized": null, "body": null}
+]

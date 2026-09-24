@@ -1,0 +1,34 @@
+{
+  "description": "Upload local audio file and dettivo using transfer/import pipeline.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "file_path": {
+        "type": "string"
+      },
+      "language": {
+        "type": "string"
+      },
+      "mode": {
+        "enum": [
+          "raw",
+          "polish"
+        ],
+        "type": "string"
+      },
+      "target_kind": {
+        "enum": [
+          "dictation",
+          "meeting"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "file_path"
+    ],
+    "type": "object"
+  },
+  "name": "import_audio",
+  "title": "Import Audio"
+}

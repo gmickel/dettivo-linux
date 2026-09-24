@@ -1,0 +1,37 @@
+{
+  "branch_name": "fn-19-audio-import-decoding-the-chunked-long",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-04T08:44:41.861824Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-13-history-store-sqlite-with-fts5-the",
+    "fn-15-parakeet-engine-parakeetcpp-binding",
+    "fn-18-mcp-server-stdio-transport-the-nineteen"
+  ],
+  "id": "fn-19-audio-import-decoding-the-chunked-long",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-19-audio-import-decoding-the-chunked-long.md",
+  "status": "done",
+  "title": "Audio import: decoding, the chunked long-audio pipeline and the overlap merger",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T14:03:17.924097Z"
+}

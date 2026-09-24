@@ -1,0 +1,26 @@
+{
+  "capabilities": {},
+  "method": "dictation.start",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "dictation.start",
+    "params": {
+      "language": "en",
+      "mode": "polish"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "job": {
+        "error": null,
+        "job_id": "job_dict_1",
+        "message": null,
+        "progress": 0.0,
+        "state": "running"
+      }
+    }
+  }
+}

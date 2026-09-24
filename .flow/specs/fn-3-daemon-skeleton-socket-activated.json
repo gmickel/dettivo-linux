@@ -1,0 +1,35 @@
+{
+  "branch_name": "fn-3-daemon-skeleton-socket-activated",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-03T13:03:00.622041Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-2-contract-import-ipc-v1-types-delta"
+  ],
+  "id": "fn-3-daemon-skeleton-socket-activated",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-3-daemon-skeleton-socket-activated.md",
+  "status": "done",
+  "title": "Daemon skeleton: socket-activated dettivod with peer auth, config and the CLI",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-03T20:30:50.180027Z"
+}

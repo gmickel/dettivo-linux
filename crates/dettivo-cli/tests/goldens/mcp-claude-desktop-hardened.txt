@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "dettivo": {
+      "args": [
+        "mcp",
+        "serve"
+      ],
+      "command": "/usr/bin/dettivo",
+      "env": {
+        "DETTIVO_IPC_TOKEN": "<set-me>"
+      },
+      "type": "stdio"
+    }
+  }
+}
+
+Next step: merge this into $HOME/cfg/Claude/claude_desktop_config.json, or run again with --write.

@@ -1,0 +1,27 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32013,
+      "data": {
+        "app_code": "CONFLICT",
+        "details": {
+          "kind": "meetingNotPartial"
+        },
+        "retryable": false
+      },
+      "message": "Meeting is not partial"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "meetings.discard",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.discard",
+    "params": {
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e"
+    }
+  }
+}

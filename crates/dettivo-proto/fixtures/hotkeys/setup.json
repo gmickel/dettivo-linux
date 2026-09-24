@@ -1,0 +1,28 @@
+{
+  "capabilities": {},
+  "method": "hotkeys.setup",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "hotkeys.setup",
+    "params": {
+      "compositor": "sway",
+      "write": false
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "compositor": "sway",
+      "include_line": "include ~/.config/sway/dettivo",
+      "main_config": {
+        "exists": false,
+        "path": "/home/user/.config/sway/config"
+      },
+      "path": "/home/user/.config/sway/dettivo",
+      "sourced": false,
+      "written": false
+    }
+  }
+}

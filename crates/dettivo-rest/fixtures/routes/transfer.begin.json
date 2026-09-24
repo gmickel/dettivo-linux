@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/transfer/begin",
+    "body": {
+      "direction": "download",
+      "content_type": "application/octet-stream",
+      "size_hint": 0
+    }
+  },
+  "expect": {
+    "status": 200,
+    "content_type": "application/json",
+    "body_keys": [
+      "transfer_id",
+      "chunk_max_bytes",
+      "expires_at"
+    ]
+  }
+}

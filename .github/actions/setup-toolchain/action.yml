@@ -1,0 +1,74 @@
+name: Set up the Dettivo toolchain
+description: >-
+  Installs Rust, CMake, Qt 6, layer-shell-qt, the Vulkan build dependencies
+  (headers, the loader, shaderc and the SPIR-V headers parakeet.cpp's ggml
+  needs), the monospace font the pill renders with and just inside the
+  pinned Arch Linux container, and restores dependency downloads separately
+  from compatible Rust and Qt builds. Every CI job
+  runs this first so all jobs build with one toolchain definition.
+
+inputs:
+  cache-scope:
+    description: >-
+      Names the target cache the job restores and saves. A job that builds
+      the whole workspace (the gate) keeps its own key so a job that builds
+      less never saves a thinner cache under the same name.
+    required: false
+    default: cargo
+
+runs:
+  using: composite
+  steps:
+    - name: Install packages
+      shell: bash
+      run: |
+        set -euo pipefail
+        pacman -Syu --noconfirm --needed \
+          git rust cmake ninja patch \
+          qt6-base qt6-declarative qt6-svg qt6-wayland qt6-multimedia qt6-multimedia-ffmpeg \
+          libxkbcommon layer-shell-qt wayland ttf-cascadia-mono-nerd \
+          vulkan-headers vulkan-icd-loader shaderc spirv-headers \
+          tomlplusplus pipewire clang dbus \
+          just zstd python jq
+        git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+    - name: Identify the installed toolchain and build configuration
+      id: identity
+      shell: bash
+      env:
+        BUILD_CONFIG: ${{ hashFiles('**/Cargo.lock', '**/Cargo.toml', '**/build.rs', '.cargo/**', 'justfile', 'scripts/package.sh', 'scripts/check-toolchain.sh', 'qt/**/CMakeLists.txt', '.github/workflows/*.yml', '.github/actions/setup-toolchain/action.yml') }}
+      run: |
+        set -euo pipefail
+        fingerprint="$({
+          pacman -Q | LC_ALL=C sort
+          rustc -vV
+          printf '%s\n' "$GITHUB_WORKSPACE" "$BUILD_CONFIG" \
+            "${RUSTFLAGS:-}" "${CARGO_PROFILE_DEV_DEBUG:-}" \
+            "${CARGO_PROFILE_RELEASE_DEBUG:-}" "${CMAKE_BUILD_TYPE:-Release}"
+        } | sha256sum | cut -d ' ' -f1)"
+        echo "fingerprint=$fingerprint" >> "$GITHUB_OUTPUT"
+
+    - name: Restore dependency downloads
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ~/.cargo/registry/index
+          ~/.cargo/registry/cache
+          ~/.cargo/git/db
+        key: cargo-downloads-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: cargo-downloads-${{ runner.os }}-
+
+    - name: Restore compiled Rust and Qt builds
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          target
+          build/qt
+          build/qt-release
+        key: compiled-v2-${{ inputs.cache-scope }}-${{ github.job }}-${{ runner.os }}-${{ runner.arch }}-${{ steps.identity.outputs.fingerprint }}-${{ github.sha }}
+        restore-keys: |
+          compiled-v2-${{ inputs.cache-scope }}-${{ github.job }}-${{ runner.os }}-${{ runner.arch }}-${{ steps.identity.outputs.fingerprint }}-
+
+    - name: Name the toolchain
+      shell: bash
+      run: scripts/check-toolchain.sh --engines

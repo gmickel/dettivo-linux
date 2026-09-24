@@ -1,0 +1,688 @@
+{
+  "items": [
+    {
+      "app_id": "org.gnome.TextEditor",
+      "app_name": "Text Editor",
+      "audio_path": null,
+      "created_at": "2026-02-13T16:00:00Z",
+      "duration_ms": 30000,
+      "error_code": null,
+      "error_message": null,
+      "final_text": "The contract sample dictation. Thirty seconds of speech.",
+      "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "insertion": {
+        "backend": {
+          "latency_ms": 35,
+          "name": "mock",
+          "undo_supported": false
+        },
+        "context_pack": {
+          "metrics": {
+            "capture_duration_ms": 0,
+            "character_count": 0,
+            "payload_bytes": 0,
+            "token_budget": 0,
+            "token_estimate": 0
+          },
+          "reason": "seed",
+          "source": {
+            "adapter_id": "seed",
+            "app_class": "generic",
+            "bundle_id": "org.gnome.TextEditor"
+          },
+          "status": "Off"
+        },
+        "method": "paste",
+        "outcome": "inserted",
+        "reason": null,
+        "target_app": {
+          "bundle_id": "org.gnome.TextEditor",
+          "name": "Text Editor"
+        }
+      },
+      "language": "en",
+      "mode": "raw",
+      "raw_text": "the contract sample dictation period thirty seconds of speech",
+      "rerun_of_item_id": null,
+      "source_kind": "dictation",
+      "status": "completed",
+      "stt_model": "large-v3-turbo",
+      "stt_provider": "whisper",
+      "summary": "",
+      "timings": {
+        "capture_ms": 90,
+        "insert_ms": 20,
+        "transcribe_ms": 810
+      },
+      "title": "Dictation",
+      "updated_at": "2026-02-13T16:00:00Z"
+    },
+    {
+      "app_id": "org.gnome.TextEditor",
+      "app_name": "Text Editor",
+      "audio_path": null,
+      "created_at": "2026-02-13T14:20:00Z",
+      "duration_ms": 26800,
+      "error_code": null,
+      "error_message": null,
+      "final_text": "Summary of the design call: the bar widget resolves every colour from the theme.",
+      "id": "5eed0000-0000-4000-8000-000000000011",
+      "insertion": {
+        "backend": {
+          "latency_ms": 35,
+          "name": "mock",
+          "undo_supported": false
+        },
+        "context_pack": {
+          "metrics": {
+            "capture_duration_ms": 0,
+            "character_count": 0,
+            "payload_bytes": 0,
+            "token_budget": 0,
+            "token_estimate": 0
+          },
+          "reason": "seed",
+          "source": {
+            "adapter_id": "seed",
+            "app_class": "generic",
+            "bundle_id": "org.gnome.TextEditor"
+          },
+          "status": "Off"
+        },
+        "method": "paste",
+        "outcome": "inserted",
+        "reason": null,
+        "target_app": {
+          "bundle_id": "org.gnome.TextEditor",
+          "name": "Text Editor"
+        }
+      },
+      "language": "en",
+      "mode": "raw",
+      "raw_text": "summary of the design call colon the bar widget resolves every colour from the theme",
+      "rerun_of_item_id": null,
+      "source_kind": "dictation",
+      "status": "completed",
+      "stt_model": "large-v3-turbo",
+      "stt_provider": "whisper",
+      "summary": "",
+      "timings": {
+        "capture_ms": 120,
+        "insert_ms": 35,
+        "transcribe_ms": 640
+      },
+      "title": "Summary of the design call: the bar widget",
+      "updated_at": "2026-02-13T14:20:00Z"
+    },
+    {
+      "app_id": "com.mitchellh.ghostty",
+      "app_name": "Ghostty",
+      "audio_path": null,
+      "created_at": "2026-02-13T11:35:00Z",
+      "duration_ms": 5900,
+      "error_code": null,
+      "error_message": null,
+      "final_text": "Cargo test --workspace, then package the release.",
+      "id": "5eed0000-0000-4000-8000-000000000010",
+      "insertion": {
+        "backend": {
+          "latency_ms": 35,
+          "name": "mock",
+          "undo_supported": false
+        },
+        "context_pack": {
+          "metrics": {
+            "capture_duration_ms": 0,
+            "character_count": 0,
+            "payload_bytes": 0,
+            "token_budget": 0,
+            "token_estimate": 0
+          },
+          "reason": "seed",
+          "source": {
+            "adapter_id": "seed",
+            "app_class": "generic",
+            "bundle_id": "com.mitchellh.ghostty"
+          },
+          "status": "Off"
+        },
+        "method": "paste",
+        "outcome": "inserted",
+        "reason": null,
+        "target_app": {
+          "bundle_id": "com.mitchellh.ghostty",
+          "name": "Ghostty"
+        }
+      },
+      "language": "en",
+      "mode": "raw",
+      "raw_text": "cargo test dash dash workspace then package the release",
+      "rerun_of_item_id": null,
+      "source_kind": "dictation",
+      "status": "completed",
+      "stt_model": "large-v3-turbo",
+      "stt_provider": "whisper",
+      "summary": "",
+      "timings": {
+        "capture_ms": 120,
+        "insert_ms": 35,
+        "transcribe_ms": 640
+      },
+      "title": "Cargo test --workspace, then package the",
+      "updated_at": "2026-02-13T11:35:00Z"
+    },
+    {
+      "app_id": "org.gnome.TextEditor",
+      "app_name": "Text Editor",
+      "audio_path": null,
+      "created_at": "2026-02-13T09:00:00Z",
+      "duration_ms": 12600,
+      "error_code": null,
+      "error_message": null,
+      "final_text": "Thanks for the review, I pushed the fixes for the API rate limiter.",
+      "id": "5eed0000-0000-4000-8000-000000000009",
+      "insertion": {
+        "backend": {
+          "latency_ms": 35,
+          "name": "mock",
+          "undo_supported": false
+        },
+        "context_pack": {
+          "metrics": {
+            "capture_duration_ms": 0,
+            "character_count": 0,
+            "payload_bytes": 0,
+            "token_budget": 0,
+            "token_estimate": 0
+          },
+          "reason": "seed",
+          "source": {
+            "adapter_id": "seed",
+            "app_class": "generic",
+            "bundle_id": "org.gnome.TextEditor"
+          },
+          "status": "Off"
+        },
+        "method": "paste",
+        "outcome": "inserted",
+        "reason": null,
+        "target_app": {
+          "bundle_id": "org.gnome.TextEditor",
+          "name": "Text Editor"
+        }
+      },
+      "language": "en",
+      "mode": "raw",
+      "raw_text": "thanks for the review comma i pushed the fixes for the api rate limiter",
+      "rerun_of_item_id": null,
+      "source_kind": "dictation",
+      "status": "completed",
+      "stt_model": "large-v3-turbo",
+      "stt_provider": "whisper",
+      "summary": "",
+      "timings": {
+        "capture_ms": 120,
+        "insert_ms": 35,
+        "transcribe_ms": 640
+      },
+      "title": "Thanks for the review, I pushed the fixes for",
+      "updated_at": "2026-02-13T09:00:00Z"
+    },
+    {
+      "app_id": "com.mitchellh.ghostty",
+      "app_name": "Ghostty",
+      "audio_path": null,
+      "created_at": "2026-02-12T16:10:00Z",
+      "duration_ms": 7300,
+      "error_code": null,
+      "error_message": null,
+      "final_text": "SSH into the build machine and restart the PipeWire service.",
+      "id": "5eed0000-0000-4000-8000-000000000008",
+      "insertion": {
+        "backend": {
+          "latency_ms": 35,
+          "name": "mock",
+          "undo_supported": false
+        },
+        "context_pack": {
+          "metrics": {
+            "capture_duration_ms": 0,
+            "character_count": 0,
+            "payload_bytes": 0,
+            "token_budget": 0,
+            "token_estimate": 0
+          },
+          "reason": "seed",
+          "source": {
+            "adapter_id": "seed",
+            "app_class": "generic",
+            "bundle_id": "com.mitchellh.ghostty"
+          },
+          "status": "Off"
+        },
+        "method": "paste",
+        "outcome": "inserted",
+        "reason": null,
+        "target_app": {
+          "bundle_id": "com.mitchellh.ghostty",
+          "name": "Ghostty"
+        }
+      },
+      "language": "en",
+      "mode": "raw",
+      "raw_text": "ssh into the build machine and restart the pipewire service",
+      "rerun_of_item_id": null,
+      "source_kind": "dictation",
+      "status": "completed",
+      "stt_model": "large-v3-turbo",
+      "stt_provider": "whisper",
+      "summary": "",
+      "timings": {
+        "capture_ms": 120,
+        "insert_ms": 35,
+        "transcribe_ms": 640
+      },
+      "title": "SSH into the build machine and restart the",
+      "updated_at": "2026-02-12T16:10:00Z"
+    },
+    {
+      "app_id": "org.gnome.TextEditor",
+      "app_name": "Text Editor",
+      "audio_path": null,
+      "created_at": "2026-02-12T13:45:00Z",
+      "duration_ms": 18700,
+      "error_code": null,
+      "error_message": null,
+      "final_text": "Note to self: the search index needs diacritic folding for the German names.",
+      "id": "5eed0000-0000-4000-8000-000000000007",
+      "insertion": {
+        "backend": {
+          "latency_ms": 35,
+          "name": "mock",
+          "undo_supported": false
+        },
+        "context_pack": {
+          "metrics": {
+            "capture_duration_ms": 0,
+            "character_count": 0,
+            "payload_bytes": 0,
+            "token_budget": 0,
+            "token_estimate": 0
+          },
+          "reason": "seed",
+          "source": {
+            "adapter_id": "seed",
+            "app_class": "generic",
+            "bundle_id": "org.gnome.TextEditor"
+          },
+          "status": "Off"
+        },
+        "method": "paste",
+        "outcome": "inserted",
+        "reason": null,
+        "target_app": {
+          "bundle_id": "org.gnome.TextEditor",
+          "name": "Text Editor"
+        }
+      },
+      "language": "en",
+      "mode": "raw",
+      "raw_text": "note to self the search index needs diacritic folding for the german names",
+      "rerun_of_item_id": null,
+      "source_kind": "dictation",
+      "status": "completed",
+      "stt_model": "large-v3-turbo",
+      "stt_provider": "whisper",
+      "summary": "",
+      "timings": {
+        "capture_ms": 120,
+        "insert_ms": 35,
+        "transcribe_ms": 640
+      },
+      "title": "Note to self: the search index needs diacritic",
+      "updated_at": "2026-02-12T13:45:00Z"
+    },
+    {
+      "app_id": "com.mitchellh.ghostty",
+      "app_name": "Ghostty",
+      "audio_path": null,
+      "created_at": "2026-02-12T11:20:00Z",
+      "duration_ms": 4500,
+      "error_code": null,
+      "error_message": null,
+      "final_text": "Run the benchmark on the Vulkan backend.",
+      "id": "5eed0000-0000-4000-8000-000000000006",
+      "insertion": {
+        "backend": {
+          "latency_ms": 35,
+          "name": "mock",
+          "undo_supported": false
+        },
+        "context_pack": {
+          "metrics": {
+            "capture_duration_ms": 0,
+            "character_count": 0,
+            "payload_bytes": 0,
+            "token_budget": 0,
+            "token_estimate": 0
+          },
+          "reason": "seed",
+          "source": {
+            "adapter_id": "seed",
+            "app_class": "generic",
+            "bundle_id": "com.mitchellh.ghostty"
+          },
+          "status": "Off"
+        },
+        "method": "paste",
+        "outcome": "inserted",
+        "reason": null,
+        "target_app": {
+          "bundle_id": "com.mitchellh.ghostty",
+          "name": "Ghostty"
+        }
+      },
+      "language": "en",
+      "mode": "raw",
+      "raw_text": "run the benchmark on the vulkan backend",
+      "rerun_of_item_id": null,
+      "source_kind": "dictation",
+      "status": "completed",
+      "stt_model": "large-v3-turbo",
+      "stt_provider": "whisper",
+      "summary": "",
+      "timings": {
+        "capture_ms": 120,
+        "insert_ms": 35,
+        "transcribe_ms": 640
+      },
+      "title": "Run the benchmark on the Vulkan backend.",
+      "updated_at": "2026-02-12T11:20:00Z"
+    },
+    {
+      "app_id": "org.gnome.TextEditor",
+      "app_name": "Text Editor",
+      "audio_path": null,
+      "created_at": "2026-02-12T08:55:00Z",
+      "duration_ms": 31000,
+      "error_code": null,
+      "error_message": null,
+      "final_text": "Meeting prep, three points: budget, hiring, the café lease.",
+      "id": "5eed0000-0000-4000-8000-000000000005",
+      "insertion": {
+        "backend": {
+          "latency_ms": 35,
+          "name": "mock",
+          "undo_supported": false
+        },
+        "context_pack": {
+          "metrics": {
+            "capture_duration_ms": 0,
+            "character_count": 0,
+            "payload_bytes": 0,
+            "token_budget": 0,
+            "token_estimate": 0
+          },
+          "reason": "seed",
+          "source": {
+            "adapter_id": "seed",
+            "app_class": "generic",
+            "bundle_id": "org.gnome.TextEditor"
+          },
+          "status": "Off"
+        },
+        "method": "paste",
+        "outcome": "inserted",
+        "reason": null,
+        "target_app": {
+          "bundle_id": "org.gnome.TextEditor",
+          "name": "Text Editor"
+        }
+      },
+      "language": "en",
+      "mode": "raw",
+      "raw_text": "meeting prep comma three points colon budget comma hiring comma the cafe lease",
+      "rerun_of_item_id": null,
+      "source_kind": "dictation",
+      "status": "completed",
+      "stt_model": "large-v3-turbo",
+      "stt_provider": "whisper",
+      "summary": "",
+      "timings": {
+        "capture_ms": 120,
+        "insert_ms": 35,
+        "transcribe_ms": 640
+      },
+      "title": "Meeting prep, three points: budget, hiring, the",
+      "updated_at": "2026-02-12T08:55:00Z"
+    },
+    {
+      "app_id": "com.mitchellh.ghostty",
+      "app_name": "Ghostty",
+      "audio_path": null,
+      "created_at": "2026-02-11T17:30:00Z",
+      "duration_ms": 9100,
+      "error_code": null,
+      "error_message": null,
+      "final_text": "Todo: review the pull request from Mara before the release.",
+      "id": "5eed0000-0000-4000-8000-000000000004",
+      "insertion": {
+        "backend": {
+          "latency_ms": 35,
+          "name": "mock",
+          "undo_supported": false
+        },
+        "context_pack": {
+          "metrics": {
+            "capture_duration_ms": 0,
+            "character_count": 0,
+            "payload_bytes": 0,
+            "token_budget": 0,
+            "token_estimate": 0
+          },
+          "reason": "seed",
+          "source": {
+            "adapter_id": "seed",
+            "app_class": "generic",
+            "bundle_id": "com.mitchellh.ghostty"
+          },
+          "status": "Off"
+        },
+        "method": "paste",
+        "outcome": "inserted",
+        "reason": null,
+        "target_app": {
+          "bundle_id": "com.mitchellh.ghostty",
+          "name": "Ghostty"
+        }
+      },
+      "language": "en",
+      "mode": "raw",
+      "raw_text": "todo review the pull request from mara before the release",
+      "rerun_of_item_id": null,
+      "source_kind": "dictation",
+      "status": "completed",
+      "stt_model": "large-v3-turbo",
+      "stt_provider": "whisper",
+      "summary": "",
+      "timings": {
+        "capture_ms": 120,
+        "insert_ms": 35,
+        "transcribe_ms": 640
+      },
+      "title": "Todo: review the pull request from Mara before",
+      "updated_at": "2026-02-11T17:30:00Z"
+    },
+    {
+      "app_id": "org.gnome.TextEditor",
+      "app_name": "Text Editor",
+      "audio_path": null,
+      "created_at": "2026-02-11T14:05:00Z",
+      "duration_ms": 22400,
+      "error_code": null,
+      "error_message": null,
+      "final_text": "Draft reply to the naïve question about latency. We measured forty milliseconds.",
+      "id": "5eed0000-0000-4000-8000-000000000003",
+      "insertion": {
+        "backend": {
+          "latency_ms": 35,
+          "name": "mock",
+          "undo_supported": false
+        },
+        "context_pack": {
+          "metrics": {
+            "capture_duration_ms": 0,
+            "character_count": 0,
+            "payload_bytes": 0,
+            "token_budget": 0,
+            "token_estimate": 0
+          },
+          "reason": "seed",
+          "source": {
+            "adapter_id": "seed",
+            "app_class": "generic",
+            "bundle_id": "org.gnome.TextEditor"
+          },
+          "status": "Off"
+        },
+        "method": "paste",
+        "outcome": "inserted",
+        "reason": null,
+        "target_app": {
+          "bundle_id": "org.gnome.TextEditor",
+          "name": "Text Editor"
+        }
+      },
+      "language": "en",
+      "mode": "raw",
+      "raw_text": "draft reply to the naive question about latency period we measured forty milliseconds",
+      "rerun_of_item_id": null,
+      "source_kind": "dictation",
+      "status": "completed",
+      "stt_model": "large-v3-turbo",
+      "stt_provider": "whisper",
+      "summary": "",
+      "timings": {
+        "capture_ms": 120,
+        "insert_ms": 35,
+        "transcribe_ms": 640
+      },
+      "title": "Draft reply to the naïve question about latency.",
+      "updated_at": "2026-02-11T14:05:00Z"
+    },
+    {
+      "app_id": "com.mitchellh.ghostty",
+      "app_name": "Ghostty",
+      "audio_path": null,
+      "created_at": "2026-02-11T10:40:00Z",
+      "duration_ms": 6800,
+      "error_code": null,
+      "error_message": null,
+      "final_text": "Git commit message: fix the retry loop in the uploader.",
+      "id": "5eed0000-0000-4000-8000-000000000002",
+      "insertion": {
+        "backend": {
+          "latency_ms": 35,
+          "name": "mock",
+          "undo_supported": false
+        },
+        "context_pack": {
+          "metrics": {
+            "capture_duration_ms": 0,
+            "character_count": 0,
+            "payload_bytes": 0,
+            "token_budget": 0,
+            "token_estimate": 0
+          },
+          "reason": "seed",
+          "source": {
+            "adapter_id": "seed",
+            "app_class": "generic",
+            "bundle_id": "com.mitchellh.ghostty"
+          },
+          "status": "Off"
+        },
+        "method": "paste",
+        "outcome": "inserted",
+        "reason": null,
+        "target_app": {
+          "bundle_id": "com.mitchellh.ghostty",
+          "name": "Ghostty"
+        }
+      },
+      "language": "en",
+      "mode": "raw",
+      "raw_text": "git commit message fix the retry loop in the uploader",
+      "rerun_of_item_id": null,
+      "source_kind": "dictation",
+      "status": "completed",
+      "stt_model": "large-v3-turbo",
+      "stt_provider": "whisper",
+      "summary": "",
+      "timings": {
+        "capture_ms": 120,
+        "insert_ms": 35,
+        "transcribe_ms": 640
+      },
+      "title": "Git commit message: fix the retry loop in the",
+      "updated_at": "2026-02-11T10:40:00Z"
+    },
+    {
+      "app_id": "org.gnome.TextEditor",
+      "app_name": "Text Editor",
+      "audio_path": null,
+      "created_at": "2026-02-11T09:12:00Z",
+      "duration_ms": 14200,
+      "error_code": null,
+      "error_message": null,
+      "final_text": "Morning standup notes, the API gateway rollout moves to Thursday.",
+      "id": "5eed0000-0000-4000-8000-000000000001",
+      "insertion": {
+        "backend": {
+          "latency_ms": 35,
+          "name": "mock",
+          "undo_supported": false
+        },
+        "context_pack": {
+          "metrics": {
+            "capture_duration_ms": 0,
+            "character_count": 0,
+            "payload_bytes": 0,
+            "token_budget": 0,
+            "token_estimate": 0
+          },
+          "reason": "seed",
+          "source": {
+            "adapter_id": "seed",
+            "app_class": "generic",
+            "bundle_id": "org.gnome.TextEditor"
+          },
+          "status": "Off"
+        },
+        "method": "paste",
+        "outcome": "inserted",
+        "reason": null,
+        "target_app": {
+          "bundle_id": "org.gnome.TextEditor",
+          "name": "Text Editor"
+        }
+      },
+      "language": "en",
+      "mode": "raw",
+      "raw_text": "morning standup notes comma the api gateway rollout moves to thursday",
+      "rerun_of_item_id": null,
+      "source_kind": "dictation",
+      "status": "completed",
+      "stt_model": "large-v3-turbo",
+      "stt_provider": "whisper",
+      "summary": "",
+      "timings": {
+        "capture_ms": 120,
+        "insert_ms": 35,
+        "transcribe_ms": 640
+      },
+      "title": "Morning standup notes, the API gateway rollout",
+      "updated_at": "2026-02-11T09:12:00Z"
+    }
+  ]
+}

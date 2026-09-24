@@ -1,0 +1,7 @@
+2026-02-02T10:00:00Z  Roadmap review
+[00:00:00.000] Gordon: Okay, so the roadmap for Q2.
+[00:00:03.900] Mara: The budget is agreed, we can hire two engineers.
+[00:00:08.600] Mara: And the API gateway rollout moves to Thursday.
+[gap 2.3 s]
+[00:00:14.300] Gordon: Right, I will write the runbook by Wednesday.
+[00:00:18.200] Gordon: And Mara pings ops about the café lease.

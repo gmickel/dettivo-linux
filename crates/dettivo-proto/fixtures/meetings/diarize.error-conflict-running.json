@@ -1,0 +1,27 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32013,
+      "data": {
+        "app_code": "CONFLICT",
+        "details": {
+          "kind": "diarizationRunning"
+        },
+        "retryable": false
+      },
+      "message": "Meeting 0f8fad5b-d9cb-469f-a165-70867728950e is being diarized by job_diarize_1"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "meetings.diarize",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.diarize",
+    "params": {
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-03T20:48:00.372192Z",
+  "depends_on": [],
+  "id": "fn-10-text-insertion-virtual-keyboard-libei.1",
+  "priority": null,
+  "spec": "fn-10-text-insertion-virtual-keyboard-libei",
+  "spec_path": ".flow/tasks/fn-10-text-insertion-virtual-keyboard-libei.1.md",
+  "status": "todo",
+  "title": "Implement fn-10: text insertion chain, target guards and the insertion matrix",
+  "updated_at": "2026-09-03T20:48:00.372192Z"
+}

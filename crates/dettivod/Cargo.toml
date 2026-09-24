@@ -1,0 +1,43 @@
+[package]
+name = "dettivod"
+description = "Daemon that owns capture, engines, insertion, storage, and the client contract"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+dettivo-proto.workspace = true
+dettivo-core.workspace = true
+dettivo-audio.workspace = true
+dettivo-engine-proto.workspace = true
+dettivo-speech.workspace = true
+dettivo-session.workspace = true
+dettivo-language.workspace = true
+dettivo-transcribe.workspace = true
+dettivo-insert.workspace = true
+dettivo-hotkeys = { workspace = true, features = ["backends"] }
+dettivo-storage.workspace = true
+dettivo-meeting.workspace = true
+dettivo-rest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+libc.workspace = true
+base64.workspace = true
+sha2.workspace = true
+hound.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+sha2.workspace = true
+tempfile.workspace = true
+base64.workspace = true
+rusqlite.workspace = true
+dettivo-hotkeys = { workspace = true, features = ["mock"] }
+
+[lints]
+workspace = true

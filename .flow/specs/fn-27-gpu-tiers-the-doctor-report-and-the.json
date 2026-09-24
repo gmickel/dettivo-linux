@@ -1,0 +1,37 @@
+{
+  "branch_name": "fn-27-gpu-tiers-the-doctor-report-and-the",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-04T21:33:09.227176Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-15-parakeet-engine-parakeetcpp-binding",
+    "fn-23-local-llm-engine-llamacpp-through-the",
+    "fn-14-qa-pack-the-dictation-vertical-slice"
+  ],
+  "id": "fn-27-gpu-tiers-the-doctor-report-and-the",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-27-gpu-tiers-the-doctor-report-and-the.md",
+  "status": "done",
+  "title": "GPU tiers, the doctor report and the benchmark suite",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-05T14:34:08.401195Z"
+}

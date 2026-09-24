@@ -1,0 +1,12 @@
+{
+  "id": 5,
+  "kind": "event",
+  "name": "progress",
+  "payload": {
+    "completed": 12,
+    "fraction": 0.4,
+    "request_id": 5,
+    "total": 30
+  },
+  "v": 1
+}

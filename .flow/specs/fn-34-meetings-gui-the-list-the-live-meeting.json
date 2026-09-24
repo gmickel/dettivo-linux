@@ -1,0 +1,38 @@
+{
+  "branch_name": "fn-34-meetings-gui-the-list-the-live-meeting",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-05T05:52:23.470178Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-17-qt-app-shell-window-routes-daemon",
+    "fn-22-history-ui-the-list-detail-search-re",
+    "fn-32-diarization-the-sherpa-onnx-engine-the",
+    "fn-33-meeting-notes-analysis-search-export"
+  ],
+  "id": "fn-34-meetings-gui-the-list-the-live-meeting",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-34-meetings-gui-the-list-the-live-meeting.md",
+  "status": "done",
+  "title": "Meetings GUI: the list, the live meeting, the detail, speakers and notes",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-05T15:30:00.335215Z"
+}

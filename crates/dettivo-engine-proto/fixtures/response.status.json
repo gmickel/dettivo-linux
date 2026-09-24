@@ -1,0 +1,12 @@
+{
+  "id": 7,
+  "kind": "response",
+  "name": "status",
+  "payload": {
+    "backend": "cpu",
+    "busy": false,
+    "loaded": true,
+    "model": "/models/whisper/tiny.en/ggml-tiny.en.bin"
+  },
+  "v": 1
+}

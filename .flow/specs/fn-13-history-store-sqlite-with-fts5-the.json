@@ -1,0 +1,35 @@
+{
+  "branch_name": "fn-13-history-store-sqlite-with-fts5-the",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-04T02:57:48.542032Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-9-dictation-session-state-machine-ipc"
+  ],
+  "id": "fn-13-history-store-sqlite-with-fts5-the",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-13-history-store-sqlite-with-fts5-the.md",
+  "status": "done",
+  "title": "History store: SQLite with FTS5, the transcripts API, re-run and export transfer",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T06:28:28.430350Z"
+}

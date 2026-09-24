@@ -1,0 +1,25 @@
+{
+  "capabilities": {
+    "retention.delete": true
+  },
+  "method": "meetings.delete",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.delete",
+    "params": {
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "deleted": true,
+      "ref": {
+        "id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "kind": "meeting"
+      }
+    }
+  }
+}

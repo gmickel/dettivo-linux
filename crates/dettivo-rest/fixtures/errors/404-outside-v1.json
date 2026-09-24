@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/health"
+  },
+  "expect": {
+    "status": 404,
+    "error": {
+      "app_code": "NOT_FOUND",
+      "code": -32012
+    }
+  }
+}

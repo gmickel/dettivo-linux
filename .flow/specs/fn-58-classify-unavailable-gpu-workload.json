@@ -1,0 +1,24 @@
+{
+  "branch_name": "main",
+  "created_at": "2026-09-14T08:45:33.445518Z",
+  "depends_on_epics": [],
+  "id": "fn-58-classify-unavailable-gpu-workload",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-58-classify-unavailable-gpu-workload.md",
+  "status": "done",
+  "title": "Classify unavailable GPU workload attribution at release",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-14T09:24:17.477186Z"
+}

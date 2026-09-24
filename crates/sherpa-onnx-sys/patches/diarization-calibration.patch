@@ -1,0 +1,102 @@
+--- a/sherpa-onnx/csrc/fast-clustering.cc
++++ b/sherpa-onnx/csrc/fast-clustering.cc
+@@ -53,5 +53,7 @@
+
+     fastclustercpp::hclust_fast(num_rows, distance.data(),
+-                                fastclustercpp::HCLUST_METHOD_COMPLETE,
++                                config_.num_clusters > 0
++                                    ? fastclustercpp::HCLUST_METHOD_COMPLETE
++                                    : fastclustercpp::HCLUST_METHOD_AVERAGE,
+                                 merge.data(), height.data());
+
+--- a/sherpa-onnx/csrc/offline-speaker-diarization-pyannote-impl.h
++++ b/sherpa-onnx/csrc/offline-speaker-diarization-pyannote-impl.h
+@@ -13,4 +13,5 @@
+
+ #include "Eigen/Dense"
++#include "sherpa-onnx/csrc/dettivo-calibrated-clustering.h"
+ #include "sherpa-onnx/csrc/fast-clustering.h"
+ #include "sherpa-onnx/csrc/macros.h"
+@@ -92,4 +93,6 @@
+     clustering_ = std::make_unique<FastClustering>(config.clustering);
+     config_.clustering = config.clustering;
++    config_.min_duration_on = config.min_duration_on;
++    config_.min_duration_off = config.min_duration_off;
+   }
+
+@@ -186,6 +189,28 @@
+
+     Timer clustering_timer(config_.segmentation.debug);
+-    std::vector<int32_t> cluster_labels = clustering_->Cluster(
+-        &embeddings(0, 0), embeddings.rows(), embeddings.cols());
++    std::vector<int32_t> cluster_labels;
++    if (config_.clustering.num_clusters > 0) {
++      cluster_labels = clustering_->Cluster(
++          &embeddings(0, 0), embeddings.rows(), embeddings.cols());
++    } else {
++      const auto &meta = segmentation_model_.GetModelMetaData();
++      std::vector<int> training;
++      const auto &pairs = chunk_speaker_samples_list_pair.first;
++      for (size_t i = 0; i < pairs.size(); ++i) {
++        const auto &label = labels[pairs[i].first];
++        int clean_frames = 0;
++        for (int f = 0; f < label.rows(); ++f) {
++          if (label(f, pairs[i].second) && label.row(f).sum() == 1) ++clean_frames;
++        }
++        double seconds = static_cast<double>(clean_frames) * meta.window_size /
++                         (static_cast<double>(label.rows()) * meta.sample_rate);
++        if (seconds >= 2.0) training.push_back(static_cast<int>(i));
++      }
++      cluster_labels = dettivo::ClusterAndAssign(
++          embeddings.data(), embeddings.rows(), embeddings.cols(), std::move(training),
++          [&](float *features, int rows, int cols) {
++            return clustering_->Cluster(features, rows, cols);
++          });
++    }
+     clustering_timer.Log("OfflineSpeakerDiarization: clustering");
+
+@@ -403,4 +428,12 @@
+     }
+
++    if (config_.clustering.num_clusters <= 0) {
++      const auto average = (count.array() / (weight.array() + 1e-12f)).eval();
++      Int32RowVector result(num_frames);
++      for (int32_t i = 0; i < num_frames; ++i) {
++        result[i] = dettivo::LocalSpeakerCount(average[i], .4f, 1.2f);
++      }
++      return result;
++    }
+     return ((count.array() / (weight.array() + 1e-12f)) + 0.5).cast<int32_t>();
+   }
+--- a/sherpa-onnx/c-api/c-api.cc
++++ b/sherpa-onnx/c-api/c-api.cc
+@@ -3176,10 +3176,9 @@
+       SHERPA_ONNX_OR(config->clustering.num_clusters, -1);
+
+-  sd_config.clustering.threshold =
+-      SHERPA_ONNX_OR(config->clustering.threshold, 0.5);
+-
+-  sd_config.min_duration_on = SHERPA_ONNX_OR(config->min_duration_on, 0.3);
+-
+-  sd_config.min_duration_off = SHERPA_ONNX_OR(config->min_duration_off, 0.5);
++  sd_config.clustering.threshold = config->clustering.threshold;
++
++  sd_config.min_duration_on = config->min_duration_on;
++
++  sd_config.min_duration_off = config->min_duration_off;
+
+   if (sd_config.segmentation.debug || sd_config.embedding.debug) {
+@@ -3227,12 +3226,5 @@
+     const SherpaOnnxOfflineSpeakerDiarization *sd,
+     const SherpaOnnxOfflineSpeakerDiarizationConfig *config) {
+-  sherpa_onnx::OfflineSpeakerDiarizationConfig sd_config;
+-
+-  sd_config.clustering.num_clusters =
+-      SHERPA_ONNX_OR(config->clustering.num_clusters, -1);
+-
+-  sd_config.clustering.threshold =
+-      SHERPA_ONNX_OR(config->clustering.threshold, 0.5);
+-
++  auto sd_config = GetOfflineSpeakerDiarizationConfig(config);
+   sd->impl->SetConfig(sd_config);
+ }

@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T09:12:31.809878Z",
+  "depends_on": [],
+  "id": "fn-20-visual-regression-baselines-for-every.1",
+  "priority": null,
+  "spec": "fn-20-visual-regression-baselines-for-every",
+  "spec_path": ".flow/tasks/fn-20-visual-regression-baselines-for-every.1.md",
+  "status": "todo",
+  "title": "Implement fn-20: the visual regression verb, baselines per surface and theme, the pacing collector in drives and the canary",
+  "updated_at": "2026-09-04T09:12:31.809878Z"
+}

@@ -1,0 +1,5 @@
+[mcp_servers.dettivo]
+command = "/usr/bin/dettivo"
+args = ["mcp", "serve"]
+
+Next step: merge this into $HOME/.codex/config.toml, or run again with --write.

@@ -1,0 +1,236 @@
+# Fixed accessible names the Dettivo module and the DettivoStyle controls
+# expose. Controls named by their own text (a button's label, a row's text)
+# take that text as their name and are not listed here. The QA drives look
+# controls up by these names; scripts/lint-accessible-names.sh keeps this
+# list and the sources in step.
+Audio level
+Input level
+Menu
+Popup
+Progress
+Remove
+Tabs
+Horizontal scroll bar
+Vertical scroll bar
+Scrollable content
+status
+Status dot
+Enhancing
+Inserted
+Copied
+Dettivo
+Sidebar
+Keyboard hints
+Keyboard hint sheet
+Global keys
+States
+Daemon state
+Daemon unavailable
+Configuration needs attention
+Instrument strip
+Mode
+Dictation mode
+Today
+Today's dictations
+Engines and agents
+Engines
+Agents
+Dictations
+Configuration keys
+Home
+History
+Dictation
+Meetings
+Meeting live
+Meeting
+Settings
+First run
+Start dictation
+Stop dictation
+Start meeting
+Keys
+Models
+Try it
+Bindings
+Action
+Binding
+Runs
+Bindings file
+Portal bindings
+Key check
+Speech
+Speech models
+Download progress
+Enhanced · optional
+Enhanced models
+Use Ollama instead
+Local language model
+Recommended
+Try it panel
+Try it field
+First run actions
+Snippet
+plus
+History list
+Search
+Search history
+Clear search
+Kind filters
+Dictation detail
+When
+Action outcome
+Re-run progress
+Delete
+Audio
+Audio facts
+Play
+Pause
+Take
+Playback position
+Facts
+Re-run dialog
+Re-run this dictation
+Engine
+Model
+Re-run refused
+Export sheet
+Export heading
+Destination
+Export outcome
+Delete confirmation
+Delete this dictation?
+Delete refused
+Delete for good
+Dettivo panel
+Recent
+Recent dictations
+Shortcut
+Open Dettivo
+Open install guide
+REC
+Settings sections
+Sections
+Settings navigation
+Configuration file
+Open config.toml
+Keys this route writes
+%1 row
+%1 field
+%1 switch
+%1 choice
+%1 refused
+Changed on disk
+Snippet state
+Models table
+Model action refused
+%1 state: %2
+Download %1
+Cancel %1
+Cancel transcription
+Delete %1
+Engine keys
+Speaker keys
+Analysis keys
+Agent keys
+MCP hosts
+Host write refused
+Host entry
+MCP tools
+Write %1 config
+Doctor report
+Disclosure message
+%1 meter
+%1 source
+%1 level
+Analysis
+Analysis after stop
+Analysis card
+Analysis progress
+Analysis rail
+Analysis tab
+Columns
+Copy message
+Delete meeting
+Delete meeting confirmation
+Delete meeting for good
+Delete this meeting?
+Detail tabs
+Discard
+Disclosure state
+Elapsed
+Expected speakers
+Export destination
+Export meeting
+File check
+File facts
+Import audio
+Import dialog
+Import engine
+Import estimate
+Import file
+Import language
+Import refused: %1
+Level
+Live header
+Live meeting
+Live transcript
+Meeting detail
+Meeting engine
+Meeting export sheet
+Meeting header
+Meetings column
+Meetings footer
+Meetings keys
+Meetings list
+Meetings notice
+Meetings page
+Meetings search
+Meetings table
+Meeting tabs
+Meeting transcript
+New meeting
+New meeting rail
+Notes
+Notes editor
+Polished
+Raw
+Recording disclosure
+Recording disclosure heading
+Recover
+Rename %1
+Rename refused
+Rename speaker
+Rename speaker heading
+Search meetings
+Clear meetings search
+Speaker name
+Speakers
+Stop confirmation
+Stop meeting
+Stop refused
+Stop this meeting?
+Tab pages
+Talk time
+Transcript
+Transcript tab
+Use %1
+File facts row
+provisional
+Import actions
+
+Model selections
+Reset %1 to default
+Show advanced settings
+Vocabulary term
+Remove vocabulary term %1
+Live notice
+Recording stopped
+Finalisation stage
+Finalisation progress
+Rename meeting
+Meeting title
+Processing
+Processing progress
+Processing strip
+Detail followers
+Return to meeting

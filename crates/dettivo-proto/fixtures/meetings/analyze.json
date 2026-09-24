@@ -1,0 +1,31 @@
+{
+  "capabilities": {},
+  "method": "meetings.analyze",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.analyze",
+    "params": {
+      "force": true,
+      "meeting_id": "5eed0000-0000-4000-8000-00000000a001"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "analysis_status": "running",
+      "job": {
+        "error": null,
+        "job_id": "job_analysis_1",
+        "message": "analyzing",
+        "progress": 0.0,
+        "state": "running"
+      },
+      "ref": {
+        "id": "5eed0000-0000-4000-8000-00000000a001",
+        "kind": "meeting"
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "voices": {
+    "microphone": "en_US-amy-low",
+    "system": "en_US-ryan-low"
+  },
+  "duration_ms": 10701,
+  "turns": [
+    {
+      "source": "microphone",
+      "speaker": "Alice",
+      "start_ms": 500,
+      "end_ms": 4987,
+      "text": "Hi everyone, Alice here. Today we walk through the launch checklist."
+    },
+    {
+      "source": "system",
+      "speaker": "Ben",
+      "start_ms": 5687,
+      "end_ms": 9901,
+      "text": "Thanks Alice, Ben speaking. The pricing decision is made, so we ship on Friday."
+    }
+  ],
+  "tokens": [
+    {
+      "token": "alice",
+      "source": "microphone"
+    },
+    {
+      "token": "launch",
+      "source": "microphone"
+    },
+    {
+      "token": "checklist",
+      "source": "microphone"
+    },
+    {
+      "token": "ben",
+      "source": "system"
+    },
+    {
+      "token": "pricing",
+      "source": "system"
+    },
+    {
+      "token": "decision",
+      "source": "system"
+    },
+    {
+      "token": "ship",
+      "source": "system"
+    },
+    {
+      "token": "friday",
+      "source": "system"
+    }
+  ]
+}

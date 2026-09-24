@@ -1,0 +1,34 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/polish/presets/list"
+  },
+  "expect": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "presets": [
+        {
+          "display_name": "Email",
+          "id": "email"
+        },
+        {
+          "display_name": "Code",
+          "id": "code"
+        },
+        {
+          "display_name": "Chat",
+          "id": "chat"
+        },
+        {
+          "display_name": "Notes",
+          "id": "notes"
+        },
+        {
+          "display_name": "General",
+          "id": "generic"
+        }
+      ]
+    }
+  }
+}

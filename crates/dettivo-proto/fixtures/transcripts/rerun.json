@@ -1,0 +1,44 @@
+{
+  "capabilities": {
+    "history.methods": [
+      "transcripts.delete",
+      "transcripts.rerun",
+      "transcripts.stats",
+      "transcripts.cancel"
+    ]
+  },
+  "method": "transcripts.rerun",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transcripts.rerun",
+    "params": {
+      "model": "tiny.en",
+      "ref": {
+        "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+        "kind": "dictation"
+      }
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "job": {
+        "error": null,
+        "job_id": "job_rerun_1",
+        "message": "transcribing",
+        "progress": 0.0,
+        "state": "running"
+      },
+      "ref": {
+        "id": "1d2e3f40-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+        "kind": "dictation"
+      },
+      "rerun_of": {
+        "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+        "kind": "dictation"
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "attachments": [
+    {
+      "bytes": 32000,
+      "kind": "pcm16k"
+    }
+  ],
+  "id": 3,
+  "kind": "request",
+  "name": "recognize",
+  "payload": {
+    "language": "en",
+    "prompt": "Dettivo, Omarchy",
+    "timestamps": true
+  },
+  "v": 1
+}

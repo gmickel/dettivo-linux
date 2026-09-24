@@ -1,0 +1,150 @@
+# Continuous integration for Dettivo for Linux: the fast loop.
+#
+# A pull request is proven twice: once on the machine that made it, where
+# the flow-next receipt records a green `just build test lint` for the
+# head, and once here on a clean container. This workflow re-runs exactly
+# that receipt command in one job (`gate`) and boots the QA rig on a clean
+# headless machine in another (`smoke`), which is the one thing a
+# development desktop cannot prove. Everything slower, the full drive
+# matrix on both drivers, the dictation pack, the visual matrix, the
+# advisory Vulkan builds and the package jobs, lives in rig.yml and runs
+# nightly, on demand and at a release (ADR 0040).
+#
+# Every job runs inside one Arch Linux container pinned by digest, so the
+# base image only moves through a deliberate edit of `image` below, and
+# GitHub Actions fails the job when the image cannot be pulled; there is
+# no fallback to the runner host. The packages the setup-toolchain action
+# installs on top track current Arch on purpose: Omarchy is a rolling
+# release, and CI exists to prove the build against the Qt and Rust its
+# users actually run. Every job runs `just` recipes, so a contributor
+# reproduces a job locally with the recipes named on its `run:` line.
+#
+# The workflow runs once per pull request head and once per push to main;
+# a new push to the same branch cancels the run it replaces.
+
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # Line tables keep panics readable at half the debuginfo on disk, which
+  # keeps the target cache and the runner's disk within bounds.
+  CARGO_PROFILE_DEV_DEBUG: line-tables-only
+
+# The container image is repeated per job because the job-level `container`
+# key cannot read env or matrix context. To move the pin, replace every
+# occurrence of the digest; the digest of the current tag is the
+# Docker-Content-Digest header of
+# https://registry-1.docker.io/v2/library/archlinux/manifests/base-devel
+# fetched with an anonymous pull token.
+
+jobs:
+  # The receipt, re-proven: `just build test lint` is the local gate and
+  # the command flow-next records for every head; one build serves the
+  # format, clippy, repository-rule, unit, QML and docs checks that used
+  # to be six jobs each building the workspace again. The target cache is
+  # keyed to this job so the full build is what the next run restores.
+  gate:
+    name: gate
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      # git must exist before checkout: without it actions/checkout downloads a
+      # tarball with no .git, and every git-backed step (xtask lints) fails.
+      - run: pacman -Syu --noconfirm --needed git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-toolchain
+        with:
+          cache-scope: gate
+      # tiny.en, Parakeet TDT 0.6B v2 (the CPU WER fixture) and jfk.wav.
+      - name: Cache the test models
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/.ci-data/dettivo/models
+          key: test-model-${{ hashFiles('scripts/models/fetch-test-model.sh') }}
+      - run: scripts/models/fetch-test-model.sh
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      # The diarization model set (ADR 0035): the engine's fixture tests
+      # and the daemon's speaker tests read it.
+      - name: Cache the diarization model set
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/.ci-data/dettivo/models/diarize
+          key: diarization-model-${{ hashFiles('scripts/models/fetch-diarization-model.sh') }}
+      - run: scripts/models/fetch-diarization-model.sh
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: just build test lint
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+
+  # The QA rig booting on a clean headless machine (ADR 0011): the
+  # contract replay, the MCP harness in both framings (ADR 0019), the REST
+  # fixtures (ADR 0028), the scenario, release-text and accessible-name
+  # lints, and two drives on the in-repo driver under Xvfb: the placeholder
+  # window and the app's routes. The full matrix on both drivers is the
+  # rig workflow's.
+  smoke:
+    name: smoke
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      - run: pacman -Syu --noconfirm --needed git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-toolchain
+        with:
+          cache-scope: smoke
+      - run: pacman -Syu --noconfirm --needed xorg-server-xvfb openbox at-spi2-core dbus libpulse pipewire curl xdotool xorg-xprop
+      # The package cache goes and the report shows the room left, so the
+      # linker keeps enough disk (a full disk ends ld with a bus error).
+      - run: find /var/cache/pacman/pkg -type f -delete && df -h / "$GITHUB_WORKSPACE"
+      - name: Cache the test model
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/.ci-data/dettivo/models
+          key: test-model-${{ hashFiles('scripts/models/fetch-test-model.sh') }}
+      - run: scripts/models/fetch-test-model.sh
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: just build-rust build-qt
+      - run: just qa-contract qa-mcp qa-rest lint-scenarios lint-release-text lint-a11y-names
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-drive placeholder_window atspi
+      - run: scripts/qa/xvfb-session.sh just qa-drive app_routes atspi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: qa-evidence
+          retention-days: 7
+          path: qa-evidence/
+          if-no-files-found: ignore
+
+  ci:
+    name: CI
+    needs: [gate, smoke]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require both gates to succeed
+        env:
+          GATE_RESULT: ${{ needs.gate.result }}
+          SMOKE_RESULT: ${{ needs.smoke.result }}
+        run: test "$GATE_RESULT" = success && test "$SMOKE_RESULT" = success

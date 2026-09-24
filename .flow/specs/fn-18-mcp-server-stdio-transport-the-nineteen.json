@@ -1,0 +1,36 @@
+{
+  "branch_name": "fn-18-mcp-server-stdio-transport-the-nineteen",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-04T07:57:04.592207Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-13-history-store-sqlite-with-fts5-the",
+    "fn-10-text-insertion-virtual-keyboard-libei"
+  ],
+  "id": "fn-18-mcp-server-stdio-transport-the-nineteen",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-18-mcp-server-stdio-transport-the-nineteen.md",
+  "status": "done",
+  "title": "MCP server: stdio transport, the nineteen tools, resources and client configuration",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T10:22:13.500620Z"
+}

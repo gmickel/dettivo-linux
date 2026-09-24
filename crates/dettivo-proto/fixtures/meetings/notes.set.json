@@ -1,0 +1,27 @@
+{
+  "capabilities": {},
+  "method": "meetings.notes.set",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.notes.set",
+    "params": {
+      "markdown": "# Roadmap review\n\n- Budget for Q2 agreed\n- Mara owns the runbook\n- Follow up on the café lease",
+      "meeting_id": "5eed0000-0000-4000-8000-00000000a001",
+      "source": "user"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "markdown": "# Roadmap review\n\n- Budget for Q2 agreed\n- Mara owns the runbook\n- Follow up on the café lease",
+      "ref": {
+        "id": "5eed0000-0000-4000-8000-00000000a001",
+        "kind": "meeting"
+      },
+      "source": "user",
+      "updated_at": "2026-02-02T10:50:00Z"
+    }
+  }
+}

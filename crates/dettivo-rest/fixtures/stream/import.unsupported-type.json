@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/transcripts/import/stream",
+    "headers": {
+      "Content-Type": "text/csv"
+    },
+    "body_text": "a,b\n"
+  },
+  "expect": {
+    "status": 400,
+    "error": {
+      "app_code": "INVALID_PARAMS",
+      "code": -32010
+    }
+  }
+}

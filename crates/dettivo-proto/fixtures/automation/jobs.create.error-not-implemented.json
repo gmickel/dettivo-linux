@@ -1,0 +1,29 @@
+{
+  "capabilities": {
+    "automation.jobs": false
+  },
+  "error": {
+    "error": {
+      "code": -32014,
+      "data": {
+        "app_code": "NOT_IMPLEMENTED",
+        "details": {},
+        "retryable": false
+      },
+      "message": "automation.jobs.create is not implemented"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "automation.jobs.create",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "automation.jobs.create",
+    "params": {
+      "force": true,
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "trigger": "analysis_ready"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/dictation/status",
+    "headers": {
+      "User-Agent": "dettivo-ide-bridge/0.1.0"
+    }
+  },
+  "expect": {
+    "status": 200,
+    "content_type": "application/json",
+    "body_keys": [
+      "is_active"
+    ]
+  }
+}

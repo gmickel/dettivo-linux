@@ -1,0 +1,39 @@
+{
+  "branch_name": "fn-14-qa-pack-the-dictation-vertical-slice",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-04T06:50:39.603511Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-4-qa-rig-foundation-drivers-xvfb-ci",
+    "fn-10-text-insertion-virtual-keyboard-libei",
+    "fn-11-hotkeys-compositor-bindings-portal",
+    "fn-12-osd-the-qml-pill-component-dettivo-osd",
+    "fn-13-history-store-sqlite-with-fts5-the"
+  ],
+  "id": "fn-14-qa-pack-the-dictation-vertical-slice",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-14-qa-pack-the-dictation-vertical-slice.md",
+  "status": "done",
+  "title": "QA pack: the dictation vertical slice, timing and the release-shaped report",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T11:38:15.827820Z"
+}

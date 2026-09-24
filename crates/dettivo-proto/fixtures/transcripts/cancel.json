@@ -1,0 +1,39 @@
+{
+  "capabilities": {
+    "history.methods": [
+      "transcripts.delete",
+      "transcripts.rerun",
+      "transcripts.stats",
+      "transcripts.cancel"
+    ]
+  },
+  "method": "transcripts.cancel",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transcripts.cancel",
+    "params": {
+      "ref": {
+        "id": "1d2e3f40-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+        "kind": "dictation"
+      }
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "job": {
+        "error": null,
+        "job_id": "job_import_1",
+        "message": "cancelled",
+        "progress": 0.5,
+        "state": "cancelled"
+      },
+      "ref": {
+        "id": "1d2e3f40-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+        "kind": "dictation"
+      }
+    }
+  }
+}

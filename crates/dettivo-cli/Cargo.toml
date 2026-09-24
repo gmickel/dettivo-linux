@@ -1,0 +1,34 @@
+[package]
+name = "dettivo-cli"
+description = "Command line client for the daemon"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "dettivo"
+path = "src/main.rs"
+
+[dependencies]
+dettivo-proto.workspace = true
+# Snippet rendering only: the backends stay in the daemon.
+dettivo-hotkeys.workspace = true
+# `dettivo mcp serve` runs the server in-process (ADR 0019).
+dettivo-mcp = { path = "../dettivo-mcp" }
+# `dettivo rest serve` hosts the REST shim in-process (ADR 0028).
+dettivo-rest = { path = "../dettivo-rest" }
+serde.workspace = true
+serde_json.workspace = true
+clap.workspace = true
+clap_complete.workspace = true
+# `dettivo osd host-panel` holds the panel's session-bus name for the
+# Omarchy plugin, and `setup omarchy --check` asks the bus whether it is held.
+zbus = { workspace = true, features = ["blocking-api"] }
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

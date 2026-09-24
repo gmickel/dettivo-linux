@@ -1,0 +1,10 @@
+{
+  "id": 1,
+  "kind": "request",
+  "name": "load",
+  "payload": {
+    "backend_preference": "auto",
+    "model": "/models/whisper/tiny.en/ggml-tiny.en.bin"
+  },
+  "v": 1
+}

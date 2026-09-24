@@ -1,0 +1,7 @@
+Whisper meeting models are selectable while Parakeet remains the dictation provider. The selector previously filtered out every Whisper entry under Parakeet. Explicit meeting selections now resolve Whisper in selection validation, reporting and meeting start; the new-meeting picker preserves dictation selection.
+
+Verified focused Rust meeting and speech-model integration tests, including a new independent-provider meeting-start regression; all 80 Qt tests; dettivod clippy; formatting and diff checks. Visually verified the native settings screen with Parakeet dictation and Whisper Large v3 Turbo meeting selection. Live daemon subsequently reported recording_state=meeting during the user's dogfood test.
+
+Installed a local hotfix only, as requested. The package remains dettivo-bin 0.1.0-1.58. Daemon binary is ~/.local/lib/dettivo-meeting-hotfix/dettivod, selected through ~/.config/systemd/user/dettivod.service.d/90-meeting-model-hotfix.conf. ~/.local/bin/dettivo-app launches the patched build/qt/apps/dettivo-app/dettivo-app; ~/.local/share/applications/dettivo.desktop selects that launcher. A later packaged delivery must retire these overrides after stopping the hotfix processes. Do not remove the build tree while this UI launcher depends on it.
+
+No full rebuild, package release, push or merge. Source changes remain uncommitted. Normal integration and retirement of the local overrides remain downstream work.

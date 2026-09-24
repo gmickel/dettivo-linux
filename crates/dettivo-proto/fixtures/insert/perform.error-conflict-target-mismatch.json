@@ -1,0 +1,27 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32013,
+      "data": {
+        "app_code": "CONFLICT",
+        "details": {},
+        "retryable": false
+      },
+      "message": "Frontmost PID mismatch"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "insert.perform",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "insert.perform",
+    "params": {
+      "expected_target_pid": "4242",
+      "mode": "raw",
+      "text": "Hello"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-09T09:41:17.061129Z",
+  "depends_on": [],
+  "id": "fn-56-reliable-automatic-meeting-diarization.1",
+  "priority": null,
+  "spec": "fn-56-reliable-automatic-meeting-diarization",
+  "spec_path": ".flow/tasks/fn-56-reliable-automatic-meeting-diarization.1.md",
+  "status": "todo",
+  "title": "Calibrate and implement reliable automatic diarization with held-out accuracy gates",
+  "updated_at": "2026-09-09T09:41:17.061129Z"
+}

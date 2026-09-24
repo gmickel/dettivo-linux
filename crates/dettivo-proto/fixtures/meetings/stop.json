@@ -1,0 +1,29 @@
+{
+  "capabilities": {},
+  "method": "meetings.stop",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.stop",
+    "params": {
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "job": {
+        "error": null,
+        "job_id": "job_meeting_1",
+        "message": "transcribing",
+        "progress": 0.0,
+        "state": "running"
+      },
+      "ref": {
+        "id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "kind": "meeting"
+      }
+    }
+  }
+}

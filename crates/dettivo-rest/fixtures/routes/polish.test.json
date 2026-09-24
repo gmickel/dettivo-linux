@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/polish/test",
+    "body": {
+      "input": "um so the the build is green",
+      "preset": "generic",
+      "rules": []
+    }
+  },
+  "expect": {
+    "status": 200,
+    "content_type": "application/json",
+    "body_keys": [
+      "raw",
+      "polished",
+      "policy_hash"
+    ]
+  }
+}

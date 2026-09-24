@@ -1,0 +1,8 @@
+# CUDA diarization drop-in and its distribution notices.
+usr/lib/dettivo/engines-cuda/dettivo-engine-diarize
+usr/lib/dettivo/engines-cuda/libonnxruntime.so
+usr/lib/dettivo/engines-cuda/libonnxruntime_providers_cuda.so
+usr/lib/dettivo/engines-cuda/libonnxruntime_providers_shared.so
+usr/lib/dettivo/engines-cuda/libsherpa-onnx-c-api.so
+usr/share/doc/dettivo-engines-cuda/NOTICE.md
+usr/share/licenses/dettivo-engines-cuda/LICENSE

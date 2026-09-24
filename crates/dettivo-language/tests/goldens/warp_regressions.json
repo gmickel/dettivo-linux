@@ -1,0 +1,45 @@
+{
+  "source": "DettivoTests/Polish/WarpHistoryPolishRegressionTests.swift",
+  "note": "Real dictations from the macOS terminal history that the deterministic pass once mangled. Every case runs the full pass with all three transforms and the `atPrefixFilePaths` processor, and asserts what must survive and what must never appear.",
+  "transforms": ["fixGrammar", "removeFillers", "smartPunctuation"],
+  "post_processors": ["atPrefixFilePaths"],
+  "style": "asDictated",
+  "cases": [
+    {
+      "name": "preserves_sentence_spaces_in_warp_prose",
+      "input": "I only have 106 characters, but I want to make this more human-like. So use the human writing skill.",
+      "contains": ["human-like. So"],
+      "not_contains": [".So"]
+    },
+    {
+      "name": "preserves_point_as_prose_word",
+      "input": "My point is it doesn't make sense to offer the text-only version for all the skills.",
+      "contains": ["My point is"],
+      "not_contains": ["My."]
+    },
+    {
+      "name": "preserves_slash_command_phrase",
+      "input": "Plan a new epic for the capture skill and slash command enhancements.",
+      "contains": ["slash command"],
+      "not_contains": ["and/command"]
+    },
+    {
+      "name": "does_not_drop_prose_around_actually_adverb",
+      "input": "And yes, we will fix that bug. But first, let's get the readme correct so people are actually getting the full thing.",
+      "contains": ["But first", "actually getting"],
+      "not_contains": []
+    },
+    {
+      "name": "does_not_drop_prose_around_i_mean_aside",
+      "input": "The important thing is we need to keep it brand-like. Like, I mean, this is our professional consulting site, right?",
+      "contains": ["Like, I mean", "professional consulting site"],
+      "not_contains": []
+    },
+    {
+      "name": "preserves_point_me_to_phrase",
+      "input": "Can you pull up the meeting notes and point me to the full path?",
+      "contains": ["point me to"],
+      "not_contains": ["and.me"]
+    }
+  ]
+}

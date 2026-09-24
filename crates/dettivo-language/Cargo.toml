@@ -1,0 +1,25 @@
+[package]
+name = "dettivo-language"
+description = "The text layers: raw, the deterministic Polish pass, the Enhanced provider layer and its guards"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+dettivo-proto.workspace = true
+dettivo-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+fancy-regex.workspace = true
+sha2.workspace = true
+reqwest.workspace = true
+url.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

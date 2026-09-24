@@ -1,0 +1,23 @@
+{
+  "capabilities": {
+    "transfers.chunk_max_bytes": 1048576
+  },
+  "method": "transfer.commit",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transfer.commit",
+    "params": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "total_chunks": 5,
+      "transfer_id": "xfer_1"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "committed": true
+    }
+  }
+}

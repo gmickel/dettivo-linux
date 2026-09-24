@@ -1,0 +1,11 @@
+{
+  "uris": [
+    "transcripts://search/%aé",
+    "transcripts://search/%",
+    "transcripts://search/%a",
+    "transcripts://search/%gg",
+    "transcripts://search/%FF",
+    "transcripts://search/ok?kinds=%aé"
+  ],
+  "error_code": -32602
+}

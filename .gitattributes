@@ -1,0 +1,2 @@
+# The Content-Length wire fixtures carry CRLF headers byte for byte.
+crates/dettivo-mcp/fixtures/framing/* -text

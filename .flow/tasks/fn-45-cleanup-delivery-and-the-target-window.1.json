@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-06T13:16:41.884309Z",
+  "depends_on": [],
+  "id": "fn-45-cleanup-delivery-and-the-target-window.1",
+  "priority": null,
+  "spec": "fn-45-cleanup-delivery-and-the-target-window",
+  "spec_path": ".flow/tasks/fn-45-cleanup-delivery-and-the-target-window.1.md",
+  "status": "todo",
+  "title": "Cleanup: delivery and the target window, every finding fixed or rejected with evidence",
+  "updated_at": "2026-09-06T13:16:41.884309Z"
+}

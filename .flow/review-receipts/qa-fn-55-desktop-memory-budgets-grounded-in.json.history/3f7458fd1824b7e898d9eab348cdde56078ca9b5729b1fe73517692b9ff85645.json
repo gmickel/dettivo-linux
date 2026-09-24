@@ -1,0 +1,104 @@
+{
+  "branch": "fn-55-desktop-memory-budgets-grounded-in",
+  "coverage_note": "Coverage counts exercised criteria, not successful acceptance. R2 is a measured failure; the earlier combined finding is partially fixed by accurate first-frame capture.",
+  "evidence_root": "/home/gordon/work/dettivo-linux/.flow/tmp/qa-fn-55-desktop-memory-budgets-grounded-in",
+  "findings": {
+    "backend": "interactive",
+    "headSha": "e76685e2885e8518bc3e00fa81183a840d217c89",
+    "items": [
+      {
+        "body": "Post-cleanup native launch 1 uses RSS 275888 KiB and anonymous memory 104024 KiB against 262144/98304 KiB; all five first frames are 322-347 ms against under 300 ms. fn-55 R2/R5 remain unmet. See docs/reports/qa/2026-09-10-desktop-memory-post-cleanup.json. (surface: crates/dettivo-qa/src/scenarios/app_memory.rs)",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-28119c4d6ce5ed7439fdf8027e2273b9d9b3e46d3f9728b532bd1093f796d895",
+        "id": "finding-b067eb4043fe56367bb5fb9e3e0979c2",
+        "lastSeenReceiptId": "review-9c13440269e0d2864ee97dcc67634f404cf43316d5d85d72f2a189e346062c24",
+        "ordinal": 1,
+        "rIds": [
+          "R2",
+          "R5"
+        ],
+        "severity": "P1",
+        "status": "not_fixed",
+        "title": "QA-NATIVE-MEMORY-STARTUP"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-9c13440269e0d2864ee97dcc67634f404cf43316d5d85d72f2a189e346062c24",
+    "supersedesReceiptId": "review-28119c4d6ce5ed7439fdf8027e2273b9d9b3e46d3f9728b532bd1093f796d895"
+  },
+  "head_sha": "e76685e2885e8518bc3e00fa81183a840d217c89",
+  "id": "fn-55-desktop-memory-budgets-grounded-in",
+  "mode": "interactive",
+  "open_p0p1": [
+    {
+      "classification": "pre_existing",
+      "confidence": 100,
+      "file": "crates/dettivo-qa/src/scenarios/app_memory.rs",
+      "id": "QA-NATIVE-MEMORY-STARTUP",
+      "reason": "Cold native launch uses RSS 278064 KiB and anonymous memory 105412 KiB against unchanged 262144/98304 KiB caps. R2 remains unmet. All five native first frames now pass at 237, 210, 226, 210 and 218 ms; Xvfb, routes and theme timing pass.",
+      "severity": "P1"
+    }
+  ],
+  "qa_outcome": "NEEDS_WORK",
+  "report": "docs/reports/qa/2026-09-10-desktop-memory.md",
+  "rid_coverage": {
+    "covered": 6,
+    "rids": [
+      {
+        "coverage": "backend_cli",
+        "id": "R1",
+        "observation": "retained contract/docs and canonical gate",
+        "scenarios": []
+      },
+      {
+        "coverage": "live",
+        "id": "R2",
+        "observation": "unmet; cold native memory exceeds both caps",
+        "scenarios": [
+          "S1",
+          "S2"
+        ]
+      },
+      {
+        "coverage": "live",
+        "id": "R3",
+        "observation": "verified from final live evidence",
+        "scenarios": [
+          "S1",
+          "S2"
+        ]
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R4",
+        "observation": "retained contract/docs and canonical gate",
+        "scenarios": []
+      },
+      {
+        "coverage": "live",
+        "id": "R5",
+        "observation": "verified from final live evidence",
+        "scenarios": [
+          "S1",
+          "S2",
+          "S3",
+          "S4"
+        ]
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R6",
+        "observation": "retained contract/docs and canonical gate",
+        "scenarios": []
+      }
+    ],
+    "total": 6
+  },
+  "tested_code_commit": "9c31b0c385b5e3ce80a2ebd45fd7d6d613e1643e",
+  "timestamp": "2026-09-12T14:30:42.707430+00:00",
+  "type": "qa_verdict",
+  "verdict": "NEEDS_WORK"
+}

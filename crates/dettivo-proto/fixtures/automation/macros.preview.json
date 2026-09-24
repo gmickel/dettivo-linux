@@ -1,0 +1,40 @@
+{
+  "capabilities": {
+    "automation.dictation_macros": true
+  },
+  "method": "automation.macros.preview",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "automation.macros.preview",
+    "params": {
+      "transcript": "please insert greeting now"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "preview": {
+        "action_preview": "Insert text: hello team",
+        "applied": false,
+        "dry_run": true,
+        "macro": {
+          "action": {
+            "arguments": [],
+            "kind": "insert_text",
+            "preview": "Insert text: hello team",
+            "target": "hello team"
+          },
+          "enabled": true,
+          "id": "greeting",
+          "safety_policy": "first_use_confirm",
+          "trigger": "insert greeting"
+        },
+        "message": null,
+        "status": "preview",
+        "transformed_text": "please hello team now"
+      }
+    }
+  }
+}

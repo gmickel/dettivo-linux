@@ -1,0 +1,59 @@
+{
+  "capabilities": {
+    "automation.dictation_macros": true
+  },
+  "method": "automation.macros.upsert",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "automation.macros.upsert",
+    "params": {
+      "action_kind": "insert_text",
+      "allowlist_app_commands": [
+        "open_settings"
+      ],
+      "allowlist_shell_commands": [
+        "xdg-open"
+      ],
+      "arguments": [],
+      "config_enabled": true,
+      "enabled": true,
+      "macro_id": "greeting",
+      "safety_policy": "first_use_confirm",
+      "target": "hello team",
+      "trigger": "insert greeting"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "config": {
+        "allowlist": {
+          "app_commands": [
+            "open_settings"
+          ],
+          "shell_commands": [
+            "xdg-open"
+          ]
+        },
+        "enabled": true,
+        "macros": [
+          {
+            "action": {
+              "arguments": [],
+              "kind": "insert_text",
+              "preview": "Insert text: hello team",
+              "target": "hello team"
+            },
+            "enabled": true,
+            "id": "greeting",
+            "safety_policy": "first_use_confirm",
+            "trigger": "insert greeting"
+          }
+        ],
+        "remembered_macro_ids": []
+      }
+    }
+  }
+}

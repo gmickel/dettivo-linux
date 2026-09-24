@@ -1,0 +1,25 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32010,
+      "data": {
+        "app_code": "INVALID_PARAMS",
+        "details": {},
+        "retryable": false
+      },
+      "message": "meeting_id: not a lowercase UUID string"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "meetings.get",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.get",
+    "params": {
+      "meeting_id": "not-a-uuid"
+    }
+  }
+}

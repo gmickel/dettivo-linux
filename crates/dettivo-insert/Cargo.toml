@@ -1,0 +1,33 @@
+[package]
+name = "dettivo-insert"
+description = "Text insertion into the focused application"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+dettivo-proto.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tokio.workspace = true
+libc.workspace = true
+wayland-client.workspace = true
+wayland-protocols-misc.workspace = true
+xkbcommon.workspace = true
+wl-clipboard-rs.workspace = true
+x11-clipboard.workspace = true
+x11rb.workspace = true
+ashpd.workspace = true
+reis.workspace = true
+futures-util.workspace = true
+enumflags2.workspace = true
+zbus.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-55-desktop-memory-budgets-grounded-in",
+  "created_at": "2026-09-08T19:17:37.398840Z",
+  "depends_on_epics": [],
+  "id": "fn-55-desktop-memory-budgets-grounded-in",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-55-desktop-memory-budgets-grounded-in.md",
+  "status": "done",
+  "title": "Desktop memory budgets grounded in measured usage",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-14T07:35:44.543955Z"
+}

@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-40-reduce-ci-rebuilds-and-preserve-release",
+  "created_at": "2026-09-05T15:30:05.829710Z",
+  "depends_on_epics": [],
+  "id": "fn-40-reduce-ci-rebuilds-and-preserve-release",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-40-reduce-ci-rebuilds-and-preserve-release.md",
+  "status": "done",
+  "title": "Reduce CI rebuilds and preserve release evidence",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-06T03:45:53.570340Z"
+}

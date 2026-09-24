@@ -1,0 +1,28 @@
+[package]
+name = "parakeet-cpp-sys"
+description = "Raw bindings to parakeet.cpp's C API, built from the pinned source"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+links = "parakeet"
+
+[dependencies]
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[build-dependencies]
+bindgen.workspace = true
+cc.workspace = true
+cmake.workspace = true
+sha2.workspace = true
+
+[features]
+default = []
+# The ggml Vulkan backend (needs vulkan-headers, spirv-headers, shaderc).
+vulkan = []
+
+[lints]
+workspace = true

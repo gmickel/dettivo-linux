@@ -1,0 +1,11 @@
+{
+  "id": 0,
+  "kind": "event",
+  "name": "loaded",
+  "payload": {
+    "backend": "cpu",
+    "model": "/models/whisper/tiny.en/ggml-tiny.en.bin",
+    "reason": "DETTIVO_FORCE_CPU=1"
+  },
+  "v": 1
+}

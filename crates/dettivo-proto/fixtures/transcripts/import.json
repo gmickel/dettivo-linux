@@ -1,0 +1,35 @@
+{
+  "capabilities": {},
+  "method": "transcripts.import",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transcripts.import",
+    "params": {
+      "acknowledge_meeting_disclosure": true,
+      "filename": "call.m4a",
+      "language": "en",
+      "mode": "raw",
+      "target_kind": "meeting",
+      "transfer_id": "xfer_in_1"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "is_partial": false,
+      "job": {
+        "error": null,
+        "job_id": "job_import_1",
+        "message": "transcribing",
+        "progress": 0.0,
+        "state": "running"
+      },
+      "ref": {
+        "id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "kind": "meeting"
+      }
+    }
+  }
+}

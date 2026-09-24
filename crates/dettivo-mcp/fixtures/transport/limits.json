@@ -1,0 +1,14 @@
+{
+  "max_message_bytes": 512,
+  "outgoing_error": {
+    "code": -32016,
+    "message": "MCP message exceeds max_message_bytes (512)",
+    "data": {
+      "app_code": "RATE_LIMITED_LOCAL",
+      "retryable": true,
+      "details": {"max_message_bytes": 512}
+    }
+  },
+  "compact_error": {"code": -32016, "message": "MCP response too large"},
+  "framing_switch_error": {"code": -32600, "message": "MCP framing cannot change during a session"}
+}

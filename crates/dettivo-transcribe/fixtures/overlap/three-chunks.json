@@ -1,0 +1,76 @@
+{
+  "description": "Three synthetic chunks with two-second overlaps as a word-timestamp engine returns them, chunk-relative. The first overlap (8000-10000 ms, midpoint 9000) carries a repeated word within 250 ms ('now.' at 8950 in chunk 0 and at 9100 in chunk 1) and words the later chunk repeats before the midpoint ('the review'); the second overlap (16000-18000 ms) has no words on either side.",
+  "chunks": [
+    {
+      "start_ms": 0,
+      "end_ms": 10000,
+      "segments": [
+        {
+          "start_ms": 500,
+          "end_ms": 1200,
+          "text": "Hello team.",
+          "words": [
+            {"start_ms": 500, "end_ms": 800, "text": "Hello", "confidence": 0.98},
+            {"start_ms": 900, "end_ms": 1200, "text": "team.", "confidence": 0.91}
+          ]
+        },
+        {
+          "start_ms": 7000,
+          "end_ms": 9600,
+          "text": "Let us begin the review now.",
+          "words": [
+            {"start_ms": 7000, "end_ms": 7200, "text": "Let", "confidence": 0.9},
+            {"start_ms": 7250, "end_ms": 7400, "text": "us", "confidence": 0.9},
+            {"start_ms": 7500, "end_ms": 7900, "text": "begin", "confidence": 0.9},
+            {"start_ms": 8000, "end_ms": 8100, "text": "the", "confidence": 0.9},
+            {"start_ms": 8200, "end_ms": 8700, "text": "review", "confidence": 0.9},
+            {"start_ms": 8950, "end_ms": 9600, "text": "now.", "confidence": 0.85}
+          ]
+        }
+      ]
+    },
+    {
+      "start_ms": 8000,
+      "end_ms": 18000,
+      "segments": [
+        {
+          "start_ms": 50,
+          "end_ms": 3400,
+          "text": "the review now. Second point.",
+          "words": [
+            {"start_ms": 50, "end_ms": 150, "text": "the", "confidence": 0.7},
+            {"start_ms": 200, "end_ms": 700, "text": "review", "confidence": 0.8},
+            {"start_ms": 1100, "end_ms": 1600, "text": "now.", "confidence": 0.9},
+            {"start_ms": 2500, "end_ms": 2900, "text": "Second", "confidence": 0.95},
+            {"start_ms": 3000, "end_ms": 3400, "text": "point.", "confidence": 0.95}
+          ]
+        },
+        {
+          "start_ms": 4000,
+          "end_ms": 5500,
+          "text": "Nothing said here.",
+          "words": [
+            {"start_ms": 4000, "end_ms": 4400, "text": "Nothing", "confidence": 0.9},
+            {"start_ms": 4500, "end_ms": 4800, "text": "said", "confidence": 0.9},
+            {"start_ms": 4900, "end_ms": 5500, "text": "here.", "confidence": 0.9}
+          ]
+        }
+      ]
+    },
+    {
+      "start_ms": 16000,
+      "end_ms": 24000,
+      "segments": [
+        {
+          "start_ms": 1500,
+          "end_ms": 2600,
+          "text": "Closing remarks.",
+          "words": [
+            {"start_ms": 1500, "end_ms": 2000, "text": "Closing", "confidence": 0.9},
+            {"start_ms": 2100, "end_ms": 2600, "text": "remarks.", "confidence": 0.9}
+          ]
+        }
+      ]
+    }
+  ]
+}

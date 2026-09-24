@@ -1,0 +1,24 @@
+{
+  "capabilities": {
+    "transfers.chunk_max_bytes": 1048576
+  },
+  "method": "transfer.chunk",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transfer.chunk",
+    "params": {
+      "data_b64": "AAAA",
+      "seq": 1,
+      "transfer_id": "xfer_1"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "accepted": true,
+      "next_seq": 2
+    }
+  }
+}

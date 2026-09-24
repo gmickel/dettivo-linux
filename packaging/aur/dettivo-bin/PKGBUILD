@@ -1,0 +1,48 @@
+# Maintainer: Gordon Mickel <gordon@mickel.tech>
+#
+# The release tarball scripts/package.sh builds in CI, repackaged (ADR 0034).
+# `dettivo` builds the same tree from source. The sums are pinned by
+# packaging/aur/publish.sh at release time; prepare() also verifies the
+# tarball against the SHA256SUMS the release publishes beside it.
+
+pkgname=dettivo-bin
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Speech workstation for Omarchy: dictation, meetings and history on local engines (release build)"
+arch=('x86_64')
+url="https://github.com/gmickel/dettivo-linux"
+license=('GPL-3.0-or-later')
+depends=(
+  'glibc' 'gcc-libs'
+  'qt6-base' 'qt6-declarative' 'qt6-svg' 'qt6-wayland' 'qt6-multimedia'
+  'libglvnd' 'tomlplusplus' 'layer-shell-qt' 'wayland' 'libxkbcommon'
+  'libpipewire' 'pipewire'
+  'vulkan-icd-loader'
+  'hicolor-icon-theme'
+)
+optdepends=(
+  'omarchy: the bar plugin and `dettivo setup omarchy`'
+  'ollama: a remote language model endpoint for Enhanced'
+  'vulkan-driver: run the engines on the GPU; without one they run on the CPU'
+  'ttf-cascadia-mono-nerd: the monospace face the pill and the app render with'
+)
+provides=('dettivo')
+conflicts=('dettivo')
+install=dettivo-bin.install
+options=('!lto')
+_tree="dettivo-${pkgver}-linux-x86_64"
+source=(
+  "${url}/releases/download/v${pkgver}/${_tree}.tar.zst"
+  "${_tree}.SHA256SUMS::${url}/releases/download/v${pkgver}/SHA256SUMS"
+)
+sha256sums=('SKIP'
+            'SKIP')
+
+prepare() {
+  cd "${srcdir}"
+  sha256sum --check --ignore-missing --strict "${_tree}.SHA256SUMS"
+}
+
+package() {
+  cp -a "${srcdir}/${_tree}/usr" "${pkgdir}/"
+}

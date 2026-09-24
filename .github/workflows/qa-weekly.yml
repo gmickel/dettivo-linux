@@ -1,0 +1,53 @@
+# The whole drive pack and the GUI pack on the in-repo fallback driver,
+# weekly (ADR 0011 R2, ADR 0037): proves every scenario still runs without
+# cua-driver, so a cua-driver regression never blocks a release.
+
+name: qa-weekly
+
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: qa-weekly-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  drive-fallback:
+    name: drive-fallback
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      - run: pacman -Syu --noconfirm --needed git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-toolchain
+      - run: pacman -Syu --noconfirm --needed xorg-server-xvfb openbox at-spi2-core dbus curl
+      - name: Cache the test model
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/.ci-data/dettivo/models
+          key: test-model-${{ hashFiles('scripts/models/fetch-test-model.sh') }}
+      - run: scripts/models/fetch-test-model.sh
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: just build-rust build-qt
+      - run: scripts/qa/xvfb-session.sh just qa-drive-all
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      # The GUI pack with no cua-driver installed: its cua steps are the
+      # allowed skips, the fallback steps must pass.
+      - run: scripts/qa/xvfb-session.sh just qa-pack gui
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: qa-evidence-fallback
+          path: qa-evidence/
+          if-no-files-found: ignore

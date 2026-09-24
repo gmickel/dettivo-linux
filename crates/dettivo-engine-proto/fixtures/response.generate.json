@@ -1,0 +1,12 @@
+{
+  "id": 4,
+  "kind": "response",
+  "name": "generate",
+  "payload": {
+    "backend": "vulkan",
+    "finish_reason": "stop",
+    "text": "Hello, team.",
+    "tokens": 5
+  },
+  "v": 1
+}

@@ -1,0 +1,10 @@
+{
+  "id": 3,
+  "kind": "event",
+  "name": "progress",
+  "payload": {
+    "fraction": 0.5,
+    "request_id": 3
+  },
+  "v": 1
+}

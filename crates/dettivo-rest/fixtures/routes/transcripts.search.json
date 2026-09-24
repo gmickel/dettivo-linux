@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/transcripts/search",
+    "body": {
+      "query": "contract",
+      "kinds": [
+        "dictation"
+      ],
+      "limit": 5
+    }
+  },
+  "expect": {
+    "status": 200,
+    "content_type": "application/json",
+    "body_keys": [
+      "items"
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "capabilities": {},
+  "method": "speech.models.cancel",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "speech.models.cancel",
+    "params": {
+      "model": "large-v3-turbo",
+      "provider": "whisper"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "available": true,
+      "bytes_done": 12345678,
+      "bytes_total": 874188075,
+      "display_name": "Large v3 Turbo",
+      "error": null,
+      "id": "large-v3-turbo",
+      "is_default": true,
+      "is_selected": true,
+      "kind": "stt",
+      "languages": [
+        "multilingual"
+      ],
+      "license": "MIT",
+      "path": null,
+      "provider": "whisper",
+      "readiness": "partial",
+      "recommended_for": "99 languages \u00b7 vocabulary prompts \u00b7 the Mac default",
+      "size_bytes": 874188075
+    }
+  }
+}

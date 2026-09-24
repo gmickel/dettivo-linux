@@ -1,0 +1,38 @@
+{
+  "capabilities": {
+    "config.methods": [
+      "config.get",
+      "config.set",
+      "config.unset",
+      "config.validate",
+      "config.path",
+      "config.print_default",
+      "config.keys"
+    ]
+  },
+  "error": {
+    "error": {
+      "code": -32010,
+      "data": {
+        "app_code": "INVALID_PARAMS",
+        "details": {
+          "key": "daemon.log_level"
+        },
+        "retryable": false
+      },
+      "message": "unknown variant `loud`, expected one of `error`, `warn`, `info`, `debug`, `trace`"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "config.set",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "config.set",
+    "params": {
+      "key": "daemon.log_level",
+      "value": "loud"
+    }
+  }
+}

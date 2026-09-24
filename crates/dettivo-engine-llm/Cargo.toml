@@ -1,0 +1,27 @@
+[package]
+name = "dettivo-engine-llm"
+description = "Engine process that runs a local language model"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+dettivo-engine-proto.workspace = true
+llama-cpp-2.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+clap.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[features]
+default = []
+vulkan = ["llama-cpp-2/vulkan"]
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

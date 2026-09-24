@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "id": "gmickel.dettivo",
+  "name": "Dettivo",
+  "version": "0.1.0",
+  "author": "Gordon Mickel",
+  "license": "GPL-3.0-or-later",
+  "description": "Dictation state in the bar, the Dettivo panel, and the recording pill hosted by the shell.",
+  "homepage": "https://github.com/gmickel/omarchy-dettivo",
+  "repository": "https://github.com/gmickel/omarchy-dettivo",
+  "kinds": [
+    "bar-widget",
+    "panel"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "barWidget": "BarWidget.qml",
+    "panel": "Panel.qml"
+  },
+  "keywords": [
+    "dictation",
+    "speech",
+    "transcription",
+    "voice",
+    "whisper",
+    "parakeet"
+  ],
+  "barWidget": {
+    "displayName": "Dettivo",
+    "description": "Idle, recording, transcribing and meeting state from the Dettivo daemon; click for the panel.",
+    "category": "Developer Tools",
+    "aliases": [
+      "dictation",
+      "speech",
+      "voice"
+    ],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "glyph": "waveform",
+      "levelMeter": true,
+      "osd": "panel"
+    },
+    "schema": [
+      {
+        "key": "glyph",
+        "type": "enum",
+        "label": "Bar glyph",
+        "options": [
+          "waveform",
+          "dot"
+        ],
+        "defaultValue": "waveform",
+        "description": "The six-bar mark or a single dot. Written to [omarchy] glyph in config.toml."
+      },
+      {
+        "key": "levelMeter",
+        "type": "boolean",
+        "label": "Level meter",
+        "defaultValue": true,
+        "description": "The bars follow the microphone level while recording. Written to [omarchy] level_meter."
+      },
+      {
+        "key": "osd",
+        "type": "enum",
+        "label": "Recording pill",
+        "options": [
+          "panel",
+          "service",
+          "off"
+        ],
+        "defaultValue": "panel",
+        "description": "panel: this plugin hosts the pill. service: dettivo-osd.service keeps it. off: no pill. Written to [omarchy] osd."
+      }
+    ]
+  },
+  "omarchy": {
+    "minDettivo": "0.1.0"
+  }
+}

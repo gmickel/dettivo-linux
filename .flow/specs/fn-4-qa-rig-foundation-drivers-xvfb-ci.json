@@ -1,0 +1,35 @@
+{
+  "branch_name": "fn-4-qa-rig-foundation-drivers-xvfb-ci",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-03T13:03:01.772754Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-3-daemon-skeleton-socket-activated"
+  ],
+  "id": "fn-4-qa-rig-foundation-drivers-xvfb-ci",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-4-qa-rig-foundation-drivers-xvfb-ci.md",
+  "status": "done",
+  "title": "QA rig foundation: drivers, Xvfb CI, virtual audio and QA mode",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T02:46:12.030211Z"
+}

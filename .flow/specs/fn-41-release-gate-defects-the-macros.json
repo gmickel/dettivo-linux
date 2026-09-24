@@ -1,0 +1,35 @@
+{
+  "branch_name": "fn-41-release-gate-defects-the-macros",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-06T06:04:39.566590Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-37-docs-the-guides-the-docs-build-the"
+  ],
+  "id": "fn-41-release-gate-defects-the-macros",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-41-release-gate-defects-the-macros.md",
+  "status": "done",
+  "title": "Release gate defects: the macros capability flag, the seeded row count and the QA profile's models directory",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-06T09:03:12.507132Z"
+}

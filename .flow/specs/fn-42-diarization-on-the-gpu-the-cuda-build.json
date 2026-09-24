@@ -1,0 +1,36 @@
+{
+  "branch_name": "fn-42-diarization-on-the-gpu-the-cuda-build",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-06T13:06:09.085330Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-32-diarization-the-sherpa-onnx-engine-the",
+    "fn-31-packaging-aur-recipes-release-workflow"
+  ],
+  "id": "fn-42-diarization-on-the-gpu-the-cuda-build",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-42-diarization-on-the-gpu-the-cuda-build.md",
+  "status": "done",
+  "title": "Diarization on the GPU: the CUDA build of the diarize engine as a drop-in, with the CPU build as the fallback",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-10T08:01:59.208639Z"
+}

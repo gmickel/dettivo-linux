@@ -1,0 +1,13 @@
+{
+  "id": 7,
+  "kind": "response",
+  "name": "status",
+  "payload": {
+    "backend": "vulkan",
+    "busy": false,
+    "loaded": true,
+    "memory_bytes": 1342177280,
+    "model": "/models/llm/qwen3-1.7b/Qwen3-1.7B-Q4_K_M.gguf"
+  },
+  "v": 1
+}

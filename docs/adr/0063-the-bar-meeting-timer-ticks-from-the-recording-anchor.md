@@ -1,0 +1,28 @@
+# 0063. The bar's meeting timer ticks from the recording anchor, and a stage detail takes the room its row has
+
+Status: Accepted 2026-09-16, amends 0030 (the panel's timer) and 0061 (the processing strip)
+
+## What this gives you
+
+The Omarchy bar shows how long the meeting has recorded, second by second, through a quiet room and after the shell reconnects to the daemon, and the count leaves the mark the moment Stop is pressed, the mark dimming to the transcribing tone until the transcript is built. The meeting detail's speaker stage reads `done · 3 speakers · 154 segments unassigned` in full, so the share of the transcript the speaker pass left by source is visible without hovering, and the detail's key line ends before the `delete meeting` control at the default and the narrowest window, with `t title` in the line and `t rename meeting` in the keyboard hint sheet.
+
+## Situation
+
+During the dogfood of 2026-09-16 (spec fn-62) the bar's timer stayed at `00:00` for the length of a meeting. `DettivoState.setMeeting` formatted `live_last_end_ms` from each `meeting.state` event and nothing else moved the text, as ADR 0030 recorded on purpose. The daemon publishes `meeting.state` on transitions alone, and `live_last_end_ms` is the end of the last live segment, which stays at zero while nobody speaks and lags the audio by up to a window when somebody does. A snapshot after a reconnect (`meetings list --limit 1`) carried no elapsed at all. The macOS app counts its meeting clock locally from the recording's start, and the Linux app's live view does the same from `started_at` (ADR 0038, 0061), so the plugin was the one surface without a clock.
+
+The native QA of fn-63 found the processing strip's stage detail capped at `Theme.space8 * 5` and eliding `3 speakers · 154 segments …`, which hid the word that gives the count its meaning; the accessible description already carried the full text. The same render at 1280 by 820 showed the detail footer's key line, 673 px after fn-63 added `t rename meeting`, running under the `delete meeting` control, because `MeetingsFooter` bounded the line by its empty trailing fact and the detail placed the control over the same edge; the keyboard hint sheet named no `t` at all.
+
+## Decision
+
+- **The plugin keeps a recording anchor and ticks on its own.** `omarchy/DettivoMeetingClock.qml`, owned by `DettivoState`, stores the epoch millisecond the recording started at and a `Timer` at one second recomputes `meetingElapsed` from the wall clock while `meetingRecording` is true. Every `meeting.state` event re-anchors from `duration_ms` (the Linux capture so far), or from `live_last_end_ms` on a port without it; a snapshot re-anchors from the row's `started_at`, so the stream reopening after a daemon restart or an overflow restores the count where the meeting stands. A snapshot without the stamp keeps the anchor of the same meeting and starts a new meeting's count from now.
+- **Leaving `recording` ends the count and the recording look.** `stopping`, `stopped`, `transcribing`, `completed` and the stream's exit set `meetingRecording` false, stop the timer and clear `meetingElapsed`. While the daemon still holds the meeting (`meetingFinalising`, active without recording) the glyph and the panel take the `transcribing` state, the mark's accent dimmed with no timer, the panel's sentence `Transcribing` and its meeting button opening the app, and the tooltip reads `Dettivo — meeting transcribing`; `DettivoMeetingActions.stop` refuses with the error pill once the recording has ended, because the daemon has no session to stop. A frozen count beside the accent mark would read as the defect this record fixes.
+- **A stage detail takes the room its row has.** `ProcessingStrip` bounds the detail text at the flow's width less the dot, the label and the gaps, so a long detail wraps to a line of its own and elides only past the strip's width. The accessible description keeps the full text either way.
+- **The detail's key line stops before the delete control and wraps when narrow.** `MeetingsFooter` gains `trailingReserve`, the width of a control the screen places at its right edge, and the detail names its delete action there; the hints read `j / k move · 1 2 3 tabs · p polished · r speaker · t title · e export · d delete`, 528 px in the 11 px caption face against the 546 px the 1280 window leaves beside the 93 px control. At the 969 px minimum window the line wraps to three lines before it elides, so every key stays visible. The keyboard hint sheet gains the row `t rename meeting` in its right column and one row of height, so the verb lives in the full help.
+
+## Consequences
+
+- The display can be a second behind the capture and drifts by nothing between events; each `meeting.state` corrects it to the daemon's `duration_ms`.
+- The clock belongs to the meeting that records. A `meeting.state` past `recording` that names another meeting (the speaker or analysis pass of the previous meeting settling while the next one records) leaves the count alone; a reset that names no meeting (the stream's exit, a snapshot without a live meeting) still clears it. A late `recording` event for another meeting re-anchors to that meeting, as the daemon allows one recording at a time.
+- A shell clock that jumps (suspend, an NTP step) moves the count until the next event or snapshot re-anchors it; the daemon's `duration_ms` on the stop transition is never shown, so the stored length is the app's to report.
+- The bar tests pin the clock through `DettivoMeetingClock.pinnedNowMs` and prove one real tick; the plugin folder gains one file, listed in `packaging/manifest.txt`.
+- ADR 0030's rule that the panel's timer never moves from a QML clock alone is withdrawn by this record.

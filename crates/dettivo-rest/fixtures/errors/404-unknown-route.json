@@ -1,0 +1,25 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/nothing/here"
+  },
+  "expect": {
+    "status": 404,
+    "content_type": "application/json",
+    "error": {
+      "app_code": "NOT_FOUND",
+      "code": -32012
+    },
+    "body": {
+      "error": {
+        "code": -32012,
+        "message": "Unknown endpoint /v1/nothing/here",
+        "data": {
+          "app_code": "NOT_FOUND",
+          "retryable": false,
+          "details": {}
+        }
+      }
+    }
+  }
+}

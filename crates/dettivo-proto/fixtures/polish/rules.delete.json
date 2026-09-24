@@ -1,0 +1,19 @@
+{
+  "capabilities": {},
+  "method": "polish.rules.delete",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "polish.rules.delete",
+    "params": {
+      "rule_id": "c0a80101-0000-4000-8000-000000000001"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "deleted": true
+    }
+  }
+}

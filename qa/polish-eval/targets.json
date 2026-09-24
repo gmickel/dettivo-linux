@@ -1,0 +1,51 @@
+{
+  "id": "dettivo-polish-private-v1",
+  "artifact_policy": {
+    "visibility": "private-only",
+    "allow_public_release": false
+  },
+  "hard_gates": {
+    "protected_token_preservation_rate": {
+      "minimum": 1.0
+    },
+    "required_fragment_retention_rate": {
+      "minimum": 0.99
+    },
+    "forbidden_fragment_violation_rate": {
+      "maximum": 0.01
+    },
+    "language_anchor_retention_rate": {
+      "minimum": 0.99
+    },
+    "structure_retention_rate": {
+      "minimum": 0.98
+    },
+    "guard_rejection_rate": {
+      "maximum": 0.02
+    },
+    "fallback_rate": {
+      "maximum": 0.03
+    },
+    "median_wall_ms": {
+      "maximum": 700
+    },
+    "p95_wall_ms": {
+      "maximum": 1400
+    }
+  },
+  "relative_gates": {
+    "must_match_or_beat_incumbent_hard_gates": true,
+    "must_improve_one_of": [
+      "median_wall_ms",
+      "p95_wall_ms"
+    ]
+  },
+  "confirmation": {
+    "minimum_repeat_runs": 3,
+    "require_exported_runtime_confirmation": true
+  },
+  "stop_rule": {
+    "freeze_confirmed_1_7b_incumbent": true,
+    "allow_optional_only_if_partial_wins": true
+  }
+}

@@ -1,0 +1,4 @@
+# A configuration that insists on the layer-shell host; without one
+# dettivo-osd exits 0 naming the reason instead of falling back.
+[osd]
+host = "layer_shell"

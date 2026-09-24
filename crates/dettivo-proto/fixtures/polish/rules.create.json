@@ -1,0 +1,21 @@
+{
+  "capabilities": {},
+  "method": "polish.rules.create",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "polish.rules.create",
+    "params": {
+      "content": "Use concise professional phrasing",
+      "enabled": true,
+      "name": "Professional Tone"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "rule_id": "c0a80101-0000-4000-8000-000000000001"
+    }
+  }
+}

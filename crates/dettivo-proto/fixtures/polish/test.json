@@ -1,0 +1,31 @@
+{
+  "capabilities": {},
+  "method": "polish.test",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "polish.test",
+    "params": {
+      "input": "um open src/app/index.ts and read https://example.com/docs period then ship v1.2.3",
+      "mode": "deterministic_polish",
+      "preset": "code",
+      "rules": [
+        "Professional Tone"
+      ]
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "applied_rules": [
+        "Professional Tone"
+      ],
+      "model": "deterministic",
+      "output": "open @src/app/index.ts and read https://example.com/docs. Then ship v1.2.3",
+      "policy_hash": "7df425f2",
+      "polished": "open @src/app/index.ts and read https://example.com/docs. Then ship v1.2.3",
+      "raw": "Um open src/app/index.ts and read https://example.com/docs. Then ship v1.2.3"
+    }
+  }
+}

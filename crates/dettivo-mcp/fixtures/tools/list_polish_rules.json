@@ -1,0 +1,10 @@
+{
+  "description": "List custom and built-in polish rules.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+  },
+  "name": "list_polish_rules",
+  "title": "List Polish Rules"
+}

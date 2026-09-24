@@ -1,0 +1,29 @@
+{
+  "capabilities": {
+    "history.methods": [
+      "transcripts.delete",
+      "transcripts.rerun",
+      "transcripts.stats",
+      "transcripts.cancel"
+    ]
+  },
+  "method": "transcripts.stats",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transcripts.stats",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "audio_items": 0,
+      "item_count": 12,
+      "last_migration": "0008-analysis-queued",
+      "path": "/home/user/.local/share/dettivo/dettivo.db",
+      "schema_version": 8,
+      "size_bytes": 204800
+    }
+  }
+}

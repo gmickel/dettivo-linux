@@ -1,0 +1,562 @@
+# The visual regression manifest (ADR 0021, docs/qa.md). `dettivo-qa visual`
+# renders every surface below at every scale and theme, diffs each render
+# against its baseline with dettivo-visual-diff and blocks on an unapproved
+# difference. A surface with an artboard has its Black Gold crops cut from
+# it by scripts/design/crop-baseline.py (`crop = "boxes"` finds the bordered
+# boxes top to bottom in state order; no crop rule means the artboard itself
+# is the crop; a state whose region the window draws elsewhere names the
+# render's rectangle in `render_crop`); every other theme and scale is
+# approved once through `dettivo-qa visual approve` and recorded in
+# docs/design/baselines.md.
+
+# Fixture names under qt/fixtures/themes/, plus the two built-in palettes
+# the product shows off Omarchy (the portal colour scheme pinned).
+themes = ["black-gold", "catppuccin-latte", "tokyo-night", "builtin-dark", "builtin-light"]
+scales = [1, 2]
+
+# The design system sheet: palette, type, spacing, controls, icons, motion.
+[[surface]]
+name = "design-system"
+binary = "dettivo-sheet"
+artboard = "design-system.png"
+threshold = 0.55
+
+[[surface.state]]
+name = "sheet"
+
+# The recording pill, one state per render (docs/osd.md).
+[[surface]]
+name = "osd"
+binary = "dettivo-osd"
+artboard = "osd.png"
+crop = "boxes"
+threshold = 0.55
+
+[[surface.state]]
+name = "listening"
+env = { DETTIVO_E2E_OSD_STATE = "listening" }
+
+[[surface.state]]
+name = "transcribing"
+env = { DETTIVO_E2E_OSD_STATE = "transcribing" }
+
+[[surface.state]]
+name = "enhancing"
+env = { DETTIVO_E2E_OSD_STATE = "enhancing" }
+
+[[surface.state]]
+name = "inserted"
+env = { DETTIVO_E2E_OSD_STATE = "inserted" }
+
+[[surface.state]]
+name = "copied"
+env = { DETTIVO_E2E_OSD_STATE = "copied" }
+
+[[surface.state]]
+name = "error"
+env = { DETTIVO_E2E_OSD_STATE = "error" }
+
+# The Omarchy panel (docs/omarchy.md), rendered by dettivo-bar without the
+# shell: the 340 px card from omarchy-bar-panel.png. The artboard shows the
+# meeting state, so every state's crop is that panel box: idle, recording
+# and transcribing share its structure and are gated by it on Black Gold,
+# the hint state takes an approved render.
+[[surface]]
+name = "panel"
+binary = "dettivo-bar"
+artboard = "omarchy-bar-panel.png"
+threshold = 0.55
+# dettivo-bar draws the panel alone, so the render is compared whole and
+# each state's rectangle cuts the artboard only.
+crop_render = false
+
+[[surface.state]]
+name = "meeting"
+env = { DETTIVO_E2E_BAR_STATE = "panel-meeting" }
+crop = [842, 34, 342, 398]
+
+[[surface.state]]
+name = "idle"
+env = { DETTIVO_E2E_BAR_STATE = "panel-idle" }
+crop = [842, 34, 342, 398]
+
+[[surface.state]]
+name = "recording"
+env = { DETTIVO_E2E_BAR_STATE = "panel-recording" }
+crop = [842, 34, 342, 398]
+
+[[surface.state]]
+name = "transcribing"
+env = { DETTIVO_E2E_BAR_STATE = "panel-transcribing" }
+crop = [842, 34, 342, 398]
+
+[[surface.state]]
+name = "hint"
+env = { DETTIVO_E2E_BAR_STATE = "panel-hint" }
+crop = [842, 34, 342, 398]
+
+# The bar glyph: the five cells of the strip at the foot of osd.png, each
+# the 16 px mark with the state's name.
+[[surface]]
+name = "bar-glyph"
+binary = "dettivo-bar"
+artboard = "osd.png"
+threshold = 0.55
+crop_render = false
+
+[[surface.state]]
+name = "idle"
+env = { DETTIVO_E2E_BAR_STATE = "glyph-idle" }
+crop = [56, 1103, 76, 44]
+
+[[surface.state]]
+name = "listening"
+env = { DETTIVO_E2E_BAR_STATE = "glyph-listening" }
+crop = [159, 1103, 106, 44]
+
+[[surface.state]]
+name = "transcribing"
+env = { DETTIVO_E2E_BAR_STATE = "glyph-transcribing" }
+crop = [298, 1103, 130, 44]
+
+[[surface.state]]
+name = "meeting"
+env = { DETTIVO_E2E_BAR_STATE = "glyph-meeting" }
+crop = [460, 1103, 136, 44]
+
+[[surface.state]]
+name = "error"
+env = { DETTIVO_E2E_BAR_STATE = "glyph-error" }
+crop = [627, 1103, 78, 44]
+
+# The QA insert target: one text field, no artboard, so every baseline is
+# an approved render.
+[[surface]]
+name = "insert-target"
+binary = "dettivo-insert-target"
+threshold = 0.55
+
+[[surface.state]]
+name = "empty"
+
+# First run (ADR 0024): the three screens rendered by dettivo-app with the
+# baselines' sample facts (DETTIVO_E2E_SEED under --render), each cut into
+# three regions of its artboard (the header with the title, the body, the
+# footer) so a shifted table or a missing panel is caught region by region
+# on the default and the light themes. The Black Gold crops come from the
+# per-state rectangles; the other themes are approved renders.
+[[surface]]
+name = "first-run"
+binary = "dettivo-app"
+artboard = "first-run-1-keys.png"
+threshold = 0.55
+
+[[surface.state]]
+name = "keys-header"
+env = { DETTIVO_E2E_OPEN = "onboarding", DETTIVO_E2E_STEP = "keys", DETTIVO_E2E_SEED = "1" }
+crop = [0, 0, 1280, 195]
+
+[[surface.state]]
+name = "keys-body"
+env = { DETTIVO_E2E_OPEN = "onboarding", DETTIVO_E2E_STEP = "keys", DETTIVO_E2E_SEED = "1" }
+crop = [0, 195, 1280, 525]
+
+[[surface.state]]
+name = "keys-footer"
+env = { DETTIVO_E2E_OPEN = "onboarding", DETTIVO_E2E_STEP = "keys", DETTIVO_E2E_SEED = "1" }
+crop = [0, 720, 1280, 100]
+
+[[surface.state]]
+name = "models-header"
+env = { DETTIVO_E2E_OPEN = "onboarding", DETTIVO_E2E_STEP = "models", DETTIVO_E2E_SEED = "1" }
+crop = [0, 0, 1280, 195]
+artboard = "first-run-2-models.png"
+
+[[surface.state]]
+name = "models-body"
+env = { DETTIVO_E2E_OPEN = "onboarding", DETTIVO_E2E_STEP = "models", DETTIVO_E2E_SEED = "1" }
+crop = [0, 195, 1280, 525]
+artboard = "first-run-2-models.png"
+
+[[surface.state]]
+name = "models-footer"
+env = { DETTIVO_E2E_OPEN = "onboarding", DETTIVO_E2E_STEP = "models", DETTIVO_E2E_SEED = "1" }
+crop = [0, 720, 1280, 100]
+artboard = "first-run-2-models.png"
+
+[[surface.state]]
+name = "try-header"
+env = { DETTIVO_E2E_OPEN = "onboarding", DETTIVO_E2E_STEP = "try", DETTIVO_E2E_SEED = "1" }
+crop = [0, 0, 1280, 195]
+artboard = "first-run-3-try-it.png"
+
+[[surface.state]]
+name = "try-body"
+env = { DETTIVO_E2E_OPEN = "onboarding", DETTIVO_E2E_STEP = "try", DETTIVO_E2E_SEED = "1" }
+crop = [0, 195, 1280, 525]
+artboard = "first-run-3-try-it.png"
+
+[[surface.state]]
+name = "try-footer"
+env = { DETTIVO_E2E_OPEN = "onboarding", DETTIVO_E2E_STEP = "try", DETTIVO_E2E_SEED = "1" }
+crop = [0, 720, 1280, 100]
+artboard = "first-run-3-try-it.png"
+
+# Home (fn-17, ADR 0020): the four regions of home.png (the sidebar, the
+# header with the instrument strip, the Today list, the right rail),
+# rendered with the baseline's sample (DETTIVO_E2E_SEED under --render
+# fills the models the way `--sample` does) and cut to the same
+# rectangles, on every theme and scale like every other surface.
+[[surface]]
+name = "home"
+binary = "dettivo-app"
+artboard = "home.png"
+threshold = 0.55
+
+[[surface.state]]
+name = "sidebar"
+env = { DETTIVO_E2E_OPEN = "home", DETTIVO_E2E_SEED = "1" }
+crop = [0, 0, 200, 820]
+
+[[surface.state]]
+name = "header"
+env = { DETTIVO_E2E_OPEN = "home", DETTIVO_E2E_SEED = "1" }
+crop = [200, 0, 1080, 200]
+
+[[surface.state]]
+name = "today"
+env = { DETTIVO_E2E_OPEN = "home", DETTIVO_E2E_SEED = "1" }
+crop = [200, 200, 720, 320]
+
+[[surface.state]]
+name = "rail"
+env = { DETTIVO_E2E_OPEN = "home", DETTIVO_E2E_SEED = "1" }
+crop = [920, 200, 360, 420]
+
+# History (fn-22, ADR 0025): the list column, the detail and its facts,
+# rendered with the baseline's sample rows (DETTIVO_E2E_SEED under a
+# render fills the models the way `--sample` does) and cut to the same
+# regions of history.png.
+[[surface]]
+name = "history"
+binary = "dettivo-app"
+artboard = "history.png"
+threshold = 0.55
+
+[[surface.state]]
+name = "list"
+env = { DETTIVO_E2E_OPEN = "history", DETTIVO_E2E_SEED = "1" }
+crop = [200, 0, 400, 820]
+
+[[surface.state]]
+name = "detail"
+env = { DETTIVO_E2E_OPEN = "history.detail", DETTIVO_E2E_SEED = "1" }
+crop = [600, 0, 680, 390]
+
+[[surface.state]]
+name = "facts"
+env = { DETTIVO_E2E_OPEN = "history.detail", DETTIVO_E2E_SEED = "1" }
+crop = [600, 380, 680, 440]
+
+# Settings (fn-26, ADR 0033): Models, Hotkeys and Agents rendered with the
+# baselines' sample (DETTIVO_E2E_SEED under --render fills the editor,
+# the models table, the snippet panel, the hosts and the doctor report)
+# and cut to the regions of their artboards right of the section column.
+[[surface]]
+name = "settings"
+binary = "dettivo-app"
+artboard = "settings-models.png"
+threshold = 0.55
+
+[[surface.state]]
+name = "models-selections"
+env = { DETTIVO_E2E_OPEN = "settings", DETTIVO_E2E_ROUTE = "models", DETTIVO_E2E_SEED = "1" }
+crop = [400, 60, 880, 100]
+
+[[surface.state]]
+name = "models-table"
+env = { DETTIVO_E2E_OPEN = "settings", DETTIVO_E2E_ROUTE = "models", DETTIVO_E2E_SEED = "1" }
+crop = [400, 150, 880, 400]
+
+[[surface.state]]
+name = "hotkeys-bindings"
+env = { DETTIVO_E2E_OPEN = "settings", DETTIVO_E2E_ROUTE = "hotkeys", DETTIVO_E2E_SEED = "1" }
+crop = [400, 100, 880, 210]
+artboard = "settings-hotkeys.png"
+
+[[surface.state]]
+name = "hotkeys-snippet"
+env = { DETTIVO_E2E_OPEN = "settings", DETTIVO_E2E_ROUTE = "hotkeys", DETTIVO_E2E_SEED = "1" }
+crop = [400, 360, 880, 220]
+artboard = "settings-hotkeys.png"
+
+[[surface.state]]
+name = "agents-panels"
+env = { DETTIVO_E2E_OPEN = "settings", DETTIVO_E2E_ROUTE = "agents", DETTIVO_E2E_SEED = "1" }
+crop = [400, 80, 880, 200]
+artboard = "agents.png"
+
+[[surface.state]]
+name = "agents-hosts"
+env = { DETTIVO_E2E_OPEN = "settings", DETTIVO_E2E_ROUTE = "agents", DETTIVO_E2E_SEED = "1" }
+crop = [400, 290, 880, 230]
+artboard = "agents.png"
+
+# The five sections that follow the pattern (General, Polish, Insertion,
+# Meetings, Diagnostics; qt/host/app/router.cpp), each its own entry so a
+# section's rows are held to their own picture: no artboard of their own,
+# so the whole window is an approved render.
+[[surface]]
+name = "settings-pattern"
+binary = "dettivo-app"
+threshold = 0.55
+
+[[surface.state]]
+name = "general-rows"
+env = { DETTIVO_E2E_OPEN = "settings", DETTIVO_E2E_ROUTE = "general", DETTIVO_E2E_SEED = "1" }
+
+[[surface.state]]
+name = "polish-rows"
+env = { DETTIVO_E2E_OPEN = "settings", DETTIVO_E2E_ROUTE = "polish", DETTIVO_E2E_SEED = "1" }
+
+[[surface.state]]
+name = "insertion-rows"
+env = { DETTIVO_E2E_OPEN = "settings", DETTIVO_E2E_ROUTE = "insertion", DETTIVO_E2E_SEED = "1" }
+
+[[surface.state]]
+name = "meetings-rows"
+env = { DETTIVO_E2E_OPEN = "settings", DETTIVO_E2E_ROUTE = "meetings", DETTIVO_E2E_SEED = "1" }
+
+[[surface.state]]
+name = "diagnostics-rows"
+env = { DETTIVO_E2E_OPEN = "settings", DETTIVO_E2E_ROUTE = "diagnostics", DETTIVO_E2E_SEED = "1" }
+
+# Meetings (fn-34, ADR 0038): the list column and the new-meeting rail
+# of meetings-list.png, rendered with the baseline's sample
+# (DETTIVO_E2E_MEETING_STATE picks the screen and DETTIVO_E2E_SEED fills
+# it) and cut to the same regions of the artboard.
+[[surface]]
+name = "meetings"
+binary = "dettivo-app"
+artboard = "meetings-list.png"
+threshold = 0.55
+
+[[surface.state]]
+name = "list"
+env = { DETTIVO_E2E_MEETING_STATE = "list", DETTIVO_E2E_SEED = "1" }
+crop = [200, 0, 760, 820]
+
+[[surface.state]]
+name = "rail"
+env = { DETTIVO_E2E_MEETING_STATE = "list", DETTIVO_E2E_SEED = "1" }
+crop = [960, 0, 320, 820]
+
+# The list without rows: the designed empty state beside the rail, no
+# artboard of its own (states-and-hint-sheet.png fixes the state's shape),
+# so the whole window is an approved render.
+[[surface]]
+name = "meetings-empty"
+binary = "dettivo-app"
+threshold = 0.55
+
+[[surface.state]]
+name = "list-empty"
+env = { DETTIVO_E2E_MEETING_STATE = "list-empty", DETTIVO_E2E_SEED = "1" }
+
+# The live meeting (meeting-live.png): the header with the meters and the
+# elapsed display, the transcript with its provisional tail, and the rail
+# with the notes, the analysis card and the disclosure footer.
+[[surface]]
+name = "meeting-live"
+binary = "dettivo-app"
+artboard = "meeting-live.png"
+threshold = 0.55
+
+[[surface.state]]
+name = "header"
+env = { DETTIVO_E2E_MEETING_STATE = "live", DETTIVO_E2E_SEED = "1" }
+crop = [200, 0, 720, 95]
+
+[[surface.state]]
+name = "transcript"
+env = { DETTIVO_E2E_MEETING_STATE = "live", DETTIVO_E2E_SEED = "1" }
+crop = [200, 95, 720, 725]
+
+[[surface.state]]
+name = "rail"
+env = { DETTIVO_E2E_MEETING_STATE = "live", DETTIVO_E2E_SEED = "1" }
+crop = [920, 0, 360, 820]
+
+# The meeting detail (meeting-detail.png): the title, the facts, the
+# talk-time bar and the tabs; the transcript with the speakers in their
+# colours; the analysis rail with its facts.
+[[surface]]
+name = "meeting-detail"
+binary = "dettivo-app"
+artboard = "meeting-detail.png"
+threshold = 0.55
+
+[[surface.state]]
+name = "header"
+env = { DETTIVO_E2E_MEETING_STATE = "detail-transcript", DETTIVO_E2E_SEED = "1" }
+crop = [200, 0, 720, 160]
+
+[[surface.state]]
+name = "transcript"
+env = { DETTIVO_E2E_MEETING_STATE = "detail-transcript", DETTIVO_E2E_SEED = "1" }
+crop = [200, 160, 720, 600]
+
+[[surface.state]]
+name = "rail"
+env = { DETTIVO_E2E_MEETING_STATE = "detail-transcript", DETTIVO_E2E_SEED = "1" }
+crop = [920, 0, 360, 820]
+
+# The Notes and Analysis tabs and the rename popover, designed inline
+# against the pattern: no artboard, so every baseline is an approved
+# render of the whole window.
+[[surface]]
+name = "meeting-detail-tabs"
+binary = "dettivo-app"
+threshold = 0.55
+
+[[surface.state]]
+name = "notes"
+env = { DETTIVO_E2E_MEETING_STATE = "detail-notes", DETTIVO_E2E_SEED = "1" }
+
+[[surface.state]]
+name = "analysis"
+env = { DETTIVO_E2E_MEETING_STATE = "detail-analysis", DETTIVO_E2E_SEED = "1" }
+
+[[surface.state]]
+name = "rename"
+env = { DETTIVO_E2E_MEETING_STATE = "rename", DETTIVO_E2E_SEED = "1" }
+
+# The import and disclosure dialogs (import-and-disclosure.png): the
+# artboard shows both side by side over the list, the app centres each
+# over the page, so every state names the artboard's rectangle in `crop`
+# and the dialog's own rectangle in the render in `render_crop`.
+[[surface]]
+name = "meeting-dialogs"
+binary = "dettivo-app"
+artboard = "import-and-disclosure.png"
+threshold = 0.55
+
+[[surface.state]]
+name = "import"
+env = { DETTIVO_E2E_MEETING_STATE = "import", DETTIVO_E2E_SEED = "1" }
+crop = [94, 232, 522, 354]
+render_crop = [488, 222, 504, 376]
+
+[[surface.state]]
+name = "disclosure"
+env = { DETTIVO_E2E_MEETING_STATE = "disclosure", DETTIVO_E2E_SEED = "1" }
+crop = [664, 262, 522, 296]
+render_crop = [488, 273, 504, 273]
+
+# The designed states and the hint sheet (fn-38, ADR 0042): dettivo-app
+# renders one state at the artboard's first box under DETTIVO_E2E_STATE
+# with sample facts and no daemon, so every state's box of
+# states-and-hint-sheet.png is cut by its rectangle and the render is cut
+# at the first box (`render_crop`); the hint sheet renders at the same
+# corner against its own box.
+[[surface]]
+name = "states"
+binary = "dettivo-app"
+artboard = "states-and-hint-sheet.png"
+threshold = 0.55
+
+[[surface.state]]
+name = "history-empty"
+env = { DETTIVO_E2E_STATE = "history-empty", DETTIVO_E2E_SEED = "1" }
+crop = [49, 161, 381, 222]
+
+[[surface.state]]
+name = "meetings-empty"
+env = { DETTIVO_E2E_STATE = "meetings-empty", DETTIVO_E2E_SEED = "1" }
+crop = [450, 161, 380, 222]
+render_crop = [49, 161, 381, 222]
+
+[[surface.state]]
+name = "search-no-results"
+env = { DETTIVO_E2E_STATE = "search-no-results", DETTIVO_E2E_SEED = "1" }
+crop = [850, 161, 381, 222]
+render_crop = [49, 161, 381, 222]
+
+[[surface.state]]
+name = "engine-loading"
+env = { DETTIVO_E2E_STATE = "engine-loading", DETTIVO_E2E_SEED = "1" }
+crop = [49, 403, 381, 222]
+render_crop = [49, 161, 381, 222]
+
+[[surface.state]]
+name = "engine-crashed"
+env = { DETTIVO_E2E_STATE = "engine-crashed", DETTIVO_E2E_SEED = "1" }
+crop = [450, 403, 380, 222]
+render_crop = [49, 161, 381, 222]
+
+[[surface.state]]
+name = "download-failed"
+env = { DETTIVO_E2E_STATE = "download-failed", DETTIVO_E2E_SEED = "1" }
+crop = [850, 403, 381, 222]
+render_crop = [49, 161, 381, 222]
+
+[[surface.state]]
+name = "microphone-missing"
+env = { DETTIVO_E2E_STATE = "microphone-missing", DETTIVO_E2E_SEED = "1" }
+crop = [49, 645, 381, 222]
+render_crop = [49, 161, 381, 222]
+
+[[surface.state]]
+name = "insertion-fell-back"
+env = { DETTIVO_E2E_STATE = "insertion-fell-back", DETTIVO_E2E_SEED = "1" }
+crop = [450, 645, 380, 222]
+render_crop = [49, 161, 381, 222]
+
+[[surface.state]]
+name = "meeting-recovered"
+env = { DETTIVO_E2E_STATE = "meeting-recovered", DETTIVO_E2E_SEED = "1" }
+crop = [850, 645, 381, 222]
+render_crop = [49, 161, 381, 222]
+
+[[surface.state]]
+name = "hint-sheet"
+env = { DETTIVO_E2E_STATE = "hint-sheet", DETTIVO_E2E_SEED = "1" }
+crop = [49, 893, 581, 258]
+render_crop = [49, 161, 581, 258]
+
+# The app icon (icon-and-osd-elsewhere.png): `dettivo-sheet --render --icon` draws
+# the six-bar mark at 128, 64, 32 and 16 px and the light variant at the
+# artboard's positions, on the artboard's palette and the built-in light
+# one; the packaged PNGs under packaging/icons/ are held to the same crops
+# by the install test.
+[[surface]]
+name = "icon"
+binary = "dettivo-sheet"
+artboard = "icon-and-osd-elsewhere.png"
+threshold = 0.55
+themes = ["black-gold", "builtin-light"]
+
+[[surface.state]]
+name = "icon-128"
+args = ["--icon"]
+crop = [49, 170, 128, 128]
+
+[[surface.state]]
+name = "icon-64"
+args = ["--icon"]
+crop = [209, 234, 64, 64]
+
+[[surface.state]]
+name = "icon-32"
+args = ["--icon"]
+crop = [301, 262, 40, 40]
+
+[[surface.state]]
+name = "icon-16"
+args = ["--icon"]
+crop = [389, 282, 18, 18]
+
+[[surface.state]]
+name = "icon-light"
+args = ["--icon"]
+crop = [459, 234, 64, 64]

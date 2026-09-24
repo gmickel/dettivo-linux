@@ -1,0 +1,11 @@
+{
+  "id": 1,
+  "kind": "request",
+  "name": "load",
+  "payload": {
+    "backend_preference": "cpu",
+    "model": "/home/user/.local/share/dettivo/models/diarize/diarization",
+    "threads": 4
+  },
+  "v": 1
+}

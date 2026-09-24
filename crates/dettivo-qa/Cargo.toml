@@ -1,0 +1,41 @@
+[package]
+name = "dettivo-qa"
+description = "QA runner that drives the product end to end"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+dettivo-proto.workspace = true
+# The MCP harness: the runner drives a spawned server in both framings.
+dettivo-mcp = { path = "../dettivo-mcp" }
+# The REST harness: the runner replays the route fixtures against the
+# shim the seeded daemon hosts (ADR 0028).
+dettivo-rest = { path = "../dettivo-rest" }
+# The chunker and the merger the import-merge pipeline drives through the
+# engine CLI modes (ADR 0022).
+dettivo-transcribe.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+clap.workspace = true
+atspi.workspace = true
+zbus.workspace = true
+x11rb.workspace = true
+hound.workspace = true
+sha2.workspace = true
+evdev.workspace = true
+tempfile.workspace = true
+toml.workspace = true
+# The upload and download transfers the meetings pack drives (the
+# throughput import, the token scenario's export).
+base64.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/config/get?key=daemon.log_level"
+  },
+  "expect": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "entries": [
+        {
+          "key": "daemon.log_level",
+          "source": "default",
+          "value": "info"
+        }
+      ]
+    }
+  }
+}

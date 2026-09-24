@@ -1,0 +1,46 @@
+{
+  "speakers": 2,
+  "duration_ms": 18855,
+  "voices": {
+    "A": "en_US-amy-low",
+    "B": "en_US-ryan-low"
+  },
+  "turns": [
+    {
+      "speaker": "A",
+      "start_ms": 700,
+      "end_ms": 3991,
+      "text": "Good morning everyone, thanks for joining the weekly sync."
+    },
+    {
+      "speaker": "B",
+      "start_ms": 4291,
+      "end_ms": 7037,
+      "text": "Morning. The API gateway rollout moves to Thursday."
+    },
+    {
+      "speaker": "A",
+      "start_ms": 7337,
+      "end_ms": 11382,
+      "text": "That works for me. Did the retry loop fix land in the uploader?"
+    },
+    {
+      "speaker": "B",
+      "start_ms": 11682,
+      "end_ms": 14350,
+      "text": "It did, and the latency dropped to forty milliseconds."
+    },
+    {
+      "speaker": "A",
+      "start_ms": 13750,
+      "end_ms": 16047,
+      "text": "Great, then we can close the ticket today."
+    },
+    {
+      "speaker": "B",
+      "start_ms": 16347,
+      "end_ms": 18455,
+      "text": "Agreed. I will update the notes after the call."
+    }
+  ]
+}

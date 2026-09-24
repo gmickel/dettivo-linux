@@ -1,0 +1,48 @@
+{
+  "description": "Insert text or source transcript into focused app.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "expected_target_bundle_id": {
+        "type": "string"
+      },
+      "expected_target_pid": {
+        "type": "integer"
+      },
+      "mode": {
+        "enum": [
+          "raw",
+          "polish",
+          "clipboard_only"
+        ],
+        "type": "string"
+      },
+      "source_ref": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "dictation",
+              "meeting"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "type": "object"
+      },
+      "text": {
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "name": "insert_transcript",
+  "title": "Insert Transcript"
+}

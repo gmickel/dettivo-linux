@@ -1,0 +1,106 @@
+{
+  "analysis": {
+    "action_items": [
+      {
+        "due": "Wednesday",
+        "owner": "Gordon",
+        "text": "Write the rollout runbook"
+      },
+      {
+        "due": null,
+        "owner": "Mara",
+        "text": "Ping ops about the café lease"
+      }
+    ],
+    "decisions": [
+      "Hire two engineers in Q2",
+      "Move the API gateway rollout to Thursday"
+    ],
+    "summary": "The Q2 roadmap review agreed the budget and moved the API gateway rollout to Thursday."
+  },
+  "diarization": {
+    "coverage": 1.0,
+    "engine": "dettivo-engine-diarize",
+    "model": "diarize/diarization",
+    "ran_at": "2026-02-02T10:43:00Z",
+    "status": "ready"
+  },
+  "duration_ms": 2520000,
+  "ended_at": "2026-02-02T10:42:00Z",
+  "id": "5eed0000-0000-4000-8000-00000000a001",
+  "language": "en",
+  "notes": "# Roadmap review\n\n- Budget for Q2 agreed\n- Mara owns the runbook\n- Follow up on the café lease",
+  "segments": [
+    {
+      "end_ms": 3400,
+      "index": 0,
+      "source_type": "microphone",
+      "speaker": "Gordon",
+      "speaker_confidence": 1.0,
+      "speaker_id": "you",
+      "start_ms": 0,
+      "text": "Okay, so the roadmap for Q2."
+    },
+    {
+      "end_ms": 8100,
+      "index": 1,
+      "source_type": "system",
+      "speaker": "Mara",
+      "speaker_confidence": 1.0,
+      "speaker_id": "speaker_00",
+      "start_ms": 3900,
+      "text": "The budget is agreed, we can hire two engineers."
+    },
+    {
+      "end_ms": 12000,
+      "index": 2,
+      "source_type": "system",
+      "speaker": "Mara",
+      "speaker_confidence": 1.0,
+      "speaker_id": "speaker_00",
+      "start_ms": 8600,
+      "text": "And the API gateway rollout moves to Thursday."
+    },
+    {
+      "end_ms": 17900,
+      "gap_before_ms": 2300,
+      "index": 3,
+      "source_type": "microphone",
+      "speaker": "Gordon",
+      "speaker_confidence": 1.0,
+      "speaker_id": "you",
+      "start_ms": 14300,
+      "text": "Right, I will write the runbook by Wednesday."
+    },
+    {
+      "end_ms": 21000,
+      "index": 4,
+      "source_type": "microphone",
+      "speaker": "Gordon",
+      "speaker_confidence": 1.0,
+      "speaker_id": "you",
+      "start_ms": 18200,
+      "text": "And Mara pings ops about the café lease."
+    }
+  ],
+  "speakers": [
+    {
+      "color_index": 0,
+      "name": "Gordon",
+      "speaker_id": "you",
+      "talk_ms": 9800
+    },
+    {
+      "color_index": 1,
+      "name": "Mara",
+      "speaker_id": "speaker_00",
+      "talk_ms": 7600
+    }
+  ],
+  "started_at": "2026-02-02T10:00:00Z",
+  "status": "completed",
+  "stt_model_id": "large-v3-turbo",
+  "stt_provider_id": "whisper",
+  "title": "Roadmap review",
+  "transcript": "Okay, so the roadmap for Q2. The budget is agreed, we can hire two engineers. And the API gateway rollout moves to Thursday. Right, I will write the runbook by Wednesday. And Mara pings ops about the café lease."
+}

@@ -1,0 +1,11 @@
+--- a/sherpa-onnx/csrc/session.cc
++++ b/sherpa-onnx/csrc/session.cc
+@@ -340,7 +340,7 @@
+         } else {
+           options.device_id = 0;
+           // Default OrtCudnnConvAlgoSearchExhaustive is extremely slow
+-          options.cudnn_conv_algo_search = OrtCudnnConvAlgoSearchHeuristic;
++          options.cudnn_conv_algo_search = OrtCudnnConvAlgoSearchDefault;
+           // set more options on need
+         }
+         sess_opts.AppendExecutionProvider_CUDA(options);

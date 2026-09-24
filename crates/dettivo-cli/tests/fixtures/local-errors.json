@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": -32603,
+    "message": "params must be a JSON object",
+    "data": {"origin": "cli", "exit_code": 4}
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 1,
+  "kind": "request",
+  "name": "load",
+  "payload": {
+    "backend_preference": "auto",
+    "context_length": 4096,
+    "lora": "/models/polish-experiments/qwen3-1.7b-private-best/adapter.gguf",
+    "model": "/models/llm/qwen3-1.7b/Qwen3-1.7B-Q4_K_M.gguf"
+  },
+  "v": 1
+}

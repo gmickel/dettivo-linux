@@ -1,0 +1,35 @@
+{
+  "capabilities": {
+    "history.methods": [
+      "transcripts.delete",
+      "transcripts.rerun",
+      "transcripts.stats",
+      "transcripts.cancel"
+    ]
+  },
+  "error": {
+    "error": {
+      "code": -32012,
+      "data": {
+        "app_code": "NOT_FOUND",
+        "details": {},
+        "retryable": false
+      },
+      "message": "no job is working on dictation 00000000-0000-4000-8000-000000000000"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "transcripts.cancel",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transcripts.cancel",
+    "params": {
+      "ref": {
+        "id": "00000000-0000-4000-8000-000000000000",
+        "kind": "dictation"
+      }
+    }
+  }
+}

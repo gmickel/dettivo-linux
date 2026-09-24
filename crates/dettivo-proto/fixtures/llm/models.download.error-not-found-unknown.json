@@ -1,0 +1,25 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32012,
+      "data": {
+        "app_code": "NOT_FOUND",
+        "details": {},
+        "retryable": false
+      },
+      "message": "unknown model llm/nope; the catalogue lists qwen3-4b-instruct-2507, qwen3-1.7b, qwen3-4b, qwen3-8b"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "llm.models.download",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "llm.models.download",
+    "params": {
+      "model": "nope"
+    }
+  }
+}

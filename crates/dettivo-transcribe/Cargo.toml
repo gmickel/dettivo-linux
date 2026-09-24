@@ -1,0 +1,23 @@
+[package]
+name = "dettivo-transcribe"
+description = "The chunked long-audio pipeline: chunker, overlap merger, filters and the cancellable job"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+dettivo-proto.workspace = true
+dettivo-engine-proto.workspace = true
+dettivo-speech.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+hound.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

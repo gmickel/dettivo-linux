@@ -1,0 +1,26 @@
+[package]
+name = "dettivo-meeting"
+description = "The meeting session: two-stream capture, the journal, the live checkpoint, recovery, the live transcript and finalisation"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+dettivo-proto.workspace = true
+dettivo-audio.workspace = true
+dettivo-storage.workspace = true
+dettivo-transcribe.workspace = true
+dettivo-speech.workspace = true
+dettivo-engine-proto.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+hound.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

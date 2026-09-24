@@ -1,0 +1,944 @@
+{
+  "capabilities": {
+    "config.methods": [
+      "config.get",
+      "config.set",
+      "config.unset",
+      "config.validate",
+      "config.path",
+      "config.print_default",
+      "config.keys"
+    ]
+  },
+  "method": "config.keys",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "config.keys",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "keys": [
+        {
+          "default": "",
+          "doc": "PipeWire node name to capture from (see `dettivo doctor` or audio.devices). Empty follows the default source, including when the default changes.",
+          "key": "audio.input_device",
+          "kind": "text",
+          "section": "audio"
+        },
+        {
+          "default": 50,
+          "doc": "How often a level sample (RMS and peak) is published, in milliseconds.",
+          "key": "audio.level_interval_ms",
+          "kind": "integer",
+          "section": "audio"
+        },
+        {
+          "default": "default_monitor",
+          "doc": "A meeting's system track: \"default_monitor\" captures the default sink's monitor and follows the default when it changes; a sink's node name pins that sink's monitor.",
+          "key": "audio.system_source",
+          "kind": "text",
+          "section": "audio"
+        },
+        {
+          "default": "info",
+          "doc": "Lowest level written to the journal: error, warn, info, debug, trace. No level ever logs transcript text, audio or prompts.",
+          "key": "daemon.log_level",
+          "kind": "text",
+          "section": "daemon"
+        },
+        {
+          "default": 5000,
+          "doc": "How long a graceful shutdown may take before the process exits anyway.",
+          "key": "daemon.shutdown_timeout_ms",
+          "kind": "integer",
+          "section": "daemon"
+        },
+        {
+          "default": "auto",
+          "doc": "Language code (en, de, ...) or auto.",
+          "key": "dictation.language",
+          "kind": "text",
+          "section": "dictation"
+        },
+        {
+          "default": 300,
+          "doc": "The longest take in seconds before the session stops itself.",
+          "key": "dictation.max_duration_seconds",
+          "kind": "integer",
+          "section": "dictation"
+        },
+        {
+          "default": "raw",
+          "doc": "raw (the engine's text with the raw pipeline), deterministic_polish (the Polish pass, no model; \"polish\" is the contract's alias) or enhanced (Polish, then a language model rewrite through [llm]; falls back to Polish with a notice when no provider answers in time).",
+          "key": "dictation.mode",
+          "kind": "text",
+          "section": "dictation"
+        },
+        {
+          "default": true,
+          "doc": "File names, paths, URLs, email addresses, versions and dotted identifiers (index.ts, src/app, example.com, v1.2.3, foo.bar) pass through untouched: no sentence end on a dot inside one, no replacement inside one.",
+          "key": "dictation.protect_tokens",
+          "kind": "boolean",
+          "section": "dictation"
+        },
+        {
+          "default": {},
+          "doc": "Whole-word replacements applied after recognition, case-insensitive: replacements = { teh = \"the\", dettivo = \"Dettivo\" }",
+          "key": "dictation.replacements",
+          "kind": "table",
+          "section": "dictation"
+        },
+        {
+          "default": 0.01,
+          "doc": "A take whose peak level stays under this is treated as silence.",
+          "key": "dictation.silence_peak_threshold",
+          "kind": "float",
+          "section": "dictation"
+        },
+        {
+          "default": true,
+          "doc": "Spoken punctuation (\"comma\", \"period\", \"new line\") becomes marks.",
+          "key": "dictation.spoken_punctuation",
+          "kind": "boolean",
+          "section": "dictation"
+        },
+        {
+          "default": [],
+          "doc": "Words the engine is primed with: names, products, jargon.",
+          "key": "dictation.vocabulary",
+          "kind": "list",
+          "section": "dictation"
+        },
+        {
+          "default": "auto",
+          "doc": "Compute backend: auto (CUDA when its provider and runtime load, else CPU with the reason), cpu, cuda (CUDA or a failed load). DETTIVO_FORCE_CPU=1 overrides this choice. The CUDA drop-in needs CUDA 13 and cuDNN 9.",
+          "key": "engines.diarize.backend",
+          "kind": "text",
+          "section": "engines.diarize"
+        },
+        {
+          "default": 0,
+          "doc": "Threads the diarization engine runs its models on; 0 is the core count capped at four.",
+          "key": "engines.diarize.threads",
+          "kind": "integer",
+          "section": "engines.diarize"
+        },
+        {
+          "default": "",
+          "doc": "Directory searched for engine binaries (dettivo-engine-whisper, ...) before PATH. Empty means the daemon's own directory and PATH.",
+          "key": "engines.directory",
+          "kind": "text",
+          "section": "engines"
+        },
+        {
+          "default": "auto",
+          "doc": "The same for the language model engine; auto falls back to the CPU with the reason when the model does not fit the device's free memory.",
+          "key": "engines.llm.backend",
+          "kind": "text",
+          "section": "engines.llm"
+        },
+        {
+          "default": 4096,
+          "doc": "The context length in tokens the model is loaded with.",
+          "key": "engines.llm.context_length",
+          "kind": "integer",
+          "section": "engines.llm"
+        },
+        {
+          "default": 1024,
+          "doc": "The most tokens one Enhanced rewrite may generate.",
+          "key": "engines.llm.max_tokens",
+          "kind": "integer",
+          "section": "engines.llm"
+        },
+        {
+          "default": 600,
+          "doc": "The same for the language model engine (dettivo-engine-llm).",
+          "key": "engines.llm_idle_seconds",
+          "kind": "integer",
+          "section": "engines"
+        },
+        {
+          "default": "auto",
+          "doc": "The same for the Parakeet engine.",
+          "key": "engines.parakeet.backend",
+          "kind": "text",
+          "section": "engines.parakeet"
+        },
+        {
+          "default": 300,
+          "doc": "Seconds a speech engine stays warm after its last request before it is unloaded and its process ends, returning GPU memory.",
+          "key": "engines.stt_idle_seconds",
+          "kind": "integer",
+          "section": "engines"
+        },
+        {
+          "default": "auto",
+          "doc": "Compute backend for the Whisper engine: auto (Vulkan when a device is installed and the model loads there, else CPU), vulkan (Vulkan or a failed load), cpu. DETTIVO_FORCE_CPU=1 overrides both engines.",
+          "key": "engines.whisper.backend",
+          "kind": "text",
+          "section": "engines.whisper"
+        },
+        {
+          "default": "keep",
+          "doc": "What lives beside the database and what a delete removes: \"keep\" (audio and metadata.json), \"audio_only\" (no sidecar), or \"none\" (rows only).",
+          "key": "history.artifacts",
+          "kind": "text",
+          "section": "history"
+        },
+        {
+          "default": 30,
+          "doc": "Days after which retained audio is removed by the hourly sweep; 0 keeps it.",
+          "key": "history.audio_retention_days",
+          "kind": "integer",
+          "section": "history"
+        },
+        {
+          "default": "",
+          "doc": "The SQLite database. Empty means <data_dir>/dettivo.db.",
+          "key": "history.db_path",
+          "kind": "text",
+          "section": "history"
+        },
+        {
+          "default": true,
+          "doc": "Keep the take of every finished dictation beside its item, under <data_dir>/dictations/<id>/, so it can be re-run with another model.",
+          "key": "history.keep_audio",
+          "kind": "boolean",
+          "section": "history"
+        },
+        {
+          "default": 14400,
+          "doc": "The longest audio file an import accepts, in seconds; a longer one is refused after the probe, before anything is decoded.",
+          "key": "history.max_import_seconds",
+          "kind": "integer",
+          "section": "history"
+        },
+        {
+          "default": 0,
+          "doc": "Items kept; the oldest beyond this are removed by the sweep. 0 keeps all.",
+          "key": "history.max_items",
+          "kind": "integer",
+          "section": "history"
+        },
+        {
+          "default": "auto",
+          "doc": "The daemon-side hotkey backend: auto, portal, evdev or none. Compositor bindings written by `dettivo setup` call the CLI and need no backend; auto uses the portal's GlobalShortcuts (GNOME, KDE) when it answers.",
+          "key": "hotkeys.backend",
+          "kind": "text",
+          "section": "hotkeys"
+        },
+        {
+          "default": "SUPER CTRL, Escape",
+          "doc": "Drop the session.",
+          "key": "hotkeys.cancel",
+          "kind": "text",
+          "section": "hotkeys"
+        },
+        {
+          "default": [],
+          "doc": "Input devices for the evdev backend (/dev/input/event*); empty means every keyboard. Reading them needs the `input` group.",
+          "key": "hotkeys.evdev_devices",
+          "kind": "list",
+          "section": "hotkeys"
+        },
+        {
+          "default": "F9",
+          "doc": "Chords in Hyprland notation: modifiers (SUPER, CTRL, ALT, SHIFT), a comma, the key. Omarchy's Voxtype keys are the defaults. Hold to talk: press starts, release stops.",
+          "key": "hotkeys.hold",
+          "kind": "text",
+          "section": "hotkeys"
+        },
+        {
+          "default": false,
+          "doc": "Pause playing MPRIS players while capturing and resume them after.",
+          "key": "hotkeys.pause_media",
+          "kind": "boolean",
+          "section": "hotkeys"
+        },
+        {
+          "default": "SUPER CTRL SHIFT, X",
+          "doc": "Insert the last transcript again.",
+          "key": "hotkeys.reinsert",
+          "kind": "text",
+          "section": "hotkeys"
+        },
+        {
+          "default": false,
+          "doc": "Play a short sound on start, stop and error (never during a meeting).",
+          "key": "hotkeys.sounds",
+          "kind": "boolean",
+          "section": "hotkeys"
+        },
+        {
+          "default": "SUPER CTRL, X",
+          "doc": "One press starts, the next stops.",
+          "key": "hotkeys.toggle",
+          "kind": "text",
+          "section": "hotkeys"
+        },
+        {
+          "default": "auto",
+          "doc": "\"auto\" tries, in order, the Wayland virtual keyboard, libei through the RemoteDesktop portal, ydotool, xdotool, clipboard plus a paste keystroke, then clipboard only. A backend name pins it; an unavailable pin fails with its reason instead of falling back.",
+          "key": "insert.backend",
+          "kind": "text",
+          "section": "insert"
+        },
+        {
+          "default": 300,
+          "doc": "How long the restore waits for the target to take the paste, in milliseconds. A clipboard the user changed meanwhile is left alone.",
+          "key": "insert.clipboard_restore_delay_ms",
+          "kind": "integer",
+          "section": "insert"
+        },
+        {
+          "default": 2,
+          "doc": "Pause between typed keys, in milliseconds.",
+          "key": "insert.inter_key_delay_ms",
+          "kind": "integer",
+          "section": "insert"
+        },
+        {
+          "default": {},
+          "doc": "Paste keystroke per app id for the clipboard path (`ctrl+v`, `ctrl+shift+v`, `shift+insert`). Terminals default to ctrl+shift+v, everything else to ctrl+v.",
+          "key": "insert.paste_keys",
+          "kind": "table",
+          "section": "insert"
+        },
+        {
+          "default": true,
+          "doc": "Put the previous clipboard back after a clipboard insertion.",
+          "key": "insert.restore_clipboard",
+          "kind": "boolean",
+          "section": "insert"
+        },
+        {
+          "default": [
+            "dettivo",
+            "dettivo-app",
+            "dettivo-osd",
+            "dettivo-sheet"
+          ],
+          "doc": "App ids of Dettivo's own windows. Insertion into one of them fails with target_is_self and never pastes.",
+          "key": "insert.self_app_ids",
+          "kind": "list",
+          "section": "insert"
+        },
+        {
+          "default": [
+            "foot",
+            "footclient",
+            "com.mitchellh.ghostty",
+            "ghostty",
+            "Alacritty",
+            "alacritty",
+            "kitty",
+            "org.wezfurlong.wezterm",
+            "wezterm",
+            "xterm",
+            "org.gnome.Console",
+            "org.gnome.Terminal",
+            "org.kde.konsole"
+          ],
+          "doc": "App ids that are terminals and take ctrl+shift+v.",
+          "key": "insert.terminal_app_ids",
+          "kind": "list",
+          "section": "insert"
+        },
+        {
+          "default": 5000,
+          "doc": "How long after an insertion `dettivo insert undo` may take it back.",
+          "key": "insert.undo_window_ms",
+          "kind": "integer",
+          "section": "insert"
+        },
+        {
+          "default": "peer",
+          "doc": "\"peer\": any process of the same user may connect (SO_PEERCRED). \"peer_token\": the same, plus the shared token from DETTIVO_IPC_TOKEN, the Secret Service item (service \"dettivo\", key \"ipc-token\") or token_file.",
+          "key": "ipc.auth_mode",
+          "kind": "text",
+          "section": "ipc"
+        },
+        {
+          "default": 1048576,
+          "doc": "Longest request line the daemon accepts, in bytes. A longer line is answered with INVALID_PARAMS and the connection stays open.",
+          "key": "ipc.max_line_bytes",
+          "kind": "integer",
+          "section": "ipc"
+        },
+        {
+          "default": "",
+          "doc": "Socket path. Empty means $XDG_RUNTIME_DIR/dettivo/dettivo.sock; the systemd socket unit and DETTIVO_IPC_SOCKET override it.",
+          "key": "ipc.socket",
+          "kind": "text",
+          "section": "ipc"
+        },
+        {
+          "default": "",
+          "doc": "Token file for peer_token mode, must be mode 0600. Empty means $XDG_CONFIG_HOME/dettivo/ipc.token.",
+          "key": "ipc.token_file",
+          "kind": "text",
+          "section": "ipc"
+        },
+        {
+          "default": "",
+          "doc": "The model meeting analysis loads; empty means `model`.",
+          "key": "llm.analysis_model",
+          "kind": "text",
+          "section": "llm"
+        },
+        {
+          "default": "",
+          "doc": "A file (mode 0600) holding the endpoint's API key; the Secret Service item (service \"dettivo\", key \"llm-api-key\") is read first.",
+          "key": "llm.api_key_file",
+          "kind": "text",
+          "section": "llm"
+        },
+        {
+          "default": "",
+          "doc": "The model the endpoint is asked for.",
+          "key": "llm.endpoint_model",
+          "kind": "text",
+          "section": "llm"
+        },
+        {
+          "default": "",
+          "doc": "An OpenAI-compatible base URL; /v1/chat/completions is appended. A host other than localhost is used only after `dettivo llm trust <url>`.",
+          "key": "llm.endpoint_url",
+          "kind": "text",
+          "section": "llm"
+        },
+        {
+          "default": "",
+          "doc": "Where sideloaded fine-tunes and their manifests live. Empty means <models_dir>/polish-experiments.",
+          "key": "llm.experiments_dir",
+          "kind": "text",
+          "section": "llm"
+        },
+        {
+          "default": 2,
+          "doc": "Repair attempts after a rejected rewrite, within the same budget.",
+          "key": "llm.max_retries",
+          "kind": "integer",
+          "section": "llm"
+        },
+        {
+          "default": "qwen3-4b-instruct-2507",
+          "doc": "The catalogue model the local engine loads for Enhanced: qwen3-4b-instruct-2507 (default), qwen3-1.7b (fast), qwen3-4b (quality), qwen3-8b. `dettivo llm download --model <id>` fetches it.",
+          "key": "llm.model",
+          "kind": "text",
+          "section": "llm"
+        },
+        {
+          "default": "qwen3:4b-instruct",
+          "doc": "The Ollama model (`ollama pull qwen3:4b-instruct`).",
+          "key": "llm.ollama_model",
+          "kind": "text",
+          "section": "llm"
+        },
+        {
+          "default": "http://127.0.0.1:11434",
+          "doc": "Where Ollama answers; auto detects it through GET /api/tags.",
+          "key": "llm.ollama_url",
+          "kind": "text",
+          "section": "llm"
+        },
+        {
+          "default": "",
+          "doc": "A sideloaded polish fine-tune Enhanced runs on instead of `model`: the name of a manifest under experiments_dir (\"current\" reads current.json, the macOS manifest shape). Empty keeps the catalogue model; `dettivo llm experiment use` sets it and `dettivo llm experiment status` shows it.",
+          "key": "llm.polish_experiment",
+          "kind": "text",
+          "section": "llm"
+        },
+        {
+          "default": "auto",
+          "doc": "The provider behind Enhanced: auto (the first available of local, ollama, openai_compatible), local (dettivo-engine-llm with a catalogue model), ollama or openai_compatible.",
+          "key": "llm.provider",
+          "kind": "text",
+          "section": "llm"
+        },
+        {
+          "default": 8000,
+          "doc": "The whole Enhanced pass must finish within this; then the Polish text is inserted and the notice says provider_unavailable.",
+          "key": "llm.timeout_ms",
+          "kind": "integer",
+          "section": "llm"
+        },
+        {
+          "default": [],
+          "doc": "Remote endpoints you confirmed; `dettivo llm trust` appends here.",
+          "key": "llm.trusted_endpoints",
+          "kind": "list",
+          "section": "llm"
+        },
+        {
+          "default": false,
+          "doc": "`dettivo mcp config` adds the DETTIVO_IPC_TOKEN placeholder to every host entry, as `--hardened` does; pair it with [ipc] auth_mode = \"peer_token\".",
+          "key": "mcp.hardened",
+          "kind": "boolean",
+          "section": "mcp"
+        },
+        {
+          "default": 2000000,
+          "doc": "Longest MCP message accepted or produced over stdio, in bytes (the macOS bound). A longer message is refused naming the cap; the session continues.",
+          "key": "mcp.max_message_bytes",
+          "kind": "integer",
+          "section": "mcp"
+        },
+        {
+          "default": true,
+          "doc": "Analyse every meeting once it finalises (a summary, the decisions, the action items) through the language model provider; off leaves it to `dettivo meetings analyze <id>`.",
+          "key": "meetings.analysis.auto",
+          "kind": "boolean",
+          "section": "meetings.analysis"
+        },
+        {
+          "default": 12000,
+          "doc": "Characters of transcript per model call; a longer transcript is analysed in parts and the parts are merged in one final call.",
+          "key": "meetings.analysis.chunk_chars",
+          "kind": "integer",
+          "section": "meetings.analysis"
+        },
+        {
+          "default": "",
+          "doc": "The provider the analysis asks: local, ollama, openai_compatible or auto; empty follows [llm] provider. [llm] analysis_model names the local model.",
+          "key": "meetings.analysis.provider",
+          "kind": "text",
+          "section": "meetings.analysis"
+        },
+        {
+          "default": 60000,
+          "doc": "The whole analysis must finish within this; then it is failed with provider_unavailable and can be run again.",
+          "key": "meetings.analysis.timeout_ms",
+          "kind": "integer",
+          "section": "meetings.analysis"
+        },
+        {
+          "default": "keep",
+          "doc": "What lives in the meeting directory once the meeting stopped: \"keep\" (audio, journal.jsonl, the take sidecars and metadata.json), \"audio_only\" (no metadata.json), or \"none\" (the directory is removed).",
+          "key": "meetings.artifacts",
+          "kind": "text",
+          "section": "meetings"
+        },
+        {
+          "default": 1200,
+          "doc": "A live segment this far behind the newest audio is final; nearer ones stay provisional and the next window may replace them.",
+          "key": "meetings.boundary_merge_gap_ms",
+          "kind": "integer",
+          "section": "meetings"
+        },
+        {
+          "default": 15,
+          "doc": "Seconds between two writes of live-checkpoint.json while recording; a daemon that dies mid-meeting recovers the meeting from the last one.",
+          "key": "meetings.checkpoint_interval_seconds",
+          "kind": "integer",
+          "section": "meetings"
+        },
+        {
+          "default": 800,
+          "doc": "A microphone segment that is a filler and sits within this many milliseconds of a long remote segment is the speakers heard through the microphone, and is dropped.",
+          "key": "meetings.cross_source_padding_ms",
+          "kind": "integer",
+          "section": "meetings"
+        },
+        {
+          "default": "all",
+          "doc": "The artifact policy `dettivo meetings delete` and the app use when none is named: transcript_only (the texts, segments and analysis go, the notes and the audio stay), transcript_and_audio (the takes go too, the facts and the notes stay) or all (the row and the directory go).",
+          "key": "meetings.delete_artifact_policy",
+          "kind": "text",
+          "section": "meetings"
+        },
+        {
+          "default": true,
+          "doc": "Run the pass by itself when the finalisation completes; off leaves it to `dettivo meetings diarize <id>`.",
+          "key": "meetings.diarization.auto",
+          "kind": "boolean",
+          "section": "meetings.diarization"
+        },
+        {
+          "default": 0.6,
+          "doc": "Initial average-linkage cosine cutoff, followed by low-support cluster reassignment. The final speaker count need not vary monotonically.",
+          "key": "meetings.diarization.clustering_threshold",
+          "kind": "float",
+          "section": "meetings.diarization"
+        },
+        {
+          "default": true,
+          "doc": "Learn who spoke once a meeting is finalised (docs/meetings.md): the system track (the whole microphone track of a room-audio meeting) goes through dettivo-engine-diarize and every remote segment gets a speaker.",
+          "key": "meetings.diarization.enabled",
+          "kind": "boolean",
+          "section": "meetings.diarization"
+        },
+        {
+          "default": 0,
+          "doc": "The speaker count the clustering is told; 0 lets it decide.",
+          "key": "meetings.diarization.max_speakers",
+          "kind": "integer",
+          "section": "meetings.diarization"
+        },
+        {
+          "default": 0.25,
+          "doc": "A segment is labelled only when at least this share of its span lies inside diarized speech...",
+          "key": "meetings.diarization.min_coverage",
+          "kind": "float",
+          "section": "meetings.diarization"
+        },
+        {
+          "default": 0.6,
+          "doc": "...and the winning speaker holds at least this share of that speech; otherwise the segment stays unlabelled.",
+          "key": "meetings.diarization.min_speaker_share",
+          "kind": "float",
+          "section": "meetings.diarization"
+        },
+        {
+          "default": "diarization-en",
+          "doc": "The catalogue model set under <models>/diarize/ (`dettivo speech download --provider diarize --model diarization-en`).",
+          "key": "meetings.diarization.model",
+          "kind": "text",
+          "section": "meetings.diarization"
+        },
+        {
+          "default": true,
+          "doc": "Keep microphone.wav (one per take) and system.wav under <data_dir>/meetings/<id>/ after the meeting; off removes them at stop.",
+          "key": "meetings.keep_audio",
+          "kind": "boolean",
+          "section": "meetings"
+        },
+        {
+          "default": true,
+          "doc": "Transcribe while the meeting records: windows of both tracks go through the engine and arrive as meeting.segment events (docs/meetings.md). Off runs the finalisation alone when the meeting stops.",
+          "key": "meetings.live",
+          "kind": "boolean",
+          "section": "meetings"
+        },
+        {
+          "default": 450,
+          "doc": "Milliseconds two consecutive live windows share, so a word cut by one window is whole in the next.",
+          "key": "meetings.live_overlap_ms",
+          "kind": "integer",
+          "section": "meetings"
+        },
+        {
+          "default": 900,
+          "doc": "Milliseconds of new audio that cut the next live window.",
+          "key": "meetings.live_tick_ms",
+          "kind": "integer",
+          "section": "meetings"
+        },
+        {
+          "default": 3000,
+          "doc": "The longest live window sent to the engine, in milliseconds; a window grows towards it while the engine catches up.",
+          "key": "meetings.live_window_ms",
+          "kind": "integer",
+          "section": "meetings"
+        },
+        {
+          "default": 0.0065,
+          "doc": "RMS (0 to 1) a live window must reach to be sent to the engine; 70 % of it keeps a window going while the previous one was speech.",
+          "key": "meetings.speech_floor_rms",
+          "kind": "float",
+          "section": "meetings"
+        },
+        {
+          "default": "",
+          "doc": "A catalogue file instead of the built-in one (mirrors, tests). Empty means the built-in catalogue.",
+          "key": "models.catalogue_file",
+          "kind": "text",
+          "section": "models"
+        },
+        {
+          "default": 1,
+          "doc": "Downloads that may run at once.",
+          "key": "models.max_concurrent_downloads",
+          "kind": "integer",
+          "section": "models"
+        },
+        {
+          "default": true,
+          "doc": "Re-hash models on disk that have no verified manifest when the daemon starts; a mismatch quarantines the file.",
+          "key": "models.verify_on_start",
+          "kind": "boolean",
+          "section": "models"
+        },
+        {
+          "default": "waveform",
+          "doc": "The bar widget and the panel the Omarchy plugin draws (docs/omarchy.md). The plugin reads this section through `dettivo config get` and writes it through `dettivo config set`; its folder carries no state of its own. waveform: the six-bar mark. dot: a single dot.",
+          "key": "omarchy.glyph",
+          "kind": "text",
+          "section": "omarchy"
+        },
+        {
+          "default": 3,
+          "doc": "How many recent dictations the panel lists.",
+          "key": "omarchy.history_items",
+          "kind": "integer",
+          "section": "omarchy"
+        },
+        {
+          "default": true,
+          "doc": "The glyph's bars follow the live level while recording.",
+          "key": "omarchy.level_meter",
+          "kind": "boolean",
+          "section": "omarchy"
+        },
+        {
+          "default": "SUPER SHIFT, D",
+          "doc": "The shortcut label beside Open Dettivo, in Hyprland's chord notation.",
+          "key": "omarchy.open_shortcut",
+          "kind": "text",
+          "section": "omarchy"
+        },
+        {
+          "default": "panel",
+          "doc": "panel: the plugin hosts the recording pill and dettivo-osd steps aside. service: dettivo-osd keeps the pill. off: no pill on Omarchy.",
+          "key": "omarchy.osd",
+          "kind": "text",
+          "section": "omarchy"
+        },
+        {
+          "default": true,
+          "doc": "The recording pill outside Omarchy (dettivo-osd; the Omarchy plugin hosts the same pill as a panel). Off: dettivo-osd exits with a notice.",
+          "key": "osd.enabled",
+          "kind": "boolean",
+          "section": "osd"
+        },
+        {
+          "default": 4000,
+          "doc": "How long the error state stays before the pill hides.",
+          "key": "osd.error_hide_after_ms",
+          "kind": "integer",
+          "section": "osd"
+        },
+        {
+          "default": 1800,
+          "doc": "How long the inserted and copied states stay before the pill hides.",
+          "key": "osd.hide_after_ms",
+          "kind": "integer",
+          "section": "osd"
+        },
+        {
+          "default": "auto",
+          "doc": "auto: a layer-shell overlay where the compositor offers one, else a frameless always-on-top window. layer_shell or window force one host.",
+          "key": "osd.host",
+          "kind": "text",
+          "section": "osd"
+        },
+        {
+          "default": 24,
+          "doc": "Distance from the anchored edges, in pixels.",
+          "key": "osd.margin",
+          "kind": "integer",
+          "section": "osd"
+        },
+        {
+          "default": "focused",
+          "doc": "focused: the focused output on Hyprland, the primary elsewhere. Or an output name such as DP-3; an output that disappears falls back to primary.",
+          "key": "osd.monitor",
+          "kind": "text",
+          "section": "osd"
+        },
+        {
+          "default": "full",
+          "doc": "full follows the desktop's reduced-motion setting; reduced holds the bars still and cuts between states.",
+          "key": "osd.motion",
+          "kind": "text",
+          "section": "osd"
+        },
+        {
+          "default": "top",
+          "doc": "top, bottom, top_left, top_right, bottom_left or bottom_right.",
+          "key": "osd.position",
+          "kind": "text",
+          "section": "osd"
+        },
+        {
+          "default": true,
+          "doc": "The bars follow the live microphone level while listening.",
+          "key": "osd.show_level",
+          "kind": "boolean",
+          "section": "osd"
+        },
+        {
+          "default": "",
+          "doc": "History and settings data. Empty means $XDG_DATA_HOME/dettivo.",
+          "key": "paths.data_dir",
+          "kind": "text",
+          "section": "paths"
+        },
+        {
+          "default": "",
+          "doc": "Model files. Empty means <data_dir>/models.",
+          "key": "paths.models_dir",
+          "kind": "text",
+          "section": "paths"
+        },
+        {
+          "default": {
+            "org.mozilla.Thunderbird": {
+              "preset": "email"
+            }
+          },
+          "doc": "Per-app presets keyed by the Wayland app id or X11 class (\"prefix*\" matches a family); style, post_processors and custom_preset may override the preset's defaults. Thunderbird is the shipped example; code editors, terminals and chat apps have built-in defaults a profile overrides.",
+          "key": "polish.apps",
+          "kind": "table",
+          "section": "polish"
+        },
+        {
+          "default": "generic",
+          "doc": "The preset an app without a profile takes: email, code, chat, notes, generic.",
+          "key": "polish.default_preset",
+          "kind": "text",
+          "section": "polish"
+        },
+        {
+          "default": "asDictated",
+          "doc": "The global style: asDictated (each preset picks its own), formal, casual, veryCasual.",
+          "key": "polish.default_style",
+          "kind": "text",
+          "section": "polish"
+        },
+        {
+          "default": {},
+          "doc": "Custom presets keyed by name: { base, style, transforms, custom_rules, post_processors, model }; an app profile names one in custom_preset.",
+          "key": "polish.presets",
+          "kind": "table",
+          "section": "polish"
+        },
+        {
+          "default": [],
+          "doc": "Named custom rules, edited through `dettivo polish rules`; an enabled rule joins every Enhanced rewrite. Each is { id, name, enabled, content } with content up to 500 characters.",
+          "key": "polish.rules",
+          "kind": "list",
+          "section": "polish"
+        },
+        {
+          "default": [
+            "fixGrammar",
+            "removeFillers",
+            "smartPunctuation"
+          ],
+          "doc": "The deterministic Polish pass (docs/polish.md). Global transforms; the code preset never runs smartPunctuation.",
+          "key": "polish.transforms",
+          "kind": "list",
+          "section": "polish"
+        },
+        {
+          "default": false,
+          "doc": "QA mode: accept the QA rig's fake capture and insertion targets. DETTIVO_QA=1 turns it on without editing this file.",
+          "key": "qa.mode",
+          "kind": "boolean",
+          "section": "qa"
+        },
+        {
+          "default": "127.0.0.1",
+          "doc": "A loopback address only (127.0.0.1 or ::1); anything else fails validation.",
+          "key": "rest.bind",
+          "kind": "text",
+          "section": "rest"
+        },
+        {
+          "default": false,
+          "doc": "The daemon hosts the loopback REST shim at start (docs/rest.md); off, and `dettivo rest serve` hosts it on demand. Every request needs the shared token (DETTIVO_IPC_TOKEN, the Secret Service item, or the 0600 token file).",
+          "key": "rest.enabled",
+          "kind": "boolean",
+          "section": "rest"
+        },
+        {
+          "default": 52428800,
+          "doc": "The largest request body, in bytes (50 MiB); a longer one is answered 413.",
+          "key": "rest.max_body_bytes",
+          "kind": "integer",
+          "section": "rest"
+        },
+        {
+          "default": 45831,
+          "doc": "The TCP port; 0 takes an ephemeral port, reported in system.capabilities.",
+          "key": "rest.port",
+          "kind": "integer",
+          "section": "rest"
+        },
+        {
+          "default": 30000,
+          "doc": "The time one request may take end to end, in milliseconds.",
+          "key": "rest.request_timeout_ms",
+          "kind": "integer",
+          "section": "rest"
+        },
+        {
+          "default": "",
+          "doc": "The meeting model; empty means the dictation model.",
+          "key": "speech.meeting_model",
+          "kind": "text",
+          "section": "speech"
+        },
+        {
+          "default": "large-v3-turbo",
+          "doc": "Model id under <models>/<provider>/; a session freezes it at start.",
+          "key": "speech.model",
+          "kind": "text",
+          "section": "speech"
+        },
+        {
+          "default": "parakeet-v3",
+          "doc": "The Parakeet model `dettivo speech selection set --provider parakeet` switches to when `model` is not a Parakeet model.",
+          "key": "speech.parakeet_model_id",
+          "kind": "text",
+          "section": "speech"
+        },
+        {
+          "default": "whisper",
+          "doc": "Speech provider: whisper or parakeet.",
+          "key": "speech.provider",
+          "kind": "text",
+          "section": "speech"
+        },
+        {
+          "default": 30,
+          "doc": "The chunked pipeline behind imports and re-runs (docs/history.md). Audio is cut into windows of this many seconds. Quiet edges are trimmed before recognition so automatic language detection starts near speech.",
+          "key": "transcribe.chunk_seconds",
+          "kind": "integer",
+          "section": "transcribe"
+        },
+        {
+          "default": true,
+          "doc": "Drop the known filler hallucinations (\"thanks for watching\", ...) before the text is stored.",
+          "key": "transcribe.filler_filter",
+          "kind": "boolean",
+          "section": "transcribe"
+        },
+        {
+          "default": 2,
+          "doc": "Seconds two consecutive chunks share; the merger reconciles them by timestamp.",
+          "key": "transcribe.overlap_seconds",
+          "kind": "integer",
+          "section": "transcribe"
+        },
+        {
+          "default": 5,
+          "doc": "Seconds before a chunk's nominal end inside which the cut moves to the quietest point, so a chunk rarely ends mid-word.",
+          "key": "transcribe.safety_margin_seconds",
+          "kind": "integer",
+          "section": "transcribe"
+        },
+        {
+          "default": 0.0065,
+          "doc": "RMS (0 to 1) under which a chunk is silence: it never reaches the engine and adds no text.",
+          "key": "transcribe.silence_rms_floor",
+          "kind": "float",
+          "section": "transcribe"
+        },
+        {
+          "default": 1073741824,
+          "doc": "The largest upload transfer.chunk accumulates, in bytes (1 GiB).",
+          "key": "transfer.max_upload_bytes",
+          "kind": "integer",
+          "section": "transfer"
+        }
+      ]
+    }
+  }
+}

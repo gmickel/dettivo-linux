@@ -1,0 +1,34 @@
+{
+  "capabilities": {},
+  "method": "llm.models.download",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "llm.models.download",
+    "params": {
+      "model": "qwen3-4b-instruct-2507"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "available": true,
+      "bytes_done": 12345678,
+      "bytes_total": 2497281120,
+      "display_name": "Qwen3 4B Instruct 2507",
+      "error": null,
+      "id": "qwen3-4b-instruct-2507",
+      "is_default": true,
+      "is_selected": true,
+      "kind": "llm",
+      "languages": [],
+      "license": "Apache-2.0",
+      "path": null,
+      "provider": "llm",
+      "readiness": "downloading",
+      "recommended_for": null,
+      "size_bytes": 2497281120
+    }
+  }
+}

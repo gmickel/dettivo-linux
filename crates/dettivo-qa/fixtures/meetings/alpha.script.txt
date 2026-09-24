@@ -1,0 +1,2 @@
+microphone	Alice	Hi everyone, Alice here. Today we walk through the launch checklist.
+system	Ben	Thanks Alice, Ben speaking. The pricing decision is made, so we ship on Friday.

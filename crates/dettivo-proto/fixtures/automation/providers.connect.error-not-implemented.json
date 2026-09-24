@@ -1,0 +1,33 @@
+{
+  "capabilities": {
+    "automation.providers": false
+  },
+  "error": {
+    "error": {
+      "code": -32014,
+      "data": {
+        "app_code": "NOT_IMPLEMENTED",
+        "details": {},
+        "retryable": false
+      },
+      "message": "automation.providers.connect is not implemented"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "automation.providers.connect",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "automation.providers.connect",
+    "params": {
+      "provider": "smtp",
+      "sender_email": "sender@example.com",
+      "smtp_host": "smtp.example.com",
+      "smtp_password": "app-password",
+      "smtp_port": 465,
+      "smtp_use_tls": true,
+      "smtp_username": "smtp-user"
+    }
+  }
+}

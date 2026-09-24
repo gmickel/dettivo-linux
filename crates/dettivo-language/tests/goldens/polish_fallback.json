@@ -1,0 +1,150 @@
+{
+  "source": "DettivoTests/Polish/LocalPolishFallbackTests.swift, DettivoTests/Polish/PolishEvalRegressionTests.swift",
+  "note": "The deterministic Polish pass, case for case as macOS states it. `transforms`, `post_processors` and `style` are the arguments the Swift test passes to LocalPolishFallback.rewrite.",
+  "cases": [
+    {
+      "name": "applies_basic_rewrite_for_command_like_input",
+      "input": "read index.ts and output",
+      "transforms": ["fixGrammar", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "Read index.ts and output."
+    },
+    {
+      "name": "removes_common_fillers_when_enabled",
+      "input": "um  i need the update uh now",
+      "transforms": ["removeFillers", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "I need the update now."
+    },
+    {
+      "name": "leaves_sentence_punctuation_untouched_when_smart_punctuation_disabled",
+      "input": "  read index.ts and output  ",
+      "transforms": [],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "read index.ts and output"
+    },
+    {
+      "name": "applies_post_processors_when_provided",
+      "input": "read index.ts and output",
+      "transforms": ["fixGrammar", "smartPunctuation"],
+      "post_processors": ["atPrefixFilePaths"],
+      "style": "asDictated",
+      "expected": "Read @index.ts and output."
+    },
+    {
+      "name": "applies_common_grammar_fixes_when_enabled",
+      "input": "well ithink ths is fine and thats good and i can send it",
+      "transforms": ["fixGrammar", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "Well I think this is fine and that's good and I can send it."
+    },
+    {
+      "name": "uses_question_mark_for_question_like_input",
+      "input": "can you send me the final deck by noon",
+      "transforms": ["fixGrammar", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "Can you send me the final deck by noon?"
+    },
+    {
+      "name": "uses_question_mark_for_conversational_question_lead",
+      "input": "hey did you push the branch yet",
+      "transforms": ["fixGrammar", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "Hey did you push the branch yet?"
+    },
+    {
+      "name": "uses_question_mark_for_german_question_lead",
+      "input": "hallo kannst du mir den stand bis morgen schicken",
+      "transforms": ["fixGrammar", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "Hallo kannst du mir den stand bis morgen schicken?"
+    },
+    {
+      "name": "uses_question_mark_for_arabic_question_lead",
+      "input": "هل أرسلت التقرير النهائي",
+      "transforms": ["fixGrammar", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "هل أرسلت التقرير النهائي?"
+    },
+    {
+      "name": "uses_question_mark_for_japanese_question_suffix",
+      "input": "この案で進めてもいいですか",
+      "transforms": ["fixGrammar", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "この案で進めてもいいですか?"
+    },
+    {
+      "name": "eval_english_cleanup",
+      "input": "well ithink thats a pretty good answer",
+      "transforms": ["fixGrammar", "removeFillers", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "Well I think that's a pretty good answer."
+    },
+    {
+      "name": "eval_code_command",
+      "input": "read index.ts and output it to me",
+      "transforms": ["fixGrammar", "removeFillers", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "Read index.ts and output it to me."
+    },
+    {
+      "name": "eval_chat_question",
+      "input": "hey did you push the branch yet",
+      "transforms": ["fixGrammar", "removeFillers", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "Hey did you push the branch yet?"
+    },
+    {
+      "name": "eval_spanish_cleanup",
+      "input": "hola eh necesito el reporte para mañana gracias",
+      "transforms": ["fixGrammar", "removeFillers", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "Hola necesito el reporte para mañana gracias."
+    },
+    {
+      "name": "eval_german_question",
+      "input": "hallo äh kannst du mir den stand bis morgen schicken",
+      "transforms": ["fixGrammar", "removeFillers", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "Hallo kannst du mir den stand bis morgen schicken?"
+    },
+    {
+      "name": "eval_arabic_question",
+      "input": "مرحبا هل أرسلت التقرير النهائي",
+      "transforms": ["fixGrammar", "removeFillers", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "مرحبا هل أرسلت التقرير النهائي?"
+    },
+    {
+      "name": "eval_mixed_language",
+      "input": "hola team please review el documento final hoy",
+      "transforms": ["fixGrammar", "removeFillers", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "Hola team please review el documento final hoy."
+    },
+    {
+      "name": "eval_mention_path_preserved",
+      "input": "hey @alex check src/app/index.ts and push the fix",
+      "transforms": ["fixGrammar", "removeFillers", "smartPunctuation"],
+      "post_processors": [],
+      "style": "asDictated",
+      "expected": "Hey @alex check src/app/index.ts and push the fix."
+    }
+  ]
+}

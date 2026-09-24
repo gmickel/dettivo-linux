@@ -1,0 +1,27 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32012,
+      "data": {
+        "app_code": "NOT_FOUND",
+        "details": {
+          "reason": "modelMissing"
+        },
+        "retryable": false
+      },
+      "message": "model diarize/diarization-en is not downloaded; run `dettivo speech download --provider diarize --model diarization-en`"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "meetings.diarize",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.diarize",
+    "params": {
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e"
+    }
+  }
+}

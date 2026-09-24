@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/transcripts/get",
+    "body": {
+      "ref": {
+        "kind": "dictation",
+        "id": "00000000-0000-4000-8000-000000000000"
+      }
+    }
+  },
+  "expect": {
+    "status": 404,
+    "content_type": "application/json",
+    "error": {
+      "app_code": "NOT_FOUND",
+      "code": -32012
+    }
+  }
+}

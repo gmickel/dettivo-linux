@@ -1,0 +1,37 @@
+{
+  "pages": [
+    { "id": "page-1", "name": "Studio" },
+    { "id": "page-3", "name": "Round two" },
+    { "id": "page-2", "name": "Directions considered" }
+  ],
+  "artboards": [
+    { "file": "Main.dc.html", "title": "Home", "x": 0, "y": 0, "w": 1280, "h": 820, "page": "page-1" },
+    { "file": "History.dc.html", "title": "History", "x": 1400, "y": 0, "w": 1280, "h": 820, "page": "page-1" },
+    { "file": "MeetingLive.dc.html", "title": "Meeting · live", "x": 2800, "y": 0, "w": 1280, "h": 820, "page": "page-1" },
+    { "file": "OSD.dc.html", "title": "OSD states", "x": 0, "y": 1000, "w": 1280, "h": 1380, "page": "page-1" },
+    { "file": "BarPanel.dc.html", "title": "Omarchy bar + panel", "x": 1400, "y": 1000, "w": 1280, "h": 560, "page": "page-1" },
+    { "file": "DesignSystem.dc.html", "title": "Design system · Black Gold", "x": 2800, "y": 1000, "w": 1280, "h": 1700, "page": "page-1" },
+    { "file": "FirstRunKeys.dc.html", "title": "First run 1 · Keys", "x": 0, "y": 0, "w": 1280, "h": 820, "page": "page-3" },
+    { "file": "FirstRunModels.dc.html", "title": "First run 2 · Models", "x": 1400, "y": 0, "w": 1280, "h": 820, "page": "page-3" },
+    { "file": "FirstRunTryIt.dc.html", "title": "First run 3 · Try it", "x": 2800, "y": 0, "w": 1280, "h": 820, "page": "page-3" },
+    { "file": "MeetingsList.dc.html", "title": "Meetings list", "x": 0, "y": 1000, "w": 1280, "h": 820, "page": "page-3" },
+    { "file": "MeetingDetail.dc.html", "title": "Meeting detail", "x": 1400, "y": 1000, "w": 1280, "h": 820, "page": "page-3" },
+    { "file": "ImportAndDisclosure.dc.html", "title": "Import · Disclosure", "x": 2800, "y": 1000, "w": 1280, "h": 820, "page": "page-3" },
+    { "file": "SettingsModels.dc.html", "title": "Settings · Models", "x": 0, "y": 2000, "w": 1280, "h": 820, "page": "page-3" },
+    { "file": "SettingsHotkeys.dc.html", "title": "Settings · Hotkeys", "x": 1400, "y": 2000, "w": 1280, "h": 820, "page": "page-3" },
+    { "file": "SettingsAgents.dc.html", "title": "Agents", "x": 2800, "y": 2000, "w": 1280, "h": 820, "page": "page-3" },
+    { "file": "States.dc.html", "title": "States · hint sheet", "x": 0, "y": 3000, "w": 1280, "h": 1200, "page": "page-3" },
+    { "file": "LightHome.dc.html", "title": "Home · Catppuccin Latte", "x": 1400, "y": 3000, "w": 1280, "h": 820, "page": "page-3" },
+    { "file": "IconAndFallback.dc.html", "title": "Icon · OSD elsewhere", "x": 2800, "y": 3000, "w": 1280, "h": 620, "page": "page-3" },
+    { "file": "DirectionInstrument.dc.html", "title": "A · Instrument", "x": 0, "y": 0, "w": 900, "h": 560, "page": "page-2" },
+    { "file": "DirectionEditorial.dc.html", "title": "B · Quiet editorial", "x": 1000, "y": 0, "w": 900, "h": 560, "page": "page-2" }
+  ],
+  "annotations": [
+    { "id": "studio-note", "x": 0, "y": -170, "w": 520, "page": "page-1", "text": "Studio: Dettivo's structure (sidebar, history, three-pane meetings) on Omarchy's material (monospace, sharp corners, hairlines, one accent). Every colour, size and spacing comes from the theme's colors.toml and shell.toml, so other themes re-skin it; the Home artboard has a theme tweak to try that. Content is illustrative." },
+    { "id": "osd-note", "x": 1400, "y": 1700, "w": 420, "page": "page-1", "text": "OSD and bar glyph are the signature. Same QML component hosted by the Omarchy plugin panel on Omarchy, by dettivo-osd elsewhere." },
+    { "id": "dir-note", "x": 0, "y": -140, "w": 520, "page": "page-2", "text": "Two directions considered before Studio. A leans terminal-monitor, B leans reading surface. Studio takes B's calm and A's visible state. Pick one here and Home gets rebuilt in that direction." },
+    { "id": "round2-note", "x": 0, "y": -170, "w": 560, "page": "page-3", "text": "Round two. First run is three screens (keys, models, try it) that only appear when no model or no bindings exist; everything they do is a config.toml write. Settings routes show the keys they edit. Meetings list and detail complete the meeting loop. States, the hint sheet, a light theme and the icon close the remaining v1 surfaces." },
+    { "id": "settings-note", "x": 0, "y": 2860, "w": 520, "page": "page-3", "text": "Settings pattern: three columns, a route list, the content, and a 'this route writes' block at the bottom. General, Polish, Insertion, Meetings and Diagnostics follow the Models and Hotkeys layout exactly." }
+  ],
+  "launch": { "view": "canvas", "page": "page-3" }
+}

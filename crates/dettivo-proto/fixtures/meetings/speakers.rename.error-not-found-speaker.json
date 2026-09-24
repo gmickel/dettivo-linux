@@ -1,0 +1,27 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32012,
+      "data": {
+        "app_code": "NOT_FOUND",
+        "details": {},
+        "retryable": false
+      },
+      "message": "Meeting 0f8fad5b-d9cb-469f-a165-70867728950e has no speaker speaker_07"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "meetings.speakers.rename",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.speakers.rename",
+    "params": {
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "name": "Ada",
+      "speaker_id": "speaker_07"
+    }
+  }
+}

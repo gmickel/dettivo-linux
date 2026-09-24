@@ -1,0 +1,23 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32012,
+      "data": {
+        "app_code": "NOT_FOUND",
+        "details": {},
+        "retryable": false
+      },
+      "message": "nothing has been dictated yet"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "dictation.reinsert_last",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "dictation.reinsert_last",
+    "params": {}
+  }
+}

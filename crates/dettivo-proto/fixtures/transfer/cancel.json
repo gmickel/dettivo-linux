@@ -1,0 +1,22 @@
+{
+  "capabilities": {
+    "transfers.chunk_max_bytes": 1048576
+  },
+  "method": "transfer.cancel",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transfer.cancel",
+    "params": {
+      "reason": "client_abort",
+      "transfer_id": "xfer_1"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "cancelled": true
+    }
+  }
+}

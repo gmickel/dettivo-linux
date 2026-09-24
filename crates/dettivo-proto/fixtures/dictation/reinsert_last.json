@@ -1,0 +1,45 @@
+{
+  "capabilities": {},
+  "method": "dictation.reinsert_last",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "dictation.reinsert_last",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "insertion": {
+        "context_pack": {
+          "metrics": {
+            "capture_duration_ms": 0,
+            "character_count": 0,
+            "payload_bytes": 0,
+            "token_budget": 0,
+            "token_estimate": 0
+          },
+          "reason": "context capture arrives with the insertion spec",
+          "source": {
+            "adapter_id": "linux",
+            "app_class": "generic",
+            "bundle_id": ""
+          },
+          "status": "Off"
+        },
+        "method": "clipboard_only",
+        "outcome": "copied_to_clipboard",
+        "reason": null,
+        "target_app": {
+          "bundle_id": "",
+          "name": ""
+        }
+      },
+      "ref": {
+        "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+        "kind": "dictation"
+      }
+    }
+  }
+}

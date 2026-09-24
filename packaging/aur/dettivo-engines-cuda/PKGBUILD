@@ -1,0 +1,25 @@
+# Maintainer: Gordon Mickel <gordon@mickel.tech>
+pkgname=dettivo-engines-cuda
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="CUDA diarization engine drop-in for Dettivo"
+arch=('x86_64')
+url="https://github.com/gmickel/dettivo-linux"
+license=('GPL-3.0-or-later' 'Apache-2.0')
+depends=('dettivo' 'glibc' 'gcc-libs' 'cuda>=13' 'cuda<14' 'cudnn>=9' 'cudnn<10' 'nvidia-utils')
+options=('!lto')
+_tree="dettivo-engines-cuda-${pkgver}-linux-x86_64"
+source=(
+  "${url}/releases/download/v${pkgver}/${_tree}.tar.zst"
+  "${_tree}.SHA256SUMS::${url}/releases/download/v${pkgver}/SHA256SUMS-cuda"
+)
+sha256sums=('SKIP' 'SKIP')
+
+prepare() {
+  cd "${srcdir}"
+  sha256sum --check --ignore-missing --strict "${_tree}.SHA256SUMS"
+}
+
+package() {
+  cp -a "${srcdir}/${_tree}/usr" "${pkgdir}/"
+}

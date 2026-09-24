@@ -1,0 +1,28 @@
+[package]
+name = "dettivo-engine-parakeet"
+description = "Engine process that runs parakeet speech recognition"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+dettivo-engine-proto.workspace = true
+parakeet-cpp-sys.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+clap.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[features]
+default = []
+vulkan = ["parakeet-cpp-sys/vulkan"]
+
+[dev-dependencies]
+tempfile.workspace = true
+hound.workspace = true
+
+[lints]
+workspace = true

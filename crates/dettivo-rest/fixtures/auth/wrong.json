@@ -1,0 +1,26 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/system/ping",
+    "auth": "wrong"
+  },
+  "expect": {
+    "status": 401,
+    "content_type": "application/json",
+    "error": {
+      "app_code": "UNAUTHORIZED_CLIENT",
+      "code": -32011
+    },
+    "body": {
+      "error": {
+        "code": -32011,
+        "message": "Invalid auth token",
+        "data": {
+          "app_code": "UNAUTHORIZED_CLIENT",
+          "retryable": false,
+          "details": {}
+        }
+      }
+    }
+  }
+}

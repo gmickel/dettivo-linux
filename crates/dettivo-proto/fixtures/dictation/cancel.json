@@ -1,0 +1,23 @@
+{
+  "capabilities": {},
+  "method": "dictation.cancel",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "dictation.cancel",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "job": {
+        "error": null,
+        "job_id": "job_dict_1",
+        "message": null,
+        "progress": 0.0,
+        "state": "cancelled"
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "description": "Get a single meeting session.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "meeting_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "meeting_id"
+    ],
+    "type": "object"
+  },
+  "name": "get_meeting",
+  "title": "Get Meeting"
+}

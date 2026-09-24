@@ -1,0 +1,70 @@
+{
+  "note": "The metrics dettivo-qa polish-eval computes for sample.jsonl with the recorded rewrites. ADR 0054 enabled-only post-processing preserves sample-004 lowercase bullets, raising exact matches from 9/11 to 10/11; staged guard and forbidden-fragment failures remain. Latency metrics describe the machine. A run that differs fails naming the metric.",
+  "rows": 12,
+  "gold_rows": 11,
+  "metrics": {
+    "exact_match_rate": 0.9090909090909091,
+    "protected_token_preservation_rate": 1.0,
+    "required_fragment_retention_rate": 1.0,
+    "forbidden_fragment_violation_rate": 0.08333333333333337,
+    "structure_retention_rate": 1.0,
+    "language_anchor_retention_rate": 1.0,
+    "guard_rejection_rate": 0.08333333333333337,
+    "fallback_rate": 0.08333333333333337
+  },
+  "cuts": {
+    "language": {
+      "de": {
+        "count": 1,
+        "exact_match_rate": 1.0,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 0.0,
+        "median_wall_ms": 52
+      },
+      "en": {
+        "count": 11,
+        "exact_match_rate": 0.9,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 0.09090909090909091,
+        "median_wall_ms": 64
+      }
+    },
+    "preset": {
+      "chat": {
+        "count": 4,
+        "exact_match_rate": 0.75,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 0.0,
+        "median_wall_ms": 85
+      },
+      "code": {
+        "count": 2,
+        "exact_match_rate": 1.0,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 0.0,
+        "median_wall_ms": 165
+      },
+      "email": {
+        "count": 2,
+        "exact_match_rate": 1.0,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 0.0,
+        "median_wall_ms": 60
+      },
+      "generic": {
+        "count": 2,
+        "exact_match_rate": 1.0,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 0.5,
+        "median_wall_ms": 76
+      },
+      "notes": {
+        "count": 2,
+        "exact_match_rate": 1.0,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 0.0,
+        "median_wall_ms": 54
+      }
+    }
+  }
+}

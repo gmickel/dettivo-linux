@@ -1,0 +1,10 @@
+{
+  "id": 3,
+  "kind": "event",
+  "name": "partial",
+  "payload": {
+    "request_id": 3,
+    "text": "Hello"
+  },
+  "v": 1
+}

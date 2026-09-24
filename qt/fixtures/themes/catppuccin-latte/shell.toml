@@ -1,0 +1,39 @@
+# Shell tokens for the Catppuccin Latte fixture: the control alphas Omarchy
+# generates for a light palette, the default type and spacing scale.
+[bar]
+background = "#e6e9ef"
+active = "#1e66f5"
+
+[font]
+base-size = 12
+heading = 16
+icon-large = 24
+
+[spacing]
+scale = 1.0
+xs = 2
+md = 3
+control-padding-y = 4
+panel-padding = 6
+
+[controls]
+normal-color = "#4c4f69"
+normal-fill-alpha = 0.04
+normal-border-width = 1
+normal-border-alpha = 0.40
+hover-cursor-color = "#4c4f69"
+hover-cursor-fill-alpha = 0.08
+hover-cursor-border-width = 1
+hover-cursor-border-alpha = 0.25
+focus-color = "#1e66f5"
+focus-fill-alpha = 0.10
+focus-border-width = 1
+focus-border-alpha = 0.60
+selected-color = "#1e66f5"
+selected-fill-alpha = 0.18
+selected-border-width = 0
+selected-border-alpha = 1.0
+pressed-color = "#1e66f5"
+pressed-fill-alpha = 0.22
+selection-color = "#1e66f5"
+selection-fill-alpha = 0.35

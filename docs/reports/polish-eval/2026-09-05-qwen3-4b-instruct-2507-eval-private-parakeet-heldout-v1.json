@@ -1,0 +1,244 @@
+{
+  "date": "2026-09-05",
+  "model": "qwen3-4b-instruct-2507",
+  "model_file": "/tmp/dqpolishev-z4ViPk/data/dettivo/models/llm/qwen3-4b-instruct-2507/Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+  "backend": "vulkan",
+  "engine_version": "dettivo-engine-llm 0.1.0",
+  "git_sha": "f98f6e09ce168e9b662ba84f93c001c921032fde",
+  "set": "eval-private-parakeet-heldout-v1.jsonl",
+  "split": "heldout",
+  "rows": 10,
+  "gold_rows": 10,
+  "row_ids": [
+    "capture-v1-9a66f6a39aa148989d6f4ba3a979276b",
+    "capture-v1-0a88dc3a36e94eb4a6cb56a8a68cafd1",
+    "capture-v1-fb23339fbff14b3babc1b1bca5143a53",
+    "capture-v1-67a46563030a46e5a9c6a9025de2d72e",
+    "capture-v1-e8fca0750fb74ec4a29ebe5865e0402f",
+    "capture-v1-3ccf8186f0cf4c7f8706699cb661cb60",
+    "capture-v1-7b1bb6a1111141a18ac35fbf6b3a5518",
+    "capture-v1-184a44756d8b4162af0d0a1479df3ff4",
+    "capture-v1-b5a8ed4071ee474a862204c033230874",
+    "capture-v1-914ab8a8b74c42358649bbad893c6589"
+  ],
+  "metrics": {
+    "exact_match_rate": 0.4,
+    "protected_token_preservation_rate": 0.7,
+    "required_fragment_retention_rate": 0.4,
+    "forbidden_fragment_violation_rate": 0.0,
+    "structure_retention_rate": 1.0,
+    "language_anchor_retention_rate": 1.0,
+    "guard_rejection_rate": 0.09999999999999998,
+    "fallback_rate": 0.09999999999999998,
+    "median_wall_ms": 416,
+    "p95_wall_ms": 1885
+  },
+  "cuts": {
+    "language": {
+      "en": {
+        "count": 9,
+        "exact_match_rate": 0.3333333333333333,
+        "protected_token_preservation_rate": 0.6666666666666666,
+        "fallback_rate": 0.1111111111111111,
+        "median_wall_ms": 506
+      },
+      "multilingual": {
+        "count": 1,
+        "exact_match_rate": 1.0,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 0.0,
+        "median_wall_ms": 326
+      }
+    },
+    "preset": {
+      "chat": {
+        "count": 1,
+        "exact_match_rate": 0.0,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 0.0,
+        "median_wall_ms": 40
+      },
+      "code": {
+        "count": 4,
+        "exact_match_rate": 0.5,
+        "protected_token_preservation_rate": 0.5,
+        "fallback_rate": 0.0,
+        "median_wall_ms": 597
+      },
+      "email": {
+        "count": 1,
+        "exact_match_rate": 1.0,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 0.0,
+        "median_wall_ms": 110
+      },
+      "generic": {
+        "count": 3,
+        "exact_match_rate": 0.3333333333333333,
+        "protected_token_preservation_rate": 0.6666666666666666,
+        "fallback_rate": 0.0,
+        "median_wall_ms": 233
+      },
+      "notes": {
+        "count": 1,
+        "exact_match_rate": 0.0,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 1.0,
+        "median_wall_ms": 1885
+      }
+    }
+  },
+  "engine_only": {
+    "rows": 10,
+    "backend": "vulkan",
+    "tokens_per_second_median": 102.3,
+    "median_wall_ms": 1567,
+    "p95_wall_ms": 2121
+  },
+  "gate": {
+    "targets": "dettivo-polish-private-v1",
+    "hard_gates": [
+      {
+        "metric": "fallback_rate",
+        "value": 0.09999999999999998,
+        "rule": {
+          "maximum": 0.03
+        },
+        "pass": false
+      },
+      {
+        "metric": "forbidden_fragment_violation_rate",
+        "value": 0.0,
+        "rule": {
+          "maximum": 0.01
+        },
+        "pass": true
+      },
+      {
+        "metric": "guard_rejection_rate",
+        "value": 0.09999999999999998,
+        "rule": {
+          "maximum": 0.02
+        },
+        "pass": false
+      },
+      {
+        "metric": "language_anchor_retention_rate",
+        "value": 1.0,
+        "rule": {
+          "minimum": 0.99
+        },
+        "pass": true
+      },
+      {
+        "metric": "median_wall_ms",
+        "value": 416.0,
+        "rule": {
+          "maximum": 700.0
+        },
+        "pass": true
+      },
+      {
+        "metric": "p95_wall_ms",
+        "value": 1885.0,
+        "rule": {
+          "maximum": 1400.0
+        },
+        "pass": false
+      },
+      {
+        "metric": "protected_token_preservation_rate",
+        "value": 0.7,
+        "rule": {
+          "minimum": 1.0
+        },
+        "pass": false
+      },
+      {
+        "metric": "required_fragment_retention_rate",
+        "value": 0.4,
+        "rule": {
+          "minimum": 0.99
+        },
+        "pass": false
+      },
+      {
+        "metric": "structure_retention_rate",
+        "value": 1.0,
+        "rule": {
+          "minimum": 0.98
+        },
+        "pass": true
+      }
+    ],
+    "failures": [
+      "fallback_rate above maximum: 0.09999999999999998 > 0.03",
+      "guard_rejection_rate above maximum: 0.09999999999999998 > 0.02",
+      "p95_wall_ms above maximum: 1885 > 1400",
+      "protected_token_preservation_rate below minimum: 0.7 < 1",
+      "required_fragment_retention_rate below minimum: 0.4 < 0.99"
+    ],
+    "passed": false
+  },
+  "macos_baseline": {
+    "entry": "qwen3-4b-instruct-2507",
+    "source": "docs/research/polish-finetune-bootstrap-results-2026-03-10.md in the macOS repository: the repeat-confirmation medians of the bootstrap held-out set (three runs each) through the MLX runtime; the private held-out sets (eval-private-whisper-heldout-v1, eval-private-parakeet-heldout-v1) have no summary checked in on macOS, so a Linux report compares against these figures and states the latency rows as informational",
+    "rows": [
+      {
+        "metric": "exact_match_rate",
+        "linux": 0.4,
+        "macos": 1.0,
+        "verdict": "fail"
+      },
+      {
+        "metric": "fallback_rate",
+        "linux": 0.09999999999999998,
+        "macos": 0.0,
+        "verdict": "fail"
+      },
+      {
+        "metric": "forbidden_fragment_violation_rate",
+        "linux": 0.0,
+        "macos": 0.0,
+        "verdict": "pass"
+      },
+      {
+        "metric": "guard_rejection_rate",
+        "linux": 0.09999999999999998,
+        "macos": 0.0,
+        "verdict": "fail"
+      },
+      {
+        "metric": "language_anchor_retention_rate",
+        "linux": 1.0,
+        "macos": 1.0,
+        "verdict": "pass"
+      },
+      {
+        "metric": "p95_wall_ms",
+        "linux": 1885.0,
+        "macos": 1826.0,
+        "verdict": "informational"
+      },
+      {
+        "metric": "protected_token_preservation_rate",
+        "linux": 0.7,
+        "macos": 1.0,
+        "verdict": "fail"
+      },
+      {
+        "metric": "required_fragment_retention_rate",
+        "linux": 0.4,
+        "macos": 1.0,
+        "verdict": "fail"
+      },
+      {
+        "metric": "structure_retention_rate",
+        "linux": 1.0,
+        "macos": 1.0,
+        "verdict": "pass"
+      }
+    ],
+    "quality_matched": false
+  }
+}

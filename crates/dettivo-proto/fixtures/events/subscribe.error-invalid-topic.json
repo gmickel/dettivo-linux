@@ -1,0 +1,28 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32010,
+      "data": {
+        "app_code": "INVALID_PARAMS",
+        "details": {},
+        "retryable": false
+      },
+      "message": "topics[0]: unknown event topic: \"bogus.topic\""
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "events.subscribe",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "events.subscribe",
+    "params": {
+      "buffer": 256,
+      "topics": [
+        "bogus.topic"
+      ]
+    }
+  }
+}

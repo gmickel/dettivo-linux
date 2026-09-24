@@ -1,0 +1,25 @@
+{
+  "capabilities": {
+    "transfers.chunk_max_bytes": 1048576
+  },
+  "method": "transfer.begin",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transfer.begin",
+    "params": {
+      "content_type": "audio/m4a",
+      "direction": "upload",
+      "size_hint": 4200000
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "chunk_max_bytes": 1048576,
+      "expires_at": "2026-02-13T17:10:00Z",
+      "transfer_id": "xfer_1"
+    }
+  }
+}

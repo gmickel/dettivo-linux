@@ -1,0 +1,29 @@
+{
+  "description": "Start meeting capture with system audio/microphone.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "acknowledge_meeting_disclosure": {
+        "type": "boolean"
+      },
+      "capture": {
+        "additionalProperties": false,
+        "properties": {
+          "microphone": {
+            "type": "boolean"
+          },
+          "system_audio": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "title": {
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "name": "start_meeting",
+  "title": "Start Meeting"
+}

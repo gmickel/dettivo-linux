@@ -1,0 +1,151 @@
+{
+  "branch": "fix/live-qa-20260908",
+  "evidence_root": ".flow/tmp/beauty-20260908",
+  "findings": {
+    "backend": "interactive",
+    "baseSha": "ba02db93e97a9db52a3e00a2c6c034aed7157ec8",
+    "headSha": "50e7ca492f588aee48dd50d8a561f266de8ca86f",
+    "items": [
+      {
+        "body": "Idle Home remains above the 60 MB RSS requirement in two isolated runs after deferred media initialization. Evidence and rejected experiments are in docs/reports/qa/2026-09-08-live-desktop.md.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-a2ad1bdcabc877425a64bba47b34e0fc61789cdee6e7d56ddf9e24d805f1539e",
+        "id": "finding-45446f336f38ef9e9dc97907db9b238b",
+        "lastSeenReceiptId": "review-116dbaa31a3b1a03498e5eb69e77cdab9a37ce5d1993e7fdaef0c43c5d8b5b6e",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P1",
+        "status": "open",
+        "title": "QA-MEMORY"
+      },
+      {
+        "body": "Idle Home remains above the 60 MB RSS requirement in two isolated runs after deferred media initialization. Evidence and rejected experiments are in docs/reports/qa/2026-09-08-live-desktop.md.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-0db82b82c528e55049f8dcb47cfefca2b95997df36522f80c756850090f8b0a8",
+        "id": "finding-2aece7e6afd81d0be454f56a70dc5610",
+        "lastSeenReceiptId": "review-116dbaa31a3b1a03498e5eb69e77cdab9a37ce5d1993e7fdaef0c43c5d8b5b6e",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P1",
+        "status": "open",
+        "title": "QA-MEMORY"
+      },
+      {
+        "body": "The existing 60 MiB RSS requirement remains unmet. The approved fn-55 recalibration is captured but not implemented or measured under its proposed release-profile contract.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-116dbaa31a3b1a03498e5eb69e77cdab9a37ce5d1993e7fdaef0c43c5d8b5b6e",
+        "id": "finding-af22f47612d9837fa42688885cbd790c",
+        "lastSeenReceiptId": "review-116dbaa31a3b1a03498e5eb69e77cdab9a37ce5d1993e7fdaef0c43c5d8b5b6e",
+        "ordinal": 5,
+        "rIds": [],
+        "severity": "P1",
+        "status": "open",
+        "title": "QA-MEMORY"
+      },
+      {
+        "body": "Approved references do not cover the current rendered contract. The final matrix has 22 differences and 90 missing approvals. The report identifies intentional text changes made by this QA pass separately from existing keycap and theme differences. No reference or tolerance changed.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-a2ad1bdcabc877425a64bba47b34e0fc61789cdee6e7d56ddf9e24d805f1539e",
+        "id": "finding-3f51012c7622639b818d9bcbe7af1b90",
+        "lastSeenReceiptId": "review-116dbaa31a3b1a03498e5eb69e77cdab9a37ce5d1993e7fdaef0c43c5d8b5b6e",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-VISUAL"
+      },
+      {
+        "body": "Approved references do not cover the current rendered contract. The final matrix has 22 differences and 90 missing approvals. The report identifies intentional text changes made by this QA pass separately from existing keycap and theme differences. No reference or tolerance changed.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-0db82b82c528e55049f8dcb47cfefca2b95997df36522f80c756850090f8b0a8",
+        "id": "finding-f4634e9fdcc7a86d127e2ca95cd0a996",
+        "lastSeenReceiptId": "review-116dbaa31a3b1a03498e5eb69e77cdab9a37ce5d1993e7fdaef0c43c5d8b5b6e",
+        "ordinal": 4,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-VISUAL"
+      },
+      {
+        "body": "Visual acceptance remains incomplete. The post-layout matrix has 107 failures and 90 missing approvals. Of the failures, 103 compare against older approved app renders and four against original artboard crops. The report identifies intentional layout corrections, theme/runtime differences and the remaining direct-comparison failures; no reference or tolerance changed.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-116dbaa31a3b1a03498e5eb69e77cdab9a37ce5d1993e7fdaef0c43c5d8b5b6e",
+        "id": "finding-3e1e750f2a17686f82c60fb6dfb88aae",
+        "lastSeenReceiptId": "review-116dbaa31a3b1a03498e5eb69e77cdab9a37ce5d1993e7fdaef0c43c5d8b5b6e",
+        "ordinal": 6,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-VISUAL"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 3,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-116dbaa31a3b1a03498e5eb69e77cdab9a37ce5d1993e7fdaef0c43c5d8b5b6e",
+    "supersedesReceiptId": "review-0db82b82c528e55049f8dcb47cfefca2b95997df36522f80c756850090f8b0a8"
+  },
+  "fixed_findings": [
+    {
+      "id": "QA-MENU",
+      "reason": "Opaque, content-sized, window-bounded menus; fresh live keyboard selection persisted the model choice.",
+      "task": "fn-54-live-desktop-qa-after-cleanup.6"
+    }
+  ],
+  "head_sha": "50e7ca492f588aee48dd50d8a561f266de8ca86f",
+  "id": "fn-54-live-desktop-qa-after-cleanup",
+  "limitations": [
+    "Visual matrix: 393 pass, 107 fail, 90 first approval among 590 entries; zero style findings.",
+    "103 failures compare against older app renders and four against original Black Gold artboard crops. No baseline or threshold changed.",
+    "The GUI pack passed 84 routes at 0135f411 and skipped two installed Omarchy checks. The later menu repair passed focused Qt and fresh live checks.",
+    "Gordon's fn-38 R6 walkthrough remains open. The active memory-budget change remains separate in fn-55.",
+    "The worker usage-limit interruption was recovered inline with independent test reruns."
+  ],
+  "mode": "interactive",
+  "open_p0p1": [
+    {
+      "classification": "pre_existing",
+      "confidence": 100,
+      "file": "docs/reports/qa/2026-09-08-beauty-iteration.md",
+      "id": "QA-MEMORY",
+      "reason": "The existing 60 MiB RSS requirement remains unmet; the approved fn-55 recalibration is captured but not implemented or verified.",
+      "severity": "P1"
+    }
+  ],
+  "qa_outcome": "NEEDS_WORK",
+  "report": "docs/reports/qa/2026-09-08-beauty-iteration.md",
+  "rid_coverage": {
+    "covered": 4,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "live",
+        "id": "R2"
+      },
+      {
+        "coverage": "live",
+        "id": "R3"
+      },
+      {
+        "coverage": "live",
+        "id": "R4"
+      }
+    ],
+    "total": 4
+  },
+  "timestamp": "2026-09-08T21:10:48Z",
+  "type": "qa_verdict",
+  "verdict": "NEEDS_WORK",
+  "verification": {
+    "full_gate": "make build test lint passed at 50e7ca49; Rust suite and all 74 Qt tests passed. Shellcheck unavailable."
+  }
+}

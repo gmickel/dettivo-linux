@@ -1,0 +1,874 @@
+{
+  "schema_version": 1,
+  "started_unix": 1788943003.9675226,
+  "head": "11f798501f0491c91e698518cd7efa410277109d",
+  "engine": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-tuned-dist/dettivo-engines-cuda-0.1.0-linux-x86_64/usr/lib/dettivo/engines-cuda/dettivo-engine-diarize",
+  "engine_sha256": "e315ba66e85ff0f3fbd68d77e278ad288161e64813d3c3d3cd0dbb6a60d4a80d",
+  "threads": 4,
+  "speaker_count": "automatic",
+  "repeats": 2,
+  "timeout_seconds": 900,
+  "poll_seconds": 0.01,
+  "sample_seconds": 0.5,
+  "fresh_process_per_run": true,
+  "diagnostic_overrides": false,
+  "libraries": {
+    "libsherpa-onnx-c-api.so": "d6f036763cd77cb6315776f4364eaf42cbf177fd54e8f34e30871a637ca32ebc",
+    "libonnxruntime.so": "bd6591e07bac04657dddd92a4407f4b5aab8268e25b55d901e886648eeb7b8f6",
+    "libonnxruntime_providers_cuda.so": "2e37efc8c17fb24f3d248b2fba74496e9c30f743492500aad834c618f99dd942",
+    "libonnxruntime_providers_shared.so": "c6a12593396095f5670160e284c35d1700b7708cf3037b7042e2a5200ccae772"
+  },
+  "models": {
+    "segmentation.onnx": "220ad67ca923bef2fa91f2390c786097bf305bceb5e261d4af67b38e938e1079",
+    "embedding.onnx": "1a331345f04805badbb495c775a6ddffcdd1a732567d5ec8b3d5749e3c7a5e4b"
+  },
+  "gpu": "NVIDIA GeForce RTX 4090, 610.57.04, 24564 MiB",
+  "finished_unix": 1788945034.143911,
+  "validation_type": "offline real-meeting engine validation; no product/default changes",
+  "corpus": "AMI Meeting Corpus",
+  "licence": "CC BY 4.0",
+  "licence_url": "https://groups.inf.ed.ac.uk/ami/corpus/license.shtml",
+  "annotations_url": "https://groups.inf.ed.ac.uk/ami/AMICorpusAnnotations/ami_public_manual_1.6.2.zip",
+  "annotations_sha256": "b56e5babb2496b8795deeeda7e71178d7fbc9963f94276cf2a3f4b56ebbc9f9d",
+  "cpu_model": "AMD Ryzen 9 7950X3D 16-Core Processor",
+  "logical_cpus": 32,
+  "kernel": "7.1.8-arch1-3",
+  "scoring_scope": "Diagnostic DER against AMI manual utterance-segment intervals, not official AMI evaluation; exact-boundary scoring, no collar, overlap included, no speech-region restriction",
+  "scoring_self_tests": 9,
+  "raw_main_report": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-real-meetings-nQC21b/run-20260909-103643/report.json",
+  "raw_main_report_sha256": "de047f1e314dc6a4ad8a9f5cebe1696b2e6cb22d3c6da0c15a234cc4aab6e9d0",
+  "measurements": [
+    {
+      "id": "ES2002a",
+      "path": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-real-meetings-nQC21b/ES2002a.wav",
+      "sha256": "9c76866990fcc8b84006dc32d273ad99df439090b748ebe72103bb78c3216ee7",
+      "audio_seconds": 1272.64,
+      "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2002a/audio/ES2002a.Mix-Headset.wav",
+      "meeting_type": "scenario",
+      "documented_participants": 4,
+      "cpu": {
+        "median_wall_seconds": 90.86689911154099,
+        "min_wall_seconds": 90.65997371496633,
+        "max_wall_seconds": 91.07382450811565,
+        "median_cpu_seconds": 358.522016,
+        "max_rss_kib": 1200048,
+        "sampled_gpu_peak_mib": null,
+        "runs": [
+          {
+            "id": "ES2002a",
+            "repeat": 0,
+            "provider": "cpu",
+            "pid": 1104967,
+            "exit": 0,
+            "timed_out": false,
+            "valid": true,
+            "wall_seconds": 90.65997371496633,
+            "cpu_seconds": 357.834127,
+            "max_rss_kib": 1200048,
+            "realtime_factor": 14.037506827446942,
+            "found_speakers": 113,
+            "turn_count": 270,
+            "gpu_seen": false,
+            "sampled_gpu_peak_mib": null,
+            "sampler_errors": [],
+            "stdout": "ES2002a-0-cpu.stdout",
+            "stderr": "ES2002a-0-cpu.stderr"
+          },
+          {
+            "id": "ES2002a",
+            "repeat": 1,
+            "provider": "cpu",
+            "pid": 1244143,
+            "exit": 0,
+            "timed_out": false,
+            "valid": true,
+            "wall_seconds": 91.07382450811565,
+            "cpu_seconds": 359.209905,
+            "max_rss_kib": 1199904,
+            "realtime_factor": 13.973718649386402,
+            "found_speakers": 113,
+            "turn_count": 270,
+            "gpu_seen": false,
+            "sampled_gpu_peak_mib": null,
+            "sampler_errors": [],
+            "stdout": "ES2002a-1-cpu.stdout",
+            "stderr": "ES2002a-1-cpu.stderr"
+          }
+        ]
+      },
+      "cuda": {
+        "median_wall_seconds": 80.64014328015037,
+        "min_wall_seconds": 80.26121750520542,
+        "max_wall_seconds": 81.01906905509531,
+        "median_cpu_seconds": 80.48937750000002,
+        "max_rss_kib": 1883096,
+        "sampled_gpu_peak_mib": 1082,
+        "runs": [
+          {
+            "id": "ES2002a",
+            "repeat": 0,
+            "provider": "cuda",
+            "pid": 1110683,
+            "exit": 0,
+            "timed_out": false,
+            "valid": true,
+            "wall_seconds": 80.26121750520542,
+            "cpu_seconds": 80.11017000000001,
+            "max_rss_kib": 1876028,
+            "realtime_factor": 15.856225952683333,
+            "found_speakers": 112,
+            "turn_count": 273,
+            "gpu_seen": true,
+            "sampled_gpu_peak_mib": 832,
+            "sampler_errors": [],
+            "stdout": "ES2002a-0-cuda.stdout",
+            "stderr": "ES2002a-0-cuda.stderr"
+          },
+          {
+            "id": "ES2002a",
+            "repeat": 1,
+            "provider": "cuda",
+            "pid": 1234704,
+            "exit": 0,
+            "timed_out": false,
+            "valid": true,
+            "wall_seconds": 81.01906905509531,
+            "cpu_seconds": 80.86858500000001,
+            "max_rss_kib": 1883096,
+            "realtime_factor": 15.707906976005464,
+            "found_speakers": 112,
+            "turn_count": 273,
+            "gpu_seen": true,
+            "sampled_gpu_peak_mib": 1082,
+            "sampler_errors": [],
+            "stdout": "ES2002a-1-cuda.stdout",
+            "stderr": "ES2002a-1-cuda.stderr"
+          }
+        ]
+      },
+      "cuda_speedup": 1.126819663450523,
+      "wall_time_saved_percent": 11.25465480981921,
+      "cpu_time_saved_percent": 77.54966950202578,
+      "quality": {
+        "manual_reference_segments": 277,
+        "reference_files": [
+          "segments/ES2002a.A.segments.xml",
+          "segments/ES2002a.B.segments.xml",
+          "segments/ES2002a.C.segments.xml",
+          "segments/ES2002a.D.segments.xml"
+        ],
+        "manual_segment_der": [
+          {
+            "provider": "cpu",
+            "repeat": 0,
+            "der": 0.846449467967594,
+            "missed": 0.16401247774811406,
+            "false_alarm": 0.09247063929312398,
+            "confusion": 0.589966350926356,
+            "reference_speaker_seconds": 1018.453,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 113,
+            "collar_seconds": 0,
+            "overlap_included": true
+          },
+          {
+            "provider": "cuda",
+            "repeat": 0,
+            "der": 0.8573797710841835,
+            "missed": 0.16533114439252475,
+            "false_alarm": 0.09241270829385352,
+            "confusion": 0.5996359183978053,
+            "reference_speaker_seconds": 1018.453,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 112,
+            "collar_seconds": 0,
+            "overlap_included": true
+          },
+          {
+            "provider": "cuda",
+            "repeat": 1,
+            "der": 0.8573797710841835,
+            "missed": 0.16533114439252475,
+            "false_alarm": 0.09241270829385352,
+            "confusion": 0.5996359183978053,
+            "reference_speaker_seconds": 1018.453,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 112,
+            "collar_seconds": 0,
+            "overlap_included": true
+          },
+          {
+            "provider": "cpu",
+            "repeat": 1,
+            "der": 0.846449467967594,
+            "missed": 0.16401247774811406,
+            "false_alarm": 0.09247063929312398,
+            "confusion": 0.589966350926356,
+            "reference_speaker_seconds": 1018.453,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 113,
+            "collar_seconds": 0,
+            "overlap_included": true
+          }
+        ],
+        "provider_comparisons": [
+          {
+            "repeat": 0,
+            "exact_turns_equal": false,
+            "cuda_speedup": 1.1295614062805175,
+            "cpu_reference_disagreement": {
+              "der": 0.12518943179450734,
+              "missed": 0.0032857757740926046,
+              "false_alarm": 0.00180310514799739,
+              "confusion": 0.12010055087241736,
+              "reference_speaker_seconds": 945.591,
+              "reference_speakers": 113,
+              "hypothesis_speakers": 112,
+              "collar_seconds": 0,
+              "overlap_included": true
+            }
+          },
+          {
+            "repeat": 1,
+            "exact_turns_equal": false,
+            "cuda_speedup": 1.1241035668551413,
+            "cpu_reference_disagreement": {
+              "der": 0.12518943179450734,
+              "missed": 0.0032857757740926046,
+              "false_alarm": 0.00180310514799739,
+              "confusion": 0.12010055087241736,
+              "reference_speaker_seconds": 945.591,
+              "reference_speakers": 113,
+              "hypothesis_speakers": 112,
+              "collar_seconds": 0,
+              "overlap_included": true
+            }
+          }
+        ],
+        "repeatability": [
+          {
+            "provider": "cpu",
+            "exact_turns_equal": true,
+            "disagreement": {
+              "der": 0.0,
+              "missed": 0.0,
+              "false_alarm": 0.0,
+              "confusion": 0.0,
+              "reference_speaker_seconds": 945.591,
+              "reference_speakers": 113,
+              "hypothesis_speakers": 113,
+              "collar_seconds": 0,
+              "overlap_included": true
+            }
+          },
+          {
+            "provider": "cuda",
+            "exact_turns_equal": true,
+            "disagreement": {
+              "der": 0.0,
+              "missed": 0.0,
+              "false_alarm": 0.0,
+              "confusion": 0.0,
+              "reference_speaker_seconds": 944.189,
+              "reference_speakers": 112,
+              "hypothesis_speakers": 112,
+              "collar_seconds": 0,
+              "overlap_included": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "IS1009b",
+      "path": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-real-meetings-nQC21b/IS1009b.wav",
+      "sha256": "07c2891ae6ad7c507b2a4f15b2dcd0a2343491df9e4e6a58f9db0d0b2c5e1382",
+      "audio_seconds": 2052.3333125,
+      "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/IS1009b/audio/IS1009b.Mix-Headset.wav",
+      "meeting_type": "scenario",
+      "documented_participants": 4,
+      "cpu": {
+        "median_wall_seconds": 193.01689109159634,
+        "min_wall_seconds": 178.26814290182665,
+        "max_wall_seconds": 207.76563928136602,
+        "median_cpu_seconds": 753.796554,
+        "max_rss_kib": 2141224,
+        "sampled_gpu_peak_mib": null,
+        "runs": [
+          {
+            "id": "IS1009b",
+            "repeat": 0,
+            "provider": "cpu",
+            "pid": 1136211,
+            "exit": 0,
+            "timed_out": false,
+            "valid": true,
+            "wall_seconds": 207.76563928136602,
+            "cpu_seconds": 803.819951,
+            "max_rss_kib": 2141224,
+            "realtime_factor": 9.878117091925068,
+            "found_speakers": 133,
+            "turn_count": 320,
+            "gpu_seen": false,
+            "sampled_gpu_peak_mib": null,
+            "sampler_errors": [],
+            "stdout": "IS1009b-0-cpu.stdout",
+            "stderr": "IS1009b-0-cpu.stderr"
+          },
+          {
+            "id": "IS1009b",
+            "repeat": 1,
+            "provider": "cpu",
+            "pid": 1249960,
+            "exit": 0,
+            "timed_out": false,
+            "valid": true,
+            "wall_seconds": 178.26814290182665,
+            "cpu_seconds": 703.7731570000001,
+            "max_rss_kib": 2135052,
+            "realtime_factor": 11.512619580214242,
+            "found_speakers": 133,
+            "turn_count": 320,
+            "gpu_seen": false,
+            "sampled_gpu_peak_mib": null,
+            "sampler_errors": [],
+            "stdout": "IS1009b-1-cpu.stdout",
+            "stderr": "IS1009b-1-cpu.stderr"
+          }
+        ]
+      },
+      "cuda": {
+        "median_wall_seconds": 121.78426108253188,
+        "min_wall_seconds": 121.19479697104543,
+        "max_wall_seconds": 122.37372519401833,
+        "median_cpu_seconds": 121.53436500000001,
+        "max_rss_kib": 2852428,
+        "sampled_gpu_peak_mib": 844,
+        "runs": [
+          {
+            "id": "IS1009b",
+            "repeat": 0,
+            "provider": "cuda",
+            "pid": 1119996,
+            "exit": 0,
+            "timed_out": false,
+            "valid": true,
+            "wall_seconds": 121.19479697104543,
+            "cpu_seconds": 120.919923,
+            "max_rss_kib": 2841416,
+            "realtime_factor": 16.93417014420447,
+            "found_speakers": 134,
+            "turn_count": 325,
+            "gpu_seen": true,
+            "sampled_gpu_peak_mib": 844,
+            "sampler_errors": [],
+            "stdout": "IS1009b-0-cuda.stdout",
+            "stderr": "IS1009b-0-cuda.stderr"
+          },
+          {
+            "id": "IS1009b",
+            "repeat": 1,
+            "provider": "cuda",
+            "pid": 1266294,
+            "exit": 0,
+            "timed_out": false,
+            "valid": true,
+            "wall_seconds": 122.37372519401833,
+            "cpu_seconds": 122.148807,
+            "max_rss_kib": 2852428,
+            "realtime_factor": 16.771029150629456,
+            "found_speakers": 134,
+            "turn_count": 325,
+            "gpu_seen": true,
+            "sampled_gpu_peak_mib": 844,
+            "sampler_errors": [],
+            "stdout": "IS1009b-1-cuda.stdout",
+            "stderr": "IS1009b-1-cuda.stderr"
+          }
+        ]
+      },
+      "cuda_speedup": 1.5849083401737016,
+      "wall_time_saved_percent": 36.904868587517,
+      "cpu_time_saved_percent": 83.87703361668592,
+      "quality": {
+        "manual_reference_segments": 409,
+        "reference_files": [
+          "segments/IS1009b.A.segments.xml",
+          "segments/IS1009b.B.segments.xml",
+          "segments/IS1009b.C.segments.xml",
+          "segments/IS1009b.D.segments.xml"
+        ],
+        "manual_segment_der": [
+          {
+            "provider": "cuda",
+            "repeat": 0,
+            "der": 0.5119285583109962,
+            "missed": 0.089733028766877,
+            "false_alarm": 0.02181290949816426,
+            "confusion": 0.4003826200459549,
+            "reference_speaker_seconds": 2074.643,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 134,
+            "collar_seconds": 0,
+            "overlap_included": true
+          },
+          {
+            "provider": "cpu",
+            "repeat": 0,
+            "der": 0.5339525884694378,
+            "missed": 0.0898665457141301,
+            "false_alarm": 0.022743672043816696,
+            "confusion": 0.4213423707114911,
+            "reference_speaker_seconds": 2074.643,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 133,
+            "collar_seconds": 0,
+            "overlap_included": true
+          },
+          {
+            "provider": "cpu",
+            "repeat": 1,
+            "der": 0.5339525884694378,
+            "missed": 0.0898665457141301,
+            "false_alarm": 0.022743672043816696,
+            "confusion": 0.4213423707114911,
+            "reference_speaker_seconds": 2074.643,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 133,
+            "collar_seconds": 0,
+            "overlap_included": true
+          },
+          {
+            "provider": "cuda",
+            "repeat": 1,
+            "der": 0.5119285583109962,
+            "missed": 0.089733028766877,
+            "false_alarm": 0.02181290949816426,
+            "confusion": 0.4003826200459549,
+            "reference_speaker_seconds": 2074.643,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 134,
+            "collar_seconds": 0,
+            "overlap_included": true
+          }
+        ],
+        "provider_comparisons": [
+          {
+            "repeat": 0,
+            "exact_turns_equal": false,
+            "cuda_speedup": 1.7143115420293429,
+            "cpu_reference_disagreement": {
+              "der": 0.1062598849739096,
+              "missed": 0.001142407177479233,
+              "false_alarm": 0.0002877977376101007,
+              "confusion": 0.10482968005882028,
+              "reference_speaker_seconds": 1935.387,
+              "reference_speakers": 133,
+              "hypothesis_speakers": 134,
+              "collar_seconds": 0,
+              "overlap_included": true
+            }
+          },
+          {
+            "repeat": 1,
+            "exact_turns_equal": false,
+            "cuda_speedup": 1.4567517873562328,
+            "cpu_reference_disagreement": {
+              "der": 0.1062598849739096,
+              "missed": 0.001142407177479233,
+              "false_alarm": 0.0002877977376101007,
+              "confusion": 0.10482968005882028,
+              "reference_speaker_seconds": 1935.387,
+              "reference_speakers": 133,
+              "hypothesis_speakers": 134,
+              "collar_seconds": 0,
+              "overlap_included": true
+            }
+          }
+        ],
+        "repeatability": [
+          {
+            "provider": "cpu",
+            "exact_turns_equal": true,
+            "disagreement": {
+              "der": 0.0,
+              "missed": 0.0,
+              "false_alarm": 0.0,
+              "confusion": 0.0,
+              "reference_speaker_seconds": 1935.387,
+              "reference_speakers": 133,
+              "hypothesis_speakers": 133,
+              "collar_seconds": 0,
+              "overlap_included": true
+            }
+          },
+          {
+            "provider": "cuda",
+            "exact_turns_equal": true,
+            "disagreement": {
+              "der": 0.0,
+              "missed": 0.0,
+              "false_alarm": 0.0,
+              "confusion": 0.0,
+              "reference_speaker_seconds": 1933.733,
+              "reference_speakers": 134,
+              "hypothesis_speakers": 134,
+              "collar_seconds": 0,
+              "overlap_included": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "EN2001b",
+      "path": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-real-meetings-nQC21b/EN2001b.wav",
+      "sha256": "1db444de2d5b2eaa73d1831bff84ae97b9d73cc286c51cf6c8c588ca44d41296",
+      "audio_seconds": 3451.8826875,
+      "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/EN2001b/audio/EN2001b.Mix-Headset.wav",
+      "meeting_type": "nonscenario",
+      "documented_participants": 4,
+      "cpu": {
+        "median_wall_seconds": 301.0942995455116,
+        "min_wall_seconds": 296.4401216330007,
+        "max_wall_seconds": 305.74847745802253,
+        "median_cpu_seconds": 1185.3797835,
+        "max_rss_kib": 4733196,
+        "sampled_gpu_peak_mib": null,
+        "runs": [
+          {
+            "id": "EN2001b",
+            "repeat": 0,
+            "provider": "cpu",
+            "pid": 1193429,
+            "exit": 0,
+            "timed_out": false,
+            "valid": true,
+            "wall_seconds": 296.4401216330007,
+            "cpu_seconds": 1167.1752889999998,
+            "max_rss_kib": 4733196,
+            "realtime_factor": 11.644451731043027,
+            "found_speakers": 200,
+            "turn_count": 669,
+            "gpu_seen": false,
+            "sampled_gpu_peak_mib": null,
+            "sampler_errors": [],
+            "stdout": "EN2001b-0-cpu.stdout",
+            "stderr": "EN2001b-0-cpu.stderr"
+          },
+          {
+            "id": "EN2001b",
+            "repeat": 1,
+            "provider": "cpu",
+            "pid": 1311614,
+            "exit": 0,
+            "timed_out": false,
+            "valid": true,
+            "wall_seconds": 305.74847745802253,
+            "cpu_seconds": 1203.584278,
+            "max_rss_kib": 4728748,
+            "realtime_factor": 11.28994236111584,
+            "found_speakers": 200,
+            "turn_count": 669,
+            "gpu_seen": false,
+            "sampled_gpu_peak_mib": null,
+            "sampler_errors": [],
+            "stdout": "EN2001b-1-cpu.stdout",
+            "stderr": "EN2001b-1-cpu.stderr"
+          }
+        ]
+      },
+      "cuda": {
+        "median_wall_seconds": 227.33300857641734,
+        "min_wall_seconds": 224.93998893769458,
+        "max_wall_seconds": 229.7260282151401,
+        "median_cpu_seconds": 226.64834150000002,
+        "max_rss_kib": 5375852,
+        "sampled_gpu_peak_mib": 844,
+        "runs": [
+          {
+            "id": "EN2001b",
+            "repeat": 0,
+            "provider": "cuda",
+            "pid": 1219358,
+            "exit": 0,
+            "timed_out": false,
+            "valid": true,
+            "wall_seconds": 224.93998893769458,
+            "cpu_seconds": 224.300376,
+            "max_rss_kib": 5375852,
+            "realtime_factor": 15.345793799501457,
+            "found_speakers": 197,
+            "turn_count": 662,
+            "gpu_seen": true,
+            "sampled_gpu_peak_mib": 828,
+            "sampler_errors": [],
+            "stdout": "EN2001b-0-cuda.stdout",
+            "stderr": "EN2001b-0-cuda.stderr"
+          },
+          {
+            "id": "EN2001b",
+            "repeat": 1,
+            "provider": "cuda",
+            "pid": 1279060,
+            "exit": 0,
+            "timed_out": false,
+            "valid": true,
+            "wall_seconds": 229.7260282151401,
+            "cpu_seconds": 228.996307,
+            "max_rss_kib": 5370176,
+            "realtime_factor": 15.02608439417795,
+            "found_speakers": 197,
+            "turn_count": 662,
+            "gpu_seen": true,
+            "sampled_gpu_peak_mib": 844,
+            "sampler_errors": [],
+            "stdout": "EN2001b-1-cuda.stdout",
+            "stderr": "EN2001b-1-cuda.stderr"
+          }
+        ]
+      },
+      "cuda_speedup": 1.324463620267884,
+      "wall_time_saved_percent": 24.497737446518798,
+      "cpu_time_saved_percent": 80.87968559487416,
+      "quality": {
+        "manual_reference_segments": 666,
+        "reference_files": [
+          "segments/EN2001b.A.segments.xml",
+          "segments/EN2001b.B.segments.xml",
+          "segments/EN2001b.C.segments.xml",
+          "segments/EN2001b.D.segments.xml"
+        ],
+        "manual_segment_der": [
+          {
+            "provider": "cpu",
+            "repeat": 0,
+            "der": 0.8022666776269084,
+            "missed": 0.08875195229305693,
+            "false_alarm": 0.01930188242151595,
+            "confusion": 0.6942128429123355,
+            "reference_speaker_seconds": 3345.425,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 200,
+            "collar_seconds": 0,
+            "overlap_included": true
+          },
+          {
+            "provider": "cuda",
+            "repeat": 0,
+            "der": 0.8012031356255185,
+            "missed": 0.08896418242824156,
+            "false_alarm": 0.019796587877474462,
+            "confusion": 0.6924423653198024,
+            "reference_speaker_seconds": 3345.425,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 197,
+            "collar_seconds": 0,
+            "overlap_included": true
+          },
+          {
+            "provider": "cuda",
+            "repeat": 1,
+            "der": 0.8012031356255185,
+            "missed": 0.08896418242824156,
+            "false_alarm": 0.019796587877474462,
+            "confusion": 0.6924423653198024,
+            "reference_speaker_seconds": 3345.425,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 197,
+            "collar_seconds": 0,
+            "overlap_included": true
+          },
+          {
+            "provider": "cpu",
+            "repeat": 1,
+            "der": 0.8022666776269084,
+            "missed": 0.08875195229305693,
+            "false_alarm": 0.01930188242151595,
+            "confusion": 0.6942128429123355,
+            "reference_speaker_seconds": 3345.425,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 200,
+            "collar_seconds": 0,
+            "overlap_included": true
+          }
+        ],
+        "provider_comparisons": [
+          {
+            "repeat": 0,
+            "exact_turns_equal": false,
+            "cuda_speedup": 1.3178631466684685,
+            "cpu_reference_disagreement": {
+              "der": 0.20164402835129783,
+              "missed": 0.0009970816730028253,
+              "false_alarm": 0.0013006390766715332,
+              "confusion": 0.19934630760162347,
+              "reference_speaker_seconds": 3113.085,
+              "reference_speakers": 200,
+              "hypothesis_speakers": 197,
+              "collar_seconds": 0,
+              "overlap_included": true
+            }
+          },
+          {
+            "repeat": 1,
+            "exact_turns_equal": false,
+            "cuda_speedup": 1.3309265816918527,
+            "cpu_reference_disagreement": {
+              "der": 0.20164402835129783,
+              "missed": 0.0009970816730028253,
+              "false_alarm": 0.0013006390766715332,
+              "confusion": 0.19934630760162347,
+              "reference_speaker_seconds": 3113.085,
+              "reference_speakers": 200,
+              "hypothesis_speakers": 197,
+              "collar_seconds": 0,
+              "overlap_included": true
+            }
+          }
+        ],
+        "repeatability": [
+          {
+            "provider": "cpu",
+            "exact_turns_equal": true,
+            "disagreement": {
+              "der": 0.0,
+              "missed": 0.0,
+              "false_alarm": 0.0,
+              "confusion": 0.0,
+              "reference_speaker_seconds": 3113.085,
+              "reference_speakers": 200,
+              "hypothesis_speakers": 200,
+              "collar_seconds": 0,
+              "overlap_included": true
+            }
+          },
+          {
+            "provider": "cuda",
+            "exact_turns_equal": true,
+            "disagreement": {
+              "der": 0.0,
+              "missed": 0.0,
+              "false_alarm": 0.0,
+              "confusion": 0.0,
+              "reference_speaker_seconds": 3114.03,
+              "reference_speakers": 197,
+              "hypothesis_speakers": 197,
+              "collar_seconds": 0,
+              "overlap_included": true
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "known_four_control": {
+    "scope": "Known four-speaker diagnostic, not automatic-mode validation",
+    "raw_report": "known-four-20260909-111250/report.json",
+    "raw_report_sha256": "60a48d2ebab13ef1cdac67a8efdc2897f410986df32f4540666e6258e89992fc",
+    "runs": [
+      {
+        "id": "ES2002a",
+        "repeat": 0,
+        "provider": "cpu",
+        "valid": true,
+        "wall_seconds": 94.53615167923272,
+        "exit": 0,
+        "found_speakers": 4
+      },
+      {
+        "id": "ES2002a",
+        "repeat": 0,
+        "provider": "cuda",
+        "valid": true,
+        "wall_seconds": 83.18049001600593,
+        "exit": 0,
+        "found_speakers": 4
+      }
+    ],
+    "quality": {
+      "manual_reference_segments": 277,
+      "reference_files": [
+        "segments/ES2002a.A.segments.xml",
+        "segments/ES2002a.B.segments.xml",
+        "segments/ES2002a.C.segments.xml",
+        "segments/ES2002a.D.segments.xml"
+      ],
+      "manual_segment_der": [
+        {
+          "provider": "cpu",
+          "repeat": 0,
+          "der": 0.28928875461116027,
+          "missed": 0.16573175198070014,
+          "false_alarm": 0.09205333972210794,
+          "confusion": 0.03150366290835218,
+          "reference_speaker_seconds": 1018.453,
+          "reference_speakers": 4,
+          "hypothesis_speakers": 4,
+          "collar_seconds": 0,
+          "overlap_included": true
+        },
+        {
+          "provider": "cuda",
+          "repeat": 0,
+          "der": 0.27929811194036447,
+          "missed": 0.16407433627275878,
+          "false_alarm": 0.09296354372759469,
+          "confusion": 0.022260231940010977,
+          "reference_speaker_seconds": 1018.453,
+          "reference_speakers": 4,
+          "hypothesis_speakers": 4,
+          "collar_seconds": 0,
+          "overlap_included": true
+        }
+      ],
+      "provider_comparisons": [
+        {
+          "repeat": 0,
+          "exact_turns_equal": false,
+          "cuda_speedup": 1.1365183309336322,
+          "cpu_reference_disagreement": {
+            "der": 0.04489434660250261,
+            "missed": 0.0008045239899725996,
+            "false_alarm": 0.003576368830260278,
+            "confusion": 0.04051345378226973,
+            "reference_speaker_seconds": 943.415,
+            "reference_speakers": 4,
+            "hypothesis_speakers": 4,
+            "collar_seconds": 0,
+            "overlap_included": true
+          }
+        }
+      ],
+      "repeatability": []
+    },
+    "gpu_pid_sampling": false
+  },
+  "harness_sha256": {
+    "validate.py": "23798cbe32431c770722e0601f0cd68ee635ab9e184bfb9f8d054b7d7736a4b7",
+    "score.py": "3919a0f9404a911fc2406335284605f07104054abd55510ba9a33b27e99e781f",
+    "known_four.py": "d5e06d3180b721541f1fa1ffebae6cf4565ce0c2e431d7fcdb1192bc080d5211",
+    "summarize.py": "8f574c13e862ddb914678e5e4c349e5a75933d6e56365d81e45bc4b16c274cd6",
+    "check_alignment.py": "bab36c2713ca1e73a90dcd206ba49da595531035becfb1a44c2b1a39cf3a4006"
+  },
+  "postflight_engine_library_model_audio_hashes_unchanged": true,
+  "annotation_timing_check": {
+    "method": "50 Hz union-of-speech masks, FFT correlation over plus/minus 50 seconds against CPU output",
+    "best_hypothesis_shift_seconds": {
+      "ES2002a": 0.0,
+      "IS1009b": 0.0,
+      "EN2001b": 0.0
+    },
+    "correction_applied": false,
+    "scope": "gross-offset diagnostic only"
+  },
+  "outcome": {
+    "cuda_faster_in_every_pair": true,
+    "all_automatic_counts_match_documented_participants": false,
+    "cpu_cuda_equivalence": false,
+    "product_code_changed": false,
+    "defaults_changed": false,
+    "host_installation": false,
+    "shipping_approved": false
+  }
+}

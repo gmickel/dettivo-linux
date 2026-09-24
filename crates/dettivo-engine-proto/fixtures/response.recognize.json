@@ -1,0 +1,19 @@
+{
+  "id": 3,
+  "kind": "response",
+  "name": "recognize",
+  "payload": {
+    "backend": "cpu",
+    "duration_ms": 1000,
+    "language": "en",
+    "segments": [
+      {
+        "end_ms": 900,
+        "start_ms": 0,
+        "text": "Hello team."
+      }
+    ],
+    "text": "Hello team."
+  },
+  "v": 1
+}

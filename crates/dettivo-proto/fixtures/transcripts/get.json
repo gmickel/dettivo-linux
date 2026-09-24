@@ -1,0 +1,50 @@
+{
+  "capabilities": {},
+  "method": "transcripts.get",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transcripts.get",
+    "params": {
+      "ref": {
+        "id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "kind": "meeting"
+      }
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "meeting": {
+        "analysis": null,
+        "analysis_status": "none",
+        "ended_at": "2026-02-13T16:30:00Z",
+        "language": "en",
+        "notes": "",
+        "notes_source": "user",
+        "stt_model_id": "large-v3-turbo",
+        "stt_provider_id": "whisper"
+      },
+      "ref": {
+        "id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "kind": "meeting"
+      },
+      "segments": [
+        {
+          "end_ms": 1200,
+          "index": 0,
+          "polished_text": "Hello.",
+          "source_type": "microphone",
+          "speaker": "You",
+          "speaker_confidence": 1.0,
+          "speaker_id": "you",
+          "start_ms": 0,
+          "text": "Hello."
+        }
+      ],
+      "text_polish": "Hello.",
+      "text_raw": "hello"
+    }
+  }
+}

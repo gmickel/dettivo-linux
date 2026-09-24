@@ -1,0 +1,38 @@
+{
+  "branch_name": "fn-17-qt-app-shell-window-routes-daemon",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-04T07:57:02.351304Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-4-qa-rig-foundation-drivers-xvfb-ci",
+    "fn-9-dictation-session-state-machine-ipc",
+    "fn-5-design-system-theme-tokens-quick",
+    "fn-12-osd-the-qml-pill-component-dettivo-osd"
+  ],
+  "id": "fn-17-qt-app-shell-window-routes-daemon",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-17-qt-app-shell-window-routes-daemon.md",
+  "status": "done",
+  "title": "Qt app shell: window, routes, daemon client, live theme and the Home surface",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T15:59:50.668839Z"
+}

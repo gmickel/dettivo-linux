@@ -1,0 +1,30 @@
+{
+  "capabilities": {},
+  "method": "meetings.diarize",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.diarize",
+    "params": {
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "speakers": 2
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "job": {
+        "error": null,
+        "job_id": "job_diarize_1",
+        "message": "diarizing",
+        "progress": 0.0,
+        "state": "running"
+      },
+      "ref": {
+        "id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "kind": "meeting"
+      }
+    }
+  }
+}

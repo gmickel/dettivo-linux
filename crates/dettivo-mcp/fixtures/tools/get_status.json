@@ -1,0 +1,10 @@
+{
+  "description": "Get app and recording health state.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+  },
+  "name": "get_status",
+  "title": "Get Status"
+}

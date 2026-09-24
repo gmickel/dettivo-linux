@@ -1,0 +1,35 @@
+# Voxtype reuse review
+
+Dettivo for Linux ships without a line of Voxtype's source in it, and this review is the evidence: one row per area of the reuse policy the product plan set (Voxtype is prior art, clean-room by default, direct reuse of its MIT-licensed source allowed for narrow seams and always attributed in `NOTICE.md`), the Dettivo files that implement the area, and the verdict. `cargo run -p xtask -- lint-notice` keeps the review true from here on: a span copied from Voxtype carries the comment `Reused from Voxtype (MIT), see NOTICE.md` and a row in the reuse table of [NOTICE.md](../../NOTICE.md), and the lint fails on a marker without a row and on a row without a marker, by path.
+
+## Method
+
+The review was made at commit `d524e4d` and holds at the head this file lands with. For each area it reads every Dettivo file that implements it and compares the mechanism with the behaviour Voxtype documents (its key bindings, its tool order, its config); it does not read Voxtype's source, so nothing could be carried across while it was written. The whole tree was then searched for the reuse marker and for the identifiers `voxtype` and `Voxtype`: the marker appears nowhere, and the identifier appears only in the places listed under [Mentions](#mentions), each one a note about the keys Omarchy binds to Voxtype, a comparison in a decision record, or this review's own path.
+
+## Verdicts
+
+`clean-room` means the mechanism was written from the contract or the behaviour with no upstream text; `behavioural` means an observable behaviour of Voxtype was adopted on purpose and implemented clean-room; `direct-reuse` would mean a copied span with its marker and notice row, and no area carries it.
+
+| Area | Policy posture | Dettivo files | Verdict | Notes |
+|---|---|---|---|---|
+| Daemon and CLI shape | Inspiration only; Dettivo's contract dictates structure | `crates/dettivod/`, `crates/dettivo-cli/`, `crates/dettivo-proto/`, `docs/api/dettivo-ipc-v1.md` | `clean-room` | The daemon speaks the macOS IPC v1 contract over a Unix socket and the CLI maps one verb to one method ([ADR 0002](../adr/0002-daemon-owns-the-contract.md), [ADR 0008](../adr/0008-contract-parity.md)); the shape comes from the copied contract, pinned by hash. |
+| Compositor binding snippets for Hyprland, Sway, Niri, River | Direct reuse allowed with attribution | `crates/dettivo-hotkeys/src/snippet.rs`, `crates/dettivo-cli/src/setup.rs`, `crates/dettivo-cli/tests/goldens/*.conf`, `*.lua` | `clean-room` | The snippets are rendered by a generator from the `[hotkeys]` chords: classic and Lua Hyprland flavours with `unbind` lines for the two chords Omarchy binds to Voxtype, Sway with `--release`, Niri toggle-only because it has no release bindings ([ADR 0016](../adr/0016-hotkeys-compositor-bindings-portal-evdev.md)). River is not supported. No upstream text is carried, so no attribution is owed. |
+| Insertion tool detection order | Behavioural reuse; clean-room implementation | `crates/dettivo-insert/src/chain.rs`, `crates/dettivo-insert/src/backend/{virtual_keyboard,libei,commands,clipboard}.rs`, `crates/dettivo-insert/src/probe/` | `behavioural` | The chain tries the Wayland virtual keyboard, libei through the RemoteDesktop portal, `ydotool`, `xdotool`, the clipboard with a paste keystroke and the clipboard alone, in that order, with a pin and per-text demotion ([ADR 0007](../adr/0007-in-process-text-insertion.md)); the order is the FR-I1 rule, the code is Dettivo's. |
+| MPRIS pause and resume | Clean-room via `zbus` | `crates/dettivo-hotkeys/src/mpris.rs`, `crates/dettivo-hotkeys/src/mock/player.rs` | `clean-room` | Every `org.mpris.MediaPlayer2.*` player that is playing when capture starts is paused and the same players resumed after; a player the user paused is left alone. |
+| Model download and checksum | Clean-room; catalogue format is Dettivo's | `crates/dettivo-speech/src/{catalogue,download,models}.rs`, `crates/dettivo-speech/catalogue/v1.toml` | `clean-room` | The catalogue pins a SHA-256 per file, downloads resume with a `Range` request, a mismatch quarantines the file ([docs/models.md](../models.md)). |
+| Meeting mode | Behavioural evidence only; Dettivo's meeting model is richer | `crates/dettivo-meeting/`, `crates/dettivo-audio/`, `crates/dettivod/src/meetings*` | `clean-room` | Two PipeWire streams on one clock with a journal, a live checkpoint and recovery ([ADR 0027](../adr/0027-two-stream-meeting-capture-journal-and-checkpoint.md)), live windowed transcription ([ADR 0031](../adr/0031-live-windowed-meeting-transcription-and-cross-source-suppression.md)) and the speaker pass ([ADR 0035](../adr/0035-sherpa-onnx-diarization-engine-and-the-speaker-pass.md)); nothing of Voxtype's meeting mode was adopted. |
+| OSD frontends | Not reused; Qt Quick component | `qt/qml/Dettivo/` (the `Osd` component), `qt/apps/dettivo-osd/`, `omarchy/` | `clean-room` | One QML pill driven by the daemon's event stream, hosted on a layer-shell overlay or by the Omarchy panel ([ADR 0015](../adr/0015-osd-pill-hosting.md), [ADR 0030](../adr/0030-omarchy-plugin-in-repo-folder-mirror-and-panel-hosted-pill.md)). |
+| Model artifacts | Never reused without independent license review | `crates/dettivo-speech/catalogue/v1.toml`, `docs/models.md` | `clean-room` | Every model downloads from its own upstream release (the ggerganov Whisper files, `mudler/parakeet-cpp-gguf`, the Qwen3 GGUF repositories, the k2-fsa diarization set) under the licence the catalogue names; no file distributed by Voxtype is fetched. |
+
+## Mentions
+
+The identifier `Voxtype` appears in these tracked files outside `.flow/` and nowhere else:
+
+- `crates/dettivo-hotkeys/src/snippet.rs` and `crates/dettivo-hotkeys/src/lib.rs` (the note the generator prints and the default chords).
+- `crates/dettivo-cli/tests/goldens/hyprland.conf`, `hyprland.lua`, `custom-hyprland.conf`, `custom-hyprland.lua` (the rendered comment line).
+- `crates/dettivo-core/src/config/default_toml.rs` and the fixtures `crates/dettivo-proto/fixtures/config/{keys,print_default}.json` and `crates/dettivo-proto/fixtures/hotkeys/snippet.json` (the `[hotkeys]` comment).
+- `docs/hotkeys.md`, `docs/adr/0016-hotkeys-compositor-bindings-portal-evdev.md` and `docs/guides/omarchy.md` (the same fact for the reader), `docs/adr/0004-ggml-family-vulkan.md` and `docs/adr/0006-pipewire-capture.md` (why Dettivo chose ggml on Vulkan and PipeWire's native API where Voxtype chose otherwise), `qt/fixtures/themes/tokyo-night/shell.toml` (Omarchy's own theme comment, copied with the fixture), and `NOTICE.md`, `qa/evidence-map.toml` and `tools/xtask/src/notice_markers.rs` (this review's path and the marker rule).
+
+## Keeping it true
+
+A future direct reuse is allowed by the policy for a narrow, well-understood seam: the span carries the marker on its first line, `NOTICE.md` gains a row with the upstream file, the commit and `MIT`, and this table's row for the area moves to `direct-reuse` naming the file. The lint holds the first two; a reviewer holds the third.

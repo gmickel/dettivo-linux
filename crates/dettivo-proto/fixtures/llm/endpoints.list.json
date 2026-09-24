@@ -1,0 +1,22 @@
+{
+  "capabilities": {},
+  "method": "llm.endpoints.list",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "llm.endpoints.list",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "endpoints": [
+        {
+          "loopback": true,
+          "url": "http://localhost:11434"
+        }
+      ]
+    }
+  }
+}

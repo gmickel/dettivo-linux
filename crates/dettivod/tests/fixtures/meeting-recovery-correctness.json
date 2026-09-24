@@ -1,0 +1,12 @@
+{
+  "source_kinds": ["capture", "audioImport"],
+  "recoverable_statuses": ["transcribing", "failed", "cancelled", "stopped"],
+  "damaged_inputs": ["missing_capture", "missing_system", "truncated_import"],
+  "retry_status": "transcribing",
+  "completed_retry_error": "meetingNotPartial",
+  "damaged_input_error": "audioNotRetained",
+  "cancel_method": "meetings.cancel",
+  "cancel_job_state": "cancelled",
+  "cancel_completed_error": "meetingNotActive",
+  "late_cancel_error": "jobSettling"
+}

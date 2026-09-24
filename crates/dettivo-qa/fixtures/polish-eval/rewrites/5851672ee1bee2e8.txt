@@ -1,0 +1,1 @@
+Run `cargo build`, then `cargo test`, then push the branch.

@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body{margin:0;background:#0D0D0D;color:#EBDBB2;font-family:ui-monospace,"Cascadia Mono","CaskaydiaMono Nerd Font",monospace;font-size:12px;line-height:1.45}
+    a{color:#BFA75D} a:hover{color:#F5BF03}
+    .box{border:1px solid rgba(235,219,178,.45);position:relative;padding:14px 12px 10px}
+    .box::before{content:attr(data-t);position:absolute;top:-8px;left:8px;background:#0D0D0D;padding:0 6px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#BFA75D}
+    .ph{background:rgba(235,219,178,.08);height:10px}
+    .row{display:flex;gap:8px;align-items:center}
+    .g{color:#F5BF03}
+  </style>
+</helmet>
+<div style="width:900px;height:560px;box-sizing:border-box;padding:28px;display:flex;flex-direction:column;gap:14px;background:#0D0D0D">
+  <div style="display:flex;justify-content:space-between;align-items:baseline">
+    <div><span style="font-size:16px;font-weight:600">Direction A · Instrument</span><span style="color:rgba(235,219,178,.5)"> · low-fi sketch</span></div>
+    <div style="font-size:11px;color:rgba(235,219,178,.5)">every number visible, btop energy, boxed panels</div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:14px;flex:1">
+    <div class="box" data-t="engines" style="display:flex;flex-direction:column;gap:8px">
+      <div class="row"><span style="width:90px">whisper</span><div class="ph" style="flex:1"></div><span class="g">warm</span></div>
+      <div class="row"><span style="width:90px">parakeet</span><div class="ph" style="flex:1;width:40%"></div><span>idle</span></div>
+      <div class="row"><span style="width:90px">qwen3 4b</span><div class="ph" style="flex:1"></div><span>2.4 GB</span></div>
+      <div class="row"><span style="width:90px">vram</span><div class="ph" style="flex:1"></div><span>3.1 / 24</span></div>
+      <div class="row"><span style="width:90px">latency p50</span><div class="ph" style="flex:1"></div><span class="g">0.9 s</span></div>
+      <div class="row"><span style="width:90px">insert ok</span><div class="ph" style="flex:1"></div><span>99.1%</span></div>
+    </div>
+    <div class="box" data-t="dictation" style="display:flex;flex-direction:column;gap:8px">
+      <div class="row"><span>mode</span><span class="g">[enhanced]</span><span>raw</span><span>polish</span></div>
+      <div style="height:48px;border:1px dashed rgba(235,219,178,.3);display:flex;align-items:center;justify-content:center;color:rgba(235,219,178,.4)">waveform</div>
+      <div class="row"><span>hotkeys</span><span class="g">F9</span><span>hold</span><span class="g">S+C+X</span><span>toggle</span></div>
+      <div class="row"><span>target</span><span>ghostty</span><span class="g">vk</span></div>
+      <div class="ph"></div><div class="ph" style="width:70%"></div>
+    </div>
+    <div class="box" data-t="meeting" style="display:flex;flex-direction:column;gap:8px">
+      <div class="row"><span class="g">●</span><span>00:23:41</span><span>mic</span><span class="g">▮▮▮▯▯</span><span>sys</span><span>▮▮▯▯▯</span></div>
+      <div class="ph"></div><div class="ph" style="width:80%"></div><div class="ph" style="width:60%"></div><div class="ph"></div>
+      <div class="row" style="margin-top:auto"><span>[stop]</span><span>[pause]</span><span>[notes]</span></div>
+    </div>
+    <div class="box" data-t="recent" style="grid-column:span 2;display:flex;flex-direction:column;gap:6px">
+      <div class="row"><span style="width:44px">13:12</span><div class="ph" style="flex:1"></div><span>ghostty</span><span>4s</span></div>
+      <div class="row"><span style="width:44px">12:58</span><div class="ph" style="flex:1;width:70%"></div><span>chromium</span><span>6s</span></div>
+      <div class="row"><span style="width:44px">12:40</span><div class="ph" style="flex:1;width:50%"></div><span>cursor</span><span>3s</span></div>
+      <div class="row"><span style="width:44px">11:05</span><div class="ph" style="flex:1;width:60%"></div><span>meeting</span><span>41m</span></div>
+    </div>
+    <div class="box" data-t="agents" style="display:flex;flex-direction:column;gap:6px">
+      <div class="row"><span>socket</span><span class="g">peer</span></div>
+      <div class="row"><span>mcp</span><span>claude-code, codex</span></div>
+      <div class="row"><span>rest</span><span>off</span></div>
+      <div class="ph" style="width:60%"></div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:rgba(235,219,178,.55)">Wins: unmistakably Omarchy, dense, terminal-native. Trade-off: reads like a monitor, not a writing tool; transcripts get crowded.</div>
+</div>
+</x-dc>
+</body>
+</html>

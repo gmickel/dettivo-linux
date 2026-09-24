@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@300;400;600&display=swap">
+  <style>
+    :root{--bg:#0D0D0D;--fg:#EBDBB2;--fg2:rgba(235,219,178,.62);--fg3:rgba(235,219,178,.38);--line:rgba(235,219,178,.14);--line2:rgba(235,219,178,.35);--fill:rgba(235,219,178,.03);--gold:#F5BF03;--gold2:#BFA75D;--gold3:#A3850E;--red:#D35F5F}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:"Cascadia Mono",ui-monospace,"CaskaydiaMono Nerd Font","JetBrains Mono",monospace;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+    a{color:var(--gold2)} a:hover{color:var(--gold)}
+    .label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg3)}
+    .num{font-variant-numeric:tabular-nums}
+    .btn{height:28px;padding:0 10px;border:1px solid var(--line2);background:var(--fill);color:var(--fg);display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:12px;box-sizing:border-box}
+    .btn.primary{border-color:rgba(245,191,3,.9);background:rgba(245,191,3,.14);color:var(--gold)}
+    .btn.dis{color:var(--fg3);border-color:var(--line)}
+    .opt{display:grid;grid-template-columns:20px 1fr 110px 90px;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--line);margin-top:-1px}
+    .opt.on{border:2px solid rgba(163,133,14,.78);background:rgba(163,133,14,.18);padding:11px 13px;position:relative}
+    .radio{width:12px;height:12px;border:1px solid var(--line2);box-sizing:border-box}
+    .radio.on{border-color:var(--gold);background:var(--gold);box-shadow:inset 0 0 0 3px #0D0D0D}
+    .check{width:12px;height:12px;border:1px solid var(--line2);box-sizing:border-box}
+    .check.on{border-color:var(--gold);background:var(--gold)}
+    .bar{height:2px;background:var(--line);width:100%}
+    .bar i{display:block;height:2px;background:var(--gold)}
+    .chip{font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:1px 6px;border:1px solid rgba(245,191,3,.5);color:var(--gold)}
+    .dots{display:flex;gap:8px;align-items:center}
+    .dots i{display:block;width:6px;height:6px;background:var(--fg3)}
+    .dots i.on{background:var(--gold)}
+  </style>
+</helmet>
+<div style="width:1280px;height:820px;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);display:flex;flex-direction:column;padding:56px 0 40px">
+  <div style="width:820px;margin:0 auto;display:flex;flex-direction:column;gap:28px;flex:1">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:10px"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#F5BF03" stroke-width="1.5" stroke-linecap="square"><path d="M2 9V7M5 12V4M8 10V6M11 13V3M14 9V7"/></svg><span style="font-weight:600;letter-spacing:.02em">dettivo</span></div>
+      <div class="dots"><i class="on"></i><i class="on"></i><i></i><span class="label" style="margin-left:6px">keys · models · try it</span></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.1">Models</div>
+      <div style="color:var(--fg2);max-width:640px">One speech model is required. Models are downloaded to ~/.local/share/dettivo/models and verified. Vulkan on the RTX 4090 will run them.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span class="label">Speech</span>
+      <div style="display:flex;flex-direction:column">
+        <div class="opt on"><span class="radio on"></span><div style="display:flex;flex-direction:column;gap:2px"><span>Parakeet TDT 0.6B v3 <span class="chip" style="margin-left:8px">recommended</span></span><span style="font-size:11px;color:var(--fg2)">25 European languages · word timestamps · fastest on GPU</span></div><span class="num" style="color:var(--fg2)">640 MB</span><span class="num" style="color:var(--gold)">62 %</span></div>
+        <div class="opt"><span class="radio"></span><div style="display:flex;flex-direction:column;gap:2px"><span>Whisper large-v3-turbo</span><span style="font-size:11px;color:var(--fg2)">99 languages · vocabulary prompts · the Mac default</span></div><span class="num" style="color:var(--fg2)">875 MB</span><span class="num" style="color:var(--fg3)">get</span></div>
+        <div class="opt"><span class="radio"></span><div style="display:flex;flex-direction:column;gap:2px"><span>Whisper small.en</span><span style="font-size:11px;color:var(--fg2)">English · light enough for CPU-only laptops</span></div><span class="num" style="color:var(--fg2)">466 MB</span><span class="num" style="color:var(--fg3)">get</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;padding-top:4px">
+        <div class="bar"><i style="width:62%"></i></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--fg3)"><span>sherpa-onnx-nemo-parakeet-tdt-0.6b-v3 · q8_0.gguf</span><span class="num">397 of 640 MB · 41 MB/s · sha256 pending</span></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span class="label">Enhanced · optional</span>
+      <div style="display:flex;flex-direction:column">
+        <div class="opt"><span class="check on"></span><div style="display:flex;flex-direction:column;gap:2px"><span>Qwen3 4B Instruct, local</span><span style="font-size:11px;color:var(--fg2)">Rewrites dictation in Enhanced mode and writes meeting analysis. Runs in its own process, unloads when idle.</span></div><span class="num" style="color:var(--fg2)">2.5 GB</span><span class="num" style="color:var(--fg3)">queued</span></div>
+        <div class="opt"><span class="check"></span><div style="display:flex;flex-direction:column;gap:2px"><span>Use Ollama instead</span><span style="font-size:11px;color:var(--fg2)">Not running on localhost:11434. Polish still works without any model.</span></div><span></span><span></span></div>
+      </div>
+    </div>
+
+    <div style="flex:1"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:16px">
+      <span style="font-size:11px;color:var(--fg3)">Writes [speech] and [llm] to config.toml. Change any of this later in Settings or the file.</span>
+      <div style="display:flex;gap:8px"><div class="btn">Back</div><div class="btn dis">Continue when ready</div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

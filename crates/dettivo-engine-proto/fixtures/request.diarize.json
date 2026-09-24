@@ -1,0 +1,15 @@
+{
+  "attachments": [
+    {
+      "bytes": 64000,
+      "kind": "pcm16k"
+    }
+  ],
+  "id": 5,
+  "kind": "request",
+  "name": "diarize",
+  "payload": {
+    "speakers": 2
+  },
+  "v": 1
+}

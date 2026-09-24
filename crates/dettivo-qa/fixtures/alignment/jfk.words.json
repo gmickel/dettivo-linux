@@ -1,0 +1,117 @@
+{
+  "fixture": "fixtures/jfk.wav",
+  "aligner": "torchaudio 2.11.0+cpu forced_align over WAV2VEC2_ASR_BASE_960H character CTC emissions, 20 ms frames, blank=0; built once by scripts in the S-13 spike and checked in",
+  "frame_ms": 20.036429872495447,
+  "words": [
+    {
+      "text": "and",
+      "start_ms": 421,
+      "end_ms": 521
+    },
+    {
+      "text": "so",
+      "start_ms": 641,
+      "end_ms": 842
+    },
+    {
+      "text": "my",
+      "start_ms": 1022,
+      "end_ms": 1182
+    },
+    {
+      "text": "fellow",
+      "start_ms": 1322,
+      "end_ms": 1583
+    },
+    {
+      "text": "americans",
+      "start_ms": 1703,
+      "end_ms": 2204
+    },
+    {
+      "text": "ask",
+      "start_ms": 3546,
+      "end_ms": 3707
+    },
+    {
+      "text": "not",
+      "start_ms": 4027,
+      "end_ms": 4308
+    },
+    {
+      "text": "what",
+      "start_ms": 5410,
+      "end_ms": 5570
+    },
+    {
+      "text": "your",
+      "start_ms": 5650,
+      "end_ms": 5831
+    },
+    {
+      "text": "country",
+      "start_ms": 5951,
+      "end_ms": 6372
+    },
+    {
+      "text": "can",
+      "start_ms": 6492,
+      "end_ms": 6612
+    },
+    {
+      "text": "do",
+      "start_ms": 6692,
+      "end_ms": 6812
+    },
+    {
+      "text": "for",
+      "start_ms": 6973,
+      "end_ms": 7093
+    },
+    {
+      "text": "you",
+      "start_ms": 7153,
+      "end_ms": 7353
+    },
+    {
+      "text": "ask",
+      "start_ms": 8395,
+      "end_ms": 8536
+    },
+    {
+      "text": "what",
+      "start_ms": 8636,
+      "end_ms": 8796
+    },
+    {
+      "text": "you",
+      "start_ms": 8896,
+      "end_ms": 9036
+    },
+    {
+      "text": "can",
+      "start_ms": 9237,
+      "end_ms": 9357
+    },
+    {
+      "text": "do",
+      "start_ms": 9437,
+      "end_ms": 9557
+    },
+    {
+      "text": "for",
+      "start_ms": 9698,
+      "end_ms": 9798
+    },
+    {
+      "text": "your",
+      "start_ms": 9858,
+      "end_ms": 9998
+    },
+    {
+      "text": "country",
+      "start_ms": 10078,
+      "end_ms": 10439
+    }
+  ]
+}

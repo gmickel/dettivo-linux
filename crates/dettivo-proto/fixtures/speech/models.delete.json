@@ -1,0 +1,40 @@
+{
+  "capabilities": {},
+  "method": "speech.models.delete",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "speech.models.delete",
+    "params": {
+      "model": "tiny.en",
+      "provider": "whisper"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "deleted": true,
+      "model": {
+        "available": true,
+        "bytes_done": 0,
+        "bytes_total": 77704715,
+        "display_name": "Tiny (English)",
+        "error": null,
+        "id": "tiny.en",
+        "is_default": false,
+        "is_selected": false,
+        "kind": "stt",
+        "languages": [
+          "en"
+        ],
+        "license": "MIT",
+        "path": null,
+        "provider": "whisper",
+        "readiness": "missing",
+        "recommended_for": null,
+        "size_bytes": 77704715
+      }
+    }
+  }
+}

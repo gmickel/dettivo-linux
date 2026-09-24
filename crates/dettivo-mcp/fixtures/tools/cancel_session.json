@@ -1,0 +1,14 @@
+{
+  "description": "Cancel dictation or meeting recording.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "meeting_id": {
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "name": "cancel_session",
+  "title": "Cancel Session"
+}

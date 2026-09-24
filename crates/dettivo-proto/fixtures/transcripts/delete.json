@@ -1,0 +1,33 @@
+{
+  "capabilities": {
+    "history.methods": [
+      "transcripts.delete",
+      "transcripts.rerun",
+      "transcripts.stats",
+      "transcripts.cancel"
+    ]
+  },
+  "method": "transcripts.delete",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transcripts.delete",
+    "params": {
+      "ref": {
+        "id": "5eed0000-0000-4000-8000-000000000001",
+        "kind": "dictation"
+      }
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "deleted": true,
+      "ref": {
+        "id": "5eed0000-0000-4000-8000-000000000001",
+        "kind": "dictation"
+      }
+    }
+  }
+}

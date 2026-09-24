@@ -1,0 +1,27 @@
+{
+  "capabilities": {
+    "knowledge.ask_with_citations": false
+  },
+  "error": {
+    "error": {
+      "code": -32014,
+      "data": {
+        "app_code": "NOT_IMPLEMENTED",
+        "details": {},
+        "retryable": false
+      },
+      "message": "knowledge.ask is not implemented"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "knowledge.ask",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "knowledge.ask",
+    "params": {
+      "question": "What did we decide?"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "capabilities": {},
+  "method": "meetings.status",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.status",
+    "params": {
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "is_finalizing": false,
+      "job": {
+        "error": null,
+        "job_id": "job_meeting_1",
+        "message": null,
+        "progress": 0.0,
+        "state": "running"
+      },
+      "live_last_end_ms": 91234,
+      "live_segment_count": 24,
+      "ref": {
+        "id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "kind": "meeting"
+      },
+      "status": "recording"
+    }
+  }
+}

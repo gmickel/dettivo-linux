@@ -1,0 +1,15 @@
+{
+  "comparison_fields": ["dataset_sha256", "execution_sha256", "scorer_sha256", "targets_sha256"],
+  "absolute_gate": {"absolute_passed": true, "passed": true},
+  "unavailable_gate": {"absolute_passed": true, "passed": false},
+  "incompatible": [
+    {"case": "content", "reason": "selected dataset content differs"},
+    {"case": "split", "reason": "selected split differs"},
+    {"case": "rows", "reason": "selected row identities differ"},
+    {"case": "scoring", "reason": "scoring rules differ"},
+    {"case": "targets", "reason": "promotion targets differ"},
+    {"case": "execution", "reason": "execution conditions differ"},
+    {"case": "legacy", "reason": "incumbent report lacks comparison metadata; rerun the incumbent"},
+    {"case": "backend", "reason": "the incumbent ran on unrelated-backend and the candidate on mock; the relative gates compare reports from one backend only"}
+  ]
+}

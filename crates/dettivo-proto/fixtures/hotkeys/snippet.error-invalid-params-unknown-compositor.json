@@ -1,0 +1,25 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32010,
+      "data": {
+        "app_code": "INVALID_PARAMS",
+        "details": {},
+        "retryable": false
+      },
+      "message": "unknown compositor \"gnome\"; supported: hyprland, sway, niri"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "hotkeys.snippet",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "hotkeys.snippet",
+    "params": {
+      "compositor": "gnome"
+    }
+  }
+}

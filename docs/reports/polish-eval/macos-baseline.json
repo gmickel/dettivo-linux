@@ -1,0 +1,28 @@
+{
+  "source": "docs/research/polish-finetune-bootstrap-results-2026-03-10.md in the macOS repository: the repeat-confirmation medians of the bootstrap held-out set (three runs each) through the MLX runtime; the private held-out sets (eval-private-whisper-heldout-v1, eval-private-parakeet-heldout-v1) have no summary checked in on macOS, so a Linux report compares against these figures and states the latency rows as informational",
+  "runtime": "mlx (macOS, Apple silicon)",
+  "models": {
+    "qwen3-4b-instruct-2507": {
+      "exact_match_rate": 1.0,
+      "protected_token_preservation_rate": 1.0,
+      "required_fragment_retention_rate": 1.0,
+      "forbidden_fragment_violation_rate": 0.0,
+      "structure_retention_rate": 1.0,
+      "language_anchor_retention_rate": 1.0,
+      "guard_rejection_rate": 0.0,
+      "fallback_rate": 0.0,
+      "p95_wall_ms": 1826
+    },
+    "qwen3-1.7b-private-best": {
+      "exact_match_rate": 1.0,
+      "protected_token_preservation_rate": 1.0,
+      "required_fragment_retention_rate": 1.0,
+      "forbidden_fragment_violation_rate": 0.0,
+      "structure_retention_rate": 1.0,
+      "language_anchor_retention_rate": 1.0,
+      "guard_rejection_rate": 0.0,
+      "fallback_rate": 0.0,
+      "p95_wall_ms": 1136
+    }
+  }
+}

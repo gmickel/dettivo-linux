@@ -1,0 +1,19 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-16T09:10:44.042855Z",
+  "depends_on": [
+    "fn-63-fix-meeting-ui-timer-and-long-meeting.1"
+  ],
+  "id": "fn-63-fix-meeting-ui-timer-and-long-meeting.2",
+  "impl": null,
+  "priority": null,
+  "review": null,
+  "spec": "fn-63-fix-meeting-ui-timer-and-long-meeting",
+  "spec_path": ".flow/tasks/fn-63-fix-meeting-ui-timer-and-long-meeting.2.md",
+  "status": "todo",
+  "sync": null,
+  "title": "Repair automatic meeting analysis and verify recognition/diarization findings",
+  "updated_at": "2026-09-16T11:20:44.413660Z"
+}

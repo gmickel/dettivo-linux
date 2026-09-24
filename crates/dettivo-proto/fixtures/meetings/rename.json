@@ -1,0 +1,25 @@
+{
+  "capabilities": {},
+  "method": "meetings.rename",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.rename",
+    "params": {
+      "meeting_id": "5eed0000-0000-4000-8000-00000000a001",
+      "title": "Roadmap review"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "ref": {
+        "id": "5eed0000-0000-4000-8000-00000000a001",
+        "kind": "meeting"
+      },
+      "title": "Roadmap review",
+      "title_source": "manual"
+    }
+  }
+}

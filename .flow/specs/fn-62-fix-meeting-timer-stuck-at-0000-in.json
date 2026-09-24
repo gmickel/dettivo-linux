@@ -1,0 +1,32 @@
+{
+  "branch_name": "fn-62-fix-meeting-timer-stuck-at-0000-in",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-16T08:49:58.997771Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-62-fix-meeting-timer-stuck-at-0000-in",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-62-fix-meeting-timer-stuck-at-0000-in.md",
+  "status": "done",
+  "title": "Fix meeting timer stuck at 00:00 in compact status display",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-16T12:57:06.675779Z"
+}

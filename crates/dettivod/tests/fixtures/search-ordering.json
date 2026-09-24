@@ -1,0 +1,10 @@
+{
+  "query": "needle",
+  "meeting_title": "Needle",
+  "meeting_created_at": "2026-09-01T00:00:00.000Z",
+  "dictation_title_prefix": "Needle dictation",
+  "dictation_created_at": "2026-09-02T00:00:00.000Z",
+  "dictation_count": 110,
+  "limits": [1, 10, 100],
+  "expected_first_kind": "meeting"
+}

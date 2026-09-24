@@ -1,0 +1,19 @@
+{
+  "capabilities": {},
+  "method": "meetings.disclosure.acknowledge",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.disclosure.acknowledge",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "acknowledged": true,
+      "acknowledged_at": "2026-02-13T16:00:00Z",
+      "message": "This meeting may be recorded and transcribed by Dettivo. Please inform all participants and comply with local laws and company policy before recording."
+    }
+  }
+}

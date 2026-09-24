@@ -1,0 +1,37 @@
+{
+  "branch_name": "fn-29-omarchy-plugin-the-bar-widget-the-panel",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-05T05:51:07.152605Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-12-osd-the-qml-pill-component-dettivo-osd",
+    "fn-13-history-store-sqlite-with-fts5-the",
+    "fn-17-qt-app-shell-window-routes-daemon"
+  ],
+  "id": "fn-29-omarchy-plugin-the-bar-widget-the-panel",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-29-omarchy-plugin-the-bar-widget-the-panel.md",
+  "status": "done",
+  "title": "Omarchy plugin: the bar widget, the panel and dettivo setup omarchy",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-05T14:32:03.270105Z"
+}

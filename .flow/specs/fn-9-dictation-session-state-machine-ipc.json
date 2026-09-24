@@ -1,0 +1,36 @@
+{
+  "branch_name": "fn-9-dictation-session-state-machine-ipc",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-03T20:43:15.861315Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-6-pipewire-mic-capture-devices-default",
+    "fn-7-engine-protocol-supervisor-and-whisper"
+  ],
+  "id": "fn-9-dictation-session-state-machine-ipc",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-9-dictation-session-state-machine-ipc.md",
+  "status": "done",
+  "title": "Dictation session: state machine, IPC methods and the event stream",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T01:34:18.907613Z"
+}

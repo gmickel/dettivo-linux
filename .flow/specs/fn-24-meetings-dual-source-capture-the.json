@@ -1,0 +1,37 @@
+{
+  "branch_name": "fn-24-meetings-dual-source-capture-the",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-04T20:32:32.142486Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-6-pipewire-mic-capture-devices-default",
+    "fn-9-dictation-session-state-machine-ipc",
+    "fn-13-history-store-sqlite-with-fts5-the"
+  ],
+  "id": "fn-24-meetings-dual-source-capture-the",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-24-meetings-dual-source-capture-the.md",
+  "status": "done",
+  "title": "Meetings: dual-source capture, the session journal and recovery",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-05T09:48:40.605151Z"
+}

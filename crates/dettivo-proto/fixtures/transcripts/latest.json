@@ -1,0 +1,22 @@
+{
+  "capabilities": {},
+  "method": "transcripts.latest",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transcripts.latest",
+    "params": {
+      "kind": "any"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "ref": {
+        "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+        "kind": "dictation"
+      }
+    }
+  }
+}

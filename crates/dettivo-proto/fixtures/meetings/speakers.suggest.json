@@ -1,0 +1,26 @@
+{
+  "capabilities": {},
+  "method": "meetings.speakers.suggest",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.speakers.suggest",
+    "params": {
+      "limit": 5,
+      "prefix": "g"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "names": [
+        {
+          "last_used_at": "2026-02-13T16:40:00Z",
+          "name": "Gordon",
+          "uses": 1
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@300;400;600&display=swap">
+  <style>
+    :root{--bg:#0D0D0D;--fg:#EBDBB2;--fg2:rgba(235,219,178,.62);--fg3:rgba(235,219,178,.38);--line:rgba(235,219,178,.14);--line2:rgba(235,219,178,.35);--fill:rgba(235,219,178,.03);--gold:#F5BF03;--gold2:#BFA75D;--gold3:#A3850E;--red:#D35F5F}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:"Cascadia Mono",ui-monospace,"CaskaydiaMono Nerd Font","JetBrains Mono",monospace;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+    a{color:var(--gold2)} a:hover{color:var(--gold)}
+    .label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg3)}
+    .num{font-variant-numeric:tabular-nums}
+    .btn{height:28px;padding:0 10px;border:1px solid var(--line2);background:var(--fill);color:var(--fg);display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:12px;box-sizing:border-box}
+    .btn.primary{border-color:rgba(245,191,3,.9);background:rgba(245,191,3,.14);color:var(--gold)}
+    .key{display:inline-flex;align-items:center;height:22px;padding:0 8px;border:1px solid var(--line2);font-size:11px;color:var(--fg)}
+    .row{display:grid;grid-template-columns:220px 1fr 160px;gap:16px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+    .code{border:1px solid var(--line);padding:12px 14px;font-size:12px;line-height:1.7;color:var(--fg2);white-space:pre}
+    .meter{display:flex;align-items:center;gap:2px;height:18px}
+    .meter i{display:block;width:3px;background:var(--gold)}
+    .dots{display:flex;gap:8px;align-items:center}
+    .dots i{display:block;width:6px;height:6px;background:var(--fg3)}
+    .dots i.on{background:var(--gold)}
+  </style>
+</helmet>
+<div style="width:1280px;height:820px;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);display:flex;flex-direction:column;padding:56px 0 40px">
+  <div style="width:820px;margin:0 auto;display:flex;flex-direction:column;gap:28px;flex:1">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:10px"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#F5BF03" stroke-width="1.5" stroke-linecap="square"><path d="M2 9V7M5 12V4M8 10V6M11 13V3M14 9V7"/></svg><span style="font-weight:600;letter-spacing:.02em">dettivo</span></div>
+      <div class="dots"><i class="on"></i><i></i><i></i><span class="label" style="margin-left:6px">keys · models · try it</span></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.1">Keys</div>
+      <div style="color:var(--fg2);max-width:640px">Hyprland on Omarchy detected. These bindings go into a file your Hyprland config includes. Nothing else on the system changes.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column">
+      <div class="row" style="border-top:0;padding-top:0"><span class="label">action</span><span class="label">binding</span><span class="label">runs</span></div>
+      <div class="row"><span>Hold to talk</span><span><span class="key">F9</span><span style="color:var(--fg3);margin-left:8px">press starts, release inserts</span></span><span style="color:var(--fg3);font-size:11px">dettivo dictation start / stop</span></div>
+      <div class="row"><span>Toggle dictation</span><span><span class="key">Super</span><span style="color:var(--fg3);margin:0 4px">+</span><span class="key">Ctrl</span><span style="color:var(--fg3);margin:0 4px">+</span><span class="key">X</span></span><span style="color:var(--fg3);font-size:11px">dettivo dictation toggle</span></div>
+      <div class="row"><span>Cancel</span><span><span class="key">Escape</span><span style="color:var(--fg3);margin-left:8px">while listening</span></span><span style="color:var(--fg3);font-size:11px">dettivo dictation cancel</span></div>
+      <div class="row"><span>Open Dettivo</span><span><span class="key">Super</span><span style="color:var(--fg3);margin:0 4px">+</span><span class="key">Shift</span><span style="color:var(--fg3);margin:0 4px">+</span><span class="key">D</span></span><span style="color:var(--fg3);font-size:11px">dettivo-app</span></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start">
+      <div class="code">~/.config/hypr/bindings/dettivo.conf
+bind  = , F9, exec, dettivo dictation start
+bindr = , F9, exec, dettivo dictation stop
+bind  = SUPER CTRL, X, exec, dettivo dictation toggle
+bind  = SUPER SHIFT, D, exec, dettivo-app</div>
+      <div style="display:flex;flex-direction:column;gap:12px;border:1px solid var(--line2);padding:14px 16px">
+        <span class="label">Press F9 now</span>
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:8px;height:8px;background:var(--gold)"></span><div class="meter"><i style="height:4px"></i><i style="height:9px"></i><i style="height:15px"></i><i style="height:10px"></i><i style="height:17px"></i><i style="height:6px"></i><i style="height:12px"></i><i style="height:5px"></i><i style="height:14px"></i><i style="height:8px"></i></div></div>
+        <div style="font-size:12px;color:var(--fg2)">F9 held · listening · Arctis Nova</div>
+        <div style="font-size:11px;color:var(--fg3)">Bindings written and Hyprland reloaded. Your microphone works too.</div>
+      </div>
+    </div>
+
+    <div style="flex:1"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:16px">
+      <span style="font-size:11px;color:var(--fg3)">Prefer to do this by hand? Skip and edit <span style="color:var(--fg2)">~/.config/dettivo/config.toml</span>. This screen never comes back once bindings exist.</span>
+      <div style="display:flex;gap:8px"><div class="btn">Skip</div><div class="btn primary">Continue</div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

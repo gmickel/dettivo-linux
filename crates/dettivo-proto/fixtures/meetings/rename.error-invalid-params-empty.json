@@ -1,0 +1,26 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32010,
+      "data": {
+        "app_code": "INVALID_PARAMS",
+        "details": {},
+        "retryable": false
+      },
+      "message": "title must not be empty"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "meetings.rename",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.rename",
+    "params": {
+      "meeting_id": "5eed0000-0000-4000-8000-00000000a001",
+      "title": "   "
+    }
+  }
+}

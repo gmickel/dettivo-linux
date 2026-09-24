@@ -1,0 +1,305 @@
+# The model catalogue, version 1 (FR-E4, FR-M8). One entry per model with
+# the source URL, the SHA-256 the download is verified against, the size,
+# the license and the redistribution note. Model ids follow the macOS and
+# Windows aliases so `speech.selection.set` values are portable. Checksums
+# come from the source repositories' LFS pointers.
+version = 1
+
+[[models]]
+provider = "whisper"
+id = "tiny"
+display_name = "Tiny"
+kind = "stt"
+file_name = "ggml-tiny.bin"
+size_bytes = 77691713
+url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin"
+sha256 = "be07e048e1e599ad46341c8d2a135645097a538221678b7acdd1b1919c6e1b21"
+license = "MIT"
+redistribution = "OpenAI Whisper weights converted by whisper.cpp; redistributable under MIT"
+languages = ["multilingual"]
+
+[[models]]
+provider = "whisper"
+id = "tiny.en"
+display_name = "Tiny (English)"
+kind = "stt"
+file_name = "ggml-tiny.en.bin"
+size_bytes = 77704715
+url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin"
+sha256 = "921e4cf8686fdd993dcd081a5da5b6c365bfde1162e72b08d75ac75289920b1f"
+license = "MIT"
+redistribution = "OpenAI Whisper weights converted by whisper.cpp; redistributable under MIT"
+languages = ["en"]
+english_only = true
+
+[[models]]
+provider = "whisper"
+id = "base"
+display_name = "Base"
+kind = "stt"
+file_name = "ggml-base.bin"
+size_bytes = 147951465
+url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin"
+sha256 = "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe"
+license = "MIT"
+redistribution = "OpenAI Whisper weights converted by whisper.cpp; redistributable under MIT"
+languages = ["multilingual"]
+
+[[models]]
+provider = "whisper"
+id = "base.en"
+display_name = "Base (English)"
+kind = "stt"
+file_name = "ggml-base.en.bin"
+size_bytes = 147964211
+url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin"
+sha256 = "a03779c86df3323075f5e796cb2ce5029f00ec8869eee3fdfb897afe36c6d002"
+license = "MIT"
+redistribution = "OpenAI Whisper weights converted by whisper.cpp; redistributable under MIT"
+languages = ["en"]
+english_only = true
+
+[[models]]
+provider = "whisper"
+id = "small"
+display_name = "Small"
+kind = "stt"
+file_name = "ggml-small.bin"
+size_bytes = 487601967
+url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin"
+sha256 = "1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b"
+license = "MIT"
+redistribution = "OpenAI Whisper weights converted by whisper.cpp; redistributable under MIT"
+languages = ["multilingual"]
+
+[[models]]
+provider = "whisper"
+id = "small.en"
+display_name = "Small (English)"
+kind = "stt"
+file_name = "ggml-small.en.bin"
+size_bytes = 487614201
+url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin"
+sha256 = "c6138d6d58ecc8322097e0f987c32f1be8bb0a18532a3f88f734d1bbf9c41e5d"
+license = "MIT"
+redistribution = "OpenAI Whisper weights converted by whisper.cpp; redistributable under MIT"
+languages = ["en"]
+english_only = true
+recommended_for = "English · light enough for CPU-only laptops"
+
+[[models]]
+provider = "whisper"
+id = "medium"
+display_name = "Medium"
+kind = "stt"
+file_name = "ggml-medium.bin"
+size_bytes = 1533763059
+url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin"
+sha256 = "6c14d5adee5f86394037b4e4e8b59f1673b6cee10e3cf0b11bbdbee79c156208"
+license = "MIT"
+redistribution = "OpenAI Whisper weights converted by whisper.cpp; redistributable under MIT"
+languages = ["multilingual"]
+
+[[models]]
+provider = "whisper"
+id = "medium.en"
+display_name = "Medium (English)"
+kind = "stt"
+file_name = "ggml-medium.en.bin"
+size_bytes = 1533774781
+url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.en.bin"
+sha256 = "cc37e93478338ec7700281a7ac30a10128929eb8f427dda2e865faa8f6da4356"
+license = "MIT"
+redistribution = "OpenAI Whisper weights converted by whisper.cpp; redistributable under MIT"
+languages = ["en"]
+english_only = true
+
+[[models]]
+provider = "whisper"
+id = "large-v3"
+display_name = "Large v3"
+kind = "stt"
+file_name = "ggml-large-v3.bin"
+size_bytes = 3095033483
+url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin"
+sha256 = "64d182b440b98d5203c4f9bd541544d84c605196c4f7b845dfa11fb23594d1e2"
+license = "MIT"
+redistribution = "OpenAI Whisper weights converted by whisper.cpp; redistributable under MIT"
+languages = ["multilingual"]
+
+[[models]]
+provider = "whisper"
+id = "large-v3-turbo"
+display_name = "Large v3 Turbo"
+kind = "stt"
+file_name = "ggml-large-v3-turbo.bin"
+size_bytes = 874188075
+url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin"
+sha256 = "317eb69c11673c9de1e1f0d459b253999804ec71ac4c23c17ecf5fbe24e259a1"
+license = "MIT"
+redistribution = "OpenAI Whisper weights converted by whisper.cpp; redistributable under MIT"
+languages = ["multilingual"]
+quantization = "q8_0"
+default = true
+recommended_for = "99 languages · vocabulary prompts · the Mac default"
+
+[[models]]
+provider = "whisper"
+id = "silero-vad"
+display_name = "Silero VAD"
+kind = "vad"
+file_name = "ggml-silero-v5.1.2.bin"
+size_bytes = 885098
+url = "https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin"
+sha256 = "29940d98d42b91fbd05ce489f3ecf7c72f0a42f027e4875919a28fb4c04ea2cf"
+license = "MIT"
+redistribution = "Silero VAD v5.1.2 converted for whisper.cpp; redistributable under MIT"
+languages = ["multilingual"]
+
+# Parakeet TDT 0.6B in parakeet.cpp's GGUF (q8_0 keeps WER parity with the
+# NeMo release); v2 is English, v3 covers 25 European languages (ADR 0018).
+[[models]]
+provider = "parakeet"
+id = "parakeet-v2"
+display_name = "Parakeet TDT 0.6B v2 (English)"
+kind = "stt"
+file_name = "tdt-0.6b-v2-q8_0.gguf"
+size_bytes = 903835936
+url = "https://huggingface.co/mudler/parakeet-cpp-gguf/resolve/main/tdt-0.6b-v2-q8_0.gguf"
+sha256 = "2027e2e1a4dc60ccdd8558f93b15e7c0db4ef8895b4e82e889f3a6275d8119c6"
+license = "CC-BY-4.0"
+redistribution = "NVIDIA NeMo Parakeet weights in GGUF from mudler/parakeet-cpp-gguf; attribution required"
+languages = ["en"]
+english_only = true
+quantization = "q8_0"
+
+[[models]]
+provider = "parakeet"
+id = "parakeet-v3"
+display_name = "Parakeet TDT 0.6B v3"
+kind = "stt"
+file_name = "tdt-0.6b-v3-q8_0.gguf"
+size_bytes = 940663680
+url = "https://huggingface.co/mudler/parakeet-cpp-gguf/resolve/main/tdt-0.6b-v3-q8_0.gguf"
+sha256 = "4d69a4a6683f4f2d952bad794c1357ca6eb628027695b4699c5a9ad4cd07d757"
+license = "CC-BY-4.0"
+redistribution = "NVIDIA NeMo Parakeet weights in GGUF from mudler/parakeet-cpp-gguf; attribution required"
+languages = ["multilingual"]
+quantization = "q8_0"
+default = true
+recommended_for = "25 European languages · word timestamps · fastest on GPU"
+
+# The language models behind Enhanced and meeting analysis (ADR 0005, ADR
+# 0026): the macOS catalogue in GGUF at the 4-bit footprint (Q4_K_M from
+# the unsloth conversions of the Qwen releases). `roles` says what each is
+# offered for: polish (the Enhanced rewrite) and analysis (meetings).
+[[models]]
+provider = "llm"
+id = "qwen3-4b-instruct-2507"
+display_name = "Qwen3 4B Instruct 2507"
+kind = "llm"
+file_name = "Qwen3-4B-Instruct-2507-Q4_K_M.gguf"
+size_bytes = 2497281120
+url = "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/main/Qwen3-4B-Instruct-2507-Q4_K_M.gguf"
+sha256 = "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597"
+license = "Apache-2.0"
+redistribution = "Qwen3 weights in GGUF from unsloth/Qwen3-4B-Instruct-2507-GGUF; redistributable under Apache-2.0"
+languages = ["multilingual"]
+quantization = "Q4_K_M"
+roles = ["polish", "analysis"]
+default = true
+
+[[models]]
+provider = "llm"
+id = "qwen3-1.7b"
+display_name = "Qwen3 1.7B (fast)"
+kind = "llm"
+file_name = "Qwen3-1.7B-Q4_K_M.gguf"
+size_bytes = 1107409472
+url = "https://huggingface.co/unsloth/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q4_K_M.gguf"
+sha256 = "b139949c5bd74937ad8ed8c8cf3d9ffb1e99c866c823204dc42c0d91fa181897"
+license = "Apache-2.0"
+redistribution = "Qwen3 weights in GGUF from unsloth/Qwen3-1.7B-GGUF; redistributable under Apache-2.0"
+languages = ["multilingual"]
+quantization = "Q4_K_M"
+roles = ["polish"]
+
+[[models]]
+provider = "llm"
+id = "qwen3-4b"
+display_name = "Qwen3 4B (quality)"
+kind = "llm"
+file_name = "Qwen3-4B-Q4_K_M.gguf"
+size_bytes = 2497281312
+url = "https://huggingface.co/unsloth/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q4_K_M.gguf"
+sha256 = "f6f851777709861056efcdad3af01da38b31223a3ba26e61a4f8bf3a2195813a"
+license = "Apache-2.0"
+redistribution = "Qwen3 weights in GGUF from unsloth/Qwen3-4B-GGUF; redistributable under Apache-2.0"
+languages = ["multilingual"]
+quantization = "Q4_K_M"
+roles = ["polish", "analysis"]
+
+[[models]]
+provider = "llm"
+id = "qwen3-8b"
+display_name = "Qwen3 8B (meeting analysis)"
+kind = "llm"
+file_name = "Qwen3-8B-Q4_K_M.gguf"
+size_bytes = 5027784512
+url = "https://huggingface.co/unsloth/Qwen3-8B-GGUF/resolve/main/Qwen3-8B-Q4_K_M.gguf"
+sha256 = "120307ba529eb2439d6c430d94104dabd578497bc7bfe7e322b5d9933b449bd4"
+license = "Apache-2.0"
+redistribution = "Qwen3 weights in GGUF from unsloth/Qwen3-8B-GGUF; redistributable under Apache-2.0"
+languages = ["multilingual"]
+quantization = "Q4_K_M"
+roles = ["analysis"]
+
+# The speaker diarization model set (ADR 0035): pyannote segmentation 3.0
+# for the turns and 3D-Speaker ERes2Net for the embeddings, both as
+# sherpa-onnx exports from the k2-fsa releases. The segmentation model
+# arrives as an archive whose `model.onnx` is unpacked to
+# `segmentation.onnx`; the embedding model lands as `embedding.onnx`
+# (the upstream release path spells "recongition"). `dettivo-engine-diarize`
+# loads the directory.
+[[models]]
+provider = "diarize"
+id = "diarization"
+display_name = "Speaker diarization (pyannote 3.0 + 3D-Speaker)"
+kind = "diarization"
+file_name = "segmentation.onnx"
+size_bytes = 6958444
+url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2"
+sha256 = "24615ee884c897d9d2ba09bb4d30da6bb1b15e685065962db5b02e76e4996488"
+license = "MIT"
+redistribution = "pyannote segmentation 3.0 (CNRS, MIT) and 3D-Speaker ERes2Net (Alibaba, Apache-2.0) exported to ONNX by k2-fsa/sherpa-onnx; redistributable under their licenses"
+languages = ["multilingual"]
+unpack = { format = "tar.bz2", member = "sherpa-onnx-pyannote-segmentation-3-0/model.onnx", sha256 = "220ad67ca923bef2fa91f2390c786097bf305bceb5e261d4af67b38e938e1079", size_bytes = 5992913 }
+
+[[models.files]]
+file_name = "embedding.onnx"
+size_bytes = 39593761
+url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/3dspeaker_speech_eres2net_base_sv_zh-cn_3dspeaker_16k.onnx"
+sha256 = "1a331345f04805badbb495c775a6ddffcdd1a732567d5ec8b3d5749e3c7a5e4b"
+license = "Apache-2.0"
+
+[[models]]
+provider = "diarize"
+id = "diarization-en"
+display_name = "Meeting speakers (English ERes2Net)"
+kind = "diarization"
+file_name = "segmentation.onnx"
+size_bytes = 6958444
+url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2"
+sha256 = "24615ee884c897d9d2ba09bb4d30da6bb1b15e685065962db5b02e76e4996488"
+license = "MIT"
+redistribution = "pyannote segmentation 3.0 (CNRS, MIT) and English VoxCeleb ERes2Net (Alibaba, Apache-2.0) exported to ONNX by k2-fsa/sherpa-onnx"
+languages = ["en"]
+default = true
+unpack = { format = "tar.bz2", member = "sherpa-onnx-pyannote-segmentation-3-0/model.onnx", sha256 = "220ad67ca923bef2fa91f2390c786097bf305bceb5e261d4af67b38e938e1079", size_bytes = 5992913 }
+
+[[models.files]]
+file_name = "embedding.onnx"
+size_bytes = 26485263
+url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/3dspeaker_speech_eres2net_sv_en_voxceleb_16k.onnx"
+sha256 = "c59158379255ad66e161679cca6af8d52d51e389e3224ab7d7a7baae295c2db5"
+license = "Apache-2.0"

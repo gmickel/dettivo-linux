@@ -1,0 +1,31 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32013,
+      "data": {
+        "app_code": "CONFLICT",
+        "details": {
+          "kind": "importAlreadyInProgress"
+        },
+        "retryable": false
+      },
+      "message": "Import already in progress"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "transcripts.import",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transcripts.import",
+    "params": {
+      "filename": "note.wav",
+      "language": "en",
+      "mode": "raw",
+      "target_kind": "dictation",
+      "transfer_id": "xfer_in_1"
+    }
+  }
+}

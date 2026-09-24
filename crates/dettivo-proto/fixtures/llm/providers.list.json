@@ -1,0 +1,32 @@
+{
+  "capabilities": {},
+  "method": "llm.providers.list",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "llm.providers.list",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "providers": [
+        {
+          "available": false,
+          "detail": "llm/qwen3-4b-instruct-2507 is not downloaded",
+          "hint": "dettivo llm download --model qwen3-4b-instruct-2507",
+          "id": "local",
+          "model": "qwen3-4b-instruct-2507"
+        },
+        {
+          "available": false,
+          "detail": "provider unavailable: error sending request",
+          "hint": "start Ollama, or set [llm] ollama_url",
+          "id": "ollama",
+          "model": "qwen3:4b-instruct"
+        }
+      ]
+    }
+  }
+}

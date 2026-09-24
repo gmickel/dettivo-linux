@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/config/get",
+    "body": {
+      "key": "no.such.key"
+    }
+  },
+  "expect": {
+    "status": 400,
+    "content_type": "application/json",
+    "error": {
+      "app_code": "INVALID_PARAMS",
+      "code": -32010
+    }
+  }
+}

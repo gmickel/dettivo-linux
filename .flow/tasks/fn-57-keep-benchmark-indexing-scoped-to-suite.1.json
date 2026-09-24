@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-14T07:49:52.950949Z",
+  "depends_on": [],
+  "id": "fn-57-keep-benchmark-indexing-scoped-to-suite.1",
+  "priority": null,
+  "spec": "fn-57-keep-benchmark-indexing-scoped-to-suite",
+  "spec_path": ".flow/tasks/fn-57-keep-benchmark-indexing-scoped-to-suite.1.md",
+  "status": "todo",
+  "title": "Filter benchmark index inputs without hiding malformed suite reports",
+  "updated_at": "2026-09-14T07:49:52.950949Z"
+}

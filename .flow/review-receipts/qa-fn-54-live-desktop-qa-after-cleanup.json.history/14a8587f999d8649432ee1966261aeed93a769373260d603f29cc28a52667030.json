@@ -1,0 +1,114 @@
+{
+  "branch": "fix/live-qa-20260908",
+  "evidence_root": ".flow/tmp/qa-live-20260908",
+  "findings": {
+    "backend": "interactive",
+    "baseSha": "ba02db93e97a9db52a3e00a2c6c034aed7157ec8",
+    "headSha": "96f894ed47508fd367d90d724b6334bf929dad0f",
+    "items": [
+      {
+        "body": "Idle Home remains above the 60 MB RSS requirement in two isolated runs after deferred media initialization. Evidence and rejected experiments are in docs/reports/qa/2026-09-08-live-desktop.md.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-a2ad1bdcabc877425a64bba47b34e0fc61789cdee6e7d56ddf9e24d805f1539e",
+        "id": "finding-45446f336f38ef9e9dc97907db9b238b",
+        "lastSeenReceiptId": "review-0db82b82c528e55049f8dcb47cfefca2b95997df36522f80c756850090f8b0a8",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P1",
+        "status": "open",
+        "title": "QA-MEMORY"
+      },
+      {
+        "body": "Idle Home remains above the 60 MB RSS requirement in two isolated runs after deferred media initialization. Evidence and rejected experiments are in docs/reports/qa/2026-09-08-live-desktop.md.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-0db82b82c528e55049f8dcb47cfefca2b95997df36522f80c756850090f8b0a8",
+        "id": "finding-2aece7e6afd81d0be454f56a70dc5610",
+        "lastSeenReceiptId": "review-0db82b82c528e55049f8dcb47cfefca2b95997df36522f80c756850090f8b0a8",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P1",
+        "status": "open",
+        "title": "QA-MEMORY"
+      },
+      {
+        "body": "Approved references do not cover the current rendered contract. The final matrix has 22 differences and 90 missing approvals. The report identifies intentional text changes made by this QA pass separately from existing keycap and theme differences. No reference or tolerance changed.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-a2ad1bdcabc877425a64bba47b34e0fc61789cdee6e7d56ddf9e24d805f1539e",
+        "id": "finding-3f51012c7622639b818d9bcbe7af1b90",
+        "lastSeenReceiptId": "review-0db82b82c528e55049f8dcb47cfefca2b95997df36522f80c756850090f8b0a8",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-VISUAL"
+      },
+      {
+        "body": "Approved references do not cover the current rendered contract. The final matrix has 22 differences and 90 missing approvals. The report identifies intentional text changes made by this QA pass separately from existing keycap and theme differences. No reference or tolerance changed.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-0db82b82c528e55049f8dcb47cfefca2b95997df36522f80c756850090f8b0a8",
+        "id": "finding-f4634e9fdcc7a86d127e2ca95cd0a996",
+        "lastSeenReceiptId": "review-0db82b82c528e55049f8dcb47cfefca2b95997df36522f80c756850090f8b0a8",
+        "ordinal": 4,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-VISUAL"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-0db82b82c528e55049f8dcb47cfefca2b95997df36522f80c756850090f8b0a8",
+    "supersedesReceiptId": "review-a2ad1bdcabc877425a64bba47b34e0fc61789cdee6e7d56ddf9e24d805f1539e"
+  },
+  "head_sha": "96f894ed47508fd367d90d724b6334bf929dad0f",
+  "id": "fn-54-live-desktop-qa-after-cleanup",
+  "limitations": [
+    "Visual matrix remains red: 22 differences and 90 missing approvals among 590 entries.",
+    "Gordon's fn-38 R6 walkthrough remains open; no baseline approval was authored.",
+    "Two Omarchy GUI-pack steps skipped in Xvfb. The user's socket and shell integration are not installed; no installation was performed.",
+    "GUI pack and direct keyboard walkthrough ran at 4351e0eb; sample initialization was subsequently rechecked through first run and the complete visual matrix. The final accessibility-name addition passed app_routes and first_run_steps."
+  ],
+  "mode": "interactive",
+  "open_p0p1": [
+    {
+      "classification": "pre_existing",
+      "confidence": 100,
+      "file": "docs/reports/qa/2026-09-08-live-desktop.md",
+      "id": "QA-MEMORY",
+      "reason": "Idle app RSS remains above the 60 MB requirement; two isolated runs report about 235556-236272 KB after deferred media initialization.",
+      "severity": "P1"
+    }
+  ],
+  "qa_outcome": "NEEDS_WORK",
+  "report": "docs/reports/qa/2026-09-08-live-desktop.md",
+  "rid_coverage": {
+    "covered": 4,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "live",
+        "id": "R2"
+      },
+      {
+        "coverage": "live",
+        "id": "R3"
+      },
+      {
+        "coverage": "live",
+        "id": "R4"
+      }
+    ],
+    "total": 4
+  },
+  "timestamp": "2026-09-08T10:09:00Z",
+  "type": "qa_verdict",
+  "verdict": "NEEDS_WORK"
+}

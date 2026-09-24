@@ -1,0 +1,27 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32010,
+      "data": {
+        "app_code": "INVALID_PARAMS",
+        "details": {},
+        "retryable": false
+      },
+      "message": "name is 65 characters; the limit is 64"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "meetings.speakers.rename",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.speakers.rename",
+    "params": {
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "speaker_id": "you"
+    }
+  }
+}

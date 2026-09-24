@@ -1,0 +1,294 @@
+{
+  "source": "DettivoTests/Polish/PostProcessorsTests.swift",
+  "note": "Linux enabled-only processor outputs (ADR 0054). macos_expected preserves each changed upstream expectation; unconfigured editorial passes no longer run.",
+  "cases": [
+    {
+      "name": "apply_runs_all_processors",
+      "input": "check foo.swift",
+      "post_processors": [
+        "atPrefixFilePaths"
+      ],
+      "expected": "check @foo.swift",
+      "macos_expected": "Check @foo.swift."
+    },
+    {
+      "name": "apply_normalizes_quoted_speech_and_at_sign",
+      "input": "He said quote keep readme.md exactly as spoken unquote and use an at sign",
+      "post_processors": [],
+      "expected": "He said quote keep readme.md exactly as spoken unquote and use an at sign",
+      "macos_expected": "He said \"keep README.md exactly as spoken\" and use an @ sign."
+    },
+    {
+      "name": "apply_normalizes_spoken_technical_tokens_before_at_prefix",
+      "input": "keep settings view dot swift and flag dash dash model qwen three colon 4b",
+      "post_processors": [
+        "atPrefixFilePaths"
+      ],
+      "expected": "keep settings @view.swift and flag -- model qwen three:4b",
+      "macos_expected": "Keep @SettingsView.swift and flag --model qwen3:4b."
+    },
+    {
+      "name": "apply_at_prefix_does_not_collapse_sentence_spaces",
+      "input": "I only have 106 characters, but I want to make this more human-like. So use the human writing skill.",
+      "post_processors": [
+        "atPrefixFilePaths"
+      ],
+      "expected": "I only have 106 characters, but I want to make this more human-like. So use the human writing skill."
+    },
+    {
+      "name": "apply_at_prefix_does_not_treat_prose_point_as_dot",
+      "input": "My point is it does not make sense to offer the text-only version for all the skills.",
+      "post_processors": [
+        "atPrefixFilePaths"
+      ],
+      "expected": "My point is it does not make sense to offer the text-only version for all the skills."
+    },
+    {
+      "name": "apply_at_prefix_does_not_turn_slash_command_into_path_separator",
+      "input": "Plan a new epic for the capture skill and slash command enhancements.",
+      "post_processors": [
+        "atPrefixFilePaths"
+      ],
+      "expected": "Plan a new epic for the capture skill and slash command enhancements."
+    },
+    {
+      "name": "apply_normalizes_inline_bullet_enumeration",
+      "input": "Bullet 1 Polish Quality, Bullet 2 Latency, Bullet 3 Fallback Rate",
+      "post_processors": [],
+      "expected": "Bullet 1 Polish Quality, Bullet 2 Latency, Bullet 3 Fallback Rate",
+      "macos_expected": "- Polish Quality\n- Latency\n- Fallback Rate"
+    },
+    {
+      "name": "apply_collapses_flag_spacing_and_adds_terminal_punctuation",
+      "input": "keep @SettingsView.swift and flag -- model qwen3:4b exactly as spoken",
+      "post_processors": [],
+      "expected": "keep @SettingsView.swift and flag -- model qwen3:4b exactly as spoken",
+      "macos_expected": "Keep @SettingsView.swift and flag --model qwen3:4b exactly as spoken."
+    },
+    {
+      "name": "apply_normalizes_three_file_conjunction",
+      "input": "keep @README.md, @SettingsView.swift and @docs/DesignGuide.md exactly",
+      "post_processors": [],
+      "expected": "keep @README.md, @SettingsView.swift and @docs/DesignGuide.md exactly",
+      "macos_expected": "Keep @README.md, @SettingsView.swift, and @docs/DesignGuide.md exactly."
+    },
+    {
+      "name": "apply_restores_flattened_hyphenated_path",
+      "input": "read @Dettivo-services-polish-polish-rewrite-engine.swift",
+      "post_processors": [],
+      "expected": "read @Dettivo-services-polish-polish-rewrite-engine.swift",
+      "macos_expected": "Read @Dettivo/Services/Polish/PolishRewriteEngine.swift."
+    },
+    {
+      "name": "apply_normalizes_simple_spoken_slash",
+      "input": "meeting analysis model choose quality slash speed for summaries",
+      "post_processors": [],
+      "expected": "meeting analysis model choose quality slash speed for summaries",
+      "macos_expected": "Meeting analysis model choose quality/speed for summaries."
+    },
+    {
+      "name": "apply_normalizes_business_abbreviations",
+      "input": "we need the RD review before the MA kickoff and then a QA session",
+      "post_processors": [],
+      "expected": "we need the RD review before the MA kickoff and then a QA session",
+      "macos_expected": "We need the R&D review before the M&A kickoff and then a QA session."
+    },
+    {
+      "name": "apply_normalizes_spoken_business_abbreviations",
+      "input": "we need the R and D roadmap before the M and A kickoff and then a Q and A",
+      "post_processors": [],
+      "expected": "we need the R and D roadmap before the M and A kickoff and then a Q and A",
+      "macos_expected": "We need the R&D roadmap before the M&A kickoff and then a Q&A."
+    },
+    {
+      "name": "apply_normalizes_plus_page_phrase",
+      "input": "mention that 1000 plus page SDLC transformation framework",
+      "post_processors": [],
+      "expected": "mention that 1000 plus page SDLC transformation framework",
+      "macos_expected": "Mention that 1,000-plus-page SDLC transformation framework."
+    },
+    {
+      "name": "apply_normalizes_spoken_bullet_list_into_bullets",
+      "input": "Bullet 1 polish quality, bullet 2 latency, bullet 3 fallback rate.",
+      "post_processors": [
+        "normalizeSpokenLists"
+      ],
+      "expected": "- Polish quality\n- Latency\n- Fallback rate"
+    },
+    {
+      "name": "apply_normalizes_punctuated_spoken_bullet_list_into_bullets",
+      "input": "Bullet 1: Polish Quality Bullet 2: Latency Bullet 3: Fallback Rate",
+      "post_processors": [
+        "normalizeSpokenLists"
+      ],
+      "expected": "- Polish Quality\n- Latency\n- Fallback Rate"
+    },
+    {
+      "name": "apply_normalizes_comma_separated_spoken_bullet_list_into_bullets",
+      "input": "Bullet 1 polish quality, bullet two, latency, bullet three, fallback rate",
+      "post_processors": [
+        "normalizeSpokenLists"
+      ],
+      "expected": "- Polish quality\n- Latency\n- Fallback rate"
+    },
+    {
+      "name": "apply_normalizes_sentence_separated_spoken_bullet_word_list_into_bullets",
+      "input": "Bullet one, polish quality. Bullet two, latency. Bullet three, fallback rate.",
+      "post_processors": [
+        "normalizeSpokenLists"
+      ],
+      "expected": "- Polish quality\n- Latency\n- Fallback rate"
+    },
+    {
+      "name": "apply_normalizes_spoken_ordinal_list_into_numbered_list",
+      "input": "First review onboarding, second test import, third verify history",
+      "post_processors": [
+        "normalizeSpokenLists"
+      ],
+      "expected": "1. Review onboarding\n2. Test import\n3. Verify history"
+    },
+    {
+      "name": "apply_normalizes_punctuated_spoken_ordinal_list_into_numbered_list",
+      "input": "First, review onboarding. Second, test import. Third, verify history.",
+      "post_processors": [
+        "normalizeSpokenLists"
+      ],
+      "expected": "1. Review onboarding\n2. Test import\n3. Verify history"
+    },
+    {
+      "name": "apply_normalizes_labeled_checklist_into_bullets",
+      "input": "Roadmap colon improve heldout, improve latency, improve confidence",
+      "post_processors": [
+        "normalizeSpokenLists"
+      ],
+      "expected": "Roadmap:\n- Improve heldout\n- Improve latency\n- Improve confidence"
+    },
+    {
+      "name": "apply_normalizes_comma_colon_labeled_checklist_into_bullets",
+      "input": "Road map, colon, improve heldout, improve latency, improve confidence",
+      "post_processors": [
+        "normalizeSpokenLists"
+      ],
+      "expected": "Roadmap:\n- Improve heldout\n- Improve latency\n- Improve confidence"
+    },
+    {
+      "name": "apply_normalizes_dotted_ordinal_list_into_numbered_list",
+      "input": "One dot first step, two dot second step, three dot third step",
+      "post_processors": [
+        "normalizeSpokenLists"
+      ],
+      "expected": "1. First step\n2. Second step\n3. Third step"
+    },
+    {
+      "name": "apply_normalizes_attached_slash_before_path_parsing",
+      "input": "Open docslash runbook slash release dot md and update the checklist",
+      "post_processors": [
+        "atPrefixFilePaths"
+      ],
+      "expected": "Open @doc/runbook/release.md and update the checklist",
+      "macos_expected": "Open @docs/runbooks/release.md and update the checklist."
+    },
+    {
+      "name": "apply_canonicalizes_design_guide_path_from_spoken_warp_form",
+      "input": "I need docs slash DesignGuide dot md checked in",
+      "post_processors": [
+        "atPrefixFilePaths"
+      ],
+      "expected": "I need @docs/designguide.md checked in",
+      "macos_expected": "I need @docs/DesignGuide.md checked in."
+    },
+    {
+      "name": "apply_canonicalizes_source_settings_path_from_spoken_warp_form",
+      "input": "File path should stay source slash detivo slash app shell slash settings view dot swift",
+      "post_processors": [
+        "atPrefixFilePaths"
+      ],
+      "expected": "File path should stay @source/detivo/appshell/SettingsView.swift",
+      "macos_expected": "File path should stay @source/dettivo/appshell/settingsview.swift."
+    },
+    {
+      "name": "apply_repairs_mixed_prose_design_guide_path",
+      "input": "I need the due diligence memo and I also need doc slash design guide dot md checked in",
+      "post_processors": [
+        "atPrefixFilePaths"
+      ],
+      "expected": "I need the due diligence memo and I also need @doc/DesignGuide.md checked in",
+      "macos_expected": "I need the due diligence memo and I also need @docs/DesignGuide.md checked in."
+    },
+    {
+      "name": "apply_repairs_mixed_prose_runbook_path",
+      "input": "I want a short recap in the terminal, but preserve doc slash runbook slash release dot md exactly",
+      "post_processors": [
+        "atPrefixFilePaths"
+      ],
+      "expected": "I want a short recap in the terminal, but preserve @doc/runbook/release.md exactly",
+      "macos_expected": "I want a short recap in the terminal, but preserve @docs/runbooks/release.md exactly."
+    },
+    {
+      "name": "apply_does_not_attach_at_prefix_to_glued_relative_path",
+      "input": "I want a short recap in the terminal, but preserve./rumbook/release.md exactly.",
+      "post_processors": [
+        "atPrefixFilePaths"
+      ],
+      "expected": "I want a short recap in the terminal, but preserve./rumbook/release.md exactly."
+    },
+    {
+      "name": "apply_canonicalizes_qwen_1_7b_spoken_version",
+      "input": "Do not change quen3 colon one point seven b",
+      "post_processors": [],
+      "expected": "Do not change quen3 colon one point seven b",
+      "macos_expected": "Do not change qwen3:1.7b."
+    },
+    {
+      "name": "apply_canonicalizes_generic_spoken_model_identifier",
+      "input": "Try llama three point two colon three b for the local test",
+      "post_processors": [],
+      "expected": "Try llama three point two colon three b for the local test",
+      "macos_expected": "Try llama3.2:3b for the local test."
+    },
+    {
+      "name": "apply_does_not_force_technical_canonicalization_in_plain_prose",
+      "input": "The design guide for the team should stay simple",
+      "post_processors": [],
+      "expected": "The design guide for the team should stay simple",
+      "macos_expected": "The design guide for the team should stay simple."
+    },
+    {
+      "name": "apply_normalizes_pure_initialism_runs",
+      "input": "A R R M R R C A C L T V K P I O K R Q B R",
+      "post_processors": [],
+      "expected": "A R R M R R C A C L T V K P I O K R Q B R",
+      "macos_expected": "ARR, MRR, CAC, LTV, KPI, OKR, QBR"
+    },
+    {
+      "name": "apply_normalizes_generic_spaced_filesystem_tokens",
+      "input": "Please update source slash user profile slash account settings dot swift",
+      "post_processors": [
+        "atPrefixFilePaths"
+      ],
+      "expected": "Please update @source/userprofile/AccountSettings.swift",
+      "macos_expected": "Please update @source/userprofile/AccountSettings.swift."
+    },
+    {
+      "name": "apply_normalizes_due_diligence_duplication",
+      "input": "we have to do the diligence, due diligence for the MA",
+      "post_processors": [],
+      "expected": "we have to do the diligence, due diligence for the MA",
+      "macos_expected": "We have to do the due diligence for the M&A."
+    },
+    {
+      "name": "apply_normalizes_codex_ui_copy_fixes",
+      "input": "meeting analysis model, choose quality/speed for summaries and extraction. app roles only change it this if you explicitly set a model override. existing APIs, objects, pars, projects.",
+      "post_processors": [],
+      "expected": "meeting analysis model, choose quality/speed for summaries and extraction. app roles only change it this if you explicitly set a model override. existing APIs, objects, pars, projects.",
+      "macos_expected": "Meeting Analysis Model. Choose quality/speed for summaries and extraction. App rules only change it if you explicitly set a model override. Existing APIs, objects, paths, projects."
+    },
+    {
+      "name": "apply_handles_empty_processors",
+      "input": "check foo.swift",
+      "post_processors": [],
+      "expected": "check foo.swift",
+      "macos_expected": "Check foo.swift."
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "capabilities": {},
+  "method": "events.subscribe",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "events.subscribe",
+    "params": {
+      "buffer": 256,
+      "topics": [
+        "dictation.state",
+        "meeting.state",
+        "job.progress",
+        "audio.level",
+        "config.changed"
+      ]
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "buffer": 256,
+      "subscription_id": "sub_1"
+    }
+  }
+}

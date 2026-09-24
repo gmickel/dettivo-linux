@@ -1,0 +1,61 @@
+{
+  "capabilities": {},
+  "method": "transcripts.search",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transcripts.search",
+    "params": {
+      "kinds": [
+        "dictation",
+        "meeting"
+      ],
+      "limit": 10,
+      "query": "api"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "items": [
+        {
+          "item": {
+            "app_id": "org.gnome.TextEditor",
+            "duration_seconds": 13,
+            "mode": "raw",
+            "ref": {
+              "id": "5eed0000-0000-4000-8000-000000000009",
+              "kind": "dictation"
+            },
+            "source": "dictation",
+            "started_at": "2026-02-13T09:00:00Z",
+            "status": "completed",
+            "title": "Thanks for the review, I pushed the fixes for"
+          },
+          "matches": [
+            {
+              "end": 58,
+              "start": 55
+            }
+          ],
+          "ref": {
+            "id": "5eed0000-0000-4000-8000-000000000009",
+            "kind": "dictation"
+          },
+          "score": null,
+          "snippet": "thanks for the review comma i pushed the fixes for the api…"
+        },
+        {
+          "matched_field": "transcript",
+          "ref": {
+            "id": "5eed0000-0000-4000-8000-00000000a001",
+            "kind": "meeting"
+          },
+          "score": null,
+          "snippet": "…And the API gateway rollout moves to Thursday."
+        }
+      ]
+    }
+  }
+}

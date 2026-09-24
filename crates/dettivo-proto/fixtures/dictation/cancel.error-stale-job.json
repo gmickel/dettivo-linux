@@ -1,0 +1,9 @@
+{
+  "capabilities": {},
+  "method": "dictation.cancel",
+  "request": {"jsonrpc": "2.0", "id": "1", "method": "dictation.cancel", "params": {"expected_job_id": "old-job"}},
+  "error": {
+    "jsonrpc": "2.0", "id": "1",
+    "error": {"code": -32012, "message": "no dictation session is active", "data": {"app_code": "NOT_FOUND", "retryable": false, "details": {}}}
+  }
+}

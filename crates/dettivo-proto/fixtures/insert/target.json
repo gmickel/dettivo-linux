@@ -1,0 +1,43 @@
+{
+  "capabilities": {
+    "insert.methods": [
+      "insert.undo",
+      "insert.target",
+      "insert.allow_self_target"
+    ]
+  },
+  "method": "insert.target",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "insert.target",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "backends": [
+        {
+          "available": true,
+          "name": "mock",
+          "reason": null
+        },
+        {
+          "available": true,
+          "name": "mock_clipboard",
+          "reason": null
+        }
+      ],
+      "chosen": "mock",
+      "probe": "mock",
+      "target": {
+        "app_id": "org.gnome.TextEditor",
+        "is_dettivo": false,
+        "pid": 4141,
+        "title_hash": "mock",
+        "xwayland": false
+      }
+    }
+  }
+}

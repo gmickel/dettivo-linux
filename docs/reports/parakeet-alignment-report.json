@@ -1,0 +1,117 @@
+{
+  "golden": "crates/dettivo-qa/fixtures/alignment/jfk.words.json",
+  "aligner": "torchaudio 2.11.0+cpu forced_align over WAV2VEC2_ASR_BASE_960H character CTC emissions, 20 ms frames, blank=0; built once by scripts in the S-13 spike and checked in",
+  "rule": "meeting_capable when every Parakeet model measured pairs at least 90% of the golden words and keeps the pooled start/end offset p95 within 200 ms and the median within 100 ms; dictation_only otherwise; undecided when the fixture, an engine or a model is unavailable",
+  "runs": [
+    {
+      "provider": "whisper",
+      "model": "tiny.en",
+      "backend": "cpu",
+      "reason": "backend=Cpu reason=this build has no Vulkan backend",
+      "words": {
+        "golden_words": 22,
+        "matched_words": 0,
+        "start": {
+          "count": 0,
+          "median_ms": 0,
+          "p95_ms": 0,
+          "max_ms": 0
+        },
+        "end": {
+          "count": 0,
+          "median_ms": 0,
+          "p95_ms": 0,
+          "max_ms": 0
+        },
+        "combined": {
+          "count": 0,
+          "median_ms": 0,
+          "p95_ms": 0,
+          "max_ms": 0
+        }
+      },
+      "segment_boundaries": {
+        "count": 4,
+        "median_ms": 421,
+        "p95_ms": 561,
+        "max_ms": 561
+      },
+      "text": "And so my fellow Americans ask not what your country can do for you ask what you can do for your country.",
+      "passes": null
+    },
+    {
+      "provider": "parakeet",
+      "model": "parakeet-v2",
+      "backend": "vulkan",
+      "reason": "backend=Vulkan reason=Vulkan backend built in and a device is installed (Vulkan0) model_name=\"nvidia/parakeet-tdt-0.6b-v2\"",
+      "words": {
+        "golden_words": 22,
+        "matched_words": 22,
+        "start": {
+          "count": 22,
+          "median_ms": 42,
+          "p95_ms": 213,
+          "max_ms": 266
+        },
+        "end": {
+          "count": 22,
+          "median_ms": 98,
+          "p95_ms": 327,
+          "max_ms": 516
+        },
+        "combined": {
+          "count": 44,
+          "median_ms": 84,
+          "p95_ms": 308,
+          "max_ms": 516
+        }
+      },
+      "segment_boundaries": {
+        "count": 2,
+        "median_ms": 41,
+        "p95_ms": 181,
+        "max_ms": 181
+      },
+      "text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+      "passes": false
+    },
+    {
+      "provider": "parakeet",
+      "model": "parakeet-v3",
+      "backend": "vulkan",
+      "reason": "backend=Vulkan reason=Vulkan backend built in and a device is installed (Vulkan0) model_name=\"nvidia/parakeet-tdt-0.6b-v3\"",
+      "words": {
+        "golden_words": 22,
+        "matched_words": 22,
+        "start": {
+          "count": 22,
+          "median_ms": 81,
+          "p95_ms": 266,
+          "max_ms": 287
+        },
+        "end": {
+          "count": 22,
+          "median_ms": 164,
+          "p95_ms": 407,
+          "max_ms": 516
+        },
+        "combined": {
+          "count": 44,
+          "median_ms": 123,
+          "p95_ms": 347,
+          "max_ms": 516
+        }
+      },
+      "segment_boundaries": {
+        "count": 2,
+        "median_ms": 121,
+        "p95_ms": 181,
+        "max_ms": 181
+      },
+      "text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+      "passes": false
+    }
+  ],
+  "verdict": "dictation_only",
+  "verdict_reason": "parakeet-v2: matched 22/22, median 84 ms, p95 308 ms; parakeet-v3: matched 22/22, median 123 ms, p95 347 ms"
+}

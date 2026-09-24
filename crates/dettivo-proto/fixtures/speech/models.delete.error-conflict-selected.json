@@ -1,0 +1,26 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32013,
+      "data": {
+        "app_code": "CONFLICT",
+        "details": {},
+        "retryable": false
+      },
+      "message": "whisper/large-v3-turbo is the selected model; pass force to delete it"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "speech.models.delete",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "speech.models.delete",
+    "params": {
+      "model": "large-v3-turbo",
+      "provider": "whisper"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "capabilities": {},
+  "method": "meetings.recover",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.recover",
+    "params": {
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "duration_ms": 1800000,
+      "ref": {
+        "id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "kind": "meeting"
+      },
+      "status": "transcribing"
+    }
+  }
+}

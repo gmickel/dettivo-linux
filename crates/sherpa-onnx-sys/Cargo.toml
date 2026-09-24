@@ -1,0 +1,22 @@
+[package]
+name = "sherpa-onnx-sys"
+description = "Raw bindings to sherpa-onnx's C API over the pinned release libraries"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+links = "sherpa-onnx"
+
+[features]
+default = []
+cuda = []
+
+[dependencies]
+
+[build-dependencies]
+bindgen.workspace = true
+sha2.workspace = true
+
+[lints]
+workspace = true

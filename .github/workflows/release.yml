@@ -1,0 +1,122 @@
+# The release workflow (ADR 0034): a `v*` tag becomes a GitHub release
+# carrying dettivo-<version>-linux-x86_64.tar.zst, SHA256SUMS and the
+# notes taken from the tag's section of CHANGELOG.md, with no hand step.
+# The reusable rig owns the full gate, package and clean-install proof.
+# Publishing consumes that same package artifact after every blocking rig
+# job succeeds, and only with the release gate's receipt for the version
+# checked in for the gated code (scripts/packaging/release-receipt.sh).
+# workflow_dispatch with dry_run (the default) rehearses the entire path
+# through artifact verification without publishing, on a branch or on the
+# tag itself; the decision is scripts/packaging/release-decide.sh.
+#
+# Once the release is published and verified, distribute.yml pushes both
+# AUR recipes and the Omarchy plugin mirror (ADR 0064).
+
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Build and test the release, upload the artifacts, publish nothing
+        type: boolean
+        default: true
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # The version and the notes, before a single crate compiles.
+  prepare:
+    name: prepare
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      publish: ${{ steps.version.outputs.publish }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The receipt check walks from the gated commit to this one.
+          fetch-depth: 0
+      # The decision is a script the packaging lint tests: a tag push
+      # publishes, a dispatch publishes only with dry_run=false on that
+      # tag, and a rehearsal is never turned into a publication by the ref
+      # it runs on.
+      - id: version
+        run: scripts/packaging/release-decide.sh >>"$GITHUB_OUTPUT"
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+      # A publishing run needs the release gate's receipt for this version
+      # (docs/RELEASING.md): the gate passed with no unexplained blocker at
+      # a commit this one descends from with nothing but docs/reports/
+      # changed since. The check reads the report and the history only.
+      - if: steps.version.outputs.publish == 'true'
+        run: scripts/packaging/release-receipt.sh "${{ steps.version.outputs.version }}" "$GITHUB_SHA"
+      - run: scripts/packaging/release-notes.sh "${{ steps.version.outputs.version }}" release-notes.md
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-notes
+          path: release-notes.md
+          if-no-files-found: error
+
+  rig:
+    name: rig
+    needs: prepare
+    uses: ./.github/workflows/rig.yml
+    with:
+      release: true
+
+  publish:
+    name: publish
+    needs: [prepare, rig]
+    if: needs.prepare.outputs.publish == 'true'
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: dettivo-package
+          path: release
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-notes
+          path: release
+      - run: |
+          set -euo pipefail
+          version="${{ needs.prepare.outputs.version }}"
+          test "$(cat release/dist/REVISION)" = "$GITHUB_SHA"
+          (cd release && sha256sum --check --strict dist/ARTIFACT_SHA256SUMS)
+          cd release/dist
+          sha256sum --check --strict SHA256SUMS
+          gh release create "v${version}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "Dettivo for Linux ${version}" \
+            --notes-file ../release-notes.md \
+            "dettivo-${version}-linux-x86_64.tar.zst" SHA256SUMS
+          mkdir -p ../verify && cd ../verify
+          gh release download "v${version}" --repo "${GITHUB_REPOSITORY}" --pattern "dettivo-${version}-linux-x86_64.tar.zst" --pattern SHA256SUMS
+          sha256sum --check --strict SHA256SUMS
+          echo "release: v${version} published and its checksums verify against the download"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  distribute:
+    name: distribute
+    needs: [prepare, publish]
+    uses: ./.github/workflows/distribute.yml
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+    secrets: inherit

@@ -1,0 +1,537 @@
+{
+  "capabilities": {},
+  "method": "system.diagnostics",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "system.diagnostics",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "probes": {
+        "system.version": {
+          "state": "success",
+          "result": {
+            "api_version": "1.0.0",
+            "app_version": "0.1.0",
+            "build": "284a402"
+          },
+          "error": null
+        },
+        "system.health": {
+          "state": "success",
+          "result": {
+            "active_jobs": 0,
+            "ok": true,
+            "recording_state": "idle",
+            "uptime_seconds": 123
+          },
+          "error": null
+        },
+        "system.capabilities": {
+          "state": "success",
+          "result": {
+            "auth": {
+              "ipc_mode": "peer",
+              "rest_token_required": true
+            },
+            "automation": {
+              "dictation_macro_audit": false,
+              "dictation_macros": false,
+              "email_delivery": false,
+              "jobs": false,
+              "providers": false
+            },
+            "config": {
+              "methods": [
+                "config.get",
+                "config.set",
+                "config.unset",
+                "config.validate",
+                "config.path",
+                "config.print_default",
+                "config.keys"
+              ]
+            },
+            "formats": {
+              "dictation_export": [
+                "txt",
+                "md",
+                "json"
+              ],
+              "meeting_export": [
+                "txt",
+                "md",
+                "json",
+                "srt",
+                "vtt"
+              ]
+            },
+            "history": {
+              "archive_export": true,
+              "fts": true,
+              "methods": [
+                "transcripts.delete",
+                "transcripts.rerun",
+                "transcripts.stats",
+                "transcripts.cancel"
+              ],
+              "semantic_search": false
+            },
+            "polish": {
+              "custom_presets": true,
+              "modes": [
+                "raw",
+                "deterministic_polish",
+                "enhanced"
+              ],
+              "presets": [
+                "email",
+                "code",
+                "chat",
+                "notes",
+                "generic"
+              ],
+              "styles": [
+                "asDictated",
+                "formal",
+                "casual",
+                "veryCasual"
+              ]
+            },
+            "llm": {
+              "local_available": false,
+              "methods": [
+                "llm.providers.list",
+                "llm.endpoints.trust",
+                "llm.endpoints.list",
+                "llm.models.status",
+                "llm.models.download",
+                "llm.models.cancel",
+                "llm.models.delete",
+                "llm.engine.status"
+              ],
+              "providers": [
+                "local",
+                "ollama",
+                "openai_compatible"
+              ]
+            },
+            "hotkeys": {
+              "available": [],
+              "backend": "none"
+            },
+            "insert": {
+              "methods": [
+                "insert.undo",
+                "insert.target",
+                "insert.allow_self_target"
+              ]
+            },
+            "insert_modes": [
+              "raw",
+              "polish",
+              "clipboard_only"
+            ],
+            "knowledge": {
+              "ask_with_citations": false,
+              "semantic_search": false
+            },
+            "meeting_templates": false,
+            "platform": {
+              "compositor": "Hyprland",
+              "gpu": "vulkan",
+              "insertion_backend": "virtual_keyboard",
+              "os": "linux",
+              "session": "wayland",
+              "tier": "gpu",
+              "tier_reason": "a Vulkan device is installed and dettivo-engine-whisper runs on it",
+              "transport": "unix_socket"
+            },
+            "retention": {
+              "auto_delete": false,
+              "delete": true
+            },
+            "rest": {
+              "bind": "127.0.0.1",
+              "enabled": false,
+              "port": 45831
+            },
+            "speech": {
+              "methods": [
+                "speech.providers.list",
+                "speech.selection.get",
+                "speech.selection.set"
+              ],
+              "providers": {
+                "parakeet": {
+                  "meeting_capable": false
+                },
+                "whisper": {
+                  "meeting_capable": true
+                }
+              }
+            },
+            "transfers": {
+              "chunk_max_bytes": 1048576,
+              "max_inflight": 4,
+              "timeout_seconds": 120
+            },
+            "meetings": {
+              "checkpoint_schema": 1,
+              "methods": [
+                "meetings.recover",
+                "meetings.discard",
+                "meetings.disclosure.get",
+                "meetings.disclosure.acknowledge",
+                "meetings.diarize",
+                "meetings.speakers.list",
+                "meetings.speakers.rename",
+                "meetings.speakers.suggest",
+                "meetings.notes.get",
+                "meetings.notes.set",
+                "meetings.analyze",
+                "meetings.analysis.get",
+                "meetings.rename"
+              ]
+            }
+          },
+          "error": null
+        },
+        "insert.target": {
+          "state": "success",
+          "result": {
+            "backends": [
+              {
+                "available": true,
+                "name": "mock",
+                "reason": null
+              },
+              {
+                "available": true,
+                "name": "mock_clipboard",
+                "reason": null
+              }
+            ],
+            "chosen": "mock",
+            "probe": "mock",
+            "target": {
+              "app_id": "org.gnome.TextEditor",
+              "is_dettivo": false,
+              "pid": 4141,
+              "title_hash": "mock",
+              "xwayland": false
+            }
+          },
+          "error": null
+        },
+        "hotkeys.status": {
+          "state": "success",
+          "result": {
+            "backend": "none",
+            "bound": [],
+            "error": null,
+            "evdev": {
+              "available": false,
+              "reason": "cannot open 12 input device(s): reading /dev/input/event* needs the `input` group: run `sudo usermod -aG input $USER` and log in again"
+            },
+            "last_press_at": null,
+            "portal": {
+              "available": false,
+              "reason": "the desktop portal has no GlobalShortcuts interface"
+            },
+            "requested": "auto"
+          },
+          "error": null
+        },
+        "audio.devices": {
+          "state": "success",
+          "result": {
+            "default_sink": "alsa_output.pci-0000_01_00.1.hdmi-stereo",
+            "default_source": "alsa_input.usb-headset.mono-fallback",
+            "devices": [
+              {
+                "description": "Headset Microphone",
+                "is_default": true,
+                "kind": "source",
+                "name": "alsa_input.usb-headset.mono-fallback"
+              },
+              {
+                "description": "HDMI Audio",
+                "is_default": false,
+                "kind": "sink_monitor",
+                "name": "alsa_output.pci-0000_01_00.1.hdmi-stereo"
+              }
+            ],
+            "pinned": "",
+            "pipewire": true
+          },
+          "error": null
+        },
+        "config.validate": {
+          "state": "success",
+          "result": {
+            "errors": [],
+            "ok": true,
+            "path": "/home/user/.config/dettivo/config.toml"
+          },
+          "error": null
+        },
+        "speech.engines": {
+          "state": "success",
+          "result": {
+            "engines": [
+              {
+                "backend": "vulkan",
+                "binary": "dettivo-engine-whisper",
+                "crashes": 0,
+                "degraded": false,
+                "directory": "/usr/bin",
+                "memory_bytes": 1946157056,
+                "model": "/home/user/.local/share/dettivo/models/whisper/large-v3-turbo/ggml-large-v3-turbo.bin",
+                "path": "/usr/bin/dettivo-engine-whisper",
+                "reason": "Vulkan backend built in and a device is installed",
+                "running": true
+              },
+              {
+                "backend": null,
+                "binary": "dettivo-engine-parakeet",
+                "crashes": 0,
+                "degraded": false,
+                "directory": null,
+                "memory_bytes": null,
+                "model": null,
+                "path": null,
+                "reason": null,
+                "running": false
+              },
+              {
+                "backend": null,
+                "binary": "dettivo-engine-llm",
+                "crashes": 0,
+                "degraded": false,
+                "directory": "/usr/bin",
+                "memory_bytes": null,
+                "model": null,
+                "path": "/usr/bin/dettivo-engine-llm",
+                "reason": null,
+                "running": false
+              }
+            ]
+          },
+          "error": null
+        },
+        "speech.models.status": {
+          "state": "success",
+          "result": {
+            "catalogue_version": 1,
+            "models": [
+              {
+                "available": true,
+                "bytes_done": 77704715,
+                "bytes_total": 77704715,
+                "display_name": "Tiny (English)",
+                "error": null,
+                "id": "tiny.en",
+                "is_default": false,
+                "is_selected": false,
+                "kind": "stt",
+                "languages": [
+                  "en"
+                ],
+                "license": "MIT",
+                "path": "/home/user/.local/share/dettivo/models/whisper/tiny.en/ggml-tiny.en.bin",
+                "provider": "whisper",
+                "readiness": "ready",
+                "recommended_for": null,
+                "size_bytes": 77704715
+              },
+              {
+                "available": true,
+                "bytes_done": 12345678,
+                "bytes_total": 874188075,
+                "display_name": "Large v3 Turbo",
+                "error": null,
+                "id": "large-v3-turbo",
+                "is_default": true,
+                "is_selected": true,
+                "kind": "stt",
+                "languages": [
+                  "multilingual"
+                ],
+                "license": "MIT",
+                "path": null,
+                "provider": "whisper",
+                "readiness": "downloading",
+                "recommended_for": "99 languages \u00b7 vocabulary prompts \u00b7 the Mac default",
+                "size_bytes": 874188075
+              }
+            ],
+            "models_dir": "/home/user/.local/share/dettivo/models"
+          },
+          "error": null
+        },
+        "llm.providers.list": {
+          "state": "success",
+          "result": {
+            "providers": [
+              {
+                "available": false,
+                "detail": "llm/qwen3-4b-instruct-2507 is not downloaded",
+                "hint": "dettivo llm download --model qwen3-4b-instruct-2507",
+                "id": "local",
+                "model": "qwen3-4b-instruct-2507"
+              },
+              {
+                "available": false,
+                "detail": "provider unavailable: error sending request",
+                "hint": "start Ollama, or set [llm] ollama_url",
+                "id": "ollama",
+                "model": "qwen3:4b-instruct"
+              }
+            ]
+          },
+          "error": null
+        },
+        "llm.engine.status": {
+          "state": "failure",
+          "result": null,
+          "error": {
+            "code": -32015,
+            "message": "engine query timed out",
+            "data": {
+              "app_code": "INTERNAL_ERROR",
+              "retryable": false,
+              "details": {}
+            }
+          }
+        },
+        "llm.models.status": {
+          "state": "success",
+          "result": {
+            "analysis_model": "qwen3-4b-instruct-2507",
+            "catalogue_version": 1,
+            "models": [
+              {
+                "available": true,
+                "bytes_done": 0,
+                "bytes_total": 2497281120,
+                "display_name": "Qwen3 4B Instruct 2507",
+                "error": null,
+                "id": "qwen3-4b-instruct-2507",
+                "is_default": true,
+                "is_selected": false,
+                "kind": "llm",
+                "languages": [],
+                "license": "Apache-2.0",
+                "path": null,
+                "provider": "llm",
+                "readiness": "missing",
+                "recommended_for": null,
+                "size_bytes": 2497281120,
+                "source": "catalogue"
+              },
+              {
+                "available": true,
+                "bytes_done": 1107409472,
+                "bytes_total": 1107409472,
+                "display_name": "Qwen3 1.7B (fast)",
+                "error": null,
+                "id": "qwen3-1.7b",
+                "is_default": false,
+                "is_selected": false,
+                "kind": "llm",
+                "languages": [],
+                "license": "Apache-2.0",
+                "path": "/home/user/.local/share/dettivo/models/llm/qwen3-1.7b/Qwen3-1.7B-Q4_K_M.gguf",
+                "provider": "llm",
+                "readiness": "ready",
+                "recommended_for": null,
+                "size_bytes": 1107409472,
+                "source": "catalogue"
+              },
+              {
+                "available": true,
+                "bytes_done": 0,
+                "bytes_total": 2497281312,
+                "display_name": "Qwen3 4B (quality)",
+                "error": null,
+                "id": "qwen3-4b",
+                "is_default": false,
+                "is_selected": false,
+                "kind": "llm",
+                "languages": [],
+                "license": "Apache-2.0",
+                "path": null,
+                "provider": "llm",
+                "readiness": "missing",
+                "recommended_for": null,
+                "size_bytes": 2497281312,
+                "source": "catalogue"
+              },
+              {
+                "available": true,
+                "bytes_done": 0,
+                "bytes_total": 5027784512,
+                "display_name": "Qwen3 8B (meeting analysis)",
+                "error": null,
+                "id": "qwen3-8b",
+                "is_default": false,
+                "is_selected": false,
+                "kind": "llm",
+                "languages": [],
+                "license": "Apache-2.0",
+                "path": null,
+                "provider": "llm",
+                "readiness": "missing",
+                "recommended_for": null,
+                "size_bytes": 5027784512,
+                "source": "catalogue"
+              },
+              {
+                "available": false,
+                "base_model": "qwen3-1.7b",
+                "bytes_done": 52428800,
+                "bytes_total": 52428800,
+                "display_name": "Current 1.7B Experiment",
+                "error": null,
+                "format": "gguf-lora",
+                "id": "qwen3-1.7b-private-best",
+                "is_default": false,
+                "is_selected": true,
+                "kind": "llm",
+                "languages": [],
+                "license": "private",
+                "path": "/home/user/.local/share/dettivo/models/polish-experiments/qwen3-1.7b-private-best/adapter.gguf",
+                "provider": "llm",
+                "readiness": "ready",
+                "recommended_for": null,
+                "size_bytes": 52428800,
+                "source": "sideload"
+              }
+            ],
+            "models_dir": "/home/user/.local/share/dettivo/models",
+            "polish_experiment": "current",
+            "selected": "qwen3-4b-instruct-2507"
+          },
+          "error": null
+        },
+        "transcripts.stats": {
+          "state": "success",
+          "result": {
+            "audio_items": 0,
+            "item_count": 12,
+            "last_migration": "0008-analysis-queued",
+            "path": "/home/user/.local/share/dettivo/dettivo.db",
+            "schema_version": 8,
+            "size_bytes": 204800
+          },
+          "error": null
+        }
+      }
+    }
+  }
+}

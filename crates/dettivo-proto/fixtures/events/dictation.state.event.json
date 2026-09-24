@@ -1,0 +1,36 @@
+{
+  "notification": {
+    "jsonrpc": "2.0",
+    "method": "events.notify",
+    "params": {
+      "payload": {
+        "first_words": "Add a regression test.",
+        "insertion": {
+          "backend": "virtual_keyboard",
+          "method": "paste",
+          "outcome": "inserted",
+          "reason": null,
+          "target_app": {
+            "bundle_id": "ghostty",
+            "name": "ghostty"
+          }
+        },
+        "job_id": "job_dict_1",
+        "mode": "enhanced",
+        "policy_hash": "2f6c1a9e4b0d7c35",
+        "previous_state": "inserting",
+        "reason": null,
+        "state": "idle",
+        "timings": {
+          "capture_ms": 12,
+          "insert_ms": 35,
+          "transcribe_ms": 640
+        }
+      },
+      "subscription_id": "sub_1",
+      "timestamp": "2026-02-13T16:00:07.400Z",
+      "topic": "dictation.state"
+    }
+  },
+  "topic": "dictation.state"
+}

@@ -1,0 +1,3 @@
+claude mcp add --scope user --transport stdio dettivo -- /usr/bin/dettivo mcp serve
+
+Next step: run this line, or `--write` for a project .mcp.json in the current directory.

@@ -1,0 +1,34 @@
+{
+  "capabilities": {},
+  "method": "audio.devices",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "audio.devices",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "default_sink": "alsa_output.pci-0000_01_00.1.hdmi-stereo",
+      "default_source": "alsa_input.usb-headset.mono-fallback",
+      "devices": [
+        {
+          "description": "Headset Microphone",
+          "is_default": true,
+          "kind": "source",
+          "name": "alsa_input.usb-headset.mono-fallback"
+        },
+        {
+          "description": "HDMI Audio",
+          "is_default": false,
+          "kind": "sink_monitor",
+          "name": "alsa_output.pci-0000_01_00.1.hdmi-stereo"
+        }
+      ],
+      "pinned": "",
+      "pipewire": true
+    }
+  }
+}

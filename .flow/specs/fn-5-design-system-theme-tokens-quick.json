@@ -1,0 +1,35 @@
+{
+  "branch_name": "fn-5-design-system-theme-tokens-quick",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-03T13:03:02.888811Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-1-repository-bootstrap-workspace-cmake"
+  ],
+  "id": "fn-5-design-system-theme-tokens-quick",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-5-design-system-theme-tokens-quick.md",
+  "status": "done",
+  "title": "Design system: theme tokens, Quick Controls style, type, motion and icons",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-03T19:37:55.508685Z"
+}

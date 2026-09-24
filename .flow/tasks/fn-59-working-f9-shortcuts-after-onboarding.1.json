@@ -1,0 +1,12 @@
+{
+  "created_at": "2026-09-14T21:09:44.454104Z",
+  "depends_on": [],
+  "id": "fn-59-working-f9-shortcuts-after-onboarding.1",
+  "implicit_owner": true,
+  "priority": null,
+  "spec": "fn-59-working-f9-shortcuts-after-onboarding",
+  "spec_path": ".flow/tasks/fn-59-working-f9-shortcuts-after-onboarding.1.md",
+  "status": "todo",
+  "title": "Implement reliable onboarding and polished Omarchy controls",
+  "updated_at": "2026-09-14T22:06:13.898068Z"
+}

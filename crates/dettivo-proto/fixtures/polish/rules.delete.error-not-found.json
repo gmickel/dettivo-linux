@@ -1,0 +1,25 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32012,
+      "data": {
+        "app_code": "NOT_FOUND",
+        "details": {},
+        "retryable": false
+      },
+      "message": "Rule not found"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "polish.rules.delete",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "polish.rules.delete",
+    "params": {
+      "rule_id": "d3b07384-d9a0-4c8e-9f1e-5a6b7c8d9e0f"
+    }
+  }
+}

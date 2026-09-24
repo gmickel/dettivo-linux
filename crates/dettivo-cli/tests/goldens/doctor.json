@@ -1,0 +1,356 @@
+{
+  "audio": {
+    "default_sink": null,
+    "default_source": null,
+    "devices": [],
+    "pinned": "",
+    "pipewire": false
+  },
+  "auth": {
+    "ipc_mode": "peer",
+    "rest_token_required": true
+  },
+  "compositor": {
+    "name": "Hyprland",
+    "source": "daemon"
+  },
+  "config": {
+    "errors": [],
+    "ok": true,
+    "path": "/home/user/cfg/dettivo/config.toml"
+  },
+  "daemon": {
+    "health": {
+      "active_jobs": 0,
+      "ok": true,
+      "recording_state": "idle",
+      "uptime_seconds": 0
+    },
+    "reachable": true,
+    "version": {
+      "api_version": "1.0.0",
+      "app_version": "0.1.0",
+      "build": "dev"
+    }
+  },
+  "diarization": {
+    "engine": {
+      "backend": null,
+      "binary": "dettivo-engine-diarize",
+      "crashes": 0,
+      "degraded": false,
+      "directory": "/usr/bin",
+      "memory_bytes": null,
+      "model": null,
+      "path": "/usr/bin/dettivo-engine-diarize",
+      "reason": null,
+      "running": false
+    },
+    "model": "diarize/diarization",
+    "model_readiness": null
+  },
+  "engines": [
+    {
+      "backend": null,
+      "binary": "dettivo-engine-whisper",
+      "crashes": 0,
+      "degraded": false,
+      "directory": "/usr/bin",
+      "memory_bytes": null,
+      "model": null,
+      "path": "/usr/bin/dettivo-engine-whisper",
+      "reason": null,
+      "running": false
+    },
+    {
+      "backend": null,
+      "binary": "dettivo-engine-parakeet",
+      "crashes": 0,
+      "degraded": false,
+      "directory": "/usr/bin",
+      "memory_bytes": null,
+      "model": null,
+      "path": "/usr/bin/dettivo-engine-parakeet",
+      "reason": null,
+      "running": false
+    },
+    {
+      "backend": null,
+      "binary": "dettivo-engine-llm",
+      "crashes": 0,
+      "degraded": false,
+      "directory": "/usr/bin",
+      "memory_bytes": null,
+      "model": null,
+      "path": "/usr/bin/dettivo-engine-llm",
+      "reason": null,
+      "running": false
+    },
+    {
+      "backend": null,
+      "binary": "dettivo-engine-diarize",
+      "crashes": 0,
+      "degraded": false,
+      "directory": "/usr/bin",
+      "memory_bytes": null,
+      "model": null,
+      "path": "/usr/bin/dettivo-engine-diarize",
+      "reason": null,
+      "running": false
+    }
+  ],
+  "environment": {
+    "DETTIVO_CONFIG": false,
+    "DETTIVO_DATA_DIR": false,
+    "DETTIVO_FORCE_CPU": false,
+    "DETTIVO_IPC_SOCKET": false,
+    "DETTIVO_IPC_TOKEN": false,
+    "DETTIVO_QA": false
+  },
+  "history": {
+    "audio_items": 0,
+    "item_count": 0,
+    "last_migration": "0006-speakers",
+    "path": "/home/user/data/dettivo/dettivo.db",
+    "schema_version": 6,
+    "size_bytes": 140088
+  },
+  "hotkeys": {
+    "backend": "none",
+    "bound": [],
+    "error": null,
+    "evdev": {
+      "available": false,
+      "reason": "cannot open 21 input device(s): reading /dev/input/event* needs the `input` group: run `sudo usermod -aG input $USER` and log in again"
+    },
+    "last_press_at": null,
+    "portal": {
+      "available": false,
+      "reason": "no session bus: I/O error: No such file or directory (os error 2)"
+    },
+    "requested": "auto"
+  },
+  "insertion": {
+    "backends": [
+      {
+        "available": false,
+        "name": "virtual_keyboard",
+        "reason": "no Wayland display (WAYLAND_DISPLAY is unset)"
+      },
+      {
+        "available": false,
+        "name": "libei",
+        "reason": "no session bus for the desktop portal"
+      },
+      {
+        "available": false,
+        "name": "ydotool",
+        "reason": "ydotool is not on PATH"
+      },
+      {
+        "available": false,
+        "name": "xdotool",
+        "reason": "no X11 display (DISPLAY is unset)"
+      },
+      {
+        "available": false,
+        "name": "clipboard_paste",
+        "reason": "no Wayland or X11 display for a clipboard"
+      },
+      {
+        "available": false,
+        "name": "clipboard",
+        "reason": "no Wayland or X11 display for a clipboard"
+      }
+    ],
+    "chosen": null,
+    "probe": "none",
+    "target": null
+  },
+  "llm": {
+    "engine": {
+      "backend": null,
+      "binary": "dettivo-engine-llm",
+      "busy": false,
+      "crashes": 0,
+      "degraded": false,
+      "idle_seconds": 600,
+      "loaded": false,
+      "memory_bytes": null,
+      "model": null,
+      "path": "/usr/bin/dettivo-engine-llm",
+      "reason": null,
+      "running": false
+    },
+    "experiment": null,
+    "local_available": false,
+    "local_detail": "llm/qwen3-4b-instruct-2507 is not downloaded",
+    "local_hint": "dettivo llm download --model qwen3-4b-instruct-2507",
+    "model": "qwen3-4b-instruct-2507",
+    "model_readiness": "missing",
+    "provider_order": [
+      {
+        "available": false,
+        "id": "local",
+        "model": "qwen3-4b-instruct-2507"
+      },
+      {
+        "available": false,
+        "id": "ollama",
+        "model": "qwen3:4b-instruct"
+      }
+    ],
+    "selected_provider": null
+  },
+  "mcp": {
+    "resource_templates": 6,
+    "server": {
+      "name": "dettivo-mcp",
+      "version": "1.0.0"
+    },
+    "tools": 19
+  },
+  "models": {
+    "catalogue_version": 1,
+    "dir": "/home/user/data/dettivo/models",
+    "providers": [
+      {
+        "provider": "parakeet",
+        "quarantined": 0,
+        "ready": 0,
+        "selected": null,
+        "total": 2
+      },
+      {
+        "provider": "whisper",
+        "quarantined": 0,
+        "ready": 0,
+        "selected": "large-v3-turbo",
+        "total": 11
+      }
+    ],
+    "quarantined": 0,
+    "ready": 0,
+    "selected": {
+      "available": true,
+      "bytes_done": 0,
+      "bytes_total": 874188075,
+      "display_name": "Large v3 Turbo",
+      "error": null,
+      "id": "large-v3-turbo",
+      "is_default": true,
+      "is_selected": true,
+      "kind": "stt",
+      "languages": [
+        "multilingual"
+      ],
+      "license": "MIT",
+      "path": null,
+      "provider": "whisper",
+      "readiness": "missing",
+      "recommended_for": "99 languages · vocabulary prompts · the Mac default",
+      "size_bytes": 874188075
+    }
+  },
+  "omarchy": {
+    "panel": {
+      "name": "dev.dettivo.OmarchyPanel",
+      "on_bus": null
+    },
+    "plugin": {
+      "enabled": null,
+      "git": false,
+      "id": "gmickel.dettivo",
+      "installed": false,
+      "path": "/home/user/cfg/omarchy/plugins/gmickel.dettivo",
+      "state": "failed",
+      "version": null
+    },
+    "shell": {
+      "present": true,
+      "running": false
+    },
+    "snippet": {
+      "compositor": "hyprland",
+      "include_line": "dofile(os.getenv(\"HOME\") .. \"/.config/hypr/dettivo.lua\")",
+      "main_config": {
+        "exists": false,
+        "path": "/home/user/cfg/hypr/hyprland.lua",
+        "sourced": false
+      },
+      "snippet": {
+        "path": "/home/user/cfg/hypr/dettivo.lua",
+        "written": false
+      },
+      "state": "failed"
+    },
+    "socket": {
+      "active": "",
+      "enabled": "",
+      "state": "failed"
+    }
+  },
+  "osd": {
+    "host": "absent",
+    "socket": "/home/user/run/dettivo/osd.sock"
+  },
+  "platform": {
+    "compositor": "Hyprland",
+    "gpu": "vulkan",
+    "insertion_backend": "none",
+    "os": "linux",
+    "session": "wayland",
+    "tier": "gpu",
+    "tier_reason": "a Vulkan device is installed; no engine has loaded yet",
+    "transport": "unix_socket"
+  },
+  "portals": {
+    "available": false,
+    "global_shortcuts": false,
+    "interfaces": [],
+    "reason": "Failed to connect to user scope bus via local transport: No such file or directory",
+    "remote_desktop": false
+  },
+  "rest": {
+    "bind": "127.0.0.1",
+    "enabled": false,
+    "port": 45831,
+    "token_required": true,
+    "token_source": null
+  },
+  "service": {
+    "service_unit": {
+      "active": "unknown",
+      "name": "dettivod.service"
+    },
+    "socket_unit": {
+      "active": "unknown",
+      "enabled": "unknown",
+      "name": "dettivod.socket"
+    },
+    "systemd": true
+  },
+  "session_type": "wayland",
+  "snippet": {
+    "compositor": "hyprland",
+    "include_line": "source = ~/.config/hypr/dettivo.conf",
+    "main_config": {
+      "exists": false,
+      "path": "/home/user/cfg/hypr/hyprland.conf",
+      "sourced": false
+    },
+    "snippet": {
+      "path": "/home/user/cfg/hypr/dettivo.conf",
+      "written": false
+    }
+  },
+  "socket": {
+    "exists": true,
+    "override": false,
+    "path": "/home/user/run/dettivo/dettivo.sock"
+  },
+  "tier": {
+    "reason": "a Vulkan device is installed; no engine has loaded yet",
+    "tier": "gpu"
+  }
+}

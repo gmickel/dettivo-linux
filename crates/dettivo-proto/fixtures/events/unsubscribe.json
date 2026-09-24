@@ -1,0 +1,19 @@
+{
+  "capabilities": {},
+  "method": "events.unsubscribe",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "events.unsubscribe",
+    "params": {
+      "subscription_id": "sub_1"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "unsubscribed": true
+    }
+  }
+}

@@ -1,0 +1,3 @@
+Content-Length: 217
+
+{"id":1,"jsonrpc":"2.0","result":{"capabilities":{"resources":{"listChanged":true,"subscribe":false},"tools":{"listChanged":true}},"protocolVersion":"2025-06-18","serverInfo":{"name":"dettivo-mcp","version":"1.0.0"}}}

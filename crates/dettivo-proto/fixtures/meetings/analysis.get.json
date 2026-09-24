@@ -1,0 +1,45 @@
+{
+  "capabilities": {},
+  "method": "meetings.analysis.get",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.analysis.get",
+    "params": {
+      "meeting_id": "5eed0000-0000-4000-8000-00000000a001"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "analysis": {
+        "action_items": [
+          {
+            "due": "Wednesday",
+            "owner": "Gordon",
+            "text": "Write the rollout runbook"
+          },
+          {
+            "due": null,
+            "owner": "Mara",
+            "text": "Ping ops about the café lease"
+          }
+        ],
+        "decisions": [
+          "Hire two engineers in Q2",
+          "Move the API gateway rollout to Thursday"
+        ],
+        "summary": "The Q2 roadmap review agreed the budget and moved the API gateway rollout to Thursday."
+      },
+      "analysis_status": "ready",
+      "analyzed_at": "2026-02-02T10:44:00Z",
+      "error": null,
+      "model": "qwen3-4b-instruct-2507",
+      "ref": {
+        "id": "5eed0000-0000-4000-8000-00000000a001",
+        "kind": "meeting"
+      }
+    }
+  }
+}

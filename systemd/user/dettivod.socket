@@ -1,0 +1,19 @@
+# Dettivo daemon socket: the first client connection starts dettivod.service.
+#
+#   systemctl --user enable --now dettivod.socket
+#
+# %t is $XDG_RUNTIME_DIR. The directory is created 0700 and the socket 0600,
+# so only this user's processes can connect (ADR 0002).
+
+[Unit]
+Description=Dettivo speech daemon socket
+Documentation=https://github.com/gmickel/dettivo-linux/blob/main/docs/daemon.md
+
+[Socket]
+ListenStream=%t/dettivo/dettivo.sock
+DirectoryMode=0700
+SocketMode=0600
+RemoveOnStop=yes
+
+[Install]
+WantedBy=sockets.target

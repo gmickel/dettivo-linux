@@ -1,0 +1,22 @@
+{
+  "notification": {
+    "jsonrpc": "2.0",
+    "method": "events.notify",
+    "params": {
+      "payload": {
+        "end_ms": 7350,
+        "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "provisional": false,
+        "segment_id": "remote-3",
+        "source": "remote",
+        "start_ms": 4200,
+        "text": "ask not what your country can do for you",
+        "words": []
+      },
+      "subscription_id": "sub_1",
+      "timestamp": "2026-02-13T16:00:07.400Z",
+      "topic": "meeting.segment"
+    }
+  },
+  "topic": "meeting.segment"
+}

@@ -1,0 +1,8 @@
+# Allowlist for the file-length lint (`cargo run -p xtask -- lint-file-length`).
+# Files listed here are exempt from the line limits (500 for .rs/.cpp/.cc/.cxx/.h/.hpp/.hh, 300 for .qml).
+# Intended for generated code only; hand-written files should be split instead.
+# One entry per line: an exact repo-relative path, or a glob using `*` (within a
+# path segment) and `**` (any prefix of segments). Blank lines and `#` comments are ignored.
+#
+# Example:
+# crates/dettivo-proto/src/generated/**/*.rs

@@ -1,0 +1,27 @@
+{
+  "capabilities": {
+    "automation.providers": false
+  },
+  "error": {
+    "error": {
+      "code": -32014,
+      "data": {
+        "app_code": "NOT_IMPLEMENTED",
+        "details": {},
+        "retryable": false
+      },
+      "message": "automation.providers.disconnect is not implemented"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "automation.providers.disconnect",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "automation.providers.disconnect",
+    "params": {
+      "provider_id": "d3b07384-d9a0-4c8e-9f1e-5a6b7c8d9e0f"
+    }
+  }
+}

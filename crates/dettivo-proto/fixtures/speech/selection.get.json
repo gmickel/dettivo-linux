@@ -1,0 +1,48 @@
+{
+  "capabilities": {
+    "speech.methods": [
+      "speech.providers.list",
+      "speech.selection.get",
+      "speech.selection.set"
+    ]
+  },
+  "method": "speech.selection.get",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "speech.selection.get",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "cloud_model_id": "",
+      "dictation": {
+        "is_cloud": false,
+        "is_local_whisper": true,
+        "is_parakeet": false,
+        "language": "en",
+        "model_id": "ggml-large-v3-turbo",
+        "provider_id": "local"
+      },
+      "dictation_model_id": "ggml-large-v3-turbo",
+      "dictation_provider_id": "local",
+      "meeting": {
+        "is_cloud": false,
+        "is_local_whisper": true,
+        "is_parakeet": false,
+        "language": "en",
+        "model_id": "ggml-large-v3-turbo",
+        "provider_id": "local"
+      },
+      "meeting_effective_model_id": "ggml-large-v3-turbo",
+      "meeting_speech_model_id": "ggml-large-v3-turbo",
+      "model": "ggml-large-v3-turbo",
+      "parakeet_model_id": "parakeet-tdt-0.6b-v3",
+      "provider": "Local",
+      "provider_id": "local",
+      "whisper_model_id": "ggml-large-v3-turbo"
+    }
+  }
+}

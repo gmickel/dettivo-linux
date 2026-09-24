@@ -1,0 +1,20 @@
+{
+  "id": 5,
+  "kind": "response",
+  "name": "diarize",
+  "payload": {
+    "turns": [
+      {
+        "end_ms": 1500,
+        "speaker": "S1",
+        "start_ms": 0
+      },
+      {
+        "end_ms": 2000,
+        "speaker": "S2",
+        "start_ms": 1500
+      }
+    ]
+  },
+  "v": 1
+}

@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@300;400;600&display=swap">
+  <style>
+    :root{--bg:#0D0D0D;--fg:#EBDBB2;--fg2:rgba(235,219,178,.62);--fg3:rgba(235,219,178,.38);--line:rgba(235,219,178,.14);--line2:rgba(235,219,178,.35);--gold:#F5BF03;--gold2:#BFA75D;--gold3:#A3850E;--red:#D35F5F}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:"Cascadia Mono",ui-monospace,"CaskaydiaMono Nerd Font","JetBrains Mono",monospace;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+    a{color:var(--gold2)} a:hover{color:var(--gold)}
+    .label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg3)}
+    .num{font-variant-numeric:tabular-nums}
+    .ic{display:flex;flex-direction:column;align-items:center;gap:10px}
+    .pill{display:flex;align-items:center;gap:12px;height:36px;padding:0 14px 0 12px;border:1px solid;box-sizing:border-box;width:max-content;font-size:12px}
+    .bars{display:flex;align-items:center;gap:2px;height:18px}
+    .bars i{display:block;width:3px}
+  </style>
+</helmet>
+<div style="width:1280px;min-height:620px;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);padding:40px 48px;display:flex;flex-direction:column;gap:32px">
+  <div style="display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--line2);padding-bottom:14px">
+    <span class="label">App icon · OSD outside Omarchy</span>
+    <span style="font-size:20px;font-weight:600;letter-spacing:-.02em">The mark, and the pill on other desktops</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <span class="label">Icon · waveform mark, square, no rounding of its own</span>
+      <div style="display:flex;align-items:flex-end;gap:32px">
+        <div class="ic"><svg width="128" height="128" viewBox="0 0 64 64"><rect width="64" height="64" fill="#0D0D0D"/><rect x="0.5" y="0.5" width="63" height="63" fill="none" stroke="#F5BF03" stroke-opacity=".35"/><g stroke="#F5BF03" stroke-width="4" stroke-linecap="square"><path d="M12 36v-8M20 46V18M28 40V24M36 50V14M44 38V26M52 36v-8"/></g></svg><span class="label">128</span></div>
+        <div class="ic"><svg width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" fill="#0D0D0D"/><rect x="0.5" y="0.5" width="63" height="63" fill="none" stroke="#F5BF03" stroke-opacity=".35"/><g stroke="#F5BF03" stroke-width="4" stroke-linecap="square"><path d="M12 36v-8M20 46V18M28 40V24M36 50V14M44 38V26M52 36v-8"/></g></svg><span class="label">64</span></div>
+        <div class="ic"><svg width="32" height="32" viewBox="0 0 64 64"><rect width="64" height="64" fill="#0D0D0D"/><g stroke="#F5BF03" stroke-width="6" stroke-linecap="square"><path d="M12 36v-8M20 46V18M28 40V24M36 50V14M44 38V26M52 36v-8"/></g></svg><span class="label">32</span></div>
+        <div class="ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#F5BF03" stroke-width="2" stroke-linecap="square"><path d="M2 9V7M5 12V4M8 10V6M11 13V3M14 9V7"/></svg><span class="label">16 · bar</span></div>
+        <div class="ic"><svg width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" fill="#eff1f5"/><rect x="0.5" y="0.5" width="63" height="63" fill="none" stroke="#1e66f5" stroke-opacity=".35"/><g stroke="#1e66f5" stroke-width="4" stroke-linecap="square"><path d="M12 36v-8M20 46V18M28 40V24M36 50V14M44 38V26M52 36v-8"/></g></svg><span class="label">light</span></div>
+      </div>
+      <div style="color:var(--fg2);font-size:12px;max-width:520px">Same six bars as the bar glyph and the in-app logo. The icon ships as SVG in the hicolor theme; the compositor or icon theme applies rounding if it wants any. The bars recolour to the theme accent at runtime in the bar and the app; the desktop icon stays gold on black and blue on cream for light.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <span class="label">OSD on GNOME or KDE · dettivo-osd, no layer shell on GNOME</span>
+      <div style="background:#1e1e1e;padding:28px 24px;display:flex;flex-direction:column;gap:18px;border:1px solid var(--line)">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:rgba(255,255,255,.5)"><span>GNOME · dark · system-ui font</span><span class="num">13:42</span></div>
+        <div class="pill" style="border-color:rgba(255,255,255,.28);background:#161616;color:#e6e6e6;font-family:system-ui,sans-serif"><span style="width:8px;height:8px;background:#e6c34a"></span><div class="bars"><i style="height:4px;background:#e6c34a"></i><i style="height:9px;background:#e6c34a"></i><i style="height:16px;background:#e6c34a"></i><i style="height:11px;background:#e6c34a"></i><i style="height:18px;background:#e6c34a"></i><i style="height:7px;background:#e6c34a"></i><i style="height:13px;background:#e6c34a"></i></div><span>Listening</span><span style="color:rgba(255,255,255,.45)">release to insert</span></div>
+        <div class="pill" style="border-color:rgba(230,195,74,.6);background:#161616;color:#e6e6e6;font-family:system-ui,sans-serif"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#e6c34a" stroke-width="1.5" stroke-linecap="square"><path d="M2 3h6M2 8h12M2 13h9M12.5 3l2 2-2 2"/></svg><span>Inserted into <span style="color:#e6c34a">gnome-text-editor</span></span><span style="color:rgba(255,255,255,.45)">via portal · Add a regression…</span></div>
+      </div>
+      <div style="color:var(--fg2);font-size:12px;max-width:520px">Off Omarchy the same component runs in a small undecorated always-on-top window that follows the portal colour scheme with the built-in palette, uses the system UI font, and inserts through libei. Same shapes, same states, same copy.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

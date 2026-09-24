@@ -1,0 +1,27 @@
+{
+  "description": "Create and run a meeting email automation job (recap or weekly digest).",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "force": {
+        "type": "boolean"
+      },
+      "meeting_id": {
+        "type": "string"
+      },
+      "trigger": {
+        "enum": [
+          "analysis_ready",
+          "weekly_digest"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "trigger"
+    ],
+    "type": "object"
+  },
+  "name": "create_automation_job",
+  "title": "Create Automation Job"
+}

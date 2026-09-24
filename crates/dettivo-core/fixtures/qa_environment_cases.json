@@ -1,0 +1,1254 @@
+[
+  {
+    "name": "DETTIVO_QA_MODE / debug",
+    "env": {
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_MODE / no mode",
+    "env": {
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_MODE / release",
+    "env": {
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_QA_MODE / allowed release",
+    "env": {
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_MODE / invalid",
+    "env": {
+      "DETTIVO_QA_MODE": "invalid"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA / debug",
+    "env": {
+      "DETTIVO_QA": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA / no mode",
+    "env": {
+      "DETTIVO_QA": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA / release",
+    "env": {
+      "DETTIVO_QA": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_QA / allowed release",
+    "env": {
+      "DETTIVO_QA": "1",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA / invalid",
+    "env": {
+      "DETTIVO_QA": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_ALLOW_RELEASE / debug",
+    "env": {
+      "DETTIVO_QA_ALLOW_RELEASE": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_ALLOW_RELEASE / no mode",
+    "env": {
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_ALLOW_RELEASE / release",
+    "env": {
+      "DETTIVO_QA_ALLOW_RELEASE": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_ALLOW_RELEASE / allowed release",
+    "env": {
+      "DETTIVO_QA_ALLOW_RELEASE": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_ALLOW_RELEASE / invalid",
+    "env": {
+      "DETTIVO_QA_ALLOW_RELEASE": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_MODE / debug",
+    "env": {
+      "DETTIVO_MOCK_MODE": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_MODE / no mode",
+    "env": {
+      "DETTIVO_MOCK_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_MODE / release",
+    "env": {
+      "DETTIVO_MOCK_MODE": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_MOCK_MODE / allowed release",
+    "env": {
+      "DETTIVO_MOCK_MODE": "1",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_MODE / invalid",
+    "env": {
+      "DETTIVO_MOCK_MODE": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_MIC / debug",
+    "env": {
+      "DETTIVO_MOCK_MIC": "$FILE",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_MIC / no mode",
+    "env": {
+      "DETTIVO_MOCK_MIC": "$FILE"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_MOCK_MIC"
+  },
+  {
+    "name": "DETTIVO_MOCK_MIC / release",
+    "env": {
+      "DETTIVO_MOCK_MIC": "$FILE",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_MOCK_MIC / allowed release",
+    "env": {
+      "DETTIVO_MOCK_MIC": "$FILE",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_MIC / invalid",
+    "env": {
+      "DETTIVO_MOCK_MIC": "$MISSING",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_MOCK_MIC"
+  },
+  {
+    "name": "DETTIVO_MOCK_SYSTEM_AUDIO / debug",
+    "env": {
+      "DETTIVO_MOCK_SYSTEM_AUDIO": "$FILE",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_SYSTEM_AUDIO / no mode",
+    "env": {
+      "DETTIVO_MOCK_SYSTEM_AUDIO": "$FILE"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_MOCK_SYSTEM_AUDIO"
+  },
+  {
+    "name": "DETTIVO_MOCK_SYSTEM_AUDIO / release",
+    "env": {
+      "DETTIVO_MOCK_SYSTEM_AUDIO": "$FILE",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_MOCK_SYSTEM_AUDIO / allowed release",
+    "env": {
+      "DETTIVO_MOCK_SYSTEM_AUDIO": "$FILE",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_SYSTEM_AUDIO / invalid",
+    "env": {
+      "DETTIVO_MOCK_SYSTEM_AUDIO": "$MISSING",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_MOCK_SYSTEM_AUDIO"
+  },
+  {
+    "name": "DETTIVO_MOCK_INSERT / debug",
+    "env": {
+      "DETTIVO_MOCK_INSERT": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_INSERT / no mode",
+    "env": {
+      "DETTIVO_MOCK_INSERT": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_MOCK_INSERT"
+  },
+  {
+    "name": "DETTIVO_MOCK_INSERT / release",
+    "env": {
+      "DETTIVO_MOCK_INSERT": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_MOCK_INSERT / allowed release",
+    "env": {
+      "DETTIVO_MOCK_INSERT": "1",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_INSERT / invalid",
+    "env": {
+      "DETTIVO_MOCK_INSERT": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_INPUT / debug",
+    "env": {
+      "DETTIVO_MOCK_INPUT": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_INPUT / no mode",
+    "env": {
+      "DETTIVO_MOCK_INPUT": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_MOCK_INPUT"
+  },
+  {
+    "name": "DETTIVO_MOCK_INPUT / release",
+    "env": {
+      "DETTIVO_MOCK_INPUT": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_MOCK_INPUT / allowed release",
+    "env": {
+      "DETTIVO_MOCK_INPUT": "1",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_INPUT / invalid",
+    "env": {
+      "DETTIVO_MOCK_INPUT": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_A11Y / debug",
+    "env": {
+      "DETTIVO_MOCK_A11Y": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_A11Y / no mode",
+    "env": {
+      "DETTIVO_MOCK_A11Y": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_MOCK_A11Y"
+  },
+  {
+    "name": "DETTIVO_MOCK_A11Y / release",
+    "env": {
+      "DETTIVO_MOCK_A11Y": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_MOCK_A11Y / allowed release",
+    "env": {
+      "DETTIVO_MOCK_A11Y": "1",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_A11Y / invalid",
+    "env": {
+      "DETTIVO_MOCK_A11Y": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_LLM / debug",
+    "env": {
+      "DETTIVO_MOCK_LLM": "echo",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_LLM / no mode",
+    "env": {
+      "DETTIVO_MOCK_LLM": "echo"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_MOCK_LLM"
+  },
+  {
+    "name": "DETTIVO_MOCK_LLM / release",
+    "env": {
+      "DETTIVO_MOCK_LLM": "echo",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_MOCK_LLM / allowed release",
+    "env": {
+      "DETTIVO_MOCK_LLM": "echo",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_LLM / invalid",
+    "env": {
+      "DETTIVO_MOCK_LLM": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_MOCK_LLM"
+  },
+  {
+    "name": "DETTIVO_MOCK_ENGINE / debug",
+    "env": {
+      "DETTIVO_MOCK_ENGINE": "whisper=fixture:/tmp/fixture",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_ENGINE / no mode",
+    "env": {
+      "DETTIVO_MOCK_ENGINE": "whisper=fixture:/tmp/fixture"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_MOCK_ENGINE"
+  },
+  {
+    "name": "DETTIVO_MOCK_ENGINE / release",
+    "env": {
+      "DETTIVO_MOCK_ENGINE": "whisper=fixture:/tmp/fixture",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_MOCK_ENGINE / allowed release",
+    "env": {
+      "DETTIVO_MOCK_ENGINE": "whisper=fixture:/tmp/fixture",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MOCK_ENGINE / invalid",
+    "env": {
+      "DETTIVO_MOCK_ENGINE": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_MOCK_ENGINE"
+  },
+  {
+    "name": "DETTIVO_FORCE_CPU / debug",
+    "env": {
+      "DETTIVO_FORCE_CPU": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_FORCE_CPU / no mode",
+    "env": {
+      "DETTIVO_FORCE_CPU": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_FORCE_CPU"
+  },
+  {
+    "name": "DETTIVO_FORCE_CPU / release",
+    "env": {
+      "DETTIVO_FORCE_CPU": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_FORCE_CPU / allowed release",
+    "env": {
+      "DETTIVO_FORCE_CPU": "1",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_FORCE_CPU / invalid",
+    "env": {
+      "DETTIVO_FORCE_CPU": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MODEL_SERVER / debug",
+    "env": {
+      "DETTIVO_MODEL_SERVER": "http://127.0.0.1:9999",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MODEL_SERVER / no mode",
+    "env": {
+      "DETTIVO_MODEL_SERVER": "http://127.0.0.1:9999"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_MODEL_SERVER"
+  },
+  {
+    "name": "DETTIVO_MODEL_SERVER / release",
+    "env": {
+      "DETTIVO_MODEL_SERVER": "http://127.0.0.1:9999",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_MODEL_SERVER / allowed release",
+    "env": {
+      "DETTIVO_MODEL_SERVER": "http://127.0.0.1:9999",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_MODEL_SERVER / invalid",
+    "env": {
+      "DETTIVO_MODEL_SERVER": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_MODEL_SERVER"
+  },
+  {
+    "name": "DETTIVO_E2E_COMPLETE / debug",
+    "env": {
+      "DETTIVO_E2E_COMPLETE": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_COMPLETE / no mode",
+    "env": {
+      "DETTIVO_E2E_COMPLETE": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_COMPLETE"
+  },
+  {
+    "name": "DETTIVO_E2E_COMPLETE / release",
+    "env": {
+      "DETTIVO_E2E_COMPLETE": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_E2E_COMPLETE / allowed release",
+    "env": {
+      "DETTIVO_E2E_COMPLETE": "1",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_COMPLETE / invalid",
+    "env": {
+      "DETTIVO_E2E_COMPLETE": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_STEP / debug",
+    "env": {
+      "DETTIVO_E2E_STEP": "keys",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_STEP / no mode",
+    "env": {
+      "DETTIVO_E2E_STEP": "keys"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_STEP"
+  },
+  {
+    "name": "DETTIVO_E2E_STEP / release",
+    "env": {
+      "DETTIVO_E2E_STEP": "keys",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_E2E_STEP / allowed release",
+    "env": {
+      "DETTIVO_E2E_STEP": "keys",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_STEP / invalid",
+    "env": {
+      "DETTIVO_E2E_STEP": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_STEP"
+  },
+  {
+    "name": "DETTIVO_E2E_SEED / debug",
+    "env": {
+      "DETTIVO_E2E_SEED": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_SEED / no mode",
+    "env": {
+      "DETTIVO_E2E_SEED": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_SEED"
+  },
+  {
+    "name": "DETTIVO_E2E_SEED / release",
+    "env": {
+      "DETTIVO_E2E_SEED": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_E2E_SEED / allowed release",
+    "env": {
+      "DETTIVO_E2E_SEED": "1",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_SEED / invalid",
+    "env": {
+      "DETTIVO_E2E_SEED": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_OPEN / debug",
+    "env": {
+      "DETTIVO_E2E_OPEN": "home",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_OPEN / no mode",
+    "env": {
+      "DETTIVO_E2E_OPEN": "home"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_OPEN"
+  },
+  {
+    "name": "DETTIVO_E2E_OPEN / release",
+    "env": {
+      "DETTIVO_E2E_OPEN": "home",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_E2E_OPEN / allowed release",
+    "env": {
+      "DETTIVO_E2E_OPEN": "home",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_OPEN / invalid",
+    "env": {
+      "DETTIVO_E2E_OPEN": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_OPEN"
+  },
+  {
+    "name": "DETTIVO_E2E_ROUTE / debug",
+    "env": {
+      "DETTIVO_E2E_ROUTE": "devices",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_ROUTE / no mode",
+    "env": {
+      "DETTIVO_E2E_ROUTE": "devices"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_ROUTE"
+  },
+  {
+    "name": "DETTIVO_E2E_ROUTE / release",
+    "env": {
+      "DETTIVO_E2E_ROUTE": "devices",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_E2E_ROUTE / allowed release",
+    "env": {
+      "DETTIVO_E2E_ROUTE": "devices",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_ROUTE / invalid",
+    "env": {
+      "DETTIVO_E2E_ROUTE": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_EXPORT_DIR / debug",
+    "env": {
+      "DETTIVO_E2E_EXPORT_DIR": "/tmp/exports",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_EXPORT_DIR / no mode",
+    "env": {
+      "DETTIVO_E2E_EXPORT_DIR": "/tmp/exports"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_EXPORT_DIR"
+  },
+  {
+    "name": "DETTIVO_E2E_EXPORT_DIR / release",
+    "env": {
+      "DETTIVO_E2E_EXPORT_DIR": "/tmp/exports",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_E2E_EXPORT_DIR / allowed release",
+    "env": {
+      "DETTIVO_E2E_EXPORT_DIR": "/tmp/exports",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_EXPORT_DIR / invalid",
+    "env": {
+      "DETTIVO_E2E_EXPORT_DIR": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_DISCLOSURE / debug",
+    "env": {
+      "DETTIVO_E2E_DISCLOSURE": "pending",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_DISCLOSURE / no mode",
+    "env": {
+      "DETTIVO_E2E_DISCLOSURE": "pending"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_DISCLOSURE"
+  },
+  {
+    "name": "DETTIVO_E2E_DISCLOSURE / release",
+    "env": {
+      "DETTIVO_E2E_DISCLOSURE": "pending",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_E2E_DISCLOSURE / allowed release",
+    "env": {
+      "DETTIVO_E2E_DISCLOSURE": "pending",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_DISCLOSURE / invalid",
+    "env": {
+      "DETTIVO_E2E_DISCLOSURE": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_DISCLOSURE"
+  },
+  {
+    "name": "DETTIVO_E2E_OSD_STATE / debug",
+    "env": {
+      "DETTIVO_E2E_OSD_STATE": "listening",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_OSD_STATE / no mode",
+    "env": {
+      "DETTIVO_E2E_OSD_STATE": "listening"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_OSD_STATE"
+  },
+  {
+    "name": "DETTIVO_E2E_OSD_STATE / release",
+    "env": {
+      "DETTIVO_E2E_OSD_STATE": "listening",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_E2E_OSD_STATE / allowed release",
+    "env": {
+      "DETTIVO_E2E_OSD_STATE": "listening",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_OSD_STATE / invalid",
+    "env": {
+      "DETTIVO_E2E_OSD_STATE": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_OSD_STATE"
+  },
+  {
+    "name": "DETTIVO_E2E_BAR_STATE / debug",
+    "env": {
+      "DETTIVO_E2E_BAR_STATE": "panel-idle",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_BAR_STATE / no mode",
+    "env": {
+      "DETTIVO_E2E_BAR_STATE": "panel-idle"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_BAR_STATE"
+  },
+  {
+    "name": "DETTIVO_E2E_BAR_STATE / release",
+    "env": {
+      "DETTIVO_E2E_BAR_STATE": "panel-idle",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_E2E_BAR_STATE / allowed release",
+    "env": {
+      "DETTIVO_E2E_BAR_STATE": "panel-idle",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_BAR_STATE / invalid",
+    "env": {
+      "DETTIVO_E2E_BAR_STATE": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_BAR_STATE"
+  },
+  {
+    "name": "DETTIVO_E2E_MEETING_STATE / debug",
+    "env": {
+      "DETTIVO_E2E_MEETING_STATE": "list",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_MEETING_STATE / no mode",
+    "env": {
+      "DETTIVO_E2E_MEETING_STATE": "list"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_MEETING_STATE"
+  },
+  {
+    "name": "DETTIVO_E2E_MEETING_STATE / release",
+    "env": {
+      "DETTIVO_E2E_MEETING_STATE": "list",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_E2E_MEETING_STATE / allowed release",
+    "env": {
+      "DETTIVO_E2E_MEETING_STATE": "list",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_MEETING_STATE / invalid",
+    "env": {
+      "DETTIVO_E2E_MEETING_STATE": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_MEETING_STATE"
+  },
+  {
+    "name": "DETTIVO_QA_PACING / debug",
+    "env": {
+      "DETTIVO_QA_PACING": "/tmp/pacing",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_PACING / no mode",
+    "env": {
+      "DETTIVO_QA_PACING": "/tmp/pacing"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_PACING"
+  },
+  {
+    "name": "DETTIVO_QA_PACING / release",
+    "env": {
+      "DETTIVO_QA_PACING": "/tmp/pacing",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_QA_PACING / allowed release",
+    "env": {
+      "DETTIVO_QA_PACING": "/tmp/pacing",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_PACING / invalid",
+    "env": {
+      "DETTIVO_QA_PACING": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_PLANT / debug",
+    "env": {
+      "DETTIVO_QA_PLANT": "default_font",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_PLANT / no mode",
+    "env": {
+      "DETTIVO_QA_PLANT": "default_font"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_PLANT"
+  },
+  {
+    "name": "DETTIVO_QA_PLANT / release",
+    "env": {
+      "DETTIVO_QA_PLANT": "default_font",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_QA_PLANT / allowed release",
+    "env": {
+      "DETTIVO_QA_PLANT": "default_font",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_PLANT / invalid",
+    "env": {
+      "DETTIVO_QA_PLANT": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_PLANT"
+  },
+  {
+    "name": "DETTIVO_QA_CANARY / debug",
+    "env": {
+      "DETTIVO_QA_CANARY": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_CANARY / no mode",
+    "env": {
+      "DETTIVO_QA_CANARY": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_CANARY"
+  },
+  {
+    "name": "DETTIVO_QA_CANARY / release",
+    "env": {
+      "DETTIVO_QA_CANARY": "1",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": true,
+    "accepted": false,
+    "error_variable": "DETTIVO_QA_MODE"
+  },
+  {
+    "name": "DETTIVO_QA_CANARY / allowed release",
+    "env": {
+      "DETTIVO_QA_CANARY": "1",
+      "DETTIVO_QA_MODE": "1",
+      "DETTIVO_QA_ALLOW_RELEASE": "1"
+    },
+    "release": true,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_QA_CANARY / invalid",
+    "env": {
+      "DETTIVO_QA_CANARY": "invalid",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "reserved typo",
+    "env": {
+      "DETTIVO_E2E_TYPO": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_TYPO"
+  },
+  {
+    "name": "DETTIVO_E2E_STATE / beauty hook",
+    "env": {
+      "DETTIVO_E2E_STATE": "engine-crashed",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": true
+  },
+  {
+    "name": "DETTIVO_E2E_STATE / invalid",
+    "env": {
+      "DETTIVO_E2E_STATE": "engine-sulking",
+      "DETTIVO_QA_MODE": "1"
+    },
+    "release": false,
+    "accepted": false,
+    "error_variable": "DETTIVO_E2E_STATE"
+  }
+]

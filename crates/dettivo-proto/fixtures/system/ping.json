@@ -1,0 +1,17 @@
+{
+  "capabilities": {},
+  "method": "system.ping",
+  "request": {
+    "id": null,
+    "jsonrpc": "2.0",
+    "method": "system.ping",
+    "params": {}
+  },
+  "response": {
+    "id": null,
+    "jsonrpc": "2.0",
+    "result": {
+      "ok": true
+    }
+  }
+}

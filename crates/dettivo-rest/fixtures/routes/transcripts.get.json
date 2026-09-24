@@ -1,0 +1,22 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/transcripts/get",
+    "body": {
+      "ref": {
+        "kind": "dictation",
+        "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+      }
+    }
+  },
+  "expect": {
+    "status": 200,
+    "content_type": "application/json",
+    "body_keys": [
+      "ref",
+      "text_raw",
+      "text_polish",
+      "segments"
+    ]
+  }
+}

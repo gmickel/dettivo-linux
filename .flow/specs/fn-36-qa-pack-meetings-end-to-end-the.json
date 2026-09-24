@@ -1,0 +1,38 @@
+{
+  "branch_name": "fn-36-qa-pack-meetings-end-to-end-the",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-05T06:01:34.740636Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-32-diarization-the-sherpa-onnx-engine-the",
+    "fn-33-meeting-notes-analysis-search-export",
+    "fn-34-meetings-gui-the-list-the-live-meeting",
+    "fn-27-gpu-tiers-the-doctor-report-and-the"
+  ],
+  "id": "fn-36-qa-pack-meetings-end-to-end-the",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-36-qa-pack-meetings-end-to-end-the.md",
+  "status": "done",
+  "title": "QA pack: meetings end to end, the throughput report and the CPU-only path",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-05T16:43:04.574641Z"
+}

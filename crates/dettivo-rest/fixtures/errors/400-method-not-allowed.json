@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "PUT",
+    "path": "/v1/system/ping"
+  },
+  "expect": {
+    "status": 400,
+    "error": {
+      "app_code": "INVALID_PARAMS",
+      "code": -32010
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": 3,
+  "kind": "event",
+  "name": "error",
+  "payload": {
+    "code": "cancelled",
+    "message": "request cancelled",
+    "request_id": 3
+  },
+  "v": 1
+}

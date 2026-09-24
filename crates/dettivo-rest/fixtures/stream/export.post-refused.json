@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/transcripts/export/stream?scope=all&format=txt"
+  },
+  "expect": {
+    "status": 400,
+    "error": {
+      "app_code": "INVALID_PARAMS",
+      "code": -32010
+    }
+  }
+}

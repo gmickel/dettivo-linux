@@ -1,0 +1,11 @@
+{
+  "id": 1,
+  "kind": "response",
+  "name": "load",
+  "payload": {
+    "backend": "vulkan",
+    "model": "/models/whisper/tiny.en/ggml-tiny.en.bin",
+    "reason": "Vulkan device found and the model fits"
+  },
+  "v": 1
+}

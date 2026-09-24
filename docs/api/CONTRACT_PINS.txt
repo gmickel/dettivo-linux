@@ -1,0 +1,15 @@
+# Pins for the macOS contract documents copied unchanged into this
+# directory (ADR 0008, spec fn-2). `scripts/check-docs.sh` recomputes each
+# file's SHA-256 and compares it against the hash recorded here; a mismatch
+# fails the docs job, catching an in-place edit of a document that must
+# only ever be refreshed by re-copying from a new macOS commit pin.
+#
+# Format: one line per copied document.
+#   <repo-relative path> <sha256 of the file as copied> <macOS commit> <macOS commit date>
+#
+# Corrections are proposed upstream in the macOS repository; this file (and
+# the copied documents) are refreshed together with a new commit pin, never
+# hand-edited to match a locally modified copy.
+
+docs/api/dettivo-ipc-v1.md 71756ae31afb91a3dc64dcd5dbbb0e4915f29d16e1453f472f2be7abd0d975a3 6cb4e4a8c183dc10176a230daca9140380231171 2026-08-15T22:29:16+02:00
+docs/api/dettivo-rest-v1.md db4f5aa8970b55840fee61c7b30316f7b26fadef71ca864e2fcd862fbc678839 6cb4e4a8c183dc10176a230daca9140380231171 2026-08-15T22:29:16+02:00

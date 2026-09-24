@@ -1,0 +1,25 @@
+# Dettivo daemon: started by dettivod.socket on the first connection, or
+# directly with `systemctl --user start dettivod.service`. Logs go to the
+# user journal (`journalctl --user -u dettivod`) and never contain
+# transcript text, audio or prompts.
+
+[Unit]
+Description=Dettivo speech daemon
+Documentation=https://github.com/gmickel/dettivo-linux/blob/main/docs/daemon.md
+Requires=dettivod.socket
+After=dettivod.socket
+
+[Service]
+Type=simple
+# The unit's ListenStream is the socket; telling the daemon the same path
+# keeps its log line, pid file and second-start detection consistent even
+# when config.toml sets ipc.socket to something else.
+Environment=DETTIVO_IPC_SOCKET=%t/dettivo/dettivo.sock
+ExecStart=/usr/bin/dettivod
+KillSignal=SIGTERM
+TimeoutStopSec=10
+Restart=on-failure
+RestartSec=1
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,130 @@
+{
+  "segments": [
+    {
+      "end_ms": 1200,
+      "start_ms": 500,
+      "text": "Hello team.",
+      "words": [
+        {
+          "confidence": 0.98,
+          "end_ms": 800,
+          "start_ms": 500,
+          "text": "Hello"
+        },
+        {
+          "confidence": 0.91,
+          "end_ms": 1200,
+          "start_ms": 900,
+          "text": "team."
+        }
+      ]
+    },
+    {
+      "end_ms": 9600,
+      "start_ms": 7000,
+      "text": "Let us begin the review now.",
+      "words": [
+        {
+          "confidence": 0.9,
+          "end_ms": 7200,
+          "start_ms": 7000,
+          "text": "Let"
+        },
+        {
+          "confidence": 0.9,
+          "end_ms": 7400,
+          "start_ms": 7250,
+          "text": "us"
+        },
+        {
+          "confidence": 0.9,
+          "end_ms": 7900,
+          "start_ms": 7500,
+          "text": "begin"
+        },
+        {
+          "confidence": 0.9,
+          "end_ms": 8100,
+          "start_ms": 8000,
+          "text": "the"
+        },
+        {
+          "confidence": 0.9,
+          "end_ms": 8700,
+          "start_ms": 8200,
+          "text": "review"
+        },
+        {
+          "confidence": 0.85,
+          "end_ms": 9600,
+          "start_ms": 8950,
+          "text": "now."
+        }
+      ]
+    },
+    {
+      "end_ms": 11400,
+      "start_ms": 10500,
+      "text": "Second point.",
+      "words": [
+        {
+          "confidence": 0.95,
+          "end_ms": 10900,
+          "start_ms": 10500,
+          "text": "Second"
+        },
+        {
+          "confidence": 0.95,
+          "end_ms": 11400,
+          "start_ms": 11000,
+          "text": "point."
+        }
+      ]
+    },
+    {
+      "end_ms": 13500,
+      "start_ms": 12000,
+      "text": "Nothing said here.",
+      "words": [
+        {
+          "confidence": 0.9,
+          "end_ms": 12400,
+          "start_ms": 12000,
+          "text": "Nothing"
+        },
+        {
+          "confidence": 0.9,
+          "end_ms": 12800,
+          "start_ms": 12500,
+          "text": "said"
+        },
+        {
+          "confidence": 0.9,
+          "end_ms": 13500,
+          "start_ms": 12900,
+          "text": "here."
+        }
+      ]
+    },
+    {
+      "end_ms": 18600,
+      "start_ms": 17500,
+      "text": "Closing remarks.",
+      "words": [
+        {
+          "confidence": 0.9,
+          "end_ms": 18000,
+          "start_ms": 17500,
+          "text": "Closing"
+        },
+        {
+          "confidence": 0.9,
+          "end_ms": 18600,
+          "start_ms": 18100,
+          "text": "remarks."
+        }
+      ]
+    }
+  ],
+  "text": "Hello team. Let us begin the review now. Second point. Nothing said here. Closing remarks."
+}

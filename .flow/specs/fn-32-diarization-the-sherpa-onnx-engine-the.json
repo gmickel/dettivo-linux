@@ -1,0 +1,36 @@
+{
+  "branch_name": "fn-32-diarization-the-sherpa-onnx-engine-the",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-05T05:52:19.906389Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-28-meeting-transcription-the-live-windowed",
+    "fn-7-engine-protocol-supervisor-and-whisper"
+  ],
+  "id": "fn-32-diarization-the-sherpa-onnx-engine-the",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-32-diarization-the-sherpa-onnx-engine-the.md",
+  "status": "done",
+  "title": "Diarization: the sherpa-onnx engine, the post-meeting speaker pass and speaker names",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-05T14:36:07.696537Z"
+}

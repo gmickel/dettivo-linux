@@ -1,0 +1,12 @@
+{
+  "capabilities": {},
+  "method": "meetings.speakers.rename",
+  "request": {
+    "jsonrpc": "2.0", "id": "1", "method": "meetings.speakers.rename",
+    "params": {"meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e", "speaker_id": "you", "name": "Ada\n\nBob"}
+  },
+  "error": {
+    "jsonrpc": "2.0", "id": "1",
+    "error": {"code": -32010, "message": "speaker name must not contain control characters", "data": {"app_code": "INVALID_PARAMS", "retryable": false, "details": {"field": "name"}}}
+  }
+}

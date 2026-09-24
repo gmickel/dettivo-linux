@@ -1,0 +1,28 @@
+{
+  "capabilities": {},
+  "method": "llm.engine.status",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "llm.engine.status",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "backend": "vulkan",
+      "binary": "dettivo-engine-llm",
+      "busy": false,
+      "crashes": 0,
+      "degraded": false,
+      "idle_seconds": 600,
+      "loaded": true,
+      "memory_bytes": 1685237760,
+      "model": "/home/user/.local/share/dettivo/models/llm/qwen3-1.7b/Qwen3-1.7B-Q4_K_M.gguf",
+      "path": "/usr/bin/dettivo-engine-llm",
+      "reason": "Vulkan device Vulkan0 (NVIDIA GeForce RTX 4090)",
+      "running": true
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "max_seconds": 14400,
+  "max_samples": 230400000,
+  "max_attachment_bytes": 460800000
+}

@@ -1,0 +1,32 @@
+{
+  "description": "Search transcript text by keyword.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "kinds": {
+        "items": {
+          "enum": [
+            "dictation",
+            "meeting"
+          ],
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "limit": {
+        "maximum": 50,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "query": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "query"
+    ],
+    "type": "object"
+  },
+  "name": "search_transcripts",
+  "title": "Search Transcripts"
+}

@@ -1,0 +1,32 @@
+{
+  "capabilities": {
+    "config.methods": [
+      "config.get",
+      "config.set",
+      "config.unset",
+      "config.validate",
+      "config.path",
+      "config.print_default",
+      "config.keys"
+    ]
+  },
+  "method": "config.path",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "config.path",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "config": "/home/user/.config/dettivo/config.toml",
+      "data": "/home/user/.local/share/dettivo",
+      "runtime": "/run/user/1000/dettivo",
+      "socket": "/run/user/1000/dettivo/dettivo.sock",
+      "state": "/home/user/.local/state/dettivo/state.toml",
+      "token_file": "/home/user/.config/dettivo/ipc.token"
+    }
+  }
+}

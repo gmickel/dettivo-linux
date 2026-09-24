@@ -1,0 +1,29 @@
+{
+  "capabilities": {
+    "transfers.chunk_max_bytes": 1048576
+  },
+  "error": {
+    "error": {
+      "code": -32012,
+      "data": {
+        "app_code": "NOT_FOUND",
+        "details": {},
+        "retryable": false
+      },
+      "message": "Transfer not found"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "transfer.chunk",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "transfer.chunk",
+    "params": {
+      "data_b64": "AAAA",
+      "seq": 1,
+      "transfer_id": "xfer_missing"
+    }
+  }
+}

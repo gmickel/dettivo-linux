@@ -1,0 +1,37 @@
+{
+  "branch_name": "fn-38-beauty-pass-every-surface-against-the",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-05T06:01:39.467077Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-35-qa-pack-the-gui-drives-for-onboarding",
+    "fn-36-qa-pack-meetings-end-to-end-the",
+    "fn-20-visual-regression-baselines-for-every"
+  ],
+  "id": "fn-38-beauty-pass-every-surface-against-the",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-38-beauty-pass-every-surface-against-the.md",
+  "status": "done",
+  "title": "Beauty pass: every surface against the checklist, copy, states, light theme and icon",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-14T07:35:45.174249Z"
+}

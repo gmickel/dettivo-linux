@@ -1,0 +1,29 @@
+{
+  "capabilities": {
+    "insert.methods": [
+      "insert.undo",
+      "insert.target",
+      "insert.allow_self_target"
+    ]
+  },
+  "method": "insert.allow_self_target",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "insert.allow_self_target",
+    "params": {
+      "enabled": true
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "app_ids": [
+        "dettivo",
+        "dettivo-app"
+      ],
+      "enabled": true
+    }
+  }
+}

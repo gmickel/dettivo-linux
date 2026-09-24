@@ -1,0 +1,54 @@
+{
+  "capabilities": {},
+  "method": "speech.engines",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "speech.engines",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "engines": [
+        {
+          "backend": "vulkan",
+          "binary": "dettivo-engine-whisper",
+          "crashes": 0,
+          "degraded": false,
+          "directory": "/usr/bin",
+          "memory_bytes": 1946157056,
+          "model": "/home/user/.local/share/dettivo/models/whisper/large-v3-turbo/ggml-large-v3-turbo.bin",
+          "path": "/usr/bin/dettivo-engine-whisper",
+          "reason": "Vulkan backend built in and a device is installed",
+          "running": true
+        },
+        {
+          "backend": null,
+          "binary": "dettivo-engine-parakeet",
+          "crashes": 0,
+          "degraded": false,
+          "directory": null,
+          "memory_bytes": null,
+          "model": null,
+          "path": null,
+          "reason": null,
+          "running": false
+        },
+        {
+          "backend": null,
+          "binary": "dettivo-engine-llm",
+          "crashes": 0,
+          "degraded": false,
+          "directory": "/usr/bin",
+          "memory_bytes": null,
+          "model": null,
+          "path": "/usr/bin/dettivo-engine-llm",
+          "reason": null,
+          "running": false
+        }
+      ]
+    }
+  }
+}

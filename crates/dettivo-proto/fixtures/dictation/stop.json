@@ -1,0 +1,27 @@
+{
+  "capabilities": {},
+  "method": "dictation.stop",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "dictation.stop",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "job": {
+        "error": null,
+        "job_id": "job_dict_1",
+        "message": null,
+        "progress": 1.0,
+        "state": "succeeded"
+      },
+      "ref": {
+        "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+        "kind": "dictation"
+      }
+    }
+  }
+}

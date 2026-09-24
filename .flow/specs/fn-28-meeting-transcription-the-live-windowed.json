@@ -1,0 +1,36 @@
+{
+  "branch_name": "fn-28-meeting-transcription-the-live-windowed",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-04T21:40:46.677545Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-24-meetings-dual-source-capture-the",
+    "fn-19-audio-import-decoding-the-chunked-long"
+  ],
+  "id": "fn-28-meeting-transcription-the-live-windowed",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-28-meeting-transcription-the-live-windowed.md",
+  "status": "done",
+  "title": "Meeting transcription: the live windowed path, the two-source merger and live events",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-05T12:34:34.880687Z"
+}

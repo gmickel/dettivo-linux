@@ -1,0 +1,21 @@
+{
+  "description": "Set polish preset for bundle id.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "bundle_id": {
+        "type": "string"
+      },
+      "preset": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "bundle_id",
+      "preset"
+    ],
+    "type": "object"
+  },
+  "name": "set_polish_app",
+  "title": "Set App Polish Preset"
+}

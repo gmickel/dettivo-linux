@@ -1,0 +1,82 @@
+{
+  "blocked_reason": "Desktop focus/workspace changed during keyboard-driven takes. Recording and transcription were observed, but controlled insertion and panel interaction checks remain incomplete while awaiting an idle desktop interval. No product-failure verdict is inferred from interrupted test preconditions.",
+  "branch": "fn-59-working-f9-shortcuts-after-onboarding",
+  "cleanup": [
+    "Recording cancelled; input setting and physical default source restored",
+    "Test audio sink unloaded; virtual keyboard and Cua driver stopped",
+    "App returned to Home on original workspace; widget restored to original placement"
+  ],
+  "evidence_paths": [
+    "/tmp/fn59-native-20260915-tub17dnd/installation-verification.json",
+    "/tmp/fn59-native-20260915-tub17dnd/clean-bindings.json",
+    "/tmp/fn59-native-20260915-tub17dnd/keys-before.json",
+    "/tmp/fn59-native-20260915-tub17dnd/models-after-setup.json",
+    "/tmp/fn59-native-20260915-tub17dnd/bindings-after-onboarding.json",
+    "/tmp/fn59-native-20260915-tub17dnd/plugin-install.txt",
+    "/tmp/fn59-native-20260915-tub17dnd/uinput2-f9-events.jsonl"
+  ],
+  "head_sha": "36812db64cfa3f10bb6331ca25f3d9c7269bd7f8",
+  "id": "fn-59-working-f9-shortcuts-after-onboarding",
+  "installed_package": "dettivo-bin 0.1.0-1.57",
+  "mode": "interactive",
+  "open_p0p1": [],
+  "partial_checks": [
+    "Real uinput F9 press produced recording, live levels and pill",
+    "One kept-alive keyboard release produced transcription and expected JFK words; insertion safely refused after frontmost app changed"
+  ],
+  "passed_checks": [
+    "Package integrity: 267 files, 0 altered",
+    "Running app and daemon bytes match installed package",
+    "Removed prior snippet/include, QML path override and patched plugin before setup",
+    "Native Keys Continue installed the include and both F9 bindings, then advanced to Models",
+    "No Hyprland configuration errors; unrelated configuration preserved and one generated include",
+    "Fresh 15-file plugin matches packaged files and hosts the pill with empty QML_IMPORT_PATH"
+  ],
+  "qa_outcome": "BLOCKED",
+  "remaining_checks": [
+    "Controlled F9 release and successful text insertion",
+    "Panel click, mode switching and visual control states",
+    "Repeated setup and restart persistence with successful insertion"
+  ],
+  "rid_coverage": {
+    "covered": 2,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "live",
+        "id": "R2"
+      },
+      {
+        "coverage": "no_live_scenario",
+        "id": "R3"
+      },
+      {
+        "coverage": "no_live_scenario",
+        "id": "R4"
+      },
+      {
+        "coverage": "no_live_scenario",
+        "id": "R5"
+      },
+      {
+        "coverage": "no_live_scenario",
+        "id": "R6"
+      },
+      {
+        "coverage": "no_live_scenario",
+        "id": "R7"
+      },
+      {
+        "coverage": "no_live_scenario",
+        "id": "R8"
+      }
+    ],
+    "total": 8
+  },
+  "timestamp": "2026-09-14T22:39:53Z",
+  "type": "qa_verdict",
+  "verdict": "NEEDS_WORK"
+}

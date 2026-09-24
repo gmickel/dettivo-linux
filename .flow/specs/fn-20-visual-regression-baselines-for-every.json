@@ -1,0 +1,37 @@
+{
+  "branch_name": "fn-20-visual-regression-baselines-for-every",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-04T08:44:43.863617Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-4-qa-rig-foundation-drivers-xvfb-ci",
+    "fn-5-design-system-theme-tokens-quick",
+    "fn-12-osd-the-qml-pill-component-dettivo-osd"
+  ],
+  "id": "fn-20-visual-regression-baselines-for-every",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-20-visual-regression-baselines-for-every.md",
+  "status": "done",
+  "title": "Visual regression: baselines for every surface and theme, frame pacing in drives, a canary",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T12:18:10.753856Z"
+}

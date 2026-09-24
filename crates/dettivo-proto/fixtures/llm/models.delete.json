@@ -1,0 +1,37 @@
+{
+  "capabilities": {},
+  "method": "llm.models.delete",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "llm.models.delete",
+    "params": {
+      "model": "qwen3-1.7b"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "deleted": true,
+      "model": {
+        "available": true,
+        "bytes_done": 0,
+        "bytes_total": 1107409472,
+        "display_name": "Qwen3 1.7B (fast)",
+        "error": null,
+        "id": "qwen3-1.7b",
+        "is_default": false,
+        "is_selected": false,
+        "kind": "llm",
+        "languages": [],
+        "license": "Apache-2.0",
+        "path": null,
+        "provider": "llm",
+        "readiness": "missing",
+        "recommended_for": null,
+        "size_bytes": 1107409472
+      }
+    }
+  }
+}

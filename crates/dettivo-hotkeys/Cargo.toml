@@ -1,0 +1,37 @@
+[package]
+name = "dettivo-hotkeys"
+description = "Hotkey actions: compositor binding snippets, the portal GlobalShortcuts and evdev backends, MPRIS pause"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[features]
+default = ["backends", "mock"]
+# The portal and evdev backends plus MPRIS: the daemon side. The CLI builds
+# without them and only renders snippets.
+backends = ["dep:ashpd", "dep:zbus", "dep:evdev", "dep:tokio", "dep:futures-util", "dep:libc"]
+# A mock GlobalShortcuts portal and a mock MPRIS player on a private bus,
+# for this crate's tests and the daemon's; the daemon and the CLI build
+# without it (the workspace declares the crate with default-features off).
+mock = ["backends"]
+
+[dependencies]
+dettivo-proto.workspace = true
+serde.workspace = true
+tracing.workspace = true
+ashpd = { workspace = true, optional = true }
+zbus = { workspace = true, optional = true }
+evdev = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
+libc = { workspace = true, optional = true }
+
+[dev-dependencies]
+dettivo-core.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

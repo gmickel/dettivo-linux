@@ -1,0 +1,908 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-09",
+  "verdict": "fail",
+  "criterion": "CUDA must match CPU DER and speaker count and reach at least 4x CPU throughput",
+  "shipping": false,
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "driver": "610.57.04",
+    "cuda_package": "13.3.1-1",
+    "cudnn_package": "9.25.0.15-1",
+    "cudnn_installation": "extracted for process-local LD_LIBRARY_PATH; not host installed",
+    "sherpa_onnx": "1.13.7",
+    "onnxruntime_cuda_archive": "1.27.1"
+  },
+  "comparisons": [
+    {
+      "source": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/compare-e3wd9bz4/report.json",
+      "engine": "/home/gordon/work/dettivo-linux/target/debug/dettivo-engine-diarize",
+      "engine_sha256": "738457f01c2d59864a680a5aea8493147ad6a49e030af65f81c27ef3546fc9b5",
+      "threads": null,
+      "comparisons": [
+        {
+          "fixture": "gold",
+          "cpu_median_seconds": 1.2231282913126051,
+          "cuda_median_seconds": 2.619078040122986,
+          "backends_correct": true,
+          "cuda_pid_proven_every_run": true,
+          "turns_identical": true,
+          "speedup": 0.4670071958814827
+        },
+        {
+          "fixture": "public-en",
+          "cpu_median_seconds": 4.73533018771559,
+          "cuda_median_seconds": 7.181937125977129,
+          "backends_correct": true,
+          "cuda_pid_proven_every_run": true,
+          "turns_identical": true,
+          "speedup": 0.6593388531052242
+        },
+        {
+          "fixture": "public-zh",
+          "cpu_median_seconds": 2.935809625312686,
+          "cuda_median_seconds": 6.675611955113709,
+          "backends_correct": true,
+          "cuda_pid_proven_every_run": true,
+          "turns_identical": true,
+          "speedup": 0.439781348144985
+        }
+      ],
+      "runs": [
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 0,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 1.2966674491763115,
+          "realtime_factor": 14.541797136943565,
+          "engine_pid": 118637,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 0,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 2.619078040122986,
+          "realtime_factor": 7.19943228538336,
+          "engine_pid": 118790,
+          "gpu_sample_count": 20,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 1,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 2.5967498081736267,
+          "realtime_factor": 7.26133682214919,
+          "engine_pid": 119025,
+          "gpu_sample_count": 19,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 1,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 1.2231282913126051,
+          "realtime_factor": 15.416105680757937,
+          "engine_pid": 119283,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 2,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 1.190884058829397,
+          "realtime_factor": 15.83351029027524,
+          "engine_pid": 119313,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 2,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 2.622161014005542,
+          "realtime_factor": 7.190967640540228,
+          "engine_pid": 119401,
+          "gpu_sample_count": 20,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "public-en",
+          "audio_sha256": "dd3cf2344f8410ee9a2e271e96d1c3f9b530f113ae5b47defecbc0d741a468e9",
+          "audio_seconds": 54.805,
+          "repeat": 0,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.792783453129232,
+          "realtime_factor": 11.434900102615224,
+          "engine_pid": 119610,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-en",
+          "audio_sha256": "dd3cf2344f8410ee9a2e271e96d1c3f9b530f113ae5b47defecbc0d741a468e9",
+          "audio_seconds": 54.805,
+          "repeat": 0,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 7.181937125977129,
+          "realtime_factor": 7.630949566763797,
+          "engine_pid": 124524,
+          "gpu_sample_count": 57,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "public-en",
+          "audio_sha256": "dd3cf2344f8410ee9a2e271e96d1c3f9b530f113ae5b47defecbc0d741a468e9",
+          "audio_seconds": 54.805,
+          "repeat": 1,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 7.215590490028262,
+          "realtime_factor": 7.595358976613062,
+          "engine_pid": 125019,
+          "gpu_sample_count": 58,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "public-en",
+          "audio_sha256": "dd3cf2344f8410ee9a2e271e96d1c3f9b530f113ae5b47defecbc0d741a468e9",
+          "audio_seconds": 54.805,
+          "repeat": 1,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.73533018771559,
+          "realtime_factor": 11.573638548411116,
+          "engine_pid": 125690,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-en",
+          "audio_sha256": "dd3cf2344f8410ee9a2e271e96d1c3f9b530f113ae5b47defecbc0d741a468e9",
+          "audio_seconds": 54.805,
+          "repeat": 2,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.662187155336142,
+          "realtime_factor": 11.755212344333394,
+          "engine_pid": 125977,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-en",
+          "audio_sha256": "dd3cf2344f8410ee9a2e271e96d1c3f9b530f113ae5b47defecbc0d741a468e9",
+          "audio_seconds": 54.805,
+          "repeat": 2,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 7.025957362726331,
+          "realtime_factor": 7.80036045916647,
+          "engine_pid": 126485,
+          "gpu_sample_count": 56,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "public-zh",
+          "audio_sha256": "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010",
+          "audio_seconds": 56.8606875,
+          "repeat": 0,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 3.041235461831093,
+          "realtime_factor": 18.696575195714978,
+          "engine_pid": 130991,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-zh",
+          "audio_sha256": "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010",
+          "audio_seconds": 56.8606875,
+          "repeat": 0,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 6.675611955113709,
+          "realtime_factor": 8.517674167151537,
+          "engine_pid": 131226,
+          "gpu_sample_count": 54,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "public-zh",
+          "audio_sha256": "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010",
+          "audio_seconds": 56.8606875,
+          "repeat": 1,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 6.655872067902237,
+          "realtime_factor": 8.542935759569227,
+          "engine_pid": 131757,
+          "gpu_sample_count": 54,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "public-zh",
+          "audio_sha256": "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010",
+          "audio_seconds": 56.8606875,
+          "repeat": 1,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 2.896784253884107,
+          "realtime_factor": 19.628899675134335,
+          "engine_pid": 132314,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-zh",
+          "audio_sha256": "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010",
+          "audio_seconds": 56.8606875,
+          "repeat": 2,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 2.935809625312686,
+          "realtime_factor": 19.367975024587604,
+          "engine_pid": 132545,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-zh",
+          "audio_sha256": "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010",
+          "audio_seconds": 56.8606875,
+          "repeat": 2,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 6.694617938250303,
+          "realtime_factor": 8.493492537508576,
+          "engine_pid": 132761,
+          "gpu_sample_count": 54,
+          "gpu_pid_proven": true
+        }
+      ]
+    },
+    {
+      "source": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/compare-wymrgxou/report.json",
+      "engine": "/home/gordon/work/dettivo-linux/target/debug/dettivo-engine-diarize",
+      "engine_sha256": "738457f01c2d59864a680a5aea8493147ad6a49e030af65f81c27ef3546fc9b5",
+      "threads": 1,
+      "comparisons": [
+        {
+          "fixture": "gold",
+          "cpu_median_seconds": 2.7901185201480985,
+          "cuda_median_seconds": 2.3416812191717327,
+          "backends_correct": true,
+          "cuda_pid_proven_every_run": true,
+          "turns_identical": true,
+          "speedup": 1.1915022836178277
+        }
+      ],
+      "runs": [
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 0,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 2.7901185201480985,
+          "realtime_factor": 6.758091050196369,
+          "engine_pid": 135355,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 0,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 2.3416812191717327,
+          "realtime_factor": 8.052280919206178,
+          "engine_pid": 135620,
+          "gpu_sample_count": 18,
+          "gpu_pid_proven": true
+        }
+      ]
+    },
+    {
+      "source": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/compare-3649ufkm/report.json",
+      "engine": "/home/gordon/work/dettivo-linux/target/debug/dettivo-engine-diarize",
+      "engine_sha256": "738457f01c2d59864a680a5aea8493147ad6a49e030af65f81c27ef3546fc9b5",
+      "threads": "default",
+      "comparisons": [
+        {
+          "fixture": "public-en-loop-300s",
+          "cpu_median_seconds": 27.13912280695513,
+          "cuda_median_seconds": 37.1983005120419,
+          "backends_correct": true,
+          "cuda_pid_proven_every_run": true,
+          "turns_identical": true,
+          "speedup": 0.7295796429777647
+        }
+      ],
+      "runs": [
+        {
+          "fixture": "public-en-loop-300s",
+          "audio_sha256": "b3b1f33b5b1dd47dac249d9817ef7527c3652d32a7f9a0ca080e9e670273d4c3",
+          "audio_seconds": 300,
+          "repeat": 0,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 27.13912280695513,
+          "realtime_factor": 11.05415241804046,
+          "engine_pid": 135879,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-en-loop-300s",
+          "audio_sha256": "b3b1f33b5b1dd47dac249d9817ef7527c3652d32a7f9a0ca080e9e670273d4c3",
+          "audio_seconds": 300,
+          "repeat": 0,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 37.1983005120419,
+          "realtime_factor": 8.064884574575752,
+          "engine_pid": 140002,
+          "gpu_sample_count": 303,
+          "gpu_pid_proven": true
+        }
+      ]
+    }
+  ],
+  "canonical_source": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-canonical/run-1788936876-171032/diarization/diarization-report.json",
+  "canonical_source_sha256": "d7d5d8cf867f04d1c87586e70db6bfd5750c0978dc2b0a956d1fc6ab4cf57b43",
+  "canonical": {
+    "rule": "pass when the engine finds exactly the expected speakers and the diarization error rate against crates/dettivo-qa/fixtures/diarization/two-speakers.turns.json (missed plus false alarm plus confusion over the reference speech, scored every 10 ms under the best speaker mapping) stays under 0.2; with --bench the realtime factor must reach 4, and CUDA must preserve the forced-CPU DER and speaker count with at least 4x CPU throughput; skipped when the model set or the engine is unavailable",
+    "fixture": "crates/dettivo-qa/fixtures/diarization/two-speakers.wav",
+    "model": "/home/gordon/.local/share/dettivo/models/diarize/diarization",
+    "backend": "cuda",
+    "cpu_comparison": {
+      "elapsed_ms": 1283,
+      "realtime_factor": 14.696024941543257,
+      "error_rate": {
+        "missed": 0.011072261072261072,
+        "false_alarm": 0.009324009324009324,
+        "confusion": 0,
+        "der": 0.020396270396270396,
+        "mapping": [
+          [
+            "A",
+            "SPEAKER_01"
+          ],
+          [
+            "B",
+            "SPEAKER_00"
+          ]
+        ]
+      },
+      "found_speakers": 2,
+      "speedup": 0.48142589118198875
+    },
+    "expected_speakers": 2,
+    "found_speakers": 2,
+    "turns": [
+      {
+        "speaker": "SPEAKER_01",
+        "start_ms": 689,
+        "end_ms": 3946
+      },
+      {
+        "speaker": "SPEAKER_00",
+        "start_ms": 4283,
+        "end_ms": 7051
+      },
+      {
+        "speaker": "SPEAKER_01",
+        "start_ms": 7287,
+        "end_ms": 11371
+      },
+      {
+        "speaker": "SPEAKER_00",
+        "start_ms": 11658,
+        "end_ms": 14273
+      },
+      {
+        "speaker": "SPEAKER_01",
+        "start_ms": 13733,
+        "end_ms": 16012
+      },
+      {
+        "speaker": "SPEAKER_00",
+        "start_ms": 16315,
+        "end_ms": 18425
+      }
+    ],
+    "error_rate": {
+      "missed": 0.011072261072261072,
+      "false_alarm": 0.009324009324009324,
+      "confusion": 0,
+      "der": 0.020396270396270396,
+      "mapping": [
+        [
+          "A",
+          "SPEAKER_01"
+        ],
+        [
+          "B",
+          "SPEAKER_00"
+        ]
+      ]
+    },
+    "audio_ms": 18855,
+    "elapsed_ms": 2665,
+    "realtime_factor": 7.075046904315197,
+    "verdict": "fail",
+    "verdict_reason": "CUDA speedup 0.481x over CPU is under 4x (CPU 14.696x realtime, CUDA 7.075x realtime); CPU DER 0.020396, CUDA DER 0.020396; CPU 14.696x realtime, CUDA 7.075x realtime, 0.481x speedup"
+  },
+  "meetings_pack": {
+    "source": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-meetings/run-1788936938-175688/pack-meetings/meetings-pack.json",
+    "process_exit_code": 1,
+    "passed": false,
+    "blockers": [
+      {
+        "step": "preflight",
+        "driver": "-",
+        "reason": "x11 display: DISPLAY is unset; run under XWayland (Hyprland) or scripts/qa/xvfb-session.sh"
+      },
+      {
+        "step": "preflight",
+        "driver": "-",
+        "reason": "accessibility bus: org.a11y.Bus answers /run/user/1000/at-spi/bus_0 but nothing listens there; restart at-spi-bus-launcher or drive under a private session bus"
+      },
+      {
+        "step": "meetings_seeded",
+        "driver": "atspi",
+        "reason": "preflight: x11 display: DISPLAY is unset; run under XWayland (Hyprland) or scripts/qa/xvfb-session.sh"
+      },
+      {
+        "step": "meetings_seeded",
+        "driver": "cua",
+        "reason": "preflight: x11 display: DISPLAY is unset; run under XWayland (Hyprland) or scripts/qa/xvfb-session.sh"
+      },
+      {
+        "step": "meetings_live_gui",
+        "driver": "atspi",
+        "reason": "preflight: x11 display: DISPLAY is unset; run under XWayland (Hyprland) or scripts/qa/xvfb-session.sh"
+      },
+      {
+        "step": "meetings_live_gui",
+        "driver": "cua",
+        "reason": "preflight: x11 display: DISPLAY is unset; run under XWayland (Hyprland) or scripts/qa/xvfb-session.sh"
+      },
+      {
+        "step": "meetings_import_gui",
+        "driver": "atspi",
+        "reason": "preflight: x11 display: DISPLAY is unset; run under XWayland (Hyprland) or scripts/qa/xvfb-session.sh"
+      },
+      {
+        "step": "meetings_import_gui",
+        "driver": "cua",
+        "reason": "preflight: x11 display: DISPLAY is unset; run under XWayland (Hyprland) or scripts/qa/xvfb-session.sh"
+      }
+    ],
+    "steps": [
+      {
+        "id": "meeting_rig",
+        "driver": "atspi",
+        "outcome": "pass",
+        "duration_ms": 23311,
+        "evidence": "meeting_rig.atspi",
+        "reason": null,
+        "scan": {
+          "routes": []
+        }
+      },
+      {
+        "id": "meeting_recovery",
+        "driver": "atspi",
+        "outcome": "pass",
+        "duration_ms": 5641,
+        "evidence": "meeting_recovery.atspi",
+        "reason": null,
+        "scan": {
+          "routes": []
+        }
+      },
+      {
+        "id": "meeting_live",
+        "driver": "atspi",
+        "outcome": "pass",
+        "duration_ms": 14453,
+        "evidence": "meeting_live.atspi",
+        "reason": null,
+        "scan": {
+          "routes": []
+        }
+      },
+      {
+        "id": "diarization_der",
+        "driver": "none",
+        "outcome": "pass",
+        "duration_ms": 2528,
+        "evidence": "diarization_der",
+        "reason": "2 speakers, DER 0.020 (missed 0.011, false alarm 0.009, confusion 0.000) on cuda"
+      },
+      {
+        "id": "meeting_export_goldens",
+        "driver": "none",
+        "outcome": "pass",
+        "duration_ms": 5892,
+        "evidence": "meeting_export_goldens",
+        "reason": "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      },
+      {
+        "id": "meetings_seeded",
+        "driver": "atspi",
+        "outcome": "skip",
+        "duration_ms": 0,
+        "evidence": null,
+        "reason": "preflight: x11 display: DISPLAY is unset; run under XWayland (Hyprland) or scripts/qa/xvfb-session.sh"
+      },
+      {
+        "id": "meetings_seeded",
+        "driver": "cua",
+        "outcome": "skip",
+        "duration_ms": 0,
+        "evidence": null,
+        "reason": "preflight: x11 display: DISPLAY is unset; run under XWayland (Hyprland) or scripts/qa/xvfb-session.sh"
+      },
+      {
+        "id": "meetings_live_gui",
+        "driver": "atspi",
+        "outcome": "skip",
+        "duration_ms": 0,
+        "evidence": null,
+        "reason": "preflight: x11 display: DISPLAY is unset; run under XWayland (Hyprland) or scripts/qa/xvfb-session.sh"
+      },
+      {
+        "id": "meetings_live_gui",
+        "driver": "cua",
+        "outcome": "skip",
+        "duration_ms": 0,
+        "evidence": null,
+        "reason": "preflight: x11 display: DISPLAY is unset; run under XWayland (Hyprland) or scripts/qa/xvfb-session.sh"
+      },
+      {
+        "id": "meetings_import_gui",
+        "driver": "atspi",
+        "outcome": "skip",
+        "duration_ms": 0,
+        "evidence": null,
+        "reason": "preflight: x11 display: DISPLAY is unset; run under XWayland (Hyprland) or scripts/qa/xvfb-session.sh"
+      },
+      {
+        "id": "meetings_import_gui",
+        "driver": "cua",
+        "outcome": "skip",
+        "duration_ms": 0,
+        "evidence": null,
+        "reason": "preflight: x11 display: DISPLAY is unset; run under XWayland (Hyprland) or scripts/qa/xvfb-session.sh"
+      },
+      {
+        "id": "meeting_token_coverage",
+        "driver": "atspi",
+        "outcome": "pass",
+        "duration_ms": 13682,
+        "evidence": "meeting_token_coverage.atspi",
+        "reason": null,
+        "scan": {
+          "routes": []
+        }
+      },
+      {
+        "id": "meeting_throughput",
+        "driver": "none",
+        "outcome": "pass",
+        "duration_ms": 18764,
+        "evidence": "meeting_throughput",
+        "reason": "19.78x realtime (311701 ms audio in 15755 ms) on whisper large-v3-turbo (vulkan), gpu against NFR-4 20x: not met"
+      },
+      {
+        "id": "diarization_throughput",
+        "driver": "none",
+        "outcome": "pass",
+        "duration_ms": 31843,
+        "evidence": "diarization_throughput",
+        "reason": "9.61x realtime (300000 ms audio in 31214 ms) on cuda, NFR-4 against 4x: met"
+      },
+      {
+        "id": "gpu_workload_proof",
+        "driver": "none",
+        "outcome": "pass",
+        "duration_ms": 1,
+        "evidence": "gpu_workload_proof",
+        "reason": "engine pid 185195 listed by nvidia-smi in 29 of 29 samples while the engine ran; diarization: engine pid 186509 listed by nvidia-smi in 55 of 57 samples while the engine ran"
+      }
+    ],
+    "measurements": {
+      "meeting_rtf": 19.78,
+      "meeting_rtf_nfr": "NFR-4",
+      "meeting_rtf_target": 20,
+      "meeting_rtf_met": false,
+      "diarization_rtf": 9.61,
+      "diarization_rtf_target": 4,
+      "diarization_rtf_met": true,
+      "tier": "gpu",
+      "engine": "whisper",
+      "model": "large-v3-turbo",
+      "backend": "vulkan",
+      "audio_ms": 311701,
+      "wall_ms": 15755,
+      "fixture_sha": "e94eada9bc47b163450d42dc71e58ca1aa3d27bb77077166bd94867705b003e3",
+      "harness_cpu_pct": 3,
+      "harness_warning": null,
+      "gpu_workload_proof": "pass: engine pid 185195 listed by nvidia-smi in 29 of 29 samples while the engine ran; diarization: engine pid 186509 listed by nvidia-smi in 55 of 57 samples while the engine ran",
+      "token_coverage": {
+        "capture": "rig",
+        "expected": 8,
+        "found": 8,
+        "missing": [],
+        "tokens": [
+          {
+            "token": "alice",
+            "source": "microphone",
+            "found": true
+          },
+          {
+            "token": "launch",
+            "source": "microphone",
+            "found": true
+          },
+          {
+            "token": "checklist",
+            "source": "microphone",
+            "found": true
+          },
+          {
+            "token": "ben",
+            "source": "system",
+            "found": true
+          },
+          {
+            "token": "pricing",
+            "source": "system",
+            "found": true
+          },
+          {
+            "token": "decision",
+            "source": "system",
+            "found": true
+          },
+          {
+            "token": "ship",
+            "source": "system",
+            "found": true
+          },
+          {
+            "token": "friday",
+            "source": "system",
+            "found": true
+          }
+        ],
+        "speakers": [
+          "you -> Alice",
+          "speaker_00 -> Ben"
+        ],
+        "md_names_found": true,
+        "diarization_status": "ready",
+        "meeting_id": "f0d5e5d6-bf72-413f-a4cf-249fb125bbdc"
+      },
+      "forced_cpu": false
+    },
+    "diarization_throughput_source": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-meetings/run-1788936938-175688/pack-meetings/diarization_throughput/diarization-throughput.json",
+    "diarization_throughput": {
+      "engine": "dettivo-engine-diarize",
+      "model": "/home/gordon/.local/share/dettivo/models/diarize/diarization",
+      "backend": "cuda",
+      "engine_pid": 186509,
+      "audio_ms": 300000,
+      "wall_ms": 31214,
+      "realtime_factor": 9.61,
+      "nfr": "NFR-4",
+      "target": 4,
+      "met": true,
+      "speakers": 1,
+      "forced_cpu": false
+    }
+  },
+  "verification_checkpoint": {
+    "commit": "a3077006fada494612b71743fbf9ee3a26cb18cd",
+    "gate_command": "make build test lint",
+    "gate_exit_code": 0,
+    "qt_tests_passed": 74,
+    "gate_log": "/tmp/dtv-gate-fn42-final.log",
+    "receipt_source": ".flow/tmp/green-receipts/a3077006-unittest.json",
+    "receipt": {
+      "command_sha256": "63c1ccc8128fdb257fed4e9e4741c6bcb48ab432f3e73ff6bca5a30ecd8419ee",
+      "gate_id": "unittest",
+      "head_sha": "a3077006fada494612b71743fbf9ee3a26cb18cd",
+      "schema": 1,
+      "timestamp": "2026-09-09T07:08:55.187134Z"
+    },
+    "installed_path_check": {
+      "source": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/installed-68o2d6em",
+      "scope": "ephemeral overlay/mount namespace; matching debug CPU stage; no host /usr mutation or package install; backend proven by direct selected-path CLI inference, not a loaded doctor row",
+      "installed": {
+        "phase": "installed",
+        "doctor_exit": 0,
+        "doctor_engine": {
+          "backend": null,
+          "binary": "dettivo-engine-diarize",
+          "crashes": 0,
+          "degraded": false,
+          "directory": "/usr/lib/dettivo/engines-cuda",
+          "memory_bytes": null,
+          "model": null,
+          "path": "/usr/lib/dettivo/engines-cuda/dettivo-engine-diarize",
+          "reason": null,
+          "running": false
+        },
+        "selected_engine": "/usr/lib/dettivo/engines-cuda/dettivo-engine-diarize",
+        "backend": "cuda",
+        "turns": [
+          {
+            "end_ms": 3946,
+            "speaker": "SPEAKER_01",
+            "start_ms": 689
+          },
+          {
+            "end_ms": 7051,
+            "speaker": "SPEAKER_00",
+            "start_ms": 4283
+          },
+          {
+            "end_ms": 11371,
+            "speaker": "SPEAKER_01",
+            "start_ms": 7287
+          },
+          {
+            "end_ms": 14273,
+            "speaker": "SPEAKER_00",
+            "start_ms": 11658
+          },
+          {
+            "end_ms": 16012,
+            "speaker": "SPEAKER_01",
+            "start_ms": 13733
+          },
+          {
+            "end_ms": 18425,
+            "speaker": "SPEAKER_00",
+            "start_ms": 16315
+          }
+        ],
+        "passed": true,
+        "scope": "isolated installed path selection and selected engine inference; not overall desktop doctor health"
+      },
+      "removed": {
+        "phase": "removed",
+        "doctor_exit": 0,
+        "doctor_engine": {
+          "backend": null,
+          "binary": "dettivo-engine-diarize",
+          "crashes": 0,
+          "degraded": false,
+          "directory": "/usr/lib/dettivo/engines",
+          "memory_bytes": null,
+          "model": null,
+          "path": "/usr/lib/dettivo/engines/dettivo-engine-diarize",
+          "reason": null,
+          "running": false
+        },
+        "selected_engine": "/usr/lib/dettivo/engines/dettivo-engine-diarize",
+        "backend": "cpu",
+        "turns": [
+          {
+            "end_ms": 3946,
+            "speaker": "SPEAKER_01",
+            "start_ms": 689
+          },
+          {
+            "end_ms": 7051,
+            "speaker": "SPEAKER_00",
+            "start_ms": 4283
+          },
+          {
+            "end_ms": 11371,
+            "speaker": "SPEAKER_01",
+            "start_ms": 7287
+          },
+          {
+            "end_ms": 14273,
+            "speaker": "SPEAKER_00",
+            "start_ms": 11658
+          },
+          {
+            "end_ms": 16012,
+            "speaker": "SPEAKER_01",
+            "start_ms": 13733
+          },
+          {
+            "end_ms": 18425,
+            "speaker": "SPEAKER_00",
+            "start_ms": 16315
+          }
+        ],
+        "passed": true,
+        "scope": "isolated installed path selection and selected engine inference; not overall desktop doctor health"
+      }
+    },
+    "packaging": {
+      "package_log": "/tmp/fn42-package-cuda-verified.log",
+      "makepkg_namcap_log": "/tmp/fn42-makepkg-cuda-verified.log",
+      "manifest_files": 7,
+      "result": "passed with namcap warnings retained in log; not installed on host"
+    }
+  }
+}

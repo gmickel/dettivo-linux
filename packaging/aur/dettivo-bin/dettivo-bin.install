@@ -1,0 +1,17 @@
+# Printed by pacman after the install; the units are enabled for new
+# sessions by the preset, an existing session enables them once.
+post_install() {
+  cat <<'MSG'
+Dettivo is installed. In your user session, once:
+    systemctl --user enable --now dettivod.socket   # the daemon starts on the first request
+    dettivo setup omarchy                           # the bindings, the bar plugin and the pill on Omarchy
+    dettivo setup hyprland                          # the bindings on plain Hyprland (sway, niri likewise)
+Models download on first run; `dettivo doctor` names what is missing.
+MSG
+}
+
+post_upgrade() {
+  cat <<'MSG'
+Dettivo is updated; `systemctl --user restart dettivod.socket dettivod.service` picks up the new daemon.
+MSG
+}

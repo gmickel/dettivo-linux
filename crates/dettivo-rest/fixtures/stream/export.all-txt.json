@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/transcripts/export/stream?scope=all&format=txt"
+  },
+  "expect": {
+    "status": 200,
+    "content_type": "text/plain",
+    "headers": {
+      "Content-Disposition": "attachment; filename=\"dictations.txt\""
+    },
+    "body_file": "goldens/seed.txt"
+  }
+}

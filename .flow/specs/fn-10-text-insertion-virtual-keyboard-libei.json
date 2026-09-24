@@ -1,0 +1,36 @@
+{
+  "branch_name": "fn-10-text-insertion-virtual-keyboard-libei",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-03T20:43:17.511159Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-3-daemon-skeleton-socket-activated",
+    "fn-4-qa-rig-foundation-drivers-xvfb-ci"
+  ],
+  "id": "fn-10-text-insertion-virtual-keyboard-libei",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-10-text-insertion-virtual-keyboard-libei.md",
+  "status": "done",
+  "title": "Text insertion: virtual keyboard, libei, clipboard chain and target guards",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T04:33:25.490022Z"
+}

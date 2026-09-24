@@ -1,0 +1,36 @@
+{
+  "branch_name": "fn-23-local-llm-engine-llamacpp-through-the",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-04T20:32:30.431289Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-7-engine-protocol-supervisor-and-whisper",
+    "fn-16-polish-deterministic-transforms-the"
+  ],
+  "id": "fn-23-local-llm-engine-llamacpp-through-the",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-23-local-llm-engine-llamacpp-through-the.md",
+  "status": "done",
+  "title": "Local LLM engine: llama.cpp through the engine protocol, the GGUF catalogue and the local provider",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-05T05:41:20.244482Z"
+}

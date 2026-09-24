@@ -1,0 +1,29 @@
+{
+  "capabilities": {
+    "speech.methods": [
+      "speech.providers.list",
+      "speech.selection.get",
+      "speech.selection.set"
+    ]
+  },
+  "error": {
+    "error": {
+      "code": -32010,
+      "data": {
+        "app_code": "INVALID_PARAMS",
+        "details": {},
+        "retryable": false
+      },
+      "message": "At least one speech selection field is required"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "speech.selection.set",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "speech.selection.set",
+    "params": {}
+  }
+}

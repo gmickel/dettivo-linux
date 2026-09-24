@@ -1,0 +1,180 @@
+{
+  "capabilities": {},
+  "method": "system.capabilities",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "system.capabilities",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "auth": {
+        "ipc_mode": "peer",
+        "rest_token_required": true
+      },
+      "automation": {
+        "dictation_macro_audit": false,
+        "dictation_macros": false,
+        "email_delivery": false,
+        "jobs": false,
+        "providers": false
+      },
+      "config": {
+        "methods": [
+          "config.get",
+          "config.set",
+          "config.unset",
+          "config.validate",
+          "config.path",
+          "config.print_default",
+          "config.keys"
+        ]
+      },
+      "formats": {
+        "dictation_export": [
+          "txt",
+          "md",
+          "json"
+        ],
+        "meeting_export": [
+          "txt",
+          "md",
+          "json",
+          "srt",
+          "vtt"
+        ]
+      },
+      "history": {
+        "archive_export": true,
+        "fts": true,
+        "methods": [
+          "transcripts.delete",
+          "transcripts.rerun",
+          "transcripts.stats",
+          "transcripts.cancel"
+        ],
+        "semantic_search": false
+      },
+      "polish": {
+        "custom_presets": true,
+        "modes": [
+          "raw",
+          "deterministic_polish",
+          "enhanced"
+        ],
+        "presets": [
+          "email",
+          "code",
+          "chat",
+          "notes",
+          "generic"
+        ],
+        "styles": [
+          "asDictated",
+          "formal",
+          "casual",
+          "veryCasual"
+        ]
+      },
+      "llm": {
+        "local_available": false,
+        "methods": [
+          "llm.providers.list",
+          "llm.endpoints.trust",
+          "llm.endpoints.list",
+          "llm.models.status",
+          "llm.models.download",
+          "llm.models.cancel",
+          "llm.models.delete",
+          "llm.engine.status"
+        ],
+        "providers": [
+          "local",
+          "ollama",
+          "openai_compatible"
+        ]
+      },
+      "hotkeys": {
+        "available": [],
+        "backend": "none"
+      },
+      "insert": {
+        "methods": [
+          "insert.undo",
+          "insert.target",
+          "insert.allow_self_target"
+        ]
+      },
+      "insert_modes": [
+        "raw",
+        "polish",
+        "clipboard_only"
+      ],
+      "knowledge": {
+        "ask_with_citations": false,
+        "semantic_search": false
+      },
+      "meeting_templates": false,
+      "platform": {
+        "compositor": "Hyprland",
+        "gpu": "vulkan",
+        "insertion_backend": "virtual_keyboard",
+        "os": "linux",
+        "session": "wayland",
+        "tier": "gpu",
+        "tier_reason": "a Vulkan device is installed and dettivo-engine-whisper runs on it",
+        "transport": "unix_socket"
+      },
+      "retention": {
+        "auto_delete": false,
+        "delete": true
+      },
+      "rest": {
+        "bind": "127.0.0.1",
+        "enabled": false,
+        "port": 45831
+      },
+      "speech": {
+        "methods": [
+          "speech.providers.list",
+          "speech.selection.get",
+          "speech.selection.set"
+        ],
+        "providers": {
+          "parakeet": {
+            "meeting_capable": false
+          },
+          "whisper": {
+            "meeting_capable": true
+          }
+        }
+      },
+      "transfers": {
+        "chunk_max_bytes": 1048576,
+        "max_inflight": 4,
+        "timeout_seconds": 120
+      },
+      "meetings": {
+        "checkpoint_schema": 1,
+        "methods": [
+          "meetings.recover",
+          "meetings.discard",
+          "meetings.disclosure.get",
+          "meetings.disclosure.acknowledge",
+          "meetings.diarize",
+          "meetings.speakers.list",
+          "meetings.speakers.rename",
+          "meetings.speakers.suggest",
+          "meetings.notes.get",
+          "meetings.notes.set",
+          "meetings.analyze",
+          "meetings.analysis.get",
+          "meetings.rename"
+        ]
+      }
+    }
+  }
+}

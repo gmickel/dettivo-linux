@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/events/subscribe",
+    "body": {
+      "topics": [
+        "dictation.state"
+      ]
+    }
+  },
+  "expect": {
+    "status": 501,
+    "error": {
+      "app_code": "NOT_IMPLEMENTED",
+      "code": -32014
+    }
+  }
+}

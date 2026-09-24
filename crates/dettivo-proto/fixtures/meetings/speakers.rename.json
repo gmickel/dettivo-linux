@@ -1,0 +1,31 @@
+{
+  "capabilities": {},
+  "method": "meetings.speakers.rename",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.speakers.rename",
+    "params": {
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "name": "Gordon",
+      "speaker_id": "you"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "ref": {
+        "id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "kind": "meeting"
+      },
+      "segments_updated": 1,
+      "speaker": {
+        "color_index": 0,
+        "name": "Gordon",
+        "speaker_id": "you",
+        "talk_ms": 1200
+      }
+    }
+  }
+}

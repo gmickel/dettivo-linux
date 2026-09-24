@@ -1,0 +1,27 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32013,
+      "data": {
+        "app_code": "CONFLICT",
+        "details": {
+          "kind": "meetingNotCompleted"
+        },
+        "retryable": false
+      },
+      "message": "Meeting 5eed0000-0000-4000-8000-00000000a002 has no final transcript yet; it is partial"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "meetings.analyze",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.analyze",
+    "params": {
+      "meeting_id": "5eed0000-0000-4000-8000-00000000a002"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "needs": "audio",
+  "after": "settle_and_delete",
+  "request": {
+    "method": "POST",
+    "path": "/v1/transcripts/import/stream?target_kind=dictation&mode=raw&language=en",
+    "headers": {
+      "Content-Type": "audio/wav",
+      "X-Dettivo-Filename": "jfk.wav"
+    },
+    "body_file": "$AUDIO"
+  },
+  "expect": {
+    "status": 200,
+    "content_type": "application/json",
+    "body_keys": [
+      "ref",
+      "is_partial",
+      "job"
+    ]
+  }
+}

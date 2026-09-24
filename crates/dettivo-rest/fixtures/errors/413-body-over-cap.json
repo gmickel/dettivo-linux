@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/transcripts/import/stream",
+    "headers": {
+      "Content-Type": "audio/wav"
+    },
+    "declared_length": 52428801
+  },
+  "expect": {
+    "status": 413,
+    "content_type": "application/json",
+    "error": {
+      "app_code": "INVALID_PARAMS",
+      "code": -32010
+    }
+  }
+}

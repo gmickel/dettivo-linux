@@ -1,0 +1,26 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32010,
+      "data": {
+        "app_code": "INVALID_PARAMS",
+        "details": {},
+        "retryable": false
+      },
+      "message": "unknown model whisper/nope"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "speech.models.download",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "speech.models.download",
+    "params": {
+      "model": "nope",
+      "provider": "whisper"
+    }
+  }
+}

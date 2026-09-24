@@ -1,0 +1,106 @@
+{
+  "started_at": "2026-09-13T22:31:44.925069+00:00",
+  "finished_at": "2026-09-13T23:03:03.402113+00:00",
+  "fixture": "public JFK WAV split into separate alternating source clips",
+  "model": "whisper/large-v3-turbo",
+  "binary_sha256": "52f8dd67ae40b224c14f402b2227fdf19828be2bbb8776a8659e658f58ec6352",
+  "durations_seconds": [
+    60,
+    900,
+    900
+  ],
+  "outcome": "pass",
+  "error": null,
+  "scope": "Three consecutive recordings using two isolated PipeWire null sinks and public fixture audio. No real meeting, microphone, multi-person accuracy, or all-day acceptance.",
+  "runtime_rss_kib": {
+    "first": 19928,
+    "last": 30480,
+    "maximum": 56756
+  },
+  "max_checkpoint_age_seconds": 15.0,
+  "meetings": [
+    {
+      "requested_duration_seconds": 60,
+      "start_wait_ms": 1,
+      "capture_wall_seconds": 60.01010650402168,
+      "retained_seconds": {
+        "microphone.wav": 60.0089375,
+        "system.wav": 60.0089375
+      },
+      "final_status": "completed",
+      "automatic_analysis_status": "ready",
+      "automatic_diarization": {
+        "error": "model diarize/diarization-en is not downloaded; run `dettivo speech download --provider diarize --model diarization-en`",
+        "status": "unavailable"
+      },
+      "retained_audio_postprocess": {
+        "diarization": {
+          "coverage": 0.233,
+          "engine": "dettivo-engine-diarize",
+          "model": "diarize/diarization-en",
+          "ran_at": "2026-09-13T23:11:17Z",
+          "status": "ready"
+        },
+        "speaker_count": 2,
+        "analysis_status": "ready",
+        "summary_nonempty": true
+      }
+    },
+    {
+      "requested_duration_seconds": 900,
+      "start_wait_ms": 1001,
+      "capture_wall_seconds": 900.1587681949604,
+      "retained_seconds": {
+        "microphone.wav": 900.1369375,
+        "system.wav": 900.1583125
+      },
+      "final_status": "completed",
+      "automatic_analysis_status": "ready",
+      "automatic_diarization": {
+        "error": "model diarize/diarization-en is not downloaded; run `dettivo speech download --provider diarize --model diarization-en`",
+        "status": "unavailable"
+      },
+      "retained_audio_postprocess": {
+        "diarization": {
+          "coverage": 0.233,
+          "engine": "dettivo-engine-diarize",
+          "model": "diarize/diarization-en",
+          "ran_at": "2026-09-13T23:11:47Z",
+          "status": "ready"
+        },
+        "speaker_count": 2,
+        "analysis_status": "ready",
+        "summary_nonempty": true
+      }
+    },
+    {
+      "requested_duration_seconds": 900,
+      "start_wait_ms": 1002,
+      "capture_wall_seconds": 900.175251342007,
+      "retained_seconds": {
+        "microphone.wav": 900.1583125,
+        "system.wav": 900.179625
+      },
+      "final_status": "completed",
+      "automatic_analysis_status": "running",
+      "automatic_diarization": {
+        "error": "model diarize/diarization-en is not downloaded; run `dettivo speech download --provider diarize --model diarization-en`",
+        "status": "unavailable"
+      },
+      "retained_audio_postprocess": {
+        "diarization": {
+          "coverage": 0.233,
+          "engine": "dettivo-engine-diarize",
+          "model": "diarize/diarization-en",
+          "ran_at": "2026-09-13T23:12:20Z",
+          "status": "ready"
+        },
+        "speaker_count": 2,
+        "analysis_status": "ready",
+        "summary_nonempty": true
+      }
+    }
+  ],
+  "postprocess_error": null,
+  "raw_evidence_root": "/tmp/dettivo-release-soak-20260914/run-20260913T223144Z"
+}

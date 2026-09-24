@@ -1,0 +1,63 @@
+{
+  "capabilities": {},
+  "method": "meetings.get",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.get",
+    "params": {
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "analysis": null,
+      "analysis_status": "none",
+      "diarization": {
+        "coverage": 1.0,
+        "engine": "dettivo-engine-diarize",
+        "model": "diarize/diarization",
+        "ran_at": "2026-02-13T16:31:00Z",
+        "status": "ready"
+      },
+      "duration_seconds": 1800,
+      "ended_at": "2026-02-13T16:30:00Z",
+      "language": "en",
+      "notes": "",
+      "notes_source": "user",
+      "ref": {
+        "id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "kind": "meeting"
+      },
+      "segments": [
+        {
+          "end_ms": 1200,
+          "index": 0,
+          "polished_text": "Hello.",
+          "source_type": "microphone",
+          "speaker": "You",
+          "speaker_confidence": 1.0,
+          "speaker_id": "you",
+          "start_ms": 0,
+          "text": "Hello."
+        }
+      ],
+      "speakers": [
+        {
+          "color_index": 0,
+          "name": "You",
+          "speaker_id": "you",
+          "talk_ms": 1200
+        }
+      ],
+      "started_at": "2026-02-13T16:00:00Z",
+      "status": "completed",
+      "stt_model_id": "large-v3-turbo",
+      "stt_provider_id": "whisper",
+      "title": "Weekly sync",
+      "transcript": "Hello."
+    }
+  }
+}

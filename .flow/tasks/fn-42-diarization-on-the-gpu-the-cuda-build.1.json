@@ -1,0 +1,11 @@
+{
+  "created_at": "2026-09-09T06:27:16.217501Z",
+  "depends_on": [],
+  "id": "fn-42-diarization-on-the-gpu-the-cuda-build.1",
+  "priority": null,
+  "spec": "fn-42-diarization-on-the-gpu-the-cuda-build",
+  "spec_path": ".flow/tasks/fn-42-diarization-on-the-gpu-the-cuda-build.1.md",
+  "status": "todo",
+  "title": "Implement CUDA diarization drop-in with CPU fallback and measured QA",
+  "updated_at": "2026-09-09T07:28:04.897706Z"
+}

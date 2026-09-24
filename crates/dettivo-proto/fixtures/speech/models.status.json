@@ -1,0 +1,62 @@
+{
+  "capabilities": {},
+  "method": "speech.models.status",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "speech.models.status",
+    "params": {
+      "provider": "whisper"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "catalogue_version": 1,
+      "models": [
+        {
+          "available": true,
+          "bytes_done": 77704715,
+          "bytes_total": 77704715,
+          "display_name": "Tiny (English)",
+          "error": null,
+          "id": "tiny.en",
+          "is_default": false,
+          "is_selected": false,
+          "kind": "stt",
+          "languages": [
+            "en"
+          ],
+          "license": "MIT",
+          "path": "/home/user/.local/share/dettivo/models/whisper/tiny.en/ggml-tiny.en.bin",
+          "provider": "whisper",
+          "readiness": "ready",
+          "recommended_for": null,
+          "size_bytes": 77704715
+        },
+        {
+          "available": true,
+          "bytes_done": 12345678,
+          "bytes_total": 874188075,
+          "display_name": "Large v3 Turbo",
+          "error": null,
+          "id": "large-v3-turbo",
+          "is_default": true,
+          "is_selected": true,
+          "kind": "stt",
+          "languages": [
+            "multilingual"
+          ],
+          "license": "MIT",
+          "path": null,
+          "provider": "whisper",
+          "readiness": "downloading",
+          "recommended_for": "99 languages \u00b7 vocabulary prompts \u00b7 the Mac default",
+          "size_bytes": 874188075
+        }
+      ],
+      "models_dir": "/home/user/.local/share/dettivo/models"
+    }
+  }
+}

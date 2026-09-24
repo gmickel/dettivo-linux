@@ -1,0 +1,13 @@
+# Build output
+/target/
+/build/
+/dist/
+
+# Editor and OS noise
+*.swp
+.DS_Store
+.idea/
+.vscode/
+# QA rig evidence (screenshots, receipts) from local drives
+qa-evidence/
+__pycache__/

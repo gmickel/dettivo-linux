@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@300;400;600&display=swap">
+  <style>
+    :root{--bg:#0D0D0D;--fg:#EBDBB2;--fg2:rgba(235,219,178,.62);--fg3:rgba(235,219,178,.38);--line:rgba(235,219,178,.14);--line2:rgba(235,219,178,.35);--fill:rgba(235,219,178,.03);--gold:#F5BF03;--gold2:#BFA75D;--gold3:#A3850E;--red:#D35F5F}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:"Cascadia Mono",ui-monospace,"CaskaydiaMono Nerd Font","JetBrains Mono",monospace;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+    a{color:var(--gold2)} a:hover{color:var(--gold)}
+    .label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg3)}
+    .num{font-variant-numeric:tabular-nums}
+    .btn{height:28px;padding:0 10px;border:1px solid var(--line2);background:var(--fill);color:var(--fg);display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:12px;box-sizing:border-box}
+    .btn.primary{border-color:rgba(245,191,3,.9);background:rgba(245,191,3,.14);color:var(--gold)}
+    .dlg{background:var(--bg);border:1px solid var(--line2);display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+    .dlg .hd{padding:14px 18px 10px;display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line)}
+    .dlg .bd{padding:14px 18px;display:flex;flex-direction:column;gap:12px}
+    .dlg .ft{padding:12px 18px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line)}
+    .f{display:grid;grid-template-columns:120px 1fr;gap:8px 12px;align-items:center;font-size:12px}
+    .f .k{color:var(--fg3)}
+    .sel{display:inline-flex;align-items:center;justify-content:space-between;height:26px;padding:0 10px;border:1px solid var(--line2);font-size:12px;width:100%;box-sizing:border-box}
+    .seg{display:inline-flex;border:1px solid var(--line2)}
+    .seg div{padding:0 12px;height:24px;display:flex;align-items:center;font-size:12px;color:var(--fg2)}
+    .seg div.on{background:rgba(163,133,14,.18);color:var(--fg);box-shadow:inset 0 0 0 1px rgba(163,133,14,.78)}
+    .ghost{opacity:.25}
+    .row{display:flex;gap:12px;padding:9px 0;border-top:1px solid var(--line)}
+    .check{width:12px;height:12px;border:1px solid var(--line2);box-sizing:border-box;flex:none}
+    .check.on{border-color:var(--gold);background:var(--gold)}
+  </style>
+</helmet>
+<div style="width:1280px;height:820px;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);position:relative;overflow:hidden">
+
+  <div class="ghost" style="position:absolute;inset:0;display:grid;grid-template-columns:200px 1fr;pointer-events:none">
+    <div style="border-right:1px solid var(--line);padding:14px 12px;display:flex;flex-direction:column;gap:14px"><span style="font-weight:600">dettivo</span><span>Home</span><span>History</span><span>Meetings</span><span>Settings</span><span>Agents</span></div>
+    <div style="padding:14px 24px;display:flex;flex-direction:column">
+      <span style="font-size:20px;font-weight:600">Meetings</span>
+      <div class="row" style="margin-top:20px"><span class="num" style="width:120px">Wed 11:05</span><span style="flex:1">Dettivo Linux kickoff</span><span class="num">41 min</span></div>
+      <div class="row"><span class="num" style="width:120px">Tue 09:14</span><span style="flex:1">Weekly sync with Tobias</span><span class="num">28 min</span></div>
+      <div class="row"><span class="num" style="width:120px">Mon 16:00</span><span style="flex:1">Customer call · Nordwind</span><span class="num">52 min</span></div>
+      <div class="row"><span class="num" style="width:120px">Fri 14:30</span><span style="flex:1">Omarchy plugin review</span><span class="num">19 min</span></div>
+    </div>
+  </div>
+
+  <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:48px;padding:0 40px">
+
+    <div class="dlg" style="width:520px">
+      <div class="hd"><span style="font-size:16px;font-weight:600">Import audio</span><span class="label">transcripts.import</span></div>
+      <div class="bd">
+        <div class="f">
+          <span class="k">file</span><span>interview-raw.m4a <span style="color:var(--fg3)">· 64 min · 58 MB</span></span>
+          <span class="k">as</span><span class="seg"><div>Dictation</div><div class="on">Meeting</div></span>
+          <span class="k">engine</span><span class="sel">Whisper small · timestamps<span style="color:var(--fg3)">▾</span></span>
+          <span class="k">language</span><span class="sel">Auto-detect<span style="color:var(--fg3)">▾</span></span>
+          <span class="k">speakers</span><span style="display:flex;align-items:center;gap:8px"><span class="check on"></span>diarize after transcription</span>
+          <span class="k">analysis</span><span style="display:flex;align-items:center;gap:8px"><span class="check on"></span>summary, decisions, action items</span>
+        </div>
+        <div style="font-size:11px;color:var(--fg3)">Chunked at 5 minutes with 2 s overlap. About 6 minutes on this GPU. The original file is copied into the meeting folder.</div>
+      </div>
+      <div class="ft"><span style="font-size:11px;color:var(--fg3)">Also: dettivo transcript import --file … --target-kind meeting</span><div style="display:flex;gap:8px"><div class="btn">Cancel</div><div class="btn primary">Import</div></div></div>
+    </div>
+
+    <div class="dlg" style="width:520px">
+      <div class="hd"><span style="font-size:16px;font-weight:600">Recording disclosure</span><span class="label">once</span></div>
+      <div class="bd">
+        <div style="font-size:14px;line-height:1.7;border:1px solid var(--line);padding:12px 14px">This meeting may be recorded and transcribed by Dettivo. Please inform all participants and comply with local laws and company policy before recording.</div>
+        <div style="font-size:12px;color:var(--fg2)">Copy this into the meeting chat if you like. Dettivo asks once and remembers your acknowledgement in state.toml. Agents pass acknowledge_meeting_disclosure instead.</div>
+      </div>
+      <div class="ft"><div class="btn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5.5" y="5.5" width="8" height="8"/><path d="M10.5 5.5v-3h-8v8h3"/></svg>Copy message</div><div style="display:flex;gap:8px"><div class="btn">Not now</div><div class="btn primary">Acknowledge and start</div></div></div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

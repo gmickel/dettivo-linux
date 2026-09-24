@@ -1,0 +1,39 @@
+{
+  "branch_name": "fn-37-docs-the-guides-the-docs-build-the",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-05T06:01:36.923355Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-35-qa-pack-the-gui-drives-for-onboarding",
+    "fn-36-qa-pack-meetings-end-to-end-the",
+    "fn-31-packaging-aur-recipes-release-workflow",
+    "fn-20-visual-regression-baselines-for-every",
+    "fn-30-polish-models-gguf-conversion"
+  ],
+  "id": "fn-37-docs-the-guides-the-docs-build-the",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-37-docs-the-guides-the-docs-build-the.md",
+  "status": "done",
+  "title": "Docs: the guides, the docs build, the evidence map, the release gate and the reuse review",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-06T06:02:53.025483Z"
+}

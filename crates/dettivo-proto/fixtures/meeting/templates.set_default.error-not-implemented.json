@@ -1,0 +1,27 @@
+{
+  "capabilities": {
+    "meeting_templates": false
+  },
+  "error": {
+    "error": {
+      "code": -32014,
+      "data": {
+        "app_code": "NOT_IMPLEMENTED",
+        "details": {},
+        "retryable": false
+      },
+      "message": "meeting.templates.set_default is not implemented"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "meeting.templates.set_default",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meeting.templates.set_default",
+    "params": {
+      "template_id": "standup"
+    }
+  }
+}

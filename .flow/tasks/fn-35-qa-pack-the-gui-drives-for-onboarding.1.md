@@ -1,0 +1,45 @@
+---
+satisfies: [R1, R2, R3, R4, R5, R6, R7]
+---
+# fn-35-qa-pack-the-gui-drives-for-onboarding.1 QA pack: the GUI drives for onboarding, settings, history and the Omarchy plugin
+
+## Description
+TBD
+
+## Acceptance
+Every R-ID in the parent spec's ## Acceptance Criteria is satisfied; judge this task against the spec's criteria directly.
+
+## Done summary
+# fn-35: QA pack, the GUI drives for onboarding, settings, history and the Omarchy plugin
+
+**R1, one pack of four surfaces.** `dettivo-qa pack gui` runs `gui-onboarding`, `gui-settings`, `gui-history` and `gui-omarchy` in that order into one evidence run under `qa-evidence/<run>/pack-gui/` and writes `gui-pack.json` and `gui-pack.md` in the ADR 0017 shape plus a `surfaces` block: per surface its steps and outcomes, the routes scanned, every developer-text finding located by step, driver and route, and `a11y_coverage` with the offenders listed. Each `gui-<surface>` pack runs alone into the same shape (`gui-omarchy-pack.json` was produced by a solo run), `--surface <name>` narrows any GUI pack, and an unknown surface exits 2 naming the four (`pack: unknown surface "garage"; the surfaces are: onboarding, settings, history, omarchy`). Unit tests cover the composition against the real scenario and command tables (`pack::gui::tests`), the surface filter, the surfaces block (`pack::surfaces::tests`), the rendered and round-tripped GUI report (`pack::markdown::tests`) and the profile preflight, where a root under the caller's `HOME` or `XDG_DATA_HOME` is refused by the variable's name (`profile::tests`). Verified by `cargo test -p dettivo-qa` (87 tests) and the runs listed under Verification.
+
+**R2, onboarding.** `gui-onboarding` runs `first_run_fresh`, `first_run_provisioned`, the new `first_run_steps` (each `DETTIVO_E2E_STEP` value opens its screen by title, no other step's heading and no welcome or fourth screen on it) and the new `first_run_resume` (a flow closed on Models records `first_run.step = "models"` without a completion and a plain relaunch reopens on Models), each on `atspi` and then `cua`. All eight steps pass under Xvfb on this machine against release binaries, 22 routes scanned with no finding and 133 of 133 controls named.
+
+**R3, settings.** `gui-settings` runs the round trip once per section as eight `settings_roundtrip.<section>` steps (one scenario instance per section, with the section's own checks: the refusal and the open action on General, the hand edit on Hotkeys, the host write on Agents, the doctor report on Diagnostics), the new `settings_env_override` (the `env · DETTIVO_DATA_DIR` and `env · DETTIVO_IPC_SOCKET` badges, a control that keeps its value and source through a click and a keystroke, nothing reaching `config.toml`) on both drivers, and `scripts/lint-settings-keys.sh` as a command step. All eleven steps pass under Xvfb; a failing section is named with its key, which the earlier runs showed for `settings_roundtrip.meetings` (`meetings.diarization.clustering_threshold`) and `settings_roundtrip.agents` before their fixes.
+
+**R4, history.** `gui-history` runs `history_seeded`, `app_routes` and the new `history_states` (the empty profile's `Nothing dictated yet.` with its reason and no row, a search for `zzqx` naming the query with `0 hits`, no generic placeholder, no unnamed table, no raw path) on both drivers; six steps pass, 46 routes scanned, 1191 of 1191 controls named. `history_seeded` now counts the seeded meeting row the meetings work added (thirteen rows), deletes a row that is on screen and waits for it to vanish rather than for a delegate count the virtualised list does not keep.
+
+**R5, the Omarchy plugin.** `gui-omarchy` runs `omarchy_validate` (the plugin lint), `omarchy_shim_load` and `omarchy_version_skew` (one Quick test case each through `scripts/qa/omarchy-plugin-test.sh`, which now forwards runner arguments), which pass everywhere, then `omarchy_bar` and the new `omarchy_setup_idempotent` (`dettivo setup omarchy` twice against a profile daemon, the second run failing no step and changing nothing by SHA-256 over the snippet, the installed plugin folder and the socket unit's text, then `--check` reporting socket, snippet and plugin `ok`; a changed path is named). Under the Xvfb session, which is deliberately not a Hyprland session, both desktop steps are recorded as allowed skips with the reason, so the pack passes with two named blockers; the hash, report and `--check` judgement is unit-tested. The live-desktop run needs `DETTIVO_QA_OMARCHY_LIVE=1` on the real session, which this worker did not drive.
+
+**R6, the scans against release binaries.** `negative_text::classify` now carries the full class list (stack-trace frames, raw JSON, `parity_gap`, the word `debug` inside a sentence, beside the earlier five), `scripts/lint-release-text.sh` mirrors the eight classes over QML literals, `a11y_tree::check` walks every captured tree for on-screen interactive elements without a name, and `pack::scan` runs both over every `tree-<route>.json` a step captured, writing `a11y-<route>.json` beside it and failing the step naming the route, the class and the element. `just build-release` (and `make build-release`) builds the release profile of `dettivod`, `dettivo`, `dettivo-qa`, `dettivo-mcp` and the Whisper engine; `scenarios::binary` takes the newer of the debug and release builds, the report's `binaries` block records the profile, and the pack run of record drove `dettivod` and `dettivo` as `release` with `qa_allow_release: true`. Unit tests plant a `parity_gap` string and an unnamed button and see both routes fail by name (`pack::scan::tests`, `a11y_tree::tests`). The run of record: 0 findings and `a11y_coverage` 1.0 on all four surfaces.
+
+**R7, docs, gate and CI.** `docs/qa.md` gains the GUI pack section (the step table with drivers and expectations, the allowed skips, the eight scan classes, the coverage figure, the release-build rule and the report shape), the profile guard and the Xvfb session's X11 and no-activation rules, plus rows for the five new scenarios; `docs/RELEASING.md` adds the GUI pack as gate step 2 and renumbers the rest; `.github/workflows/ci.yml` ends the `drive` job with one delimited `# fn-35: the GUI pack` block (`just build-release`, then `scripts/qa/xvfb-session.sh just qa-pack gui`), `qa-weekly.yml` runs the pack on the fallback driver; ADR 0037 records the per-surface pack model and the tree checks and is indexed in `docs/adr/README.md`. `scripts/check-docs.sh` (inside `make lint`) passes.
+
+### Verification
+
+- `flock /tmp/dtv-gate.lock make build test lint` at 817c493: exit 0.
+- `scripts/qa/xvfb-session.sh cargo run -q -p dettivo-qa -- pack gui --continue` after `make build-release`: exit 0, 30 of 32 steps pass, `omarchy_bar` and `omarchy_setup_idempotent` skipped as allowed (`not inside a Hyprland session`), every surface passed, 0 findings, coverage 1.0; report `qa-evidence/run-1788618243-2731900/pack-gui/gui-pack.{json,md}`.
+- `scripts/qa/xvfb-session.sh cargo run -q -p dettivo-qa -- pack gui-omarchy`: exit 0 into `pack-gui-omarchy/gui-omarchy-pack.json`.
+- `cargo run -q -p dettivo-qa -- pack gui --surface garage`: exit 2; `pack list` names the five GUI packs.
+- `cargo run -q -p dettivo-qa -- contract`: 55 passed; `lint-scenarios`: 32 scenarios driver-neutral; `xtask lint-file-length`: clean after splitting `pack/measure.rs` out of `report.rs` and `scenarios/settings_edit.rs` out of `settings_roundtrip.rs`.
+
+### Deliberately left out
+
+The live Omarchy desktop run of `omarchy_bar` and `omarchy_setup_idempotent` (they need the real Hyprland session and `DETTIVO_QA_OMARCHY_LIVE=1`; every local drive here went through the Xvfb session as instructed). No GUI behaviour changed beyond the `ComboBox` display text being ignored by the accessibility tree so the box is the one named control; the QA-side accommodations for the fallback and cua drivers (a quoted label read up to the quote, a disabled control that cannot be clicked) live in the scenarios, not the product. `.github/workflows/rig.yml` is not created here: the CI block sits at the end of the old `drive` job for the rebase to lift.
+## Evidence
+- Commits: 4608744438e189f73077a8b69f27e448167192ce, 02b1e41bc625ada714305051712ecdcb91a0d4d4, 264c06caee370bd9ac0a5bcbae2574486e912560, a9ca34af7149585dd7ca91e10d222e2fc6f0088f, 719a30096faf9b42c201bf263f0cc7cece7d19d1
+- Tests: flock /tmp/dtv-gate.lock make build test lint, make build-release && scripts/qa/xvfb-session.sh cargo run -q -p dettivo-qa -- pack gui --continue, scripts/qa/xvfb-session.sh cargo run -q -p dettivo-qa -- pack gui-omarchy, cargo run -q -p dettivo-qa -- pack gui --surface garage, cargo run -q -p dettivo-qa -- pack list, cargo run -q -p dettivo-qa -- contract, cargo run -q -p dettivo-qa -- lint-scenarios, cargo test -p dettivo-qa, cargo clippy -p dettivo-qa --all-targets -- -D warnings, scripts/check-docs.sh
+- PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
+stage: completion-review - skipped(config: review.backend=none)

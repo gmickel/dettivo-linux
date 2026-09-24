@@ -1,0 +1,57 @@
+{
+  "set": "scripts/dictionary_correction/eval-v1.jsonl (macOS)",
+  "layer": "dettivo-language::raw with the dictionary as whole-word replacements",
+  "linux": {
+    "count": 20,
+    "exact_match_rate": 0.25,
+    "positive_recall": 0.0,
+    "negative_safety": 0.5,
+    "ambiguous_abstention": 1.0,
+    "false_positive_count": 3
+  },
+  "macos_exact": {
+    "count": 20,
+    "exact_match_rate": 0.4,
+    "positive_recall": 0.0,
+    "negative_safety": 1.0,
+    "ambiguous_abstention": 1.0,
+    "false_positive_count": 0
+  },
+  "macos_hybrid": {
+    "count": 20,
+    "exact_match_rate": 1.0,
+    "positive_recall": 1.0,
+    "negative_safety": 1.0,
+    "ambiguous_abstention": 1.0,
+    "false_positive_count": 0
+  },
+  "rows_differing_from_macos_exact": [
+    "exact-product-002",
+    "spacing-product-001",
+    "tech-001",
+    "tech-002",
+    "punctuation-001",
+    "negative-common-001",
+    "negative-common-002",
+    "long-dict-001",
+    "long-dict-negative-001"
+  ],
+  "rows_failing_expected": [
+    "exact-product-001",
+    "exact-product-002",
+    "spacing-product-001",
+    "person-001",
+    "person-002",
+    "tech-001",
+    "tech-002",
+    "mixed-lang-001",
+    "possessive-001",
+    "punctuation-001",
+    "negative-common-001",
+    "negative-common-002",
+    "person-003",
+    "long-dict-001",
+    "long-dict-negative-001"
+  ],
+  "note": "Recorded by crates/dettivo-language/tests/dictionary_eval.rs, which fails when a figure or a row moves. Linux has no dictionary corrector yet: the raw layer's whole-word replacement is the nearest thing to the macOS `exact` strategy, and it differs from it in two ways the row lists show. It matches a dictionary word only when the transcript spells it the same (macOS `exact` also joins spaced and re-cased spellings: `super whisper` to `Superwhisper`), and it replaces a dictionary word wherever the word appears, including a common word (`linear`, `sparkle`), which macOS refuses through its common-word list. A URL, a path or another protected token is left alone on both sides: the raw layer's protected tokens (`[dictation] protect_tokens`, ADR 0023) keep `https://linear.app/...` whole, so `negative-url-001` passes. The macOS `hybrid` strategy (the shipped corrector, fn-71 there) is the bar; porting it is a spec of its own, and this report is the figure it has to move."
+}

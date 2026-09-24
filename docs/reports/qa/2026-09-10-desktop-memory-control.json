@@ -1,0 +1,1179 @@
+{
+  "cli": {
+    "path": "/home/gordon/work/dettivo-linux/target/release/dettivo",
+    "sha256": "6b7f4a6875f3a7b7824caa3dba41bcb3d33e0171169c82e76ab9ffdc6ac963bf"
+  },
+  "daemon": {
+    "path": "/home/gordon/work/dettivo-linux/target/release/dettivod",
+    "sha256": "9c4231c2a60ae4e40095ec97a7dd37e44d1368d1c6613e3066d6eeeda077e14f"
+  },
+  "purpose": "app-only A/B at fixed native1280x820, identical observer and current release Rust companions",
+  "series": [
+    {
+      "app": {
+        "path": "/tmp/fn55-prechange-BoWU5G/repo/build/qt/apps/dettivo-app/dettivo-app",
+        "sha256": "6e703bf3cc929a9392da13756e4deb4e2a4d5a02d58671c89ee6545c5fc8611c"
+      },
+      "cache": "fresh private profile; first launch cold then same-profile warm",
+      "label": "pre_fn55",
+      "samples": [
+        {
+          "anonymous_budget_kb": 98304,
+          "anonymous_budget_mib": 96,
+          "anonymous_kb_after_5s": 103956,
+          "anonymous_mib_after_5s": 101.51953125,
+          "anonymous_within_budget": false,
+          "display": {
+            "height": 1440,
+            "name": "DP-3",
+            "scale": 1.25,
+            "width": 5120
+          },
+          "first_frame_ms": 367,
+          "idle_ms": 5017,
+          "journal_first_frame": {
+            "application_ms": 2,
+            "event": "first_frame",
+            "ms": 367,
+            "qml_ms": 114,
+            "rss_kb": 275404,
+            "theme": "builtin-dark"
+          },
+          "launch": 1,
+          "memory_scope": "dettivo-app process only; daemon and engine processes excluded",
+          "memory_source": {
+            "anonymous": "/proc/<pid>/smaps_rollup:Anonymous",
+            "pss": "/proc/<pid>/smaps_rollup:Pss",
+            "rss": "/proc/<pid>/status:VmRSS"
+          },
+          "memory_units": "KiB (Linux procfs kB); MiB = KiB / 1024",
+          "memory_within_budget": false,
+          "pid": 3537512,
+          "pss_budget_kb": null,
+          "pss_kb_after_5s": 189139,
+          "pss_mib_after_5s": 184.7060546875,
+          "rss_budget_kb": 262144,
+          "rss_budget_mib": 256,
+          "rss_kb_after_5s": 275648,
+          "rss_mib_after_5s": 269.1875,
+          "rss_within_budget": false,
+          "status": {
+            "active": false,
+            "daemon_connected": true,
+            "daemon_state": "connected",
+            "dictation_state": "idle",
+            "first_frame_ms": 367,
+            "ok": true,
+            "pid": 3537512,
+            "route": "home",
+            "rss_kb": 275648,
+            "theme": {
+              "accent": "#f5bf03",
+              "background": "#0d0d0d",
+              "dir": "/tmp/dqfn55ab-G9tpmm/home/.config/omarchy/current/theme",
+              "parse_error": "",
+              "source": "builtin-dark"
+            },
+            "title": "Home",
+            "visible": true
+          },
+          "window": {
+            "acceptsInput": true,
+            "address": "0x56294bc846c0",
+            "allowedOverFullscreen": true,
+            "at": [
+              1408,
+              179
+            ],
+            "class": "dettivo",
+            "contentType": "none",
+            "floating": true,
+            "focusHistoryID": 5,
+            "fullscreen": 0,
+            "fullscreenClient": 0,
+            "fullscreenHandler": "default",
+            "grouped": [],
+            "hidden": false,
+            "inhibitingIdle": false,
+            "initialClass": "dettivo",
+            "initialTitle": "Dettivo · Home",
+            "mapped": true,
+            "monitor": 1,
+            "pid": 3537512,
+            "pinFullscreened": false,
+            "pinned": false,
+            "size": [
+              1280,
+              820
+            ],
+            "stableId": "1800003f",
+            "swallowing": "0x0",
+            "tags": [
+              "default-opacity*"
+            ],
+            "tearingHint": false,
+            "title": "Dettivo · Home",
+            "visible": true,
+            "workspace": {
+              "id": 1,
+              "name": "1"
+            },
+            "xdgDescription": "",
+            "xdgTag": "",
+            "xwayland": false
+          },
+          "within_budget": false
+        },
+        {
+          "anonymous_budget_kb": 98304,
+          "anonymous_budget_mib": 96,
+          "anonymous_kb_after_5s": 49876,
+          "anonymous_mib_after_5s": 48.70703125,
+          "anonymous_within_budget": true,
+          "display": {
+            "height": 1440,
+            "name": "DP-3",
+            "scale": 1.25,
+            "width": 5120
+          },
+          "first_frame_ms": 325,
+          "idle_ms": 5016,
+          "journal_first_frame": {
+            "application_ms": 2,
+            "event": "first_frame",
+            "ms": 325,
+            "qml_ms": 104,
+            "rss_kb": 213820,
+            "theme": "builtin-dark"
+          },
+          "launch": 2,
+          "memory_scope": "dettivo-app process only; daemon and engine processes excluded",
+          "memory_source": {
+            "anonymous": "/proc/<pid>/smaps_rollup:Anonymous",
+            "pss": "/proc/<pid>/smaps_rollup:Pss",
+            "rss": "/proc/<pid>/status:VmRSS"
+          },
+          "memory_units": "KiB (Linux procfs kB); MiB = KiB / 1024",
+          "memory_within_budget": true,
+          "pid": 3537602,
+          "pss_budget_kb": null,
+          "pss_kb_after_5s": 131629,
+          "pss_mib_after_5s": 128.5439453125,
+          "rss_budget_kb": 262144,
+          "rss_budget_mib": 256,
+          "rss_kb_after_5s": 214060,
+          "rss_mib_after_5s": 209.04296875,
+          "rss_within_budget": true,
+          "status": {
+            "active": false,
+            "daemon_connected": true,
+            "daemon_state": "connected",
+            "dictation_state": "idle",
+            "first_frame_ms": 325,
+            "ok": true,
+            "pid": 3537602,
+            "route": "home",
+            "rss_kb": 214060,
+            "theme": {
+              "accent": "#f5bf03",
+              "background": "#0d0d0d",
+              "dir": "/tmp/dqfn55ab-G9tpmm/home/.config/omarchy/current/theme",
+              "parse_error": "",
+              "source": "builtin-dark"
+            },
+            "title": "Home",
+            "visible": true
+          },
+          "window": {
+            "acceptsInput": true,
+            "address": "0x56294bc6dac0",
+            "allowedOverFullscreen": true,
+            "at": [
+              1408,
+              179
+            ],
+            "class": "dettivo",
+            "contentType": "none",
+            "floating": true,
+            "focusHistoryID": 6,
+            "fullscreen": 0,
+            "fullscreenClient": 0,
+            "fullscreenHandler": "default",
+            "grouped": [],
+            "hidden": false,
+            "inhibitingIdle": false,
+            "initialClass": "dettivo",
+            "initialTitle": "Dettivo · Home",
+            "mapped": true,
+            "monitor": 1,
+            "pid": 3537602,
+            "pinFullscreened": false,
+            "pinned": false,
+            "size": [
+              1280,
+              820
+            ],
+            "stableId": "18000040",
+            "swallowing": "0x0",
+            "tags": [
+              "default-opacity*"
+            ],
+            "tearingHint": false,
+            "title": "Dettivo · Home",
+            "visible": true,
+            "workspace": {
+              "id": 1,
+              "name": "1"
+            },
+            "xdgDescription": "",
+            "xdgTag": "",
+            "xwayland": false
+          },
+          "within_budget": false
+        },
+        {
+          "anonymous_budget_kb": 98304,
+          "anonymous_budget_mib": 96,
+          "anonymous_kb_after_5s": 49876,
+          "anonymous_mib_after_5s": 48.70703125,
+          "anonymous_within_budget": true,
+          "display": {
+            "height": 1440,
+            "name": "DP-3",
+            "scale": 1.25,
+            "width": 5120
+          },
+          "first_frame_ms": 324,
+          "idle_ms": 5016,
+          "journal_first_frame": {
+            "application_ms": 2,
+            "event": "first_frame",
+            "ms": 324,
+            "qml_ms": 106,
+            "rss_kb": 214012,
+            "theme": "builtin-dark"
+          },
+          "launch": 3,
+          "memory_scope": "dettivo-app process only; daemon and engine processes excluded",
+          "memory_source": {
+            "anonymous": "/proc/<pid>/smaps_rollup:Anonymous",
+            "pss": "/proc/<pid>/smaps_rollup:Pss",
+            "rss": "/proc/<pid>/status:VmRSS"
+          },
+          "memory_units": "KiB (Linux procfs kB); MiB = KiB / 1024",
+          "memory_within_budget": true,
+          "pid": 3537752,
+          "pss_budget_kb": null,
+          "pss_kb_after_5s": 131669,
+          "pss_mib_after_5s": 128.5830078125,
+          "rss_budget_kb": 262144,
+          "rss_budget_mib": 256,
+          "rss_kb_after_5s": 214252,
+          "rss_mib_after_5s": 209.23046875,
+          "rss_within_budget": true,
+          "status": {
+            "active": false,
+            "daemon_connected": true,
+            "daemon_state": "connected",
+            "dictation_state": "idle",
+            "first_frame_ms": 324,
+            "ok": true,
+            "pid": 3537752,
+            "route": "home",
+            "rss_kb": 214252,
+            "theme": {
+              "accent": "#f5bf03",
+              "background": "#0d0d0d",
+              "dir": "/tmp/dqfn55ab-G9tpmm/home/.config/omarchy/current/theme",
+              "parse_error": "",
+              "source": "builtin-dark"
+            },
+            "title": "Home",
+            "visible": true
+          },
+          "window": {
+            "acceptsInput": true,
+            "address": "0x56294bc846c0",
+            "allowedOverFullscreen": true,
+            "at": [
+              1408,
+              179
+            ],
+            "class": "dettivo",
+            "contentType": "none",
+            "floating": true,
+            "focusHistoryID": 6,
+            "fullscreen": 0,
+            "fullscreenClient": 0,
+            "fullscreenHandler": "default",
+            "grouped": [],
+            "hidden": false,
+            "inhibitingIdle": false,
+            "initialClass": "dettivo",
+            "initialTitle": "Dettivo · Home",
+            "mapped": true,
+            "monitor": 1,
+            "pid": 3537752,
+            "pinFullscreened": false,
+            "pinned": false,
+            "size": [
+              1280,
+              820
+            ],
+            "stableId": "18000041",
+            "swallowing": "0x0",
+            "tags": [
+              "default-opacity*"
+            ],
+            "tearingHint": false,
+            "title": "Dettivo · Home",
+            "visible": true,
+            "workspace": {
+              "id": 1,
+              "name": "1"
+            },
+            "xdgDescription": "",
+            "xdgTag": "",
+            "xwayland": false
+          },
+          "within_budget": false
+        },
+        {
+          "anonymous_budget_kb": 98304,
+          "anonymous_budget_mib": 96,
+          "anonymous_kb_after_5s": 49708,
+          "anonymous_mib_after_5s": 48.54296875,
+          "anonymous_within_budget": true,
+          "display": {
+            "height": 1440,
+            "name": "DP-3",
+            "scale": 1.25,
+            "width": 5120
+          },
+          "first_frame_ms": 320,
+          "idle_ms": 5020,
+          "journal_first_frame": {
+            "application_ms": 2,
+            "event": "first_frame",
+            "ms": 320,
+            "qml_ms": 106,
+            "rss_kb": 213652,
+            "theme": "builtin-dark"
+          },
+          "launch": 4,
+          "memory_scope": "dettivo-app process only; daemon and engine processes excluded",
+          "memory_source": {
+            "anonymous": "/proc/<pid>/smaps_rollup:Anonymous",
+            "pss": "/proc/<pid>/smaps_rollup:Pss",
+            "rss": "/proc/<pid>/status:VmRSS"
+          },
+          "memory_units": "KiB (Linux procfs kB); MiB = KiB / 1024",
+          "memory_within_budget": true,
+          "pid": 3537844,
+          "pss_budget_kb": null,
+          "pss_kb_after_5s": 131414,
+          "pss_mib_after_5s": 128.333984375,
+          "rss_budget_kb": 262144,
+          "rss_budget_mib": 256,
+          "rss_kb_after_5s": 213924,
+          "rss_mib_after_5s": 208.91015625,
+          "rss_within_budget": true,
+          "status": {
+            "active": false,
+            "daemon_connected": true,
+            "daemon_state": "connected",
+            "dictation_state": "idle",
+            "first_frame_ms": 320,
+            "ok": true,
+            "pid": 3537844,
+            "route": "home",
+            "rss_kb": 213924,
+            "theme": {
+              "accent": "#f5bf03",
+              "background": "#0d0d0d",
+              "dir": "/tmp/dqfn55ab-G9tpmm/home/.config/omarchy/current/theme",
+              "parse_error": "",
+              "source": "builtin-dark"
+            },
+            "title": "Home",
+            "visible": true
+          },
+          "window": {
+            "acceptsInput": true,
+            "address": "0x56294bc6dac0",
+            "allowedOverFullscreen": true,
+            "at": [
+              1408,
+              179
+            ],
+            "class": "dettivo",
+            "contentType": "none",
+            "floating": true,
+            "focusHistoryID": 6,
+            "fullscreen": 0,
+            "fullscreenClient": 0,
+            "fullscreenHandler": "default",
+            "grouped": [],
+            "hidden": false,
+            "inhibitingIdle": false,
+            "initialClass": "dettivo",
+            "initialTitle": "Dettivo · Home",
+            "mapped": true,
+            "monitor": 1,
+            "pid": 3537844,
+            "pinFullscreened": false,
+            "pinned": false,
+            "size": [
+              1280,
+              820
+            ],
+            "stableId": "18000042",
+            "swallowing": "0x0",
+            "tags": [
+              "default-opacity*"
+            ],
+            "tearingHint": false,
+            "title": "Dettivo · Home",
+            "visible": true,
+            "workspace": {
+              "id": 1,
+              "name": "1"
+            },
+            "xdgDescription": "",
+            "xdgTag": "",
+            "xwayland": false
+          },
+          "within_budget": false
+        },
+        {
+          "anonymous_budget_kb": 98304,
+          "anonymous_budget_mib": 96,
+          "anonymous_kb_after_5s": 49944,
+          "anonymous_mib_after_5s": 48.7734375,
+          "anonymous_within_budget": true,
+          "display": {
+            "height": 1440,
+            "name": "DP-3",
+            "scale": 1.25,
+            "width": 5120
+          },
+          "first_frame_ms": 322,
+          "idle_ms": 5016,
+          "journal_first_frame": {
+            "application_ms": 2,
+            "event": "first_frame",
+            "ms": 322,
+            "qml_ms": 106,
+            "rss_kb": 213992,
+            "theme": "builtin-dark"
+          },
+          "launch": 5,
+          "memory_scope": "dettivo-app process only; daemon and engine processes excluded",
+          "memory_source": {
+            "anonymous": "/proc/<pid>/smaps_rollup:Anonymous",
+            "pss": "/proc/<pid>/smaps_rollup:Pss",
+            "rss": "/proc/<pid>/status:VmRSS"
+          },
+          "memory_units": "KiB (Linux procfs kB); MiB = KiB / 1024",
+          "memory_within_budget": true,
+          "pid": 3537937,
+          "pss_budget_kb": null,
+          "pss_kb_after_5s": 131657,
+          "pss_mib_after_5s": 128.5712890625,
+          "rss_budget_kb": 262144,
+          "rss_budget_mib": 256,
+          "rss_kb_after_5s": 214232,
+          "rss_mib_after_5s": 209.2109375,
+          "rss_within_budget": true,
+          "status": {
+            "active": false,
+            "daemon_connected": true,
+            "daemon_state": "connected",
+            "dictation_state": "idle",
+            "first_frame_ms": 322,
+            "ok": true,
+            "pid": 3537937,
+            "route": "home",
+            "rss_kb": 214232,
+            "theme": {
+              "accent": "#f5bf03",
+              "background": "#0d0d0d",
+              "dir": "/tmp/dqfn55ab-G9tpmm/home/.config/omarchy/current/theme",
+              "parse_error": "",
+              "source": "builtin-dark"
+            },
+            "title": "Home",
+            "visible": true
+          },
+          "window": {
+            "acceptsInput": true,
+            "address": "0x56294bc846c0",
+            "allowedOverFullscreen": true,
+            "at": [
+              1408,
+              179
+            ],
+            "class": "dettivo",
+            "contentType": "none",
+            "floating": true,
+            "focusHistoryID": 6,
+            "fullscreen": 0,
+            "fullscreenClient": 0,
+            "fullscreenHandler": "default",
+            "grouped": [],
+            "hidden": false,
+            "inhibitingIdle": false,
+            "initialClass": "dettivo",
+            "initialTitle": "Dettivo · Home",
+            "mapped": true,
+            "monitor": 1,
+            "pid": 3537937,
+            "pinFullscreened": false,
+            "pinned": false,
+            "size": [
+              1280,
+              820
+            ],
+            "stableId": "18000043",
+            "swallowing": "0x0",
+            "tags": [
+              "default-opacity*"
+            ],
+            "tearingHint": false,
+            "title": "Dettivo · Home",
+            "visible": true,
+            "workspace": {
+              "id": 1,
+              "name": "1"
+            },
+            "xdgDescription": "",
+            "xdgTag": "",
+            "xwayland": false
+          },
+          "within_budget": false
+        }
+      ]
+    },
+    {
+      "app": {
+        "path": "/home/gordon/work/dettivo-linux/build/qt/apps/dettivo-app/dettivo-app",
+        "sha256": "23dee9cd89259b77de43e69b4805ef2f1c9b7791c4f6c4ee303cb5ccaceb62ae"
+      },
+      "cache": "fresh private profile; first launch cold then same-profile warm",
+      "label": "current",
+      "samples": [
+        {
+          "anonymous_budget_kb": 98304,
+          "anonymous_budget_mib": 96,
+          "anonymous_kb_after_5s": 104492,
+          "anonymous_mib_after_5s": 102.04296875,
+          "anonymous_within_budget": false,
+          "display": {
+            "height": 1440,
+            "name": "DP-3",
+            "scale": 1.25,
+            "width": 5120
+          },
+          "first_frame_ms": 361,
+          "idle_ms": 5017,
+          "journal_first_frame": {
+            "application_ms": 2,
+            "event": "first_frame",
+            "ms": 361,
+            "qml_ms": 106,
+            "rss_kb": 276140,
+            "theme": "builtin-dark"
+          },
+          "launch": 1,
+          "memory_scope": "dettivo-app process only; daemon and engine processes excluded",
+          "memory_source": {
+            "anonymous": "/proc/<pid>/smaps_rollup:Anonymous",
+            "pss": "/proc/<pid>/smaps_rollup:Pss",
+            "rss": "/proc/<pid>/status:VmRSS"
+          },
+          "memory_units": "KiB (Linux procfs kB); MiB = KiB / 1024",
+          "memory_within_budget": false,
+          "pid": 3538140,
+          "pss_budget_kb": null,
+          "pss_kb_after_5s": 189814,
+          "pss_mib_after_5s": 185.365234375,
+          "rss_budget_kb": 262144,
+          "rss_budget_mib": 256,
+          "rss_kb_after_5s": 276388,
+          "rss_mib_after_5s": 269.91015625,
+          "rss_within_budget": false,
+          "status": {
+            "active": false,
+            "active_downloads": 0,
+            "analysis_status": "",
+            "daemon_connected": true,
+            "daemon_state": "connected",
+            "dictation_state": "idle",
+            "environment": {
+              "device_pixel_ratio": 1.25,
+              "graphics_api": 3,
+              "platform": "wayland",
+              "qt_build": "Release",
+              "qt_version": "6.11.2",
+              "renderer": "OpenGL",
+              "screen": "DP-3",
+              "window_height": 820,
+              "window_width": 1280
+            },
+            "first_frame_ms": 361,
+            "meeting_active": false,
+            "ok": true,
+            "pid": 3538140,
+            "playback_active": false,
+            "route": "home",
+            "rss_kb": 276388,
+            "theme": {
+              "accent": "#f5bf03",
+              "background": "#0d0d0d",
+              "dir": "/tmp/dqfn55ab-0Q0ZKk/home/.config/omarchy/current/theme",
+              "parse_error": "",
+              "source": "builtin-dark"
+            },
+            "title": "Home",
+            "visible": true
+          },
+          "window": {
+            "acceptsInput": true,
+            "address": "0x56294bc6dac0",
+            "allowedOverFullscreen": true,
+            "at": [
+              1408,
+              179
+            ],
+            "class": "dettivo",
+            "contentType": "none",
+            "floating": true,
+            "focusHistoryID": 6,
+            "fullscreen": 0,
+            "fullscreenClient": 0,
+            "fullscreenHandler": "default",
+            "grouped": [],
+            "hidden": false,
+            "inhibitingIdle": false,
+            "initialClass": "dettivo",
+            "initialTitle": "Dettivo · Home",
+            "mapped": true,
+            "monitor": 1,
+            "pid": 3538140,
+            "pinFullscreened": false,
+            "pinned": false,
+            "size": [
+              1280,
+              820
+            ],
+            "stableId": "18000044",
+            "swallowing": "0x0",
+            "tags": [
+              "default-opacity*"
+            ],
+            "tearingHint": false,
+            "title": "Dettivo · Home",
+            "visible": true,
+            "workspace": {
+              "id": 1,
+              "name": "1"
+            },
+            "xdgDescription": "",
+            "xdgTag": "",
+            "xwayland": false
+          },
+          "within_budget": false
+        },
+        {
+          "anonymous_budget_kb": 98304,
+          "anonymous_budget_mib": 96,
+          "anonymous_kb_after_5s": 49796,
+          "anonymous_mib_after_5s": 48.62890625,
+          "anonymous_within_budget": true,
+          "display": {
+            "height": 1440,
+            "name": "DP-3",
+            "scale": 1.25,
+            "width": 5120
+          },
+          "first_frame_ms": 323,
+          "idle_ms": 5018,
+          "journal_first_frame": {
+            "application_ms": 2,
+            "event": "first_frame",
+            "ms": 323,
+            "qml_ms": 108,
+            "rss_kb": 213912,
+            "theme": "builtin-dark"
+          },
+          "launch": 2,
+          "memory_scope": "dettivo-app process only; daemon and engine processes excluded",
+          "memory_source": {
+            "anonymous": "/proc/<pid>/smaps_rollup:Anonymous",
+            "pss": "/proc/<pid>/smaps_rollup:Pss",
+            "rss": "/proc/<pid>/status:VmRSS"
+          },
+          "memory_units": "KiB (Linux procfs kB); MiB = KiB / 1024",
+          "memory_within_budget": true,
+          "pid": 3538270,
+          "pss_budget_kb": null,
+          "pss_kb_after_5s": 131544,
+          "pss_mib_after_5s": 128.4609375,
+          "rss_budget_kb": 262144,
+          "rss_budget_mib": 256,
+          "rss_kb_after_5s": 214156,
+          "rss_mib_after_5s": 209.13671875,
+          "rss_within_budget": true,
+          "status": {
+            "active": false,
+            "active_downloads": 0,
+            "analysis_status": "",
+            "daemon_connected": true,
+            "daemon_state": "connected",
+            "dictation_state": "idle",
+            "environment": {
+              "device_pixel_ratio": 1.25,
+              "graphics_api": 3,
+              "platform": "wayland",
+              "qt_build": "Release",
+              "qt_version": "6.11.2",
+              "renderer": "OpenGL",
+              "screen": "DP-3",
+              "window_height": 820,
+              "window_width": 1280
+            },
+            "first_frame_ms": 323,
+            "meeting_active": false,
+            "ok": true,
+            "pid": 3538270,
+            "playback_active": false,
+            "route": "home",
+            "rss_kb": 214156,
+            "theme": {
+              "accent": "#f5bf03",
+              "background": "#0d0d0d",
+              "dir": "/tmp/dqfn55ab-0Q0ZKk/home/.config/omarchy/current/theme",
+              "parse_error": "",
+              "source": "builtin-dark"
+            },
+            "title": "Home",
+            "visible": true
+          },
+          "window": {
+            "acceptsInput": true,
+            "address": "0x56294bc846c0",
+            "allowedOverFullscreen": true,
+            "at": [
+              1408,
+              179
+            ],
+            "class": "dettivo",
+            "contentType": "none",
+            "floating": true,
+            "focusHistoryID": 6,
+            "fullscreen": 0,
+            "fullscreenClient": 0,
+            "fullscreenHandler": "default",
+            "grouped": [],
+            "hidden": false,
+            "inhibitingIdle": false,
+            "initialClass": "dettivo",
+            "initialTitle": "Dettivo · Home",
+            "mapped": true,
+            "monitor": 1,
+            "pid": 3538270,
+            "pinFullscreened": false,
+            "pinned": false,
+            "size": [
+              1280,
+              820
+            ],
+            "stableId": "18000045",
+            "swallowing": "0x0",
+            "tags": [
+              "default-opacity*"
+            ],
+            "tearingHint": false,
+            "title": "Dettivo · Home",
+            "visible": true,
+            "workspace": {
+              "id": 1,
+              "name": "1"
+            },
+            "xdgDescription": "",
+            "xdgTag": "",
+            "xwayland": false
+          },
+          "within_budget": false
+        },
+        {
+          "anonymous_budget_kb": 98304,
+          "anonymous_budget_mib": 96,
+          "anonymous_kb_after_5s": 49696,
+          "anonymous_mib_after_5s": 48.53125,
+          "anonymous_within_budget": true,
+          "display": {
+            "height": 1440,
+            "name": "DP-3",
+            "scale": 1.25,
+            "width": 5120
+          },
+          "first_frame_ms": 320,
+          "idle_ms": 5017,
+          "journal_first_frame": {
+            "application_ms": 2,
+            "event": "first_frame",
+            "ms": 320,
+            "qml_ms": 105,
+            "rss_kb": 213720,
+            "theme": "builtin-dark"
+          },
+          "launch": 3,
+          "memory_scope": "dettivo-app process only; daemon and engine processes excluded",
+          "memory_source": {
+            "anonymous": "/proc/<pid>/smaps_rollup:Anonymous",
+            "pss": "/proc/<pid>/smaps_rollup:Pss",
+            "rss": "/proc/<pid>/status:VmRSS"
+          },
+          "memory_units": "KiB (Linux procfs kB); MiB = KiB / 1024",
+          "memory_within_budget": true,
+          "pid": 3538344,
+          "pss_budget_kb": null,
+          "pss_kb_after_5s": 131402,
+          "pss_mib_after_5s": 128.322265625,
+          "rss_budget_kb": 262144,
+          "rss_budget_mib": 256,
+          "rss_kb_after_5s": 214020,
+          "rss_mib_after_5s": 209.00390625,
+          "rss_within_budget": true,
+          "status": {
+            "active": false,
+            "active_downloads": 0,
+            "analysis_status": "",
+            "daemon_connected": true,
+            "daemon_state": "connected",
+            "dictation_state": "idle",
+            "environment": {
+              "device_pixel_ratio": 1.25,
+              "graphics_api": 3,
+              "platform": "wayland",
+              "qt_build": "Release",
+              "qt_version": "6.11.2",
+              "renderer": "OpenGL",
+              "screen": "DP-3",
+              "window_height": 820,
+              "window_width": 1280
+            },
+            "first_frame_ms": 320,
+            "meeting_active": false,
+            "ok": true,
+            "pid": 3538344,
+            "playback_active": false,
+            "route": "home",
+            "rss_kb": 214020,
+            "theme": {
+              "accent": "#f5bf03",
+              "background": "#0d0d0d",
+              "dir": "/tmp/dqfn55ab-0Q0ZKk/home/.config/omarchy/current/theme",
+              "parse_error": "",
+              "source": "builtin-dark"
+            },
+            "title": "Home",
+            "visible": true
+          },
+          "window": {
+            "acceptsInput": true,
+            "address": "0x56294bc6dac0",
+            "allowedOverFullscreen": true,
+            "at": [
+              1408,
+              179
+            ],
+            "class": "dettivo",
+            "contentType": "none",
+            "floating": true,
+            "focusHistoryID": 6,
+            "fullscreen": 0,
+            "fullscreenClient": 0,
+            "fullscreenHandler": "default",
+            "grouped": [],
+            "hidden": false,
+            "inhibitingIdle": false,
+            "initialClass": "dettivo",
+            "initialTitle": "Dettivo · Home",
+            "mapped": true,
+            "monitor": 1,
+            "pid": 3538344,
+            "pinFullscreened": false,
+            "pinned": false,
+            "size": [
+              1280,
+              820
+            ],
+            "stableId": "18000046",
+            "swallowing": "0x0",
+            "tags": [
+              "default-opacity*"
+            ],
+            "tearingHint": false,
+            "title": "Dettivo · Home",
+            "visible": true,
+            "workspace": {
+              "id": 1,
+              "name": "1"
+            },
+            "xdgDescription": "",
+            "xdgTag": "",
+            "xwayland": false
+          },
+          "within_budget": false
+        },
+        {
+          "anonymous_budget_kb": 98304,
+          "anonymous_budget_mib": 96,
+          "anonymous_kb_after_5s": 49704,
+          "anonymous_mib_after_5s": 48.5390625,
+          "anonymous_within_budget": true,
+          "display": {
+            "height": 1440,
+            "name": "DP-3",
+            "scale": 1.25,
+            "width": 5120
+          },
+          "first_frame_ms": 329,
+          "idle_ms": 5017,
+          "journal_first_frame": {
+            "application_ms": 2,
+            "event": "first_frame",
+            "ms": 329,
+            "qml_ms": 106,
+            "rss_kb": 213572,
+            "theme": "builtin-dark"
+          },
+          "launch": 4,
+          "memory_scope": "dettivo-app process only; daemon and engine processes excluded",
+          "memory_source": {
+            "anonymous": "/proc/<pid>/smaps_rollup:Anonymous",
+            "pss": "/proc/<pid>/smaps_rollup:Pss",
+            "rss": "/proc/<pid>/status:VmRSS"
+          },
+          "memory_units": "KiB (Linux procfs kB); MiB = KiB / 1024",
+          "memory_within_budget": true,
+          "pid": 3538414,
+          "pss_budget_kb": null,
+          "pss_kb_after_5s": 131349,
+          "pss_mib_after_5s": 128.2705078125,
+          "rss_budget_kb": 262144,
+          "rss_budget_mib": 256,
+          "rss_kb_after_5s": 213820,
+          "rss_mib_after_5s": 208.80859375,
+          "rss_within_budget": true,
+          "status": {
+            "active": false,
+            "active_downloads": 0,
+            "analysis_status": "",
+            "daemon_connected": true,
+            "daemon_state": "connected",
+            "dictation_state": "idle",
+            "environment": {
+              "device_pixel_ratio": 1.25,
+              "graphics_api": 3,
+              "platform": "wayland",
+              "qt_build": "Release",
+              "qt_version": "6.11.2",
+              "renderer": "OpenGL",
+              "screen": "DP-3",
+              "window_height": 820,
+              "window_width": 1280
+            },
+            "first_frame_ms": 329,
+            "meeting_active": false,
+            "ok": true,
+            "pid": 3538414,
+            "playback_active": false,
+            "route": "home",
+            "rss_kb": 213820,
+            "theme": {
+              "accent": "#f5bf03",
+              "background": "#0d0d0d",
+              "dir": "/tmp/dqfn55ab-0Q0ZKk/home/.config/omarchy/current/theme",
+              "parse_error": "",
+              "source": "builtin-dark"
+            },
+            "title": "Home",
+            "visible": true
+          },
+          "window": {
+            "acceptsInput": true,
+            "address": "0x56294bc846c0",
+            "allowedOverFullscreen": true,
+            "at": [
+              1408,
+              179
+            ],
+            "class": "dettivo",
+            "contentType": "none",
+            "floating": true,
+            "focusHistoryID": 6,
+            "fullscreen": 0,
+            "fullscreenClient": 0,
+            "fullscreenHandler": "default",
+            "grouped": [],
+            "hidden": false,
+            "inhibitingIdle": false,
+            "initialClass": "dettivo",
+            "initialTitle": "Dettivo · Home",
+            "mapped": true,
+            "monitor": 1,
+            "pid": 3538414,
+            "pinFullscreened": false,
+            "pinned": false,
+            "size": [
+              1280,
+              820
+            ],
+            "stableId": "18000047",
+            "swallowing": "0x0",
+            "tags": [
+              "default-opacity*"
+            ],
+            "tearingHint": false,
+            "title": "Dettivo · Home",
+            "visible": true,
+            "workspace": {
+              "id": 1,
+              "name": "1"
+            },
+            "xdgDescription": "",
+            "xdgTag": "",
+            "xwayland": false
+          },
+          "within_budget": false
+        },
+        {
+          "anonymous_budget_kb": 98304,
+          "anonymous_budget_mib": 96,
+          "anonymous_kb_after_5s": 49824,
+          "anonymous_mib_after_5s": 48.65625,
+          "anonymous_within_budget": true,
+          "display": {
+            "height": 1440,
+            "name": "DP-3",
+            "scale": 1.25,
+            "width": 5120
+          },
+          "first_frame_ms": 321,
+          "idle_ms": 5016,
+          "journal_first_frame": {
+            "application_ms": 2,
+            "event": "first_frame",
+            "ms": 321,
+            "qml_ms": 106,
+            "rss_kb": 213744,
+            "theme": "builtin-dark"
+          },
+          "launch": 5,
+          "memory_scope": "dettivo-app process only; daemon and engine processes excluded",
+          "memory_source": {
+            "anonymous": "/proc/<pid>/smaps_rollup:Anonymous",
+            "pss": "/proc/<pid>/smaps_rollup:Pss",
+            "rss": "/proc/<pid>/status:VmRSS"
+          },
+          "memory_units": "KiB (Linux procfs kB); MiB = KiB / 1024",
+          "memory_within_budget": true,
+          "pid": 3538508,
+          "pss_budget_kb": null,
+          "pss_kb_after_5s": 131500,
+          "pss_mib_after_5s": 128.41796875,
+          "rss_budget_kb": 262144,
+          "rss_budget_mib": 256,
+          "rss_kb_after_5s": 213992,
+          "rss_mib_after_5s": 208.9765625,
+          "rss_within_budget": true,
+          "status": {
+            "active": false,
+            "active_downloads": 0,
+            "analysis_status": "",
+            "daemon_connected": true,
+            "daemon_state": "connected",
+            "dictation_state": "idle",
+            "environment": {
+              "device_pixel_ratio": 1.25,
+              "graphics_api": 3,
+              "platform": "wayland",
+              "qt_build": "Release",
+              "qt_version": "6.11.2",
+              "renderer": "OpenGL",
+              "screen": "DP-3",
+              "window_height": 820,
+              "window_width": 1280
+            },
+            "first_frame_ms": 321,
+            "meeting_active": false,
+            "ok": true,
+            "pid": 3538508,
+            "playback_active": false,
+            "route": "home",
+            "rss_kb": 213992,
+            "theme": {
+              "accent": "#f5bf03",
+              "background": "#0d0d0d",
+              "dir": "/tmp/dqfn55ab-0Q0ZKk/home/.config/omarchy/current/theme",
+              "parse_error": "",
+              "source": "builtin-dark"
+            },
+            "title": "Home",
+            "visible": true
+          },
+          "window": {
+            "acceptsInput": true,
+            "address": "0x56294bc6dac0",
+            "allowedOverFullscreen": true,
+            "at": [
+              1408,
+              179
+            ],
+            "class": "dettivo",
+            "contentType": "none",
+            "floating": true,
+            "focusHistoryID": 6,
+            "fullscreen": 0,
+            "fullscreenClient": 0,
+            "fullscreenHandler": "default",
+            "grouped": [],
+            "hidden": false,
+            "inhibitingIdle": false,
+            "initialClass": "dettivo",
+            "initialTitle": "Dettivo · Home",
+            "mapped": true,
+            "monitor": 1,
+            "pid": 3538508,
+            "pinFullscreened": false,
+            "pinned": false,
+            "size": [
+              1280,
+              820
+            ],
+            "stableId": "18000048",
+            "swallowing": "0x0",
+            "tags": [
+              "default-opacity*"
+            ],
+            "tearingHint": false,
+            "title": "Dettivo · Home",
+            "visible": true,
+            "workspace": {
+              "id": 1,
+              "name": "1"
+            },
+            "xdgDescription": "",
+            "xdgTag": "",
+            "xwayland": false
+          },
+          "within_budget": false
+        }
+      ]
+    }
+  ],
+  "source_old": "2169393cfebd8f12d02652828d172dc2f8649412"
+}

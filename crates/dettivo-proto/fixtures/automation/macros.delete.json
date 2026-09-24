@@ -1,0 +1,34 @@
+{
+  "capabilities": {
+    "automation.dictation_macros": true
+  },
+  "method": "automation.macros.delete",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "automation.macros.delete",
+    "params": {
+      "macro_id": "greeting"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "config": {
+        "allowlist": {
+          "app_commands": [
+            "open_settings"
+          ],
+          "shell_commands": [
+            "xdg-open"
+          ]
+        },
+        "enabled": true,
+        "macros": [],
+        "remembered_macro_ids": []
+      },
+      "deleted": true
+    }
+  }
+}

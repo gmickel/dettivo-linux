@@ -1,0 +1,33 @@
+{
+  "id": 3,
+  "kind": "response",
+  "name": "recognize",
+  "payload": {
+    "backend": "vulkan",
+    "duration_ms": 1000,
+    "language": "en",
+    "segments": [
+      {
+        "end_ms": 900,
+        "start_ms": 80,
+        "text": "Hello team.",
+        "words": [
+          {
+            "confidence": 0.98,
+            "end_ms": 400,
+            "start_ms": 80,
+            "text": "Hello"
+          },
+          {
+            "confidence": 0.91,
+            "end_ms": 900,
+            "start_ms": 480,
+            "text": "team."
+          }
+        ]
+      }
+    ],
+    "text": "Hello team."
+  },
+  "v": 1
+}

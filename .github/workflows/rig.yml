@@ -1,0 +1,491 @@
+# The QA rig, whole: everything the fast loop in ci.yml leaves out, run
+# where its cost is paid once a day rather than once per push. The full
+# drive matrix on both drivers with the dictation pack and the import-merge
+# and diarization pipelines, the visual matrix with its canary (ADR 0021,
+# blocking here), the CPU benchmark run, the advisory Vulkan builds of the
+# three engines, and the package, source-package and clean-container
+# install jobs (ADR 0034). It runs nightly, on demand from the Actions tab,
+# and release.yml calls it before a tag publishes (ADR 0040). Every job is
+# the same pinned Arch container and the same `just` recipes as ci.yml, so
+# a job reproduces locally with the recipes on its `run:` line.
+
+name: rig
+
+on:
+  schedule:
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      release:
+        description: Build the release gate and package once for the caller
+        type: boolean
+        default: false
+
+concurrency:
+  group: rig-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !inputs.release }}
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_PROFILE_DEV_DEBUG: line-tables-only
+
+jobs:
+  # The unit tests with the models present, then the benchmark suite on
+  # the CPU with three iterations (ADR 0029): the numbers are recorded in
+  # the uploaded report and never gated; a runner's figures calibrate
+  # nothing, the checked-in reports come from the development machine
+  # (`just bench`).
+  bench:
+    if: ${{ !inputs.release }}
+    name: bench
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      # git must exist before checkout: without it actions/checkout downloads a
+      # tarball with no .git, and every git-backed step (xtask lints) fails.
+      - run: pacman -Syu --noconfirm --needed git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-toolchain
+        with:
+          cache-scope: rig
+      # tiny.en, Parakeet TDT 0.6B v2 (the CPU WER fixture) and jfk.wav.
+      - name: Cache the test models
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/.ci-data/dettivo/models
+          key: test-model-${{ hashFiles('scripts/models/fetch-test-model.sh') }}
+      - run: scripts/models/fetch-test-model.sh
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      # The diarization model set (ADR 0035): the engine's fixture tests
+      # and the daemon's speaker tests read it.
+      - name: Cache the diarization model set
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/.ci-data/dettivo/models/diarize
+          key: diarization-model-${{ hashFiles('scripts/models/fetch-diarization-model.sh') }}
+      - run: scripts/models/fetch-diarization-model.sh
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: just build-rust test-rust
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      # The benchmark suite on the CPU with three iterations (ADR 0029):
+      # the numbers are recorded in the uploaded report and never gated; a
+      # runner's figures calibrate nothing, the checked-in reports come
+      # from the development machine (`just bench`).
+      - run: just bench-quick
+        continue-on-error: true
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: bench-quick
+          path: qa-evidence/
+          if-no-files-found: ignore
+
+  # The ggml Vulkan build of the Whisper engine. Advisory until the
+  # shader generation matches the container's shaderc: the job runs on
+  # every push so a fix is visible, but it does not block a merge.
+  whisper-vulkan:
+    if: ${{ !inputs.release }}
+    name: whisper-vulkan
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-toolchain
+        with:
+          cache-scope: rig
+      - run: just build-whisper-vulkan
+
+  # The ggml Vulkan build of the Parakeet engine (parakeet.cpp's ggml
+  # generates its shaders with the container's glslc). Advisory like
+  # whisper-vulkan: a runner has no Vulkan device, so only the build is
+  # proven here; the Vulkan WER rows run on a development machine
+  # (`just test-parakeet-vulkan`).
+  parakeet-vulkan:
+    if: ${{ !inputs.release }}
+    name: parakeet-vulkan
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-toolchain
+        with:
+          cache-scope: rig
+      - run: just build-parakeet-vulkan
+
+  # The ggml Vulkan build of the language model engine (llama.cpp through
+  # llama-cpp-2 generates its shaders with the container's glslc).
+  # Advisory like the other two: a runner has no Vulkan device, so only
+  # the build is proven here; the model-backed Vulkan tests run on a
+  # development machine (`just test-llm-vulkan`).
+  llm-vulkan:
+    if: ${{ !inputs.release }}
+    name: llm-vulkan
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-toolchain
+        with:
+          cache-scope: rig
+      - run: just build-llm-vulkan
+
+  drive:
+    name: drive
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      - run: pacman -Syu --noconfirm --needed git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-toolchain
+        with:
+          cache-scope: rig
+      - run: pacman -Syu --noconfirm --needed xorg-server-xvfb openbox at-spi2-core dbus libpulse pipewire curl xdotool xorg-xprop
+      - run: scripts/qa/install-cua-driver.sh
+      # The runner's disk carries the workspace debug build, the Qt build
+      # and the model cache at once; the package cache goes and the report
+      # shows the room left, so the linker keeps enough of it (a full disk
+      # ends ld with a bus error).
+      - run: find /var/cache/pacman/pkg -type f -delete && df -h / "$GITHUB_WORKSPACE"
+      - name: Cache the test model
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/.ci-data/dettivo/models
+          key: test-model-${{ hashFiles('scripts/models/fetch-test-model.sh') }}
+      - run: scripts/models/fetch-test-model.sh
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - name: Cache the diarization model set
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/.ci-data/dettivo/models/diarize
+          key: diarization-model-${{ hashFiles('scripts/models/fetch-diarization-model.sh') }}
+      - run: scripts/models/fetch-diarization-model.sh
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: just build-rust build-qt
+      # The MCP harness imports the fixture clip live through tiny.en, and
+      # the import-merge pipeline proves the chunker and merger against the
+      # golden (ADR 0022); both read the cached model.
+      - run: just qa-contract qa-mcp qa-rest lint-scenarios lint-release-text lint-a11y-names
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: just qa-import-merge qa-diarization
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      # The live meeting path on the mock tracks through tiny.en (fn-28):
+      # segments stream provisional then final and the finalised
+      # transcript matches the two-source golden. Needs no display.
+      - run: just qa-drive meeting_live atspi
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: just qa-drive meeting_recovery atspi
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: just qa-polish-eval polish-convert-check
+      - run: scripts/qa/xvfb-session.sh just qa-drive placeholder_window atspi
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+      - run: scripts/qa/xvfb-session.sh just qa-drive placeholder_window cua
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+      - run: scripts/qa/xvfb-session.sh just qa-drive insertion_matrix atspi
+      - run: scripts/qa/xvfb-session.sh just qa-drive never_into_self atspi
+      - run: scripts/qa/xvfb-session.sh just qa-drive osd_dictation atspi
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-drive osd_dictation cua
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      # The theme switch with frame pacing on both surfaces (ADR 0021);
+      # under Xvfb the numbers are recorded and the report is the gate.
+      - run: scripts/qa/xvfb-session.sh just qa-drive theme_switch atspi
+      - run: scripts/qa/xvfb-session.sh just qa-drive theme_switch cua
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+      - run: scripts/qa/xvfb-session.sh just qa-drive app_routes atspi
+      - run: scripts/qa/xvfb-session.sh just qa-drive app_routes cua
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+      # The keyboard drive (ADR 0042): Tab reaches every control on every
+      # route with the focus ring, and the four conventions hold.
+      - run: scripts/qa/xvfb-session.sh just qa-drive keyboard_only atspi
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-drive keyboard_only cua
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-drive app_theme_live atspi
+      - run: scripts/qa/xvfb-session.sh just qa-drive app_theme_live cua
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+      - run: scripts/qa/xvfb-session.sh just qa-drive app_daemon atspi
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-drive app_daemon cua
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      # First run on both drivers (ADR 0024): the fresh profile's three
+      # screens with the loopback model download and the take into the
+      # app's own field, and the provisioned profile that never sees them.
+      - run: scripts/qa/xvfb-session.sh just qa-drive first_run_fresh atspi
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-drive first_run_fresh cua
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-drive first_run_provisioned atspi
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-drive first_run_provisioned cua
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      # Settings on both drivers (ADR 0033): every key through its control
+      # and config.get, the planted comment, the refusal, the hand edit.
+      - run: scripts/qa/xvfb-session.sh just qa-drive settings_roundtrip atspi
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-drive settings_roundtrip cua
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      # Meetings on both drivers (ADR 0038): the seeded list, detail,
+      # export, rename and delete; the live meeting on the mock tracks
+      # from the disclosure dialog to the detail; the import of the clip
+      # through the dialog.
+      - run: scripts/qa/xvfb-session.sh just qa-drive meetings_seeded atspi
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-drive meetings_seeded cua
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-drive meetings_live_gui atspi
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-drive meetings_live_gui cua
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-drive meetings_import_gui atspi
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-drive meetings_import_gui cua
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: scripts/qa/xvfb-session.sh just qa-pack dictation
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: just qa-audio
+      # The GUI pack (ADR 0037): the release profile of the binaries the
+      # drives run, then the four GUI surfaces on both drivers in the same
+      # Xvfb session, every route scanned for developer text and walked for
+      # unnamed controls; the report lands in the evidence. The Omarchy
+      # desktop steps are allowed skips here.
+      - run: just build-release
+      - run: scripts/qa/xvfb-session.sh just qa-pack gui
+        env:
+          DETTIVO_BUILD_PROFILE: release
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      # The meetings pack (ADR 0039): the meeting lane end to end with the
+      # mock fixtures and tiny.en, the three meetings screens on both
+      # drivers, the alpha token fixture, then the throughput steps, whose
+      # figures a runner records and never gates. Without PipeWire the rig
+      # capture step is the allowed skip the blockers name, and without a
+      # GPU the workload proof is the other.
+      - run: scripts/qa/xvfb-session.sh just qa-pack meetings
+        env:
+          PATH: /github/home/.local/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      # The beauty pass (ADR 0042): one contact sheet per surface on the
+      # five palettes and beauty-report.md with the checklist's machine
+      # verdicts (the keyboard drive among them, so it runs in the
+      # session), uploaded for the walkthrough.
+      - run: scripts/qa/xvfb-session.sh just qa-beauty
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: qa-evidence
+          path: qa-evidence/
+          if-no-files-found: ignore
+
+  # Visual regression (ADR 0021): every surface at 1x and 2x on every
+  # theme fixture and both built-in palettes against its approved
+  # baseline, rendered on the offscreen platform, blocking; then the
+  # canary, which renders with a deliberate token regression and passes
+  # only when every diff fails, so a diff that stopped seeing never
+  # lets the real pass mean anything.
+  visual:
+    name: visual
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      - run: pacman -Syu --noconfirm --needed git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-toolchain
+        with:
+          cache-scope: rig
+      - run: just build-rust build-qt
+      - run: just qa-visual
+      - run: just qa-visual-canary
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: visual-evidence
+          path: qa-evidence/visual/
+          if-no-files-found: ignore
+
+  package:
+    name: package
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      - run: pacman -Syu --noconfirm --needed git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-toolchain
+        with:
+          cache-scope: rig
+      - run: pacman -Syu --noconfirm --needed namcap desktop-file-utils
+      # tiny.en, Parakeet TDT 0.6B v2 (the CPU WER fixture) and jfk.wav.
+      - name: Cache the test models
+        if: inputs.release
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/.ci-data/dettivo/models
+          key: test-model-${{ hashFiles('scripts/models/fetch-test-model.sh') }}
+      - run: scripts/models/fetch-test-model.sh
+        if: inputs.release
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      # The diarization model set (ADR 0035): the engine's fixture tests
+      # and the daemon's speaker tests read it.
+      - name: Cache the diarization model set
+        if: inputs.release
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/.ci-data/dettivo/models/diarize
+          key: diarization-model-${{ hashFiles('scripts/models/fetch-diarization-model.sh') }}
+      - run: scripts/models/fetch-diarization-model.sh
+        if: inputs.release
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: just build test lint
+        if: inputs.release
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: just package-bin
+        env:
+          DETTIVO_GIT_SHA: ${{ github.sha }}
+      - name: Bind package bytes to this revision
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$GITHUB_SHA" > dist/REVISION
+          sha256sum build/aur/dettivo-bin-*.pkg.tar.zst dist/dettivo-*-linux-x86_64.tar.zst dist/REVISION > dist/ARTIFACT_SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dettivo-package
+          path: |
+            build/aur/dettivo-bin-*.pkg.tar.zst
+            dist/dettivo-*-linux-x86_64.tar.zst
+            dist/SHA256SUMS
+            dist/REVISION
+            dist/ARTIFACT_SHA256SUMS
+          if-no-files-found: error
+
+  # The source recipe: makepkg builds dettivo from an archive of this tree
+  # with the same `just package`, so the AUR `dettivo` package is proven
+  # to build before a release is tagged.
+  package-source:
+    name: package-source
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      - run: pacman -Syu --noconfirm --needed git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-toolchain
+        with:
+          cache-scope: rig
+      - run: pacman -Syu --noconfirm --needed namcap
+      - run: just package-source
+
+  # The install test on a clean container: nothing from the toolchain, only
+  # the pinned base image, pacman -U of the built package (its runtime
+  # dependencies resolve from the repositories), then every check in
+  # scripts/packaging/install-test.sh including the Home render from the
+  # installed module and the CPU-fallback smoke over the three engines
+  # with the cached test models; install-test.json is uploaded.
+  install:
+    name: install
+    needs: package
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      - run: pacman -Syu --noconfirm --needed git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: dettivo-package
+          path: build/package
+      - name: Cache the test models
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/.ci-data/dettivo/models
+          key: install-models-${{ hashFiles('scripts/models/fetch-test-model.sh', 'scripts/models/fetch-llm-test-model.sh') }}
+      - run: pacman -Syu --noconfirm --needed curl jq zsh fish desktop-file-utils ttf-cascadia-mono-nerd
+      - run: scripts/models/fetch-test-model.sh && scripts/models/fetch-llm-test-model.sh
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - name: Verify the downloaded package revision and checksums
+        run: |
+          set -euo pipefail
+          test "$(cat build/package/dist/REVISION)" = "$GITHUB_SHA"
+          (cd build/package && sha256sum --check --strict dist/ARTIFACT_SHA256SUMS)
+      - run: scripts/packaging/install-test.sh --models .ci-data/dettivo/models --report qa-evidence/install-test.json "$(scripts/packaging/select-package.sh dettivo-bin build/package/build/aur)"
+        env:
+          DETTIVO_EXPECTED_GIT_SHA: ${{ github.sha }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: install-test
+          path: qa-evidence/
+          if-no-files-found: ignore

@@ -1,0 +1,35 @@
+{
+  "branch_name": "fn-7-engine-protocol-supervisor-and-whisper",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-03T19:57:11.574213Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-3-daemon-skeleton-socket-activated"
+  ],
+  "id": "fn-7-engine-protocol-supervisor-and-whisper",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-7-engine-protocol-supervisor-and-whisper.md",
+  "status": "done",
+  "title": "Engine protocol, supervisor and Whisper engine",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T00:04:20.457577Z"
+}

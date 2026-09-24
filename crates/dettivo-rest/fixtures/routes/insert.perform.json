@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/insert/perform",
+    "body": {
+      "text": "hello from the REST shim",
+      "mode": "clipboard_only"
+    }
+  },
+  "expect": {
+    "status": 200,
+    "content_type": "application/json",
+    "body_keys": [
+      "outcome",
+      "method",
+      "backend",
+      "target_app"
+    ]
+  }
+}

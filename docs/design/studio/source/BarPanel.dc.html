@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@300;400;600&display=swap">
+  <style>
+    :root{--bg:#0D0D0D;--fg:#EBDBB2;--fg2:rgba(235,219,178,.62);--fg3:rgba(235,219,178,.38);--line:rgba(235,219,178,.14);--line2:rgba(235,219,178,.35);--fill:rgba(235,219,178,.03);--gold:#F5BF03;--gold2:#BFA75D;--gold3:#A3850E;--red:#D35F5F;--bar:#120F02}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:"Cascadia Mono",ui-monospace,"CaskaydiaMono Nerd Font","JetBrains Mono",monospace;font-size:12px;line-height:1.5;-webkit-font-smoothing:antialiased}
+    a{color:var(--gold2)} a:hover{color:var(--gold)}
+    .label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg3)}
+    .num{font-variant-numeric:tabular-nums}
+    .glyph{display:inline-flex;align-items:center;gap:1px;height:16px}
+    .glyph i{display:block;width:2px;background:currentColor}
+    .btn{height:28px;padding:0 10px;border:1px solid var(--line2);background:var(--fill);color:var(--fg);display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:12px;box-sizing:border-box;flex:1;justify-content:center}
+    .btn.primary{border-color:rgba(245,191,3,.9);background:rgba(245,191,3,.14);color:var(--gold)}
+    .seg{display:flex;border:1px solid var(--line2)}
+    .seg div{flex:1;height:26px;display:flex;align-items:center;justify-content:center;color:var(--fg2)}
+    .seg div.on{background:rgba(163,133,14,.18);color:var(--fg);box-shadow:inset 0 0 0 1px rgba(163,133,14,.78)}
+    .row{display:flex;align-items:center;gap:10px;height:34px;padding:0 12px;border-top:1px solid var(--line)}
+    .kv{display:flex;justify-content:space-between;align-items:center;height:30px;padding:0 12px}
+    .kv span:last-child{color:var(--fg2)}
+  </style>
+</helmet>
+<div style="width:1280px;min-height:560px;box-sizing:border-box;background:var(--bg);position:relative">
+
+  <div style="height:26px;background:var(--bar);display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:11px;color:var(--fg)">
+    <div style="display:flex;align-items:center;gap:14px">
+      <span style="display:flex;gap:6px;align-items:center"><span style="color:var(--gold)">1</span><span style="color:var(--fg3)">2</span><span style="color:var(--fg3)">3</span><span style="color:var(--fg3)">4</span></span>
+      <span style="color:var(--fg2)">ghostty · ~/work/dettivo-linux</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <span style="display:flex;align-items:center;gap:6px;color:var(--gold);padding:0 6px;box-shadow:inset 0 -2px 0 rgba(245,191,3,.9)"><span class="glyph"><i style="height:6px"></i><i style="height:14px"></i><i style="height:9px"></i><i style="height:16px"></i><i style="height:5px"></i></span><span class="num">00:23</span></span>
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6c3.5-3.5 8.5-3.5 12 0M4.5 8.5c2-2 5-2 7 0M7 11l1 1 1-1"/></svg>
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h3l4-3v10l-4-3H3zM12 5.5a3.5 3.5 0 0 1 0 5"/></svg>
+      <span class="num">22°</span>
+      <span class="num">Wed 11:28</span>
+    </div>
+  </div>
+
+  <div style="position:absolute;top:34px;right:96px;width:340px;background:var(--bg);border:1px solid var(--line2);display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 12px 10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="glyph" style="color:var(--gold)"><i style="height:6px"></i><i style="height:14px"></i><i style="height:9px"></i><i style="height:16px"></i><i style="height:5px"></i></span>
+        <div style="display:flex;flex-direction:column;line-height:1.25"><span style="font-weight:600">Dettivo</span><span style="font-size:11px;color:var(--fg2)">Meeting recording · <span class="num">00:23:41</span></span></div>
+      </div>
+      <span class="label" style="color:var(--gold)">rec</span>
+    </div>
+    <div style="padding:0 12px 12px;display:flex;flex-direction:column;gap:10px">
+      <div class="seg"><div>Raw</div><div>Polish</div><div class="on">Enhanced</div></div>
+      <div style="display:flex;gap:8px">
+        <div class="btn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5.5" y="1.5" width="5" height="8" rx="2.5"/><path d="M3 7.5a5 5 0 0 0 10 0M8 12.5v2"/></svg>Dictate</div>
+        <div class="btn primary"><span style="width:8px;height:8px;background:var(--gold)"></span>Stop meeting</div>
+      </div>
+    </div>
+    <div class="kv" style="border-top:1px solid var(--line)"><span class="label">Engine</span><span>Parakeet v3 · Vulkan · warm</span></div>
+    <div class="kv"><span class="label">Enhanced</span><span>Qwen3 4B · loaded</span></div>
+    <div class="kv"><span class="label">Insert into</span><span>ghostty · virtual keyboard</span></div>
+    <div style="padding:10px 12px 4px;border-top:1px solid var(--line)"><span class="label">Recent</span></div>
+    <div class="row" style="border-top:0"><span class="num" style="color:var(--fg3)">13:12</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Add a regression test for the merger overlap case…</span><span class="label">ghostty</span></div>
+    <div class="row"><span class="num" style="color:var(--fg3)">12:58</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Reply to Mara: yes, keep the Vulkan build as the…</span><span class="label">chromium</span></div>
+    <div class="row"><span class="num" style="color:var(--fg3)">12:40</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Summarise the diarization thresholds in the spec.</span><span class="label">cursor</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-top:1px solid var(--line2)">
+      <span style="color:var(--fg2)">Open Dettivo</span>
+      <span class="label">Super+Shift+D</span>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:48px;top:70px;width:720px;display:flex;flex-direction:column;gap:10px">
+    <div class="label">Omarchy bar widget and panel</div>
+    <div style="font-size:20px;font-weight:600;letter-spacing:-.02em">State in the bar, control in the panel</div>
+    <div style="color:var(--fg2)">The widget is a 16 px glyph plus an elapsed timer during meetings. Clicking it summons the panel through the shell: mode, one-tap dictation, meeting control, what is loaded, the last three items. The OSD component lives in this same plugin as a panel, so Omarchy runs no extra Dettivo UI process.</div>
+    <div style="display:flex;flex-direction:column;gap:6px;padding-top:8px">
+      <div style="display:flex;gap:12px;align-items:center"><span class="label" style="width:120px">colours</span><span style="color:var(--fg2)">Color.bar, Color.foreground, Color.accent from the shell</span></div>
+      <div style="display:flex;gap:12px;align-items:center"><span class="label" style="width:120px">font</span><span style="color:var(--fg2)">Style.fontFamily, base 12</span></div>
+      <div style="display:flex;gap:12px;align-items:center"><span class="label" style="width:120px">data</span><span style="color:var(--fg2)">dettivo events --follow --json, dettivo status --json</span></div>
+      <div style="display:flex;gap:12px;align-items:center"><span class="label" style="width:120px">install</span><span style="color:var(--fg2)">omarchy plugin add gmickel/omarchy-dettivo --enable</span></div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

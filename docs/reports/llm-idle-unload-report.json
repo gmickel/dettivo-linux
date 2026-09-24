@@ -1,0 +1,13 @@
+{
+  "backend": "vulkan",
+  "engine": "/tmp/claude-1000/-home-gordon-work-dettivo-linux/b364c48c-aad2-4513-8d28-60b6174c2d4f/scratchpad/fn23-target-vulkan/debug/dettivo-engine-llm",
+  "generate_ms": 650,
+  "llm_idle_seconds": 1,
+  "memory_bytes_after_unload": 6932529152,
+  "memory_bytes_before_load": 6971260928,
+  "memory_bytes_loaded": 8101625856,
+  "model": "llm/qwen3-1.7b",
+  "process_gone": true,
+  "reason": "Vulkan device Vulkan0 (NVIDIA GeForce RTX 4090)",
+  "text": "So, I think we should ship this thing tomorrow."
+}

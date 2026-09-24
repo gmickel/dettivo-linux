@@ -1,0 +1,20 @@
+{
+  "capabilities": {},
+  "method": "llm.endpoints.trust",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "llm.endpoints.trust",
+    "params": {
+      "url": "https://llm.example.com/v1"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "trusted": true,
+      "url": "https://llm.example.com"
+    }
+  }
+}

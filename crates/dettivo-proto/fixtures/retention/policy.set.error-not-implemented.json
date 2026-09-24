@@ -1,0 +1,27 @@
+{
+  "capabilities": {
+    "retention.auto_delete": false
+  },
+  "error": {
+    "error": {
+      "code": -32014,
+      "data": {
+        "app_code": "NOT_IMPLEMENTED",
+        "details": {},
+        "retryable": false
+      },
+      "message": "retention.policy.set is not implemented"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "retention.policy.set",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "retention.policy.set",
+    "params": {
+      "days": 30
+    }
+  }
+}

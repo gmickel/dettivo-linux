@@ -1,0 +1,19 @@
+{
+  "description": "Get latest transcript ref for dictation/meeting/any.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "kind": {
+        "enum": [
+          "dictation",
+          "meeting",
+          "any"
+        ],
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "name": "get_latest_transcript",
+  "title": "Get Latest Transcript"
+}

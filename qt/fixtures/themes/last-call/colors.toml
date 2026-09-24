@@ -1,0 +1,74 @@
+# Last Call, the Omarchy theme active on the development desktop when the
+# theme backend was seen to require shell.toml (fix/app-follows-the-active-
+# omarchy-theme). colors.toml and shell.toml are byte copies of the files
+# `omarchy theme set last-call` published under
+# ~/.local/state/omarchy/current/theme on 2026-09-04, from the theme at
+# https://github.com/OldJobobo/omarchy-last-call-theme (no licence file in
+# that repository at the time of copying; used here as test data only).
+# The theme backend test resolves this directory and asserts the accent and
+# the background come through unchanged.
+
+# Last Call — Omarchy projection of last-call-base24.yaml
+# Twenty-four unique Base24 roles with an original rain-cold color system.
+
+# Accent and UI colors
+accent = "#00c6c2"
+active_border_color = "#00c6c2"
+active_tab_background = "#1e4147"
+
+# Cursor colors
+cursor = "#e0f5f2"
+
+# Primary colors
+foreground = "#94b3b5"
+background = "#0b1d20"
+
+# Selection colors
+selection_foreground = "#c8e3e2"
+selection_background = "#42686f"
+
+# Terminal ANSI mapping: conventional normal/bright ordering.
+# Solarized influence remains in the neutral ramp and accent relationships.
+color0 = "#0b1d20"
+color1 = "#ed634c"
+color2 = "#58ad73"
+color3 = "#b79a54"
+color4 = "#668ca9"
+color5 = "#9c8499"
+color6 = "#00c6c2"
+color7 = "#94b3b5"
+color8 = "#42686f"
+color9 = "#f47a64"
+color10 = "#8fa99a"
+color11 = "#b5b49b"
+color12 = "#899fa4"
+color13 = "#a4939e"
+color14 = "#a9c2c1"
+color15 = "#e0f5f2"
+
+# Omarchy 4 semantic roles
+mode = "dark"
+bg = "#0b1d20"
+lighter_bg = "#1e4147"
+selection = "#42686f"
+muted = "#719398"
+dark_fg = "#82a3a6"
+fg = "#94b3b5"
+light_fg = "#c8e3e2"
+bright_fg = "#e0f5f2"
+red = "#ed634c"
+green = "#58ad73"
+yellow = "#b79a54"
+blue = "#668ca9"
+magenta = "#9c8499"
+cyan = "#00c6c2"
+orange = "#d07a3f"
+brown = "#967d6d"
+dark_bg = "#030e10"
+darker_bg = "#010506"
+bright_red = "#f47a64"
+bright_green = "#8fa99a"
+bright_yellow = "#b5b49b"
+bright_blue = "#899fa4"
+bright_magenta = "#a4939e"
+bright_cyan = "#a9c2c1"

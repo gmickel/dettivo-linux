@@ -1,0 +1,1457 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-09",
+  "verdict": "fail",
+  "criterion": "at least 4x CPU throughput with matching DER and speaker count",
+  "shipping": false,
+  "change": "CUDA sherpa C API rebuilt from 1.13.7 with Heuristic changed to Default; ONNX Runtime and CPU prebuilt archive unchanged",
+  "comparisons": [
+    {
+      "source": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/compare-c417ka1l/report.json",
+      "engine": "/home/gordon/work/dettivo-linux/target/debug/dettivo-engine-diarize",
+      "engine_sha256": "738457f01c2d59864a680a5aea8493147ad6a49e030af65f81c27ef3546fc9b5",
+      "runs": [
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 0,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 1.1829908033832908,
+          "realtime_factor": 15.939156032382671,
+          "engine_pid": 625922,
+          "turn_count": 6,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 0,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 1.6335617247968912,
+          "realtime_factor": 11.542799218281418,
+          "engine_pid": 626081,
+          "turn_count": 6,
+          "gpu_sample_count": 12,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 1,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 1.5676099071279168,
+          "realtime_factor": 12.028422960496998,
+          "engine_pid": 626172,
+          "turn_count": 6,
+          "gpu_sample_count": 11,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 1,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 1.19844556087628,
+          "realtime_factor": 15.733609949051797,
+          "engine_pid": 626377,
+          "turn_count": 6,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 2,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 1.1960809878073633,
+          "realtime_factor": 15.764714256152748,
+          "engine_pid": 626427,
+          "turn_count": 6,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 2,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 1.5616295030340552,
+          "realtime_factor": 12.074486914703737,
+          "engine_pid": 626572,
+          "turn_count": 6,
+          "gpu_sample_count": 11,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "public-en",
+          "audio_sha256": "dd3cf2344f8410ee9a2e271e96d1c3f9b530f113ae5b47defecbc0d741a468e9",
+          "audio_seconds": 54.805,
+          "repeat": 0,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.588525848928839,
+          "realtime_factor": 11.943923125723234,
+          "engine_pid": 626681,
+          "turn_count": 6,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-en",
+          "audio_sha256": "dd3cf2344f8410ee9a2e271e96d1c3f9b530f113ae5b47defecbc0d741a468e9",
+          "audio_seconds": 54.805,
+          "repeat": 0,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.08648524293676,
+          "realtime_factor": 13.411280536183776,
+          "engine_pid": 627061,
+          "turn_count": 6,
+          "gpu_sample_count": 32,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "public-en",
+          "audio_sha256": "dd3cf2344f8410ee9a2e271e96d1c3f9b530f113ae5b47defecbc0d741a468e9",
+          "audio_seconds": 54.805,
+          "repeat": 1,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.037484138272703,
+          "realtime_factor": 13.57404713506724,
+          "engine_pid": 627369,
+          "turn_count": 6,
+          "gpu_sample_count": 32,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "public-en",
+          "audio_sha256": "dd3cf2344f8410ee9a2e271e96d1c3f9b530f113ae5b47defecbc0d741a468e9",
+          "audio_seconds": 54.805,
+          "repeat": 1,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.617736422922462,
+          "realtime_factor": 11.868369040716088,
+          "engine_pid": 627625,
+          "turn_count": 6,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-en",
+          "audio_sha256": "dd3cf2344f8410ee9a2e271e96d1c3f9b530f113ae5b47defecbc0d741a468e9",
+          "audio_seconds": 54.805,
+          "repeat": 2,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.608405832666904,
+          "realtime_factor": 11.892398801232337,
+          "engine_pid": 628025,
+          "turn_count": 6,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-en",
+          "audio_sha256": "dd3cf2344f8410ee9a2e271e96d1c3f9b530f113ae5b47defecbc0d741a468e9",
+          "audio_seconds": 54.805,
+          "repeat": 2,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.09807551978156,
+          "realtime_factor": 13.373350426426812,
+          "engine_pid": 628344,
+          "turn_count": 6,
+          "gpu_sample_count": 32,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "public-zh",
+          "audio_sha256": "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010",
+          "audio_seconds": 56.8606875,
+          "repeat": 0,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 3.040313247125596,
+          "realtime_factor": 18.70224640627337,
+          "engine_pid": 628908,
+          "turn_count": 10,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-zh",
+          "audio_sha256": "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010",
+          "audio_seconds": 56.8606875,
+          "repeat": 0,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.10779865225777,
+          "realtime_factor": 13.84213110560997,
+          "engine_pid": 629135,
+          "turn_count": 10,
+          "gpu_sample_count": 32,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "public-zh",
+          "audio_sha256": "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010",
+          "audio_seconds": 56.8606875,
+          "repeat": 1,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.092389025725424,
+          "realtime_factor": 13.894252756168695,
+          "engine_pid": 629453,
+          "turn_count": 10,
+          "gpu_sample_count": 32,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "public-zh",
+          "audio_sha256": "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010",
+          "audio_seconds": 56.8606875,
+          "repeat": 1,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 3.0648781429044902,
+          "realtime_factor": 18.552348527016765,
+          "engine_pid": 629854,
+          "turn_count": 10,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-zh",
+          "audio_sha256": "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010",
+          "audio_seconds": 56.8606875,
+          "repeat": 2,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 3.1362712308764458,
+          "realtime_factor": 18.130028723348016,
+          "engine_pid": 630083,
+          "turn_count": 10,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-zh",
+          "audio_sha256": "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010",
+          "audio_seconds": 56.8606875,
+          "repeat": 2,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.0372617482207716,
+          "realtime_factor": 14.08397350631492,
+          "engine_pid": 630315,
+          "turn_count": 10,
+          "gpu_sample_count": 32,
+          "gpu_pid_proven": true
+        }
+      ],
+      "comparisons": [
+        {
+          "fixture": "gold",
+          "cpu_median_seconds": 1.1960809878073633,
+          "cuda_median_seconds": 1.5676099071279168,
+          "backends_correct": true,
+          "cuda_pid_proven_every_run": true,
+          "turns_identical": true,
+          "speedup": 0.7629965735536546
+        },
+        {
+          "fixture": "public-en",
+          "cpu_median_seconds": 4.608405832666904,
+          "cuda_median_seconds": 4.08648524293676,
+          "backends_correct": true,
+          "cuda_pid_proven_every_run": true,
+          "turns_identical": true,
+          "speedup": 1.1277187016965866
+        },
+        {
+          "fixture": "public-zh",
+          "cpu_median_seconds": 3.0648781429044902,
+          "cuda_median_seconds": 4.092389025725424,
+          "backends_correct": true,
+          "cuda_pid_proven_every_run": true,
+          "turns_identical": true,
+          "speedup": 0.7489215037080216
+        }
+      ],
+      "output": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/compare-c417ka1l",
+      "threads": "default",
+      "speaker_count_mode": "known",
+      "diagnostic_environment": {},
+      "loaded_libraries": {
+        "libsherpa-onnx-c-api.so": {
+          "path": "/home/gordon/work/dettivo-linux/target/debug/build/sherpa-onnx-sys-04fca1620aeb834c/out/lib/libsherpa-onnx-c-api.so",
+          "sha256": "75da8de18cfd77443ca4dee955228feeacdd5b9c97edaefac601a1ca4bf05522"
+        },
+        "libonnxruntime.so": {
+          "path": "/home/gordon/work/dettivo-linux/target/debug/build/sherpa-onnx-sys-04fca1620aeb834c/out/lib/libonnxruntime.so",
+          "sha256": "bd6591e07bac04657dddd92a4407f4b5aab8268e25b55d901e886648eeb7b8f6"
+        }
+      }
+    },
+    {
+      "source": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/compare-xnxz16bv/report.json",
+      "engine": "/home/gordon/work/dettivo-linux/target/debug/dettivo-engine-diarize",
+      "engine_sha256": "738457f01c2d59864a680a5aea8493147ad6a49e030af65f81c27ef3546fc9b5",
+      "runs": [
+        {
+          "fixture": "public-en-loop-300s",
+          "audio_sha256": "b3b1f33b5b1dd47dac249d9817ef7527c3652d32a7f9a0ca080e9e670273d4c3",
+          "audio_seconds": 300,
+          "repeat": 0,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 27.40257030306384,
+          "realtime_factor": 10.947878125376343,
+          "engine_pid": 630642,
+          "turn_count": 33,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-en-loop-300s",
+          "audio_sha256": "b3b1f33b5b1dd47dac249d9817ef7527c3652d32a7f9a0ca080e9e670273d4c3",
+          "audio_seconds": 300,
+          "repeat": 0,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 20.92136859195307,
+          "realtime_factor": 14.339406080507956,
+          "engine_pid": 632745,
+          "turn_count": 33,
+          "gpu_sample_count": 167,
+          "gpu_pid_proven": true
+        }
+      ],
+      "comparisons": [
+        {
+          "fixture": "public-en-loop-300s",
+          "cpu_median_seconds": 27.40257030306384,
+          "cuda_median_seconds": 20.92136859195307,
+          "backends_correct": true,
+          "cuda_pid_proven_every_run": true,
+          "turns_identical": true,
+          "speedup": 1.309788610751001
+        }
+      ],
+      "output": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/compare-xnxz16bv",
+      "threads": "default",
+      "speaker_count_mode": "known",
+      "diagnostic_environment": {},
+      "loaded_libraries": {
+        "libsherpa-onnx-c-api.so": {
+          "path": "/home/gordon/work/dettivo-linux/target/debug/build/sherpa-onnx-sys-04fca1620aeb834c/out/lib/libsherpa-onnx-c-api.so",
+          "sha256": "75da8de18cfd77443ca4dee955228feeacdd5b9c97edaefac601a1ca4bf05522"
+        },
+        "libonnxruntime.so": {
+          "path": "/home/gordon/work/dettivo-linux/target/debug/build/sherpa-onnx-sys-04fca1620aeb834c/out/lib/libonnxruntime.so",
+          "sha256": "bd6591e07bac04657dddd92a4407f4b5aab8268e25b55d901e886648eeb7b8f6"
+        }
+      }
+    },
+    {
+      "source": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/compare-zk2aanv6/report.json",
+      "engine": "/home/gordon/work/dettivo-linux/target/debug/dettivo-engine-diarize",
+      "engine_sha256": "738457f01c2d59864a680a5aea8493147ad6a49e030af65f81c27ef3546fc9b5",
+      "runs": [
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 0,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 1.164148900192231,
+          "realtime_factor": 16.197133370899902,
+          "engine_pid": 634387,
+          "turn_count": 6,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "gold",
+          "audio_sha256": "08c1f210b4bdb3769d7a62548f3ef912512abd2c3229109f520950f9c127622c",
+          "audio_seconds": 18.855875,
+          "repeat": 0,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 1.5736670973710716,
+          "realtime_factor": 11.98212444773113,
+          "engine_pid": 634417,
+          "turn_count": 6,
+          "gpu_sample_count": 11,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "public-en",
+          "audio_sha256": "dd3cf2344f8410ee9a2e271e96d1c3f9b530f113ae5b47defecbc0d741a468e9",
+          "audio_seconds": 54.805,
+          "repeat": 0,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.672801035922021,
+          "realtime_factor": 11.728511352973982,
+          "engine_pid": 634625,
+          "turn_count": 8,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-en",
+          "audio_sha256": "dd3cf2344f8410ee9a2e271e96d1c3f9b530f113ae5b47defecbc0d741a468e9",
+          "audio_seconds": 54.805,
+          "repeat": 0,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.089427123777568,
+          "realtime_factor": 13.401632634884667,
+          "engine_pid": 634925,
+          "turn_count": 8,
+          "gpu_sample_count": 32,
+          "gpu_pid_proven": true
+        },
+        {
+          "fixture": "public-zh",
+          "audio_sha256": "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010",
+          "audio_seconds": 56.8606875,
+          "repeat": 0,
+          "requested": "cpu",
+          "backend": "cpu",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 3.067336997948587,
+          "realtime_factor": 18.537476494440625,
+          "engine_pid": 635306,
+          "turn_count": 10,
+          "gpu_sample_count": 0,
+          "gpu_pid_proven": false
+        },
+        {
+          "fixture": "public-zh",
+          "audio_sha256": "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010",
+          "audio_seconds": 56.8606875,
+          "repeat": 0,
+          "requested": "cuda",
+          "backend": "cuda",
+          "exit": 0,
+          "valid": true,
+          "wall_seconds": 4.117318596225232,
+          "realtime_factor": 13.810125733804039,
+          "engine_pid": 635595,
+          "turn_count": 10,
+          "gpu_sample_count": 32,
+          "gpu_pid_proven": true
+        }
+      ],
+      "comparisons": [
+        {
+          "fixture": "gold",
+          "cpu_median_seconds": 1.164148900192231,
+          "cuda_median_seconds": 1.5736670973710716,
+          "backends_correct": true,
+          "cuda_pid_proven_every_run": true,
+          "turns_identical": true,
+          "speedup": 0.7397682153595437
+        },
+        {
+          "fixture": "public-en",
+          "cpu_median_seconds": 4.672801035922021,
+          "cuda_median_seconds": 4.089427123777568,
+          "backends_correct": true,
+          "cuda_pid_proven_every_run": true,
+          "turns_identical": true,
+          "speedup": 1.1426541895691165
+        },
+        {
+          "fixture": "public-zh",
+          "cpu_median_seconds": 3.067336997948587,
+          "cuda_median_seconds": 4.117318596225232,
+          "backends_correct": true,
+          "cuda_pid_proven_every_run": true,
+          "turns_identical": true,
+          "speedup": 0.7449841265042567
+        }
+      ],
+      "output": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/compare-zk2aanv6",
+      "threads": "default",
+      "speaker_count_mode": "automatic",
+      "diagnostic_environment": {},
+      "loaded_libraries": {
+        "libsherpa-onnx-c-api.so": {
+          "path": "/home/gordon/work/dettivo-linux/target/debug/build/sherpa-onnx-sys-04fca1620aeb834c/out/lib/libsherpa-onnx-c-api.so",
+          "sha256": "75da8de18cfd77443ca4dee955228feeacdd5b9c97edaefac601a1ca4bf05522"
+        },
+        "libonnxruntime.so": {
+          "path": "/home/gordon/work/dettivo-linux/target/debug/build/sherpa-onnx-sys-04fca1620aeb834c/out/lib/libonnxruntime.so",
+          "sha256": "bd6591e07bac04657dddd92a4407f4b5aab8268e25b55d901e886648eeb7b8f6"
+        }
+      }
+    }
+  ],
+  "diagnostics": {
+    "scope": "research only; not production inference or a shipped shape-grouping transformation",
+    "source_directory": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-tuning-c8ldde",
+    "shape_cpu": {
+      "provider": "cpu",
+      "experiments": [
+        {
+          "name": "fixed",
+          "runs": [
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03257970791310072
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.0349204009398818
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.031198150012642145
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03193262917920947
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03099278686568141
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.0308434939943254
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03085322491824627
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.031184719409793615
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.030786783900111914
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03079645289108157
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03078801417723298
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03120418917387724
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.031693956814706326
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.031193438917398453
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03089508507400751
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.0314357727766037
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.031736177392303944
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03439118433743715
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03154971404001117
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03177292784675956
+            }
+          ],
+          "median_seconds": 0.031201169593259692,
+          "total_seconds": 0.6327488105744123
+        },
+        {
+          "name": "alternating",
+          "runs": [
+            {
+              "samples": 48000,
+              "wall_seconds": 0.0241389200091362
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03088025515899062
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.023201046977192163
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03100723633542657
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.023196296766400337
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03115624887868762
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.023211867082864046
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.030961716081947088
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.02453285502269864
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.031670465134084225
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.023889167234301567
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.04474578006193042
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.023665762972086668
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.031073467805981636
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.028855005744844675
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.035181066021323204
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.02330338815227151
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03085671504959464
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.027969783637672663
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.0315449140034616
+            }
+          ],
+          "median_seconds": 0.029855860397219658,
+          "total_seconds": 0.5750419581308961
+        },
+        {
+          "name": "grouped",
+          "runs": [
+            {
+              "samples": 48000,
+              "wall_seconds": 0.02479411894455552
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.02327984757721424
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.02347264112904668
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.02551091881468892
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.02446134388446808
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.02362927282229066
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.023811005987226963
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.02349682105705142
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.023071723990142345
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.023164106998592615
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03063912084326148
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03180508781224489
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03215039288625121
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03164951642975211
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.031418472062796354
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03273226087912917
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.03127314057201147
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.031081537250429392
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.031526573933660984
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.030918756034225225
+            }
+          ],
+          "median_seconds": 0.0280750198289752,
+          "total_seconds": 0.5538866599090397
+        }
+      ]
+    },
+    "shape_cuda": {
+      "provider": "cuda",
+      "experiments": [
+        {
+          "name": "fixed",
+          "runs": [
+            {
+              "samples": 64000,
+              "wall_seconds": 0.2885601040907204
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.005089281126856804
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.0049371300265192986
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004932468757033348
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.005226633977144957
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004907908849418163
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.0049344999715685844
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004946148954331875
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004925949964672327
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.005114361643791199
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004900399129837751
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004891789052635431
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.0049204290844500065
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004900998901575804
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004864939022809267
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004872388206422329
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.0048821792006492615
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004929609131067991
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.00490267900750041
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004940849728882313
+            }
+          ],
+          "median_seconds": 0.004927779547870159,
+          "total_seconds": 0.38258074782788754
+        },
+        {
+          "name": "alternating",
+          "runs": [
+            {
+              "samples": 48000,
+              "wall_seconds": 0.06307983910664916
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.06350862421095371
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.06285315519198775
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.0651036067865789
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.06308646919205785
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.06321245990693569
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.062308138236403465
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.0629855371080339
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.06227526720613241
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.0631956597790122
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.062354288063943386
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.06345905410125852
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.06205878360196948
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.06286793574690819
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.06209762394428253
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.06571098603308201
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.06347752409055829
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.06418272387236357
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.06331959180533886
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.06387041881680489
+            }
+          ],
+          "median_seconds": 0.06314106448553503,
+          "total_seconds": 1.2650076868012547
+        },
+        {
+          "name": "grouped",
+          "runs": [
+            {
+              "samples": 48000,
+              "wall_seconds": 0.06267775315791368
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.004044387023895979
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.003950686194002628
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.004013446159660816
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.004161139018833637
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.004169928841292858
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.003981946036219597
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.004024956841021776
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.0041272579692304134
+            },
+            {
+              "samples": 48000,
+              "wall_seconds": 0.004136578179895878
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.06574928620830178
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.0050132907927036285
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004936988931149244
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004761877004057169
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.0047750468365848064
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004811757709830999
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004773406777530909
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004744287114590406
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.004795058164745569
+            },
+            {
+              "samples": 64000,
+              "wall_seconds": 0.00476366700604558
+            }
+          ],
+          "median_seconds": 0.004753082059323788,
+          "total_seconds": 0.20841274596750736
+        }
+      ]
+    },
+    "profiles": [
+      "emb-profile_2026-09-09_09-29-05_336.json",
+      "seg-profile_2026-09-09_09-29-05_192.json"
+    ],
+    "onnxruntime_source": "https://github.com/microsoft/onnxruntime/blob/v1.27.1/onnxruntime/core/providers/cuda/nn/conv.cc"
+  },
+  "canonical": {
+    "rule": "pass when the engine finds exactly the expected speakers and the diarization error rate against crates/dettivo-qa/fixtures/diarization/two-speakers.turns.json (missed plus false alarm plus confusion over the reference speech, scored every 10 ms under the best speaker mapping) stays under 0.2; with --bench the realtime factor must reach 4, and CUDA must preserve the forced-CPU DER and speaker count with at least 4x CPU throughput; skipped when the model set or the engine is unavailable",
+    "fixture": "crates/dettivo-qa/fixtures/diarization/two-speakers.wav",
+    "model": "/home/gordon/.local/share/dettivo/models/diarize/diarization",
+    "backend": "cuda",
+    "cpu_comparison": {
+      "elapsed_ms": 1203,
+      "realtime_factor": 15.673316708229427,
+      "error_rate": {
+        "missed": 0.011072261072261072,
+        "false_alarm": 0.009324009324009324,
+        "confusion": 0,
+        "der": 0.020396270396270396,
+        "mapping": [
+          [
+            "A",
+            "SPEAKER_01"
+          ],
+          [
+            "B",
+            "SPEAKER_00"
+          ]
+        ]
+      },
+      "found_speakers": 2,
+      "speedup": 0.7093160377358491
+    },
+    "expected_speakers": 2,
+    "found_speakers": 2,
+    "turns": [
+      {
+        "speaker": "SPEAKER_01",
+        "start_ms": 689,
+        "end_ms": 3946
+      },
+      {
+        "speaker": "SPEAKER_00",
+        "start_ms": 4283,
+        "end_ms": 7051
+      },
+      {
+        "speaker": "SPEAKER_01",
+        "start_ms": 7287,
+        "end_ms": 11371
+      },
+      {
+        "speaker": "SPEAKER_00",
+        "start_ms": 11658,
+        "end_ms": 14273
+      },
+      {
+        "speaker": "SPEAKER_01",
+        "start_ms": 13733,
+        "end_ms": 16012
+      },
+      {
+        "speaker": "SPEAKER_00",
+        "start_ms": 16315,
+        "end_ms": 18425
+      }
+    ],
+    "error_rate": {
+      "missed": 0.011072261072261072,
+      "false_alarm": 0.009324009324009324,
+      "confusion": 0,
+      "der": 0.020396270396270396,
+      "mapping": [
+        [
+          "A",
+          "SPEAKER_01"
+        ],
+        [
+          "B",
+          "SPEAKER_00"
+        ]
+      ]
+    },
+    "audio_ms": 18855,
+    "elapsed_ms": 1696,
+    "realtime_factor": 11.117334905660377,
+    "verdict": "fail",
+    "verdict_reason": "CUDA speedup 0.709x over CPU is under 4x (CPU 15.673x realtime, CUDA 11.117x realtime); CPU DER 0.020396, CUDA DER 0.020396; CPU 15.673x realtime, CUDA 11.117x realtime, 0.709x speedup"
+  },
+  "canonical_source": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-tuned-canonical/run-1788940893-675212/diarization/diarization-report.json",
+  "canonical_exit_code": 1,
+  "verification_checkpoint": {
+    "full_gate": "passed",
+    "namespace_source": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/installed-mqt52s9s",
+    "scope": "ephemeral overlay/mount namespace; no host /usr mutation; doctor path discovery plus direct selected-path inference, not a loaded doctor backend",
+    "installed": {
+      "phase": "installed",
+      "doctor_exit": 0,
+      "doctor_engine": {
+        "backend": null,
+        "binary": "dettivo-engine-diarize",
+        "crashes": 0,
+        "degraded": false,
+        "directory": "/usr/lib/dettivo/engines-cuda",
+        "memory_bytes": null,
+        "model": null,
+        "path": "/usr/lib/dettivo/engines-cuda/dettivo-engine-diarize",
+        "reason": null,
+        "running": false
+      },
+      "selected_engine": "/usr/lib/dettivo/engines-cuda/dettivo-engine-diarize",
+      "backend": "cuda",
+      "turns": [
+        {
+          "end_ms": 3946,
+          "speaker": "SPEAKER_01",
+          "start_ms": 689
+        },
+        {
+          "end_ms": 7051,
+          "speaker": "SPEAKER_00",
+          "start_ms": 4283
+        },
+        {
+          "end_ms": 11371,
+          "speaker": "SPEAKER_01",
+          "start_ms": 7287
+        },
+        {
+          "end_ms": 14273,
+          "speaker": "SPEAKER_00",
+          "start_ms": 11658
+        },
+        {
+          "end_ms": 16012,
+          "speaker": "SPEAKER_01",
+          "start_ms": 13733
+        },
+        {
+          "end_ms": 18425,
+          "speaker": "SPEAKER_00",
+          "start_ms": 16315
+        }
+      ],
+      "passed": true,
+      "scope": "isolated installed path selection and selected engine inference; not overall desktop doctor health"
+    },
+    "removed": {
+      "phase": "removed",
+      "doctor_exit": 0,
+      "doctor_engine": {
+        "backend": null,
+        "binary": "dettivo-engine-diarize",
+        "crashes": 0,
+        "degraded": false,
+        "directory": "/usr/lib/dettivo/engines",
+        "memory_bytes": null,
+        "model": null,
+        "path": "/usr/lib/dettivo/engines/dettivo-engine-diarize",
+        "reason": null,
+        "running": false
+      },
+      "selected_engine": "/usr/lib/dettivo/engines/dettivo-engine-diarize",
+      "backend": "cpu",
+      "turns": [
+        {
+          "end_ms": 3946,
+          "speaker": "SPEAKER_01",
+          "start_ms": 689
+        },
+        {
+          "end_ms": 7051,
+          "speaker": "SPEAKER_00",
+          "start_ms": 4283
+        },
+        {
+          "end_ms": 11371,
+          "speaker": "SPEAKER_01",
+          "start_ms": 7287
+        },
+        {
+          "end_ms": 14273,
+          "speaker": "SPEAKER_00",
+          "start_ms": 11658
+        },
+        {
+          "end_ms": 16012,
+          "speaker": "SPEAKER_01",
+          "start_ms": 13733
+        },
+        {
+          "end_ms": 18425,
+          "speaker": "SPEAKER_00",
+          "start_ms": 16315
+        }
+      ],
+      "passed": true,
+      "scope": "isolated installed path selection and selected engine inference; not overall desktop doctor health"
+    },
+    "staged_release_c_api_sha256": "d6f036763cd77cb6315776f4364eaf42cbf177fd54e8f34e30871a637ca32ebc",
+    "package_log": "/tmp/fn42-package-cuda-tuned.log",
+    "makepkg_namcap_log": "/tmp/fn42-makepkg-cuda-tuned.log",
+    "package_exit_code": 0,
+    "makepkg_exit_code": 0,
+    "gate_command": "make build test lint",
+    "gate_exit_code": 0,
+    "executable_commit": "bbb5e1702e6a270ecbf4b975b67546430168b3f4",
+    "qt_tests_passed": 74,
+    "gate_log": "/tmp/dtv-gate-fn42-tuning-final.log",
+    "receipt_source": ".flow/tmp/green-receipts/bbb5e170-unittest.json",
+    "receipt": {
+      "command_sha256": "63c1ccc8128fdb257fed4e9e4741c6bcb48ab432f3e73ff6bca5a30ecd8419ee",
+      "gate_id": "unittest",
+      "head_sha": "bbb5e1702e6a270ecbf4b975b67546430168b3f4",
+      "schema": 1,
+      "timestamp": "2026-09-09T08:15:44.701801Z"
+    },
+    "subsequent_update": "documentation only; records existing observations without code or GPU changes"
+  },
+  "sampled_process_gpu_memory": {
+    "unit": "MiB",
+    "scope": "per-run maximum of observed nvidia-smi process-memory samples matched by engine PID; not allocator peak; separate run sets do not isolate causal effect",
+    "baseline_and_tuned": [
+      {
+        "source": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/compare-e3wd9bz4/report.json",
+        "runs": [
+          {
+            "fixture": "gold",
+            "repeat": 0,
+            "engine_pid": 118790,
+            "samples": 20,
+            "sampled_process_gpu_memory_max_mib": 706
+          },
+          {
+            "fixture": "gold",
+            "repeat": 1,
+            "engine_pid": 119025,
+            "samples": 19,
+            "sampled_process_gpu_memory_max_mib": 826
+          },
+          {
+            "fixture": "gold",
+            "repeat": 2,
+            "engine_pid": 119401,
+            "samples": 20,
+            "sampled_process_gpu_memory_max_mib": 706
+          },
+          {
+            "fixture": "public-en",
+            "repeat": 0,
+            "engine_pid": 124524,
+            "samples": 57,
+            "sampled_process_gpu_memory_max_mib": 834
+          },
+          {
+            "fixture": "public-en",
+            "repeat": 1,
+            "engine_pid": 125019,
+            "samples": 58,
+            "sampled_process_gpu_memory_max_mib": 838
+          },
+          {
+            "fixture": "public-en",
+            "repeat": 2,
+            "engine_pid": 126485,
+            "samples": 56,
+            "sampled_process_gpu_memory_max_mib": 834
+          },
+          {
+            "fixture": "public-zh",
+            "repeat": 0,
+            "engine_pid": 131226,
+            "samples": 54,
+            "sampled_process_gpu_memory_max_mib": 834
+          },
+          {
+            "fixture": "public-zh",
+            "repeat": 1,
+            "engine_pid": 131757,
+            "samples": 54,
+            "sampled_process_gpu_memory_max_mib": 826
+          },
+          {
+            "fixture": "public-zh",
+            "repeat": 2,
+            "engine_pid": 132761,
+            "samples": 54,
+            "sampled_process_gpu_memory_max_mib": 826
+          }
+        ],
+        "overall_max_mib": 838
+      },
+      {
+        "source": "/home/gordon/work/dettivo-linux-wt/_factory/fn42-runtime-ncbopZ/compare-c417ka1l/report.json",
+        "runs": [
+          {
+            "fixture": "gold",
+            "repeat": 0,
+            "engine_pid": 626081,
+            "samples": 12,
+            "sampled_process_gpu_memory_max_mib": 698
+          },
+          {
+            "fixture": "gold",
+            "repeat": 1,
+            "engine_pid": 626172,
+            "samples": 11,
+            "sampled_process_gpu_memory_max_mib": 824
+          },
+          {
+            "fixture": "gold",
+            "repeat": 2,
+            "engine_pid": 626572,
+            "samples": 11,
+            "sampled_process_gpu_memory_max_mib": 824
+          },
+          {
+            "fixture": "public-en",
+            "repeat": 0,
+            "engine_pid": 627061,
+            "samples": 32,
+            "sampled_process_gpu_memory_max_mib": 1084
+          },
+          {
+            "fixture": "public-en",
+            "repeat": 1,
+            "engine_pid": 627369,
+            "samples": 32,
+            "sampled_process_gpu_memory_max_mib": 1080
+          },
+          {
+            "fixture": "public-en",
+            "repeat": 2,
+            "engine_pid": 628344,
+            "samples": 32,
+            "sampled_process_gpu_memory_max_mib": 844
+          },
+          {
+            "fixture": "public-zh",
+            "repeat": 0,
+            "engine_pid": 629135,
+            "samples": 32,
+            "sampled_process_gpu_memory_max_mib": 840
+          },
+          {
+            "fixture": "public-zh",
+            "repeat": 1,
+            "engine_pid": 629453,
+            "samples": 32,
+            "sampled_process_gpu_memory_max_mib": 840
+          },
+          {
+            "fixture": "public-zh",
+            "repeat": 2,
+            "engine_pid": 630315,
+            "samples": 32,
+            "sampled_process_gpu_memory_max_mib": 828
+          }
+        ],
+        "overall_max_mib": 1084
+      }
+    ],
+    "run_set_maximum_increase_mib": 246
+  }
+}

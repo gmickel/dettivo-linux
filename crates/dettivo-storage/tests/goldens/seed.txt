@@ -1,0 +1,35 @@
+2026-02-13T16:00:00Z  Text Editor
+The contract sample dictation. Thirty seconds of speech.
+
+2026-02-13T14:20:00Z  Text Editor
+Summary of the design call: the bar widget resolves every colour from the theme.
+
+2026-02-13T11:35:00Z  Ghostty
+Cargo test --workspace, then package the release.
+
+2026-02-13T09:00:00Z  Text Editor
+Thanks for the review, I pushed the fixes for the API rate limiter.
+
+2026-02-12T16:10:00Z  Ghostty
+SSH into the build machine and restart the PipeWire service.
+
+2026-02-12T13:45:00Z  Text Editor
+Note to self: the search index needs diacritic folding for the German names.
+
+2026-02-12T11:20:00Z  Ghostty
+Run the benchmark on the Vulkan backend.
+
+2026-02-12T08:55:00Z  Text Editor
+Meeting prep, three points: budget, hiring, the café lease.
+
+2026-02-11T17:30:00Z  Ghostty
+Todo: review the pull request from Mara before the release.
+
+2026-02-11T14:05:00Z  Text Editor
+Draft reply to the naïve question about latency. We measured forty milliseconds.
+
+2026-02-11T10:40:00Z  Ghostty
+Git commit message: fix the retry loop in the uploader.
+
+2026-02-11T09:12:00Z  Text Editor
+Morning standup notes, the API gateway rollout moves to Thursday.

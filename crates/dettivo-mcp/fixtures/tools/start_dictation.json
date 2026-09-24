@@ -1,0 +1,21 @@
+{
+  "description": "Start dictation capture.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "language": {
+        "type": "string"
+      },
+      "mode": {
+        "enum": [
+          "raw",
+          "polish"
+        ],
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "name": "start_dictation",
+  "title": "Start Dictation"
+}

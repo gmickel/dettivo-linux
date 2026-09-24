@@ -1,0 +1,30 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32013,
+      "data": {
+        "app_code": "CONFLICT",
+        "details": {
+          "kind": "meetingDisclosureRequired"
+        },
+        "retryable": false
+      },
+      "message": "Meeting disclosure acknowledgement required"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "meetings.start",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.start",
+    "params": {
+      "capture": {
+        "microphone": true,
+        "system_audio": true
+      }
+    }
+  }
+}

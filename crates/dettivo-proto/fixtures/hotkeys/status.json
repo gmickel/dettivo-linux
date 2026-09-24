@@ -1,0 +1,29 @@
+{
+  "capabilities": {},
+  "method": "hotkeys.status",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "hotkeys.status",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "backend": "none",
+      "bound": [],
+      "error": null,
+      "evdev": {
+        "available": false,
+        "reason": "cannot open 12 input device(s): reading /dev/input/event* needs the `input` group: run `sudo usermod -aG input $USER` and log in again"
+      },
+      "last_press_at": null,
+      "portal": {
+        "available": false,
+        "reason": "the desktop portal has no GlobalShortcuts interface"
+      },
+      "requested": "auto"
+    }
+  }
+}

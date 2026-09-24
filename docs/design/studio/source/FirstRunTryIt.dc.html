@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@300;400;600&display=swap">
+  <style>
+    :root{--bg:#0D0D0D;--fg:#EBDBB2;--fg2:rgba(235,219,178,.62);--fg3:rgba(235,219,178,.38);--line:rgba(235,219,178,.14);--line2:rgba(235,219,178,.35);--fill:rgba(235,219,178,.03);--gold:#F5BF03;--gold2:#BFA75D;--gold3:#A3850E;--red:#D35F5F}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:"Cascadia Mono",ui-monospace,"CaskaydiaMono Nerd Font","JetBrains Mono",monospace;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+    a{color:var(--gold2)} a:hover{color:var(--gold)}
+    .label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg3)}
+    .num{font-variant-numeric:tabular-nums}
+    .btn{height:28px;padding:0 10px;border:1px solid var(--line2);background:var(--fill);color:var(--fg);display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:12px;box-sizing:border-box}
+    .btn.primary{border-color:rgba(245,191,3,.9);background:rgba(245,191,3,.14);color:var(--gold)}
+    .key{display:inline-flex;align-items:center;height:26px;padding:0 10px;border:1px solid var(--line2);font-size:13px;color:var(--fg)}
+    .bars{display:flex;align-items:center;gap:3px;height:64px}
+    .bars i{display:block;width:3px;background:var(--gold)}
+    .dots{display:flex;gap:8px;align-items:center}
+    .dots i{display:block;width:6px;height:6px;background:var(--fg3)}
+    .dots i.on{background:var(--gold)}
+    .kv{display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid var(--line);font-size:12px}
+    .kv span:last-child{color:var(--fg2)}
+  </style>
+</helmet>
+<div style="width:1280px;height:820px;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);display:flex;flex-direction:column;padding:56px 0 40px">
+  <div style="width:820px;margin:0 auto;display:flex;flex-direction:column;gap:28px;flex:1">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:10px"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#F5BF03" stroke-width="1.5" stroke-linecap="square"><path d="M2 9V7M5 12V4M8 10V6M11 13V3M14 9V7"/></svg><span style="font-weight:600;letter-spacing:.02em">dettivo</span></div>
+      <div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><span class="label" style="margin-left:6px">keys · models · try it</span></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.1">Try it</div>
+      <div style="color:var(--fg2)">Hold <span class="key">F9</span>, say a sentence, let go.</div>
+    </div>
+
+    <div style="border:1px solid var(--line2);padding:24px;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:center;gap:20px">
+        <span style="width:10px;height:10px;background:var(--gold)"></span>
+        <div class="bars"><i style="height:8px"></i><i style="height:16px"></i><i style="height:30px"></i><i style="height:22px"></i><i style="height:40px"></i><i style="height:14px"></i><i style="height:26px"></i><i style="height:10px"></i><i style="height:34px"></i><i style="height:18px"></i><i style="height:8px"></i><i style="height:24px"></i><i style="height:12px"></i><i style="height:36px"></i><i style="height:20px"></i><i style="height:6px"></i><i style="height:28px"></i><i style="height:16px"></i><i style="height:10px"></i><i style="height:22px"></i><i style="height:32px"></i><i style="height:14px"></i><i style="height:8px"></i><i style="height:18px"></i><i style="height:26px"></i><i style="height:12px"></i><i style="height:6px"></i><i style="height:20px"></i><i style="height:38px"></i><i style="height:16px"></i><i style="height:10px"></i><i style="height:24px"></i></div>
+        <span class="label" style="margin-left:auto">listening · parakeet v3</span>
+      </div>
+      <div style="border:1px solid var(--line);padding:16px 18px;min-height:96px;font-size:16px;line-height:1.6">This is the first thing I have said to Dettivo on Linux, and it landed here.<span style="display:inline-block;width:2px;height:18px;background:var(--gold);vertical-align:-3px;margin-left:2px"></span></div>
+      <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:24px">
+        <div class="kv"><span>inserted via</span><span>virtual keyboard</span></div>
+        <div class="kv"><span>stop to insert</span><span class="num">0.8 s</span></div>
+        <div class="kv"><span>mode</span><span>Enhanced · Qwen3 4B</span></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:6px;color:var(--fg2);font-size:12px">
+      <div>That works in any app that takes keyboard input. Terminals get Ctrl+Shift+V pastes when a backend needs the clipboard.</div>
+      <div>Meetings, history search, the CLI and MCP are ready too. Everything you just set lives in <span style="color:var(--fg)">~/.config/dettivo/config.toml</span>.</div>
+    </div>
+
+    <div style="flex:1"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:16px">
+      <div class="btn">Open config.toml</div>
+      <div style="display:flex;gap:8px"><div class="btn">Back</div><div class="btn primary">Done</div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

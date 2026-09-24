@@ -1,0 +1,28 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32013,
+      "data": {
+        "app_code": "CONFLICT",
+        "details": {
+          "kind": "sessionActive"
+        },
+        "retryable": false
+      },
+      "message": "A meeting session is active"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "dictation.start",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "dictation.start",
+    "params": {
+      "language": "en",
+      "mode": "raw"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-08T20:15:28.101675Z",
+  "depends_on": [],
+  "id": "fn-54-live-desktop-qa-after-cleanup.5",
+  "priority": null,
+  "spec": "fn-54-live-desktop-qa-after-cleanup",
+  "spec_path": ".flow/tasks/fn-54-live-desktop-qa-after-cleanup.5.md",
+  "status": "todo",
+  "title": "Keep the Meetings list readable at minimum width",
+  "updated_at": "2026-09-08T20:15:28.101675Z"
+}

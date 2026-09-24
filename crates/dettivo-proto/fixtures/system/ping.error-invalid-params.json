@@ -1,0 +1,25 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32010,
+      "data": {
+        "app_code": "INVALID_PARAMS",
+        "details": {},
+        "retryable": false
+      },
+      "message": "stray: unknown field `stray`, there are no fields"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "system.ping",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "system.ping",
+    "params": {
+      "stray": true
+    }
+  }
+}

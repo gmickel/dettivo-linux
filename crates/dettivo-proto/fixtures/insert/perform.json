@@ -1,0 +1,59 @@
+{
+  "capabilities": {
+    "insert.methods": [
+      "insert.undo",
+      "insert.target",
+      "insert.allow_self_target"
+    ],
+    "insert_modes": [
+      "raw",
+      "polish",
+      "clipboard_only"
+    ]
+  },
+  "method": "insert.perform",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "insert.perform",
+    "params": {
+      "expected_target_bundle_id": "org.gnome.TextEditor",
+      "mode": "raw",
+      "text": "Hello team"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "backend": {
+        "latency_ms": 1,
+        "name": "mock",
+        "undo_supported": false
+      },
+      "context_pack": {
+        "metrics": {
+          "capture_duration_ms": 0,
+          "character_count": 0,
+          "payload_bytes": 0,
+          "token_budget": 0,
+          "token_estimate": 0
+        },
+        "reason": "context_capture_off",
+        "source": {
+          "adapter_id": "none",
+          "app_class": "generic",
+          "bundle_id": "org.gnome.TextEditor"
+        },
+        "status": "Off"
+      },
+      "method": "paste",
+      "outcome": "inserted",
+      "reason": null,
+      "target_app": {
+        "bundle_id": "org.gnome.TextEditor",
+        "name": "Text Editor"
+      }
+    }
+  }
+}

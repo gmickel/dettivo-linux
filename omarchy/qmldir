@@ -1,0 +1,2 @@
+module DettivoPlugin
+singleton DettivoState 1.0 DettivoState.qml

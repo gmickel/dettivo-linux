@@ -1,0 +1,102 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/dettivo-proto",
+    "crates/dettivo-core",
+    "crates/dettivo-audio",
+    "crates/dettivo-engine-proto",
+    "crates/dettivo-speech",
+    "crates/dettivo-session",
+    "crates/dettivo-language",
+    "crates/dettivo-transcribe",
+    "crates/dettivo-insert",
+    "crates/dettivo-hotkeys",
+    "crates/dettivo-storage",
+    "crates/dettivo-meeting",
+    "crates/dettivo-engine-whisper",
+    "crates/parakeet-cpp-sys",
+    "crates/dettivo-engine-parakeet",
+    "crates/dettivo-engine-llm",
+    "crates/sherpa-onnx-sys",
+    "crates/dettivo-engine-diarize",
+    "crates/dettivod",
+    "crates/dettivo-cli",
+    "crates/dettivo-mcp",
+    "crates/dettivo-rest",
+    "crates/dettivo-qa",
+    "tools/xtask",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/gmickel/dettivo-linux"
+rust-version = "1.85"
+
+[workspace.dependencies]
+dettivo-proto = { path = "crates/dettivo-proto" }
+dettivo-core = { path = "crates/dettivo-core" }
+dettivo-audio = { path = "crates/dettivo-audio" }
+dettivo-engine-proto = { path = "crates/dettivo-engine-proto" }
+dettivo-speech = { path = "crates/dettivo-speech" }
+dettivo-session = { path = "crates/dettivo-session" }
+dettivo-language = { path = "crates/dettivo-language" }
+dettivo-transcribe = { path = "crates/dettivo-transcribe" }
+dettivo-rest = { path = "crates/dettivo-rest" }
+dettivo-insert = { path = "crates/dettivo-insert" }
+dettivo-hotkeys = { path = "crates/dettivo-hotkeys", default-features = false }
+dettivo-storage = { path = "crates/dettivo-storage" }
+dettivo-meeting = { path = "crates/dettivo-meeting" }
+parakeet-cpp-sys = { path = "crates/parakeet-cpp-sys" }
+sherpa-onnx-sys = { path = "crates/sherpa-onnx-sys" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_path_to_error = "0.1"
+tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "macros", "signal", "time", "sync", "fs", "process"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+toml = "1"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+sha2 = "0.10"
+wl-clipboard-rs = "0.9"
+toml_edit = "0.25"
+clap = { version = "4", features = ["derive"] }
+clap_complete = "4"
+tempfile = "3"
+libc = "0.2"
+hound = "3"
+whisper-rs = { version = "0.16", default-features = false }
+llama-cpp-2 = { version = "=0.1.156", default-features = false }
+pipewire = "0.10"
+libspa = "0.10"
+atspi = { version = "0.30", default-features = false, features = ["connection", "proxies", "wrappers", "tokio", "tracing"] }
+zbus = { version = "5", default-features = false, features = ["tokio"] }
+x11rb = { version = "0.14", features = ["xtest", "image"] }
+wayland-client = "0.31"
+wayland-protocols-misc = { version = "0.3", features = ["client"] }
+xkbcommon = "0.9"
+x11-clipboard = "0.9"
+ashpd = { version = "0.13", default-features = false, features = ["tokio", "remote_desktop", "screencast", "global_shortcuts"] }
+reis = { version = "0.7", features = ["tokio"] }
+futures-util = { version = "0.3", default-features = false }
+enumflags2 = "0.7"
+rusqlite = { version = "0.37", features = ["bundled"] }
+uuid = { version = "1", features = ["v4"] }
+base64 = "0.22"
+evdev = "0.13"
+bindgen = "0.72"
+cmake = "0.1"
+cc = "1"
+symphonia = { version = "0.6", default-features = false, features = ["wav", "aiff", "caf", "isomp4", "aac", "alac", "mp3", "flac", "ogg", "vorbis", "pcm"] }
+rubato = { version = "4", default-features = false }
+fancy-regex = "0.19"
+url = "2"
+httparse = "1"
+
+[workspace.lints.rust]
+unsafe_code = "warn"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+all = "warn"

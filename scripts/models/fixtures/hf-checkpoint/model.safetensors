@@ -1,0 +1,1 @@
+placeholder: the dry run checks that a *.safetensors file exists beside config.json and reads nothing from it

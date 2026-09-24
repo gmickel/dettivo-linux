@@ -1,0 +1,40 @@
+{
+  "capabilities": {},
+  "method": "dictation.status",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "dictation.status",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "context_pack": {
+        "metrics": {
+          "capture_duration_ms": 12,
+          "character_count": 128,
+          "payload_bytes": 128,
+          "token_budget": 320,
+          "token_estimate": 32
+        },
+        "reason": null,
+        "source": {
+          "adapter_id": "generic",
+          "app_class": "generic",
+          "bundle_id": "org.gnome.TextEditor"
+        },
+        "status": "Ready"
+      },
+      "is_active": true,
+      "job": {
+        "error": null,
+        "job_id": "job_dict_1",
+        "message": "listening",
+        "progress": 0.42,
+        "state": "running"
+      }
+    }
+  }
+}

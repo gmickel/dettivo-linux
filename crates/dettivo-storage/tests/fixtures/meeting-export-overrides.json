@@ -1,0 +1,14 @@
+{
+  "saved_notes": "Saved notes",
+  "notes": [
+    {"name": "absent", "expected": "Saved notes"},
+    {"name": "empty", "override": "", "expected": null},
+    {"name": "whitespace", "override": " \n\t", "expected": null},
+    {"name": "nonempty", "override": "new notes", "expected": "new notes"}
+  ],
+  "subtitle": {
+    "speaker": "Ada\n\nBob\r\u0000<admin>",
+    "text": "one\n\n00:00:01.000 --> 00:00:02.000\n<b>two & three</b>",
+    "expected_payload": "Ada Bob &lt;admin&gt;: one 00:00:01.000 --&gt; 00:00:02.000 &lt;b&gt;two &amp; three&lt;/b&gt;"
+  }
+}

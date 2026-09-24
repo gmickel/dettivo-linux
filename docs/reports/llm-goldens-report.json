@@ -1,0 +1,210 @@
+{
+  "aligned_with_deterministic": 16,
+  "aligned_with_macos": 11,
+  "cases": 18,
+  "engine": "dettivo-engine-llm (cpu)",
+  "model": "llm/qwen3-1.7b",
+  "note": "alignment is recorded, not gated: sampling differs from the macOS goldens, the Swift suite runs each case with its own transform set while polish.test runs the generic preset, and the guards decide what is inserted",
+  "preset": "generic",
+  "rewritten_by_the_model": 3,
+  "rows": [
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": false,
+      "deterministic": "Read index. Ts and output.",
+      "expected_macos": "Read index.ts and output.",
+      "input": "read index.ts and output",
+      "model": "deterministic",
+      "name": "applies_basic_rewrite_for_command_like_input",
+      "notice": null,
+      "output": "Read index. Ts and output."
+    },
+    {
+      "aligned_with_deterministic": false,
+      "aligned_with_macos": false,
+      "deterministic": "I need the update now.",
+      "expected_macos": "I need the update now.",
+      "input": "um  i need the update uh now",
+      "model": "qwen3-1.7b",
+      "name": "removes_common_fillers_when_enabled",
+      "notice": null,
+      "output": "Um I need the update now."
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": false,
+      "deterministic": "Read index. Ts and output.",
+      "expected_macos": "read index.ts and output",
+      "input": "  read index.ts and output  ",
+      "model": "deterministic",
+      "name": "leaves_sentence_punctuation_untouched_when_smart_punctuation_disabled",
+      "notice": null,
+      "output": "Read index. Ts and output."
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": false,
+      "deterministic": "Read index. Ts and output.",
+      "expected_macos": "Read @index.ts and output.",
+      "input": "read index.ts and output",
+      "model": "deterministic",
+      "name": "applies_post_processors_when_provided",
+      "notice": null,
+      "output": "Read index. Ts and output."
+    },
+    {
+      "aligned_with_deterministic": false,
+      "aligned_with_macos": false,
+      "deterministic": "Well I think this is fine and that's good and I can send it.",
+      "expected_macos": "Well I think this is fine and that's good and I can send it.",
+      "input": "well ithink ths is fine and thats good and i can send it",
+      "model": "qwen3-1.7b",
+      "name": "applies_common_grammar_fixes_when_enabled",
+      "notice": null,
+      "output": "Well think ths is fine and thats good and i can send it."
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": true,
+      "deterministic": "Can you send me the final deck by noon?",
+      "expected_macos": "Can you send me the final deck by noon?",
+      "input": "can you send me the final deck by noon",
+      "model": "deterministic",
+      "name": "uses_question_mark_for_question_like_input",
+      "notice": null,
+      "output": "Can you send me the final deck by noon?"
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": true,
+      "deterministic": "Hey did you push the branch yet?",
+      "expected_macos": "Hey did you push the branch yet?",
+      "input": "hey did you push the branch yet",
+      "model": "deterministic",
+      "name": "uses_question_mark_for_conversational_question_lead",
+      "notice": null,
+      "output": "Hey did you push the branch yet?"
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": true,
+      "deterministic": "Hallo kannst du mir den stand bis morgen schicken?",
+      "expected_macos": "Hallo kannst du mir den stand bis morgen schicken?",
+      "input": "hallo kannst du mir den stand bis morgen schicken",
+      "model": "deterministic",
+      "name": "uses_question_mark_for_german_question_lead",
+      "notice": null,
+      "output": "Hallo kannst du mir den stand bis morgen schicken?"
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": true,
+      "deterministic": "هل أرسلت التقرير النهائي?",
+      "expected_macos": "هل أرسلت التقرير النهائي?",
+      "input": "هل أرسلت التقرير النهائي",
+      "model": "deterministic",
+      "name": "uses_question_mark_for_arabic_question_lead",
+      "notice": null,
+      "output": "هل أرسلت التقرير النهائي?"
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": true,
+      "deterministic": "この案で進めてもいいですか?",
+      "expected_macos": "この案で進めてもいいですか?",
+      "input": "この案で進めてもいいですか",
+      "model": "deterministic",
+      "name": "uses_question_mark_for_japanese_question_suffix",
+      "notice": null,
+      "output": "この案で進めてもいいですか?"
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": true,
+      "deterministic": "Well I think that's a pretty good answer.",
+      "expected_macos": "Well I think that's a pretty good answer.",
+      "input": "well ithink thats a pretty good answer",
+      "model": "deterministic",
+      "name": "eval_english_cleanup",
+      "notice": null,
+      "output": "Well I think that's a pretty good answer."
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": false,
+      "deterministic": "Read index. Ts and output it to me.",
+      "expected_macos": "Read index.ts and output it to me.",
+      "input": "read index.ts and output it to me",
+      "model": "deterministic",
+      "name": "eval_code_command",
+      "notice": null,
+      "output": "Read index. Ts and output it to me."
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": true,
+      "deterministic": "Hey did you push the branch yet?",
+      "expected_macos": "Hey did you push the branch yet?",
+      "input": "hey did you push the branch yet",
+      "model": "deterministic",
+      "name": "eval_chat_question",
+      "notice": null,
+      "output": "Hey did you push the branch yet?"
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": true,
+      "deterministic": "Hola necesito el reporte para mañana gracias.",
+      "expected_macos": "Hola necesito el reporte para mañana gracias.",
+      "input": "hola eh necesito el reporte para mañana gracias",
+      "model": "deterministic",
+      "name": "eval_spanish_cleanup",
+      "notice": null,
+      "output": "Hola necesito el reporte para mañana gracias."
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": true,
+      "deterministic": "Hallo kannst du mir den stand bis morgen schicken?",
+      "expected_macos": "Hallo kannst du mir den stand bis morgen schicken?",
+      "input": "hallo äh kannst du mir den stand bis morgen schicken",
+      "model": "deterministic",
+      "name": "eval_german_question",
+      "notice": null,
+      "output": "Hallo kannst du mir den stand bis morgen schicken?"
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": true,
+      "deterministic": "مرحبا هل أرسلت التقرير النهائي?",
+      "expected_macos": "مرحبا هل أرسلت التقرير النهائي?",
+      "input": "مرحبا هل أرسلت التقرير النهائي",
+      "model": "deterministic",
+      "name": "eval_arabic_question",
+      "notice": null,
+      "output": "مرحبا هل أرسلت التقرير النهائي?"
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": true,
+      "deterministic": "Hola team please review el documento final hoy.",
+      "expected_macos": "Hola team please review el documento final hoy.",
+      "input": "hola team please review el documento final hoy",
+      "model": "qwen3-1.7b",
+      "name": "eval_mixed_language",
+      "notice": null,
+      "output": "Hola team please review el documento final hoy."
+    },
+    {
+      "aligned_with_deterministic": true,
+      "aligned_with_macos": false,
+      "deterministic": "Hey @alex check src/app/index. Ts and push the fix.",
+      "expected_macos": "Hey @alex check src/app/index.ts and push the fix.",
+      "input": "hey @alex check src/app/index.ts and push the fix",
+      "model": "deterministic",
+      "name": "eval_mention_path_preserved",
+      "notice": null,
+      "output": "Hey @alex check src/app/index. Ts and push the fix."
+    }
+  ]
+}

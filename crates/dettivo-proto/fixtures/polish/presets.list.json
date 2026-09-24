@@ -1,0 +1,38 @@
+{
+  "capabilities": {},
+  "method": "polish.presets.list",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "polish.presets.list",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "presets": [
+        {
+          "display_name": "Email",
+          "id": "email"
+        },
+        {
+          "display_name": "Code",
+          "id": "code"
+        },
+        {
+          "display_name": "Chat",
+          "id": "chat"
+        },
+        {
+          "display_name": "Notes",
+          "id": "notes"
+        },
+        {
+          "display_name": "General",
+          "id": "generic"
+        }
+      ]
+    }
+  }
+}

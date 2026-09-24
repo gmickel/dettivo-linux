@@ -1,0 +1,19 @@
+{
+  "capabilities": {},
+  "method": "system.version",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "system.version",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "api_version": "1.0.0",
+      "app_version": "0.1.0",
+      "build": "284a402"
+    }
+  }
+}

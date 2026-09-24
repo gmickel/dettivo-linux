@@ -1,0 +1,22 @@
+[Desktop Entry]
+Type=Application
+Name=Dettivo
+GenericName=Speech workstation
+Comment=Dictate into any app, record meetings and search everything you said, all on this machine
+Exec=dettivo-app
+Icon=dettivo
+Terminal=false
+Categories=AudioVideo;Audio;
+Keywords=dictation;speech;transcription;voice;meeting;
+StartupNotify=true
+StartupWMClass=dettivo-app
+SingleMainWindow=true
+Actions=history;meetings;
+
+[Desktop Action history]
+Name=History
+Exec=dettivo-app --open history
+
+[Desktop Action meetings]
+Name=Meetings
+Exec=dettivo-app --open meetings

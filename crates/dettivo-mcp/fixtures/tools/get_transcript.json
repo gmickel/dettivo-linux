@@ -1,0 +1,24 @@
+{
+  "description": "Get one transcript by id and optional kind.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "kind": {
+        "enum": [
+          "dictation",
+          "meeting"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "id"
+    ],
+    "type": "object"
+  },
+  "name": "get_transcript",
+  "title": "Get Transcript"
+}

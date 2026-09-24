@@ -1,0 +1,21 @@
+{
+  "capabilities": {},
+  "method": "polish.apps.set",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "polish.apps.set",
+    "params": {
+      "bundle_id": "org.mozilla.Thunderbird",
+      "preset": "email"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "bundle_id": "org.mozilla.Thunderbird",
+      "preset": "email"
+    }
+  }
+}

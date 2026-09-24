@@ -1,0 +1,14 @@
+{
+  "description": "Stop dictation or meeting recording.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "meeting_id": {
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "name": "stop_session",
+  "title": "Stop Session"
+}

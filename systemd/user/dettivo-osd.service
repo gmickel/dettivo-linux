@@ -1,0 +1,23 @@
+# The recording pill outside Omarchy (docs/osd.md): hosts Dettivo.Osd on a
+# layer-shell overlay or an always-on-top window and follows the daemon's
+# event stream, reconnecting whenever dettivod restarts. The packaging
+# enables it where the Omarchy panel plugin is not installed; when the
+# plugin advertises itself on the session bus the process exits 0 with a
+# notice, so one pill shows.
+
+[Unit]
+Description=Dettivo recording pill
+Documentation=https://github.com/gmickel/dettivo-linux/blob/main/docs/osd.md
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/dettivo-osd
+KillSignal=SIGTERM
+TimeoutStopSec=5
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

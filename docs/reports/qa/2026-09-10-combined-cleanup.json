@@ -1,0 +1,1774 @@
+{
+  "scenarios": {
+    "S1": {
+      "goal": "Exercise capture, insertion, startup and desktop state transitions in isolated profiles",
+      "commands": [
+        "dettivo-qa drive all --driver atspi"
+      ],
+      "expected": "Each drivable scenario passes; no owned process leaks; unsupported installed-session/model cases remain explicit skips",
+      "error_paths": [
+        "never_into_self",
+        "history_states",
+        "settings_env_override",
+        "meetings_import_gui invalid/cancelled input"
+      ]
+    },
+    "S2": {
+      "goal": "Open every settings and onboarding route and observe persisted writes",
+      "commands": [
+        "dettivo-qa pack gui --driver atspi --continue"
+      ],
+      "expected": "All supported GUI routes show the expected state and writes match backend configuration",
+      "error_paths": [
+        "invalid settings values",
+        "onboarding interruption/resume",
+        "module absence/version-skew fixtures"
+      ],
+      "limits": [
+        "The pack pins supplemental Cua steps. Preserve its full verdict and separately report mandatory AT-SPI coverage; no driver installation or update is authorized."
+      ]
+    },
+    "S3": {
+      "goal": "Search, rerun, export and delete seeded history",
+      "reuse_scenarios_from_S1": [
+        "history_seeded",
+        "history_states",
+        "history_roundtrip"
+      ],
+      "expected": "UI rows, search hits and exported files match the seeded backend; failure and unavailable states remain visible",
+      "error_paths": [
+        "empty/history error states",
+        "rerun failure/cancellation paths"
+      ]
+    },
+    "S4": {
+      "goal": "Import, recover, cancel, export and rename seeded meetings",
+      "reuse_scenarios_from_S1": [
+        "meetings_seeded",
+        "meetings_live_gui",
+        "meetings_import_gui",
+        "meeting_recovery",
+        "meeting_live"
+      ],
+      "expected": "Actions update the same backend identities and notes, final export content matches, invalid media refuses, cancellation remains terminal",
+      "error_paths": [
+        "invalid media",
+        "cancel import",
+        "cancel/recover on same list",
+        "damaged recovery refusal"
+      ]
+    },
+    "S5": {
+      "goal": "Exercise live meeting search and explicit notes export overrides",
+      "commands": [
+        "temporary notes_export_probe using dettivo_qa runner and AT-SPI"
+      ],
+      "expected": "Search results match the backend and clear restores rows; nonempty, empty and whitespace editor values override stored notes in JSON exports",
+      "error_paths": [
+        "zero search hits",
+        "close export without writing",
+        "empty/whitespace notes after another client changes stored notes"
+      ]
+    },
+    "S6": {
+      "goal": "Observe daemon reconnect, live theme application and release app timing",
+      "reuse_scenarios_from_S1": [
+        "app_daemon",
+        "app_theme_live",
+        "theme_switch"
+      ],
+      "commands": [
+        "release app_routes with DETTIVO_TIMING_GATE=1",
+        "release app_theme_live with DETTIVO_TIMING_GATE=1"
+      ],
+      "expected": "Reconnection refreshes the UI; first frame remains under 300ms and theme application under 100ms",
+      "error_paths": [
+        "daemon disconnect/restart",
+        "consecutive theme changes"
+      ]
+    },
+    "S7": {
+      "goal": "Compare every current visual render and reject independent regression plants",
+      "commands": [
+        "dettivo-qa visual",
+        "visual design-system builtin-dark 1x canaries for colour/type/spacing"
+      ],
+      "expected": "No baseline approval or tolerance increase; preserve every matrix failure; distinguish actual pixel changes from stricter detection",
+      "error_paths": [
+        "independent colour/type/spacing plants",
+        "missing approved renders",
+        "size mismatch regression tests"
+      ],
+      "limits": [
+        "Intentional import composition and existing fn-38 approvals remain human-owned"
+      ]
+    },
+    "S8": {
+      "goal": "Measure five fresh native Wayland release launches on Thor",
+      "commands": [
+        "DETTIVO_BUILD_PROFILE=release dettivo-qa drive app_memory.wayland"
+      ],
+      "expected": "Each launch after five continuously observed idle seconds meets RSS<=262144KiB and Anonymous<=98304KiB; first frame<300ms; PSS reported uncapped",
+      "error_paths": [
+        "unknown downloads are not zero",
+        "missing/unreadable/malformed metrics or early exit cannot pass"
+      ],
+      "limits": [
+        "No renderer, scale, threshold or host configuration changes"
+      ]
+    },
+    "S9": {
+      "goal": "Measure five fresh Xvfb release launches as secondary reference",
+      "commands": [
+        "Xvfb DETTIVO_BUILD_PROFILE=release dettivo-qa drive app_memory.xvfb"
+      ],
+      "expected": "Same exact per-launch memory/startup requirements as S8; this cannot replace native evidence",
+      "error_paths": [
+        "unsupported platform or missing release binaries fails or blocks",
+        "unknown activity cannot establish idle"
+      ]
+    },
+    "S10": {
+      "goal": "Exercise native Qt component keyboard/accessibility behavior and Omarchy shell fixtures",
+      "commands": [
+        "Xvfb QT_QPA_PLATFORM=xcb dettivo-quick-test",
+        "Xvfb QT_QPA_PLATFORM=xcb scripts/qa/omarchy-plugin-test.sh"
+      ],
+      "expected": "Keyboard/accessibility actions execute once, bindings persist, error/reconnect actions show the expected fixture state",
+      "error_paths": [
+        "rejected writes",
+        "disconnect invalidates stale stop target",
+        "start launch failure",
+        "stop failure"
+      ],
+      "limits": [
+        "Component/shell-shim evidence; no installed personal Omarchy integration claim"
+      ]
+    }
+  },
+  "spines": [
+    {
+      "spec": "fn-48-cleanup-security-boundaries-6-review",
+      "export": "/tmp/dettivo-combined-qa-20260910-Nyxanz/qa-fn-48-cleanup-security-boundaries-6-review.json",
+      "derived_at_head": "832d9dadaedf18a8deb5956377e86de3ea615847",
+      "boundaries": [
+        "Fix the finding, not the neighbourhood: no new features, no refactors beyond what a finding names.",
+        "A rejected finding is a sentence of evidence in the summary, never a silent skip.",
+        "Files stay under the limits; a fix that would cross one splits the file."
+      ],
+      "rows": [
+        {
+          "id": "R1",
+          "criterion": "daemon/F8, Transfer files rely on the caller\u2019s umask for confidentiality: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-48-cleanup-security-boundaries-6-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R2",
+          "criterion": "daemon/F19, Valid request paths violate the stated log-content boundary: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-48-cleanup-security-boundaries-6-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R3",
+          "criterion": "agent-surfaces/F2, REST resolves a token for HTTP authentication but can omit it from IPC: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-48-cleanup-security-boundaries-6-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R4",
+          "criterion": "agent-surfaces/F5, Malformed Unicode can panic protocol handling: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-48-cleanup-security-boundaries-6-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R5",
+          "criterion": "agent-surfaces/F18, REST status labels every non-200 response as an authentication failure and exits successfully: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-48-cleanup-security-boundaries-6-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R6",
+          "criterion": "qa-rig/F1, Inherited environment variables can redirect a scenario into real user data: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-48-cleanup-security-boundaries-6-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R7",
+          "criterion": "`just build test lint` is green at the final commit, the contract replay passes, every drive a fix touches passes under `scripts/qa/xvfb-session.sh`, ADR 0050 records the decisions this theme changed and is indexed, and the task summary lists every finding as fixed or rejected with its evidence. Errors: as stated.",
+          "coverage": "live",
+          "scenarios": [
+            "S1",
+            "S2"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-48-cleanup-security-boundaries-6-review.1"
+          ],
+          "scenario_results": {
+            "S1": "pass_with_documented_skips",
+            "S2": "pass_with_documented_skips"
+          }
+        }
+      ]
+    },
+    {
+      "spec": "fn-52-cleanup-delete-and-simplify-29-review",
+      "export": "/tmp/dettivo-combined-qa-20260910-Nyxanz/qa-fn-52-cleanup-delete-and-simplify-29-review.json",
+      "derived_at_head": "832d9dadaedf18a8deb5956377e86de3ea615847",
+      "boundaries": [
+        "Fix the finding, not the neighbourhood: no new features, no refactors beyond what a finding names.",
+        "A rejected finding is a sentence of evidence in the summary, never a silent skip.",
+        "Files stay under the limits; a fix that would cross one splits the file."
+      ],
+      "rows": [
+        {
+          "id": "R1",
+          "criterion": "daemon/F20, Delete the redundant dispatch inventory and duplicate parameter decoding: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R2",
+          "criterion": "agent-surfaces/F10, Compositor dictation overrides configured mode and implements toggle outside the daemon: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R3",
+          "criterion": "agent-surfaces/F12, Three transfer implementations buffer whole files and disagree about cleanup: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R4",
+          "criterion": "agent-surfaces/F14, Doctor can report success when required probes failed: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R5",
+          "criterion": "agent-surfaces/F15, Delete two copies of the Unix-socket client: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R6",
+          "criterion": "engines/F9, Model replacement temporarily keeps both models resident: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R7",
+          "criterion": "engines/F16, The transcription crate carries an unused language dependency: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R8",
+          "criterion": "dictation/F4, Delete the second transcript archive outside history retention: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R9",
+          "criterion": "dictation/F5, Delete synthesized undo until it can identify the inserted range: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R10",
+          "criterion": "dictation/F13, Disabled transforms and post-processors still run through unconditional passes: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R11",
+          "criterion": "meetings/F3, Delete the redundant meeting-row copy from metadata: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R12",
+          "criterion": "meetings/F10, Collapse the completion hooks into one ordered post-processing path: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R13",
+          "criterion": "meetings/F15, Status polling unnecessarily loads the entire meeting archive: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R14",
+          "criterion": "qa-rig/F18, Process cleanup depends on reaching the runner\u2019s normal teardown: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R15",
+          "criterion": "qa-rig/F19, Delete the first-run scenario\u2019s second model-store lifecycle: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R16",
+          "criterion": "qa-packs/F6, The visual comparator deliberately ignores regressions the gate promises to catch: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S7"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {
+            "S7": "visual_gate_failed"
+          }
+        },
+        {
+          "id": "R17",
+          "criterion": "qa-packs/F8, The release contract step duplicates the CLI and omits REST verification: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R18",
+          "criterion": "qa-packs/F10, The visual matrix has permanent gaps and a second Home implementation: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S2",
+            "S7"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {
+            "S2": "pass_with_documented_skips",
+            "S7": "visual_gate_failed"
+          }
+        },
+        {
+          "id": "R19",
+          "criterion": "qa-packs/F12, The GPU proof establishes presence or aggregate activity, not workload execution: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R20",
+          "criterion": "qt-hosts/F14, Meeting import buffers and hashes the entire recording on the GUI thread: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S4"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {
+            "S4": "pass"
+          }
+        },
+        {
+          "id": "R21",
+          "criterion": "qt-hosts/F15, The visual metric is too permissive to enforce approved-render fidelity: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S7"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {
+            "S7": "visual_gate_failed"
+          }
+        },
+        {
+          "id": "R22",
+          "criterion": "qt-hosts/F18, The duplicated QA parser has a known-variable hole: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R23",
+          "criterion": "qt-hosts/F19, Completed first run still runs provisioning reads and a hotkey polling timer: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S1",
+            "S2",
+            "S10"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {
+            "S1": "pass_with_documented_skips",
+            "S2": "pass_with_documented_skips",
+            "S10": "pass_component_and_shim_scope"
+          }
+        },
+        {
+          "id": "R24",
+          "criterion": "qml/F3, Hand-built controls leave essential actions outside keyboard navigation: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S1",
+            "S10"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {
+            "S1": "pass_with_documented_skips",
+            "S10": "pass_component_and_shim_scope"
+          }
+        },
+        {
+          "id": "R25",
+          "criterion": "qml/F13, The analysis rail duplicates the full tab and overflows with ordinary long results: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S4",
+            "S7",
+            "S10"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {
+            "S4": "pass",
+            "S7": "visual_gate_failed",
+            "S10": "pass_component_and_shim_scope"
+          }
+        },
+        {
+          "id": "R26",
+          "criterion": "qml/F17, Delete the import target choice that cannot be submitted: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S4",
+            "S7"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {
+            "S4": "pass",
+            "S7": "visual_gate_failed"
+          }
+        },
+        {
+          "id": "R27",
+          "criterion": "qml/F18, History and Meetings carry the same search control twice: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S3",
+            "S5",
+            "S10"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {
+            "S3": "pass",
+            "S5": "pass_after_probe_corrections",
+            "S10": "pass_component_and_shim_scope"
+          }
+        },
+        {
+          "id": "R28",
+          "criterion": "ops-and-record/F15, Delete the manually maintained Makefile mirror: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R29",
+          "criterion": "ops-and-record/F18, Delete the prose blacklist from the build gate: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R30",
+          "criterion": "`just build test lint` is green at the final commit, the contract replay passes, every drive a fix touches passes under `scripts/qa/xvfb-session.sh`, ADR 0054 records the decisions this theme changed and is indexed, and the task summary lists every finding as fixed or rejected with its evidence. Errors: as stated.",
+          "coverage": "live",
+          "scenarios": [
+            "S1",
+            "S2",
+            "S4"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-52-cleanup-delete-and-simplify-29-review.1"
+          ],
+          "scenario_results": {
+            "S1": "pass_with_documented_skips",
+            "S2": "pass_with_documented_skips",
+            "S4": "pass"
+          }
+        }
+      ]
+    },
+    {
+      "spec": "fn-53-cleanup-other-33-review-findings",
+      "export": "/tmp/dettivo-combined-qa-20260910-Nyxanz/qa-fn-53-cleanup-other-33-review-findings.json",
+      "derived_at_head": "832d9dadaedf18a8deb5956377e86de3ea615847",
+      "boundaries": [
+        "Fix the finding, not the neighbourhood: no new features, no refactors beyond what a finding names.",
+        "A rejected finding is a sentence of evidence in the summary, never a silent skip.",
+        "Files stay under the limits; a fix that would cross one splits the file."
+      ],
+      "rows": [
+        {
+          "id": "R1",
+          "criterion": "daemon/F7, Jobs report completion even when the result was not stored: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R2",
+          "criterion": "daemon/F16, An explicit null request ID is treated as an absent ID: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R3",
+          "criterion": "daemon/F17, Overflow accounting can leave dropped events unreported indefinitely: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R4",
+          "criterion": "agent-surfaces/F3, Process-hosted REST uploads exceed the daemon\u2019s default line limit: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R5",
+          "criterion": "agent-surfaces/F6, MCP does not enforce its outgoing message cap: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R6",
+          "criterion": "agent-surfaces/F9, A refused MCP framing switch still executes its payload: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R7",
+          "criterion": "agent-surfaces/F13, Waiting for an import depends on its position in the newest 100 items: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R8",
+          "criterion": "agent-surfaces/F16, `--json` produces no JSON for locally detected failures: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R9",
+          "criterion": "engines/F2, Status requests wait for inference to finish: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R10",
+          "criterion": "engines/F11, Diarization cannot transport the full supported import duration: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R11",
+          "criterion": "dictation/F19, Recording is finalized before the capture source is stopped: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R12",
+          "criterion": "dictation/F20, Device-follow subscriptions can miss changes during capture startup: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R13",
+          "criterion": "meetings/F5, Failed or interrupted finalisation has no supported retry path: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S4"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {
+            "S4": "pass"
+          }
+        },
+        {
+          "id": "R14",
+          "criterion": "meetings/F6, A microphone cannot return after an unsuccessful reopen: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R15",
+          "criterion": "meetings/F7, Missing capture files are treated as a successful silent meeting: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R16",
+          "criterion": "meetings/F8, Recovery discards the timing information its checkpoint preserved: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R17",
+          "criterion": "meetings/F14, Combined search can hide every meeting hit: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R18",
+          "criterion": "meetings/F17, An empty notes override restores the saved notes: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S4",
+            "S5"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {
+            "S4": "pass",
+            "S5": "pass_after_probe_corrections"
+          }
+        },
+        {
+          "id": "R19",
+          "criterion": "meetings/F18, Valid speaker names can break subtitle exports: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R20",
+          "criterion": "qa-rig/F6, An Omarchy-bar capture failure can leave live dictation running: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R21",
+          "criterion": "qa-packs/F15, Promotion compares unrelated datasets and can pass without the requested comparison: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R22",
+          "criterion": "qa-packs/F18, A failed approval command can already have replaced baselines: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R23",
+          "criterion": "qt-hosts/F4, A malformed WAV header can hang the GUI during file selection: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S4"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {
+            "S4": "pass"
+          }
+        },
+        {
+          "id": "R24",
+          "criterion": "qt-hosts/F8, App renders bypass the negative style check entirely: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S7"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {
+            "S7": "visual_gate_failed"
+          }
+        },
+        {
+          "id": "R25",
+          "criterion": "qt-hosts/F11, Opening the app during a meeting does not recover the live meeting: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S6"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {
+            "S6": "pass_xvfb"
+          }
+        },
+        {
+          "id": "R26",
+          "criterion": "qt-hosts/F16, Theme pacing can credit a frame that still contains the old palette: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S6"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {
+            "S6": "pass_xvfb"
+          }
+        },
+        {
+          "id": "R27",
+          "criterion": "qml/F1, Selecting a segment disconnects it from the daemon\u2019s value: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S2",
+            "S10"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {
+            "S2": "pass_with_documented_skips",
+            "S10": "pass_component_and_shim_scope"
+          }
+        },
+        {
+          "id": "R28",
+          "criterion": "qml/F2, Accessibility actions bypass the behavior that makes controls work: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S2",
+            "S10"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {
+            "S2": "pass_with_documented_skips",
+            "S10": "pass_component_and_shim_scope"
+          }
+        },
+        {
+          "id": "R29",
+          "criterion": "qml/F6, Transcript text can be interpreted as markup instead of displayed faithfully: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S1",
+            "S4",
+            "S7"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {
+            "S1": "pass_with_documented_skips",
+            "S4": "pass",
+            "S7": "visual_gate_failed"
+          }
+        },
+        {
+          "id": "R30",
+          "criterion": "qml/F7, A settings field can silently suppress a later valid edit: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S2",
+            "S10"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {
+            "S2": "pass_with_documented_skips",
+            "S10": "pass_component_and_shim_scope"
+          }
+        },
+        {
+          "id": "R31",
+          "criterion": "qml/F8, Popup opacity was fixed locally instead of in the style: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S4",
+            "S7",
+            "S10"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {
+            "S4": "pass",
+            "S7": "visual_gate_failed",
+            "S10": "pass_component_and_shim_scope"
+          }
+        },
+        {
+          "id": "R32",
+          "criterion": "qml/F16, Home\u2019s \u201cStart meeting\u201d is a permanently dead action: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S1",
+            "S4",
+            "S10"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {
+            "S1": "pass_with_documented_skips",
+            "S4": "pass",
+            "S10": "pass_component_and_shim_scope"
+          }
+        },
+        {
+          "id": "R33",
+          "criterion": "ops-and-record/F6, \u201cStop meeting\u201d always sends invalid parameters: verified against the code and a test, then fixed with a regression test that fails before the fix, or rejected in the task summary with the evidence that the claim does not hold. Errors: a fix that changes a contract without its fixture and register row fails the gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S10"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {
+            "S10": "pass_component_and_shim_scope"
+          }
+        },
+        {
+          "id": "R34",
+          "criterion": "`just build test lint` is green at the final commit, the contract replay passes, every drive a fix touches passes under `scripts/qa/xvfb-session.sh`, ADR 0055 records the decisions this theme changed and is indexed, and the task summary lists every finding as fixed or rejected with its evidence. Errors: as stated.",
+          "coverage": "live",
+          "scenarios": [
+            "S1",
+            "S2",
+            "S7"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-53-cleanup-other-33-review-findings.1"
+          ],
+          "scenario_results": {
+            "S1": "pass_with_documented_skips",
+            "S2": "pass_with_documented_skips",
+            "S7": "visual_gate_failed"
+          }
+        }
+      ]
+    },
+    {
+      "spec": "fn-55-desktop-memory-budgets-grounded-in",
+      "export": "/tmp/dettivo-combined-qa-20260910-Nyxanz/qa-fn-55-desktop-memory-budgets-grounded-in.json",
+      "derived_at_head": "832d9dadaedf18a8deb5956377e86de3ea615847",
+      "boundaries": [
+        "Preserve the native Qt application, local processing and separate engine processes. [strategy:Local engines and performance]",
+        "Toolkit replacement, renderer-policy changes, daemon/model memory optimization, new product features and visual-baseline approval are outside this memory-contract change. [inferred]",
+        "A remaining 60 MiB anonymous-memory optimization goal is exploratory, not an adopted release requirement. Failed reference runs must be reported; do not automatically increase limits to make them pass. [inferred]"
+      ],
+      "rows": [
+        {
+          "id": "R1",
+          "criterion": "Replace the active 60 MB/MiB app-idle RSS contract with RSS \u2264256 MiB (262,144 KiB) and anonymous memory \u226496 MiB (98,304 KiB) for the designated Thor reference profile. Report PSS without enforcing an unsupported universal PSS limit. Errors and boundaries: each exact limit passes; one KiB above either limit fails.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-55-desktop-memory-budgets-grounded-in.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R2",
+          "criterion": "Verify the replacement through five independent fresh app launches per reference mode, sampling Home after five seconds idle with the daemon connected, no active capture, playback, download or analysis, fixed fixture data and recorded window/scale/theme. Exercise native Wayland on Thor and retain Xvfb as the reproducible secondary profile. Use a Release Qt app with release-profile Rust companions for release validation; label the existing mixed-build snapshots as historical context. Every run must satisfy the limits; report individual values and maxima. Errors: missing metrics, early exit, unsupported environment or unavailable release binaries are explicit failures or blockers, never successful zero values.",
+          "coverage": "live",
+          "scenarios": [
+            "S8",
+            "S9"
+          ],
+          "status": "unmet; native acceptance failed",
+          "claimed_by": [
+            "fn-55-desktop-memory-budgets-grounded-in.1"
+          ],
+          "scenario_results": {
+            "S8": "fail",
+            "S9": "pass"
+          }
+        },
+        {
+          "id": "R3",
+          "criterion": "Keep raw measurements, exact units, enforced limits, environment metadata and per-metric results in the existing evidence/reporting path. Preserve existing evidence-field meanings; do not silently reinterpret RSS as PSS or anonymous memory. Errors: invalid or partially readable samples are surfaced and cannot satisfy an enforced gate.",
+          "coverage": "live",
+          "scenarios": [
+            "S8",
+            "S9"
+          ],
+          "status": "exercised live; see individual scenario outcomes",
+          "claimed_by": [
+            "fn-55-desktop-memory-budgets-grounded-in.1"
+          ],
+          "scenario_results": {
+            "S8": "fail",
+            "S9": "pass"
+          }
+        },
+        {
+          "id": "R4",
+          "criterion": "Update the active requirement, gate, user/QA documentation and decision record together. Retain the original fn-17 requirement and fn-54 failure evidence as historical context with a superseding decision, and issue fresh QA evidence for the new contract. Errors: inconsistent units, stale active 60 MB claims or a rewritten historical pass are verification failures.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-55-desktop-memory-budgets-grounded-in.1"
+          ],
+          "scenario_results": {}
+        },
+        {
+          "id": "R5",
+          "criterion": "Add regression coverage for the numeric boundaries, unavailable metrics and unit conversion; rerun the affected live timing/footprint checks and required repository build/test/lint gate. Preserve first frame under 300 ms and theme application under 100 ms. Errors: unrelated outstanding visual approvals and installed-session gaps remain separately reported and cannot be cleared by this memory change.",
+          "coverage": "live",
+          "scenarios": [
+            "S6",
+            "S8",
+            "S9"
+          ],
+          "status": "unmet; native acceptance failed",
+          "claimed_by": [
+            "fn-55-desktop-memory-budgets-grounded-in.1"
+          ],
+          "scenario_results": {
+            "S6": "pass_xvfb",
+            "S8": "fail",
+            "S9": "pass"
+          }
+        },
+        {
+          "id": "R6",
+          "criterion": "Preserve the full measurement context, earlier improvements, rejected experiments and rationale below so later work does not repeat disproven approaches or describe recalibration as reduced RAM use. No error surface beyond accuracy and traceability of the recorded evidence.",
+          "coverage": "backend_cli",
+          "scenarios": [],
+          "status": "backend/CLI; worker evidence and final canonical gate",
+          "claimed_by": [
+            "fn-55-desktop-memory-budgets-grounded-in.1"
+          ],
+          "scenario_results": {}
+        }
+      ]
+    }
+  ],
+  "backend_checks": [
+    "final canonical just build test lint at the implementation source head",
+    "complete socket/MCP/REST contract replay",
+    "focused regression commands retained in task receipts"
+  ],
+  "exclusions": [
+    "fn-38 human approval",
+    "personal Omarchy/plugin/socket installation",
+    "merge/release",
+    "completed fn-42/fn-56 accuracy or GPU experiments"
+  ],
+  "prior_bug_regressions": [
+    "Home Start meeting and loaded model identity via S1/S2/S10",
+    "hidden controls and isolated profiles via S1/S2/S10",
+    "QA-MEMORY via S8/S9",
+    "QA-VISUAL via S7"
+  ],
+  "evidence_policy": "Pending is never a pass. Read actual per-scenario receipts/logs/screenshots and persisted backend facts before writing verdicts.",
+  "tested_code_commit": "f324e285a57e02142d6f3d04d486438b15d48880",
+  "observed_checkout": "258cb001a97ab4532863132f5c8195319f52d6ba",
+  "combined_qa_outcome": "NEEDS_WORK",
+  "scenario_results": {
+    "S1": {
+      "outcome": "pass_with_documented_skips",
+      "evidence": "/tmp/fn52-input-complete-live",
+      "log": "/tmp/fn52-input-complete-live.log",
+      "exit_code": 0,
+      "pass": 25,
+      "fail": 0,
+      "skip": 4
+    },
+    "S2": {
+      "outcome": "pass_with_documented_skips",
+      "evidence": "/tmp/dettivo-combined-qa-20260910-Nyxanz/gui/run-1789064634-1862126/pack-gui/gui-pack.json",
+      "exit_code": 0,
+      "routes": 84,
+      "text_findings": 0,
+      "accessible_name_ratio": 1,
+      "installed_session_skips": 2
+    },
+    "S3": {
+      "outcome": "pass",
+      "evidence": "/tmp/fn52-input-complete-live",
+      "scenarios": [
+        "history_seeded",
+        "history_states",
+        "history_roundtrip"
+      ]
+    },
+    "S4": {
+      "outcome": "pass",
+      "evidence": "/tmp/fn52-input-complete-live",
+      "scenarios": [
+        "meetings_seeded",
+        "meetings_live_gui",
+        "meetings_import_gui",
+        "meeting_recovery",
+        "meeting_live"
+      ]
+    },
+    "S5": {
+      "outcome": "pass_after_probe_corrections",
+      "evidence": "/tmp/dettivo-combined-qa-20260910-Nyxanz/notes-contract/run-1789064967-1877975/combined_notes_exports.atspi/receipt.json",
+      "exit_code": 0,
+      "provenance": "/tmp/dettivo-combined-qa-20260910-Nyxanz/notes-probe-contract-provenance.json",
+      "notes_semantics": "Nonempty override is exact; empty and whitespace overrides omit the notes member per the existing fixture; the alternate stored notes never appear. Each output must be freshly written.",
+      "prior_failed_runs": [
+        "/tmp/dettivo-combined-qa-20260910-Nyxanz/notes.log",
+        "/tmp/dettivo-combined-qa-20260910-Nyxanz/notes-retry.log",
+        "/tmp/dettivo-combined-qa-20260910-Nyxanz/notes-settled.log"
+      ]
+    },
+    "S6": {
+      "outcome": "pass_xvfb",
+      "evidence": [
+        "/tmp/dettivo-combined-qa-20260910-Nyxanz/timing-routes",
+        "/tmp/dettivo-combined-qa-20260910-Nyxanz/timing-theme"
+      ],
+      "first_frame_ms": 236,
+      "theme_apply_ms": 7,
+      "theme_observed_ms": 10
+    },
+    "S7": {
+      "outcome": "visual_gate_failed",
+      "evidence": "/tmp/dettivo-combined-qa-20260910-Nyxanz/visual/visual-report.json",
+      "matrix": {
+        "report": "/tmp/dettivo-combined-qa-20260910-Nyxanz/visual/visual-report.json",
+        "comparison": "/tmp/dettivo-combined-qa-20260910-Nyxanz/visual-comparison.json",
+        "baseline": "/tmp/fn53-visual/visual-report.json",
+        "exit_code": 1,
+        "entries": 590,
+        "passed": 310,
+        "failed": 190,
+        "first_approval": 90,
+        "style_findings": 0,
+        "byte_identical": 580,
+        "pixel_identical": 580,
+        "new_failures_on_identical_pixels": 77,
+        "changed_images": [
+          {
+            "key": [
+              "meeting-dialogs",
+              "import",
+              "black-gold",
+              1
+            ],
+            "old_outcome": "pass",
+            "new_outcome": "fail",
+            "before": "/tmp/fn53-visual/meeting-dialogs/import.black-gold.1x.png",
+            "after": "/tmp/dettivo-combined-qa-20260910-Nyxanz/visual/meeting-dialogs/import.black-gold.1x.png",
+            "old_sha256": "4572211b6003c906ceae1cb95398725f1d270e236868d19c09b53515593dfe7d",
+            "new_sha256": "6e948b338ffaa7b51b6266b15a7ebc14b44be2d3dc74c0396be48fffa65c45c6",
+            "byte_identical": false,
+            "old_dimensions": [
+              504,
+              376
+            ],
+            "new_dimensions": [
+              504,
+              376
+            ],
+            "pixel_identical": false,
+            "changed_pixels": 49743,
+            "changed_bounds": [
+              0,
+              8,
+              504,
+              368
+            ]
+          },
+          {
+            "key": [
+              "meeting-dialogs",
+              "import",
+              "black-gold",
+              2
+            ],
+            "old_outcome": "pass",
+            "new_outcome": "fail",
+            "before": "/tmp/fn53-visual/meeting-dialogs/import.black-gold.2x.png",
+            "after": "/tmp/dettivo-combined-qa-20260910-Nyxanz/visual/meeting-dialogs/import.black-gold.2x.png",
+            "old_sha256": "82c7747b5380786af1f9e252839cac0082f9dcd630265a1d1cab672be81bdea2",
+            "new_sha256": "048056076150d5eacac7d5c4df9262e89d38d8588bf5f3777f2dbbefc95c3372",
+            "byte_identical": false,
+            "old_dimensions": [
+              1008,
+              752
+            ],
+            "new_dimensions": [
+              1008,
+              752
+            ],
+            "pixel_identical": false,
+            "changed_pixels": 186326,
+            "changed_bounds": [
+              0,
+              16,
+              1008,
+              736
+            ]
+          },
+          {
+            "key": [
+              "meeting-dialogs",
+              "import",
+              "builtin-dark",
+              1
+            ],
+            "old_outcome": "fail",
+            "new_outcome": "fail",
+            "before": "/tmp/fn53-visual/meeting-dialogs/import.builtin-dark.1x.png",
+            "after": "/tmp/dettivo-combined-qa-20260910-Nyxanz/visual/meeting-dialogs/import.builtin-dark.1x.png",
+            "old_sha256": "4572211b6003c906ceae1cb95398725f1d270e236868d19c09b53515593dfe7d",
+            "new_sha256": "6e948b338ffaa7b51b6266b15a7ebc14b44be2d3dc74c0396be48fffa65c45c6",
+            "byte_identical": false,
+            "old_dimensions": [
+              504,
+              376
+            ],
+            "new_dimensions": [
+              504,
+              376
+            ],
+            "pixel_identical": false,
+            "changed_pixels": 49743,
+            "changed_bounds": [
+              0,
+              8,
+              504,
+              368
+            ]
+          },
+          {
+            "key": [
+              "meeting-dialogs",
+              "import",
+              "builtin-dark",
+              2
+            ],
+            "old_outcome": "fail",
+            "new_outcome": "fail",
+            "before": "/tmp/fn53-visual/meeting-dialogs/import.builtin-dark.2x.png",
+            "after": "/tmp/dettivo-combined-qa-20260910-Nyxanz/visual/meeting-dialogs/import.builtin-dark.2x.png",
+            "old_sha256": "82c7747b5380786af1f9e252839cac0082f9dcd630265a1d1cab672be81bdea2",
+            "new_sha256": "048056076150d5eacac7d5c4df9262e89d38d8588bf5f3777f2dbbefc95c3372",
+            "byte_identical": false,
+            "old_dimensions": [
+              1008,
+              752
+            ],
+            "new_dimensions": [
+              1008,
+              752
+            ],
+            "pixel_identical": false,
+            "changed_pixels": 186326,
+            "changed_bounds": [
+              0,
+              16,
+              1008,
+              736
+            ]
+          },
+          {
+            "key": [
+              "meeting-dialogs",
+              "import",
+              "builtin-light",
+              1
+            ],
+            "old_outcome": "fail",
+            "new_outcome": "fail",
+            "before": "/tmp/fn53-visual/meeting-dialogs/import.builtin-light.1x.png",
+            "after": "/tmp/dettivo-combined-qa-20260910-Nyxanz/visual/meeting-dialogs/import.builtin-light.1x.png",
+            "old_sha256": "77927d59c89f7e78103f721e6b0e8de9fefb9e2cec6e4bc00de6ce5351d2f6dd",
+            "new_sha256": "7ccab8526cf9c0fd7645ede146c99fa65d1e80419e6913b9a175a065d61dcc19",
+            "byte_identical": false,
+            "old_dimensions": [
+              504,
+              376
+            ],
+            "new_dimensions": [
+              504,
+              376
+            ],
+            "pixel_identical": false,
+            "changed_pixels": 49758,
+            "changed_bounds": [
+              0,
+              8,
+              504,
+              368
+            ]
+          },
+          {
+            "key": [
+              "meeting-dialogs",
+              "import",
+              "builtin-light",
+              2
+            ],
+            "old_outcome": "fail",
+            "new_outcome": "fail",
+            "before": "/tmp/fn53-visual/meeting-dialogs/import.builtin-light.2x.png",
+            "after": "/tmp/dettivo-combined-qa-20260910-Nyxanz/visual/meeting-dialogs/import.builtin-light.2x.png",
+            "old_sha256": "6a967a901334dda1101527a5fcf3b1075517ea8d5a174fcecbd13c69bf3b0913",
+            "new_sha256": "e350277c68a93bc4ed37781382f3508863eff63c2ba2c3801f8f1db385915208",
+            "byte_identical": false,
+            "old_dimensions": [
+              1008,
+              752
+            ],
+            "new_dimensions": [
+              1008,
+              752
+            ],
+            "pixel_identical": false,
+            "changed_pixels": 186360,
+            "changed_bounds": [
+              0,
+              16,
+              1008,
+              736
+            ]
+          },
+          {
+            "key": [
+              "meeting-dialogs",
+              "import",
+              "catppuccin-latte",
+              1
+            ],
+            "old_outcome": "pass",
+            "new_outcome": "fail",
+            "before": "/tmp/fn53-visual/meeting-dialogs/import.catppuccin-latte.1x.png",
+            "after": "/tmp/dettivo-combined-qa-20260910-Nyxanz/visual/meeting-dialogs/import.catppuccin-latte.1x.png",
+            "old_sha256": "f9b9d467a64c9856ee81e36d42b25f3f67e9f1a70acaa17ef13d182bfc14ea18",
+            "new_sha256": "d54586361ce9a97499151ae4d43bb8b1d31f1fbbfa9a51aba87d0c19aff89912",
+            "byte_identical": false,
+            "old_dimensions": [
+              504,
+              376
+            ],
+            "new_dimensions": [
+              504,
+              376
+            ],
+            "pixel_identical": false,
+            "changed_pixels": 49761,
+            "changed_bounds": [
+              0,
+              8,
+              504,
+              368
+            ]
+          },
+          {
+            "key": [
+              "meeting-dialogs",
+              "import",
+              "catppuccin-latte",
+              2
+            ],
+            "old_outcome": "pass",
+            "new_outcome": "fail",
+            "before": "/tmp/fn53-visual/meeting-dialogs/import.catppuccin-latte.2x.png",
+            "after": "/tmp/dettivo-combined-qa-20260910-Nyxanz/visual/meeting-dialogs/import.catppuccin-latte.2x.png",
+            "old_sha256": "6e84b787ff951484e526faaa99cb21fe89e2981415f5f893f0781ba7a477737a",
+            "new_sha256": "cbae4e60d9120f45c2633492d5d13869f887bcd6491c86f11d1cfb88c3ac835c",
+            "byte_identical": false,
+            "old_dimensions": [
+              1008,
+              752
+            ],
+            "new_dimensions": [
+              1008,
+              752
+            ],
+            "pixel_identical": false,
+            "changed_pixels": 186366,
+            "changed_bounds": [
+              0,
+              16,
+              1008,
+              736
+            ]
+          },
+          {
+            "key": [
+              "meeting-dialogs",
+              "import",
+              "tokyo-night",
+              1
+            ],
+            "old_outcome": "pass",
+            "new_outcome": "fail",
+            "before": "/tmp/fn53-visual/meeting-dialogs/import.tokyo-night.1x.png",
+            "after": "/tmp/dettivo-combined-qa-20260910-Nyxanz/visual/meeting-dialogs/import.tokyo-night.1x.png",
+            "old_sha256": "ee659cb15793a1e30b1a15cb60d9324087728aad016d7ea8d97501b6822a0c9f",
+            "new_sha256": "13afd06ce0d4fc58efdb8d666771fcdc4a14ca9e6c8873759cdeb1b389796e43",
+            "byte_identical": false,
+            "old_dimensions": [
+              504,
+              376
+            ],
+            "new_dimensions": [
+              504,
+              376
+            ],
+            "pixel_identical": false,
+            "changed_pixels": 49757,
+            "changed_bounds": [
+              0,
+              8,
+              504,
+              368
+            ]
+          },
+          {
+            "key": [
+              "meeting-dialogs",
+              "import",
+              "tokyo-night",
+              2
+            ],
+            "old_outcome": "pass",
+            "new_outcome": "fail",
+            "before": "/tmp/fn53-visual/meeting-dialogs/import.tokyo-night.2x.png",
+            "after": "/tmp/dettivo-combined-qa-20260910-Nyxanz/visual/meeting-dialogs/import.tokyo-night.2x.png",
+            "old_sha256": "410b64083fdf9edcebc93243041a2c8b14c7d072761af9f6b09adc89c7a3c96c",
+            "new_sha256": "f15e572a8004030047fe33637618d51a7fe295c25dac377c076156ce1d2ff2c8",
+            "byte_identical": false,
+            "old_dimensions": [
+              1008,
+              752
+            ],
+            "new_dimensions": [
+              1008,
+              752
+            ],
+            "pixel_identical": false,
+            "changed_pixels": 186362,
+            "changed_bounds": [
+              0,
+              16,
+              1008,
+              736
+            ]
+          }
+        ],
+        "interpretation": "Only the ten import-dialog renders changed. All other580 images are byte-identical to fn53.77 additional failures detect existing differences at unchanged tolerance.6 additional failures are changed import renders. Every failure and pending approval remains unresolved; no baseline approval.",
+        "application_sha256": "a383b5afc344234707fa028929cabd0b769f995158705a3cee6042f16f36e1dd",
+        "application_hash_matches_before_after": true
+      },
+      "sensitivity_evidence": "/tmp/fn52-qa-visual-live/direct-comparisons.json",
+      "approvals_changed": false
+    },
+    "S8": {
+      "outcome": "fail",
+      "evidence": "/tmp/dettivo-combined-qa-20260910-Nyxanz/memory-wayland-reference",
+      "exit_code": 1,
+      "first_frames_ms": [
+        347,
+        334,
+        322,
+        329,
+        322
+      ],
+      "rss_max_kib": 275888,
+      "anonymous_max_kib": 104024,
+      "pss_max_kib": 190696
+    },
+    "S9": {
+      "outcome": "pass",
+      "evidence": "/tmp/dettivo-combined-qa-20260910-Nyxanz/memory-xvfb",
+      "exit_code": 0,
+      "first_frames_ms": [
+        238,
+        145,
+        146,
+        146,
+        147
+      ],
+      "rss_max_kib": 230028,
+      "anonymous_max_kib": 83508,
+      "pss_max_kib": 169601
+    },
+    "S10": {
+      "outcome": "pass_component_and_shim_scope",
+      "evidence": [
+        "/tmp/fn52-qml-navigation-xvfb.log",
+        "/tmp/fn52-qml-search-xvfb.log",
+        "/tmp/fn52-qml-import-xvfb.log",
+        "/tmp/dettivo-combined-qa-20260910-Nyxanz/gui/run-1789064634-1862126/pack-gui/omarchy_shim_load",
+        "/tmp/dettivo-combined-qa-20260910-Nyxanz/gui/run-1789064634-1862126/pack-gui/omarchy_version_skew"
+      ],
+      "limitation": "Native Qt component/QAccessible and shell shim checks; installed personal-session coverage remains absent."
+    }
+  },
+  "binaries": {
+    "source_commit": "f324e285a57e02142d6f3d04d486438b15d48880",
+    "cli_version": "dettivo 0.1.0 (f324e285a57e02142d6f3d04d486438b15d48880)",
+    "build_command": "DETTIVO_GIT_SHA=$(git rev-parse HEAD) just build-release",
+    "binaries": [
+      {
+        "path": "/home/gordon/work/dettivo-linux/target/release/dettivo-qa",
+        "sha256": "e374d39742876f055d257ee55a0724c8ec460fcd7cd8e18a1702be748a2b39aa"
+      },
+      {
+        "path": "/home/gordon/work/dettivo-linux/target/release/dettivod",
+        "sha256": "2d1af230355acf13d6faa89d8a3e776a20e5c70cd7abea20902a961d3e0bab2d"
+      },
+      {
+        "path": "/home/gordon/work/dettivo-linux/target/release/dettivo",
+        "sha256": "e4f2ac01a9f2e601617c01be3b90e4e59a715153fe7693c494607fa3d4822954"
+      },
+      {
+        "path": "/home/gordon/work/dettivo-linux/target/release/dettivo-mcp",
+        "sha256": "b6de1cf4e0852d7ffc8373baf272372a6f32cf9bfbb644eb1fc6eb613c670d2a"
+      },
+      {
+        "path": "/home/gordon/work/dettivo-linux/target/release/dettivo-engine-whisper",
+        "sha256": "47f43de0810243274c401b457550c69045091c95c8ef858e2f691ffa7da53aeb"
+      },
+      {
+        "path": "/home/gordon/work/dettivo-linux/build/qt/apps/dettivo-app/dettivo-app",
+        "sha256": "a383b5afc344234707fa028929cabd0b769f995158705a3cee6042f16f36e1dd"
+      }
+    ]
+  },
+  "canonical_gate": {
+    "command": "just build test lint",
+    "exit_code": 0,
+    "cargo_passes": 1000,
+    "ctest_passes": 78,
+    "log": "/tmp/fn52-input-tree-final-gate.log",
+    "shellcheck": "unavailable; skipped"
+  },
+  "contract": {
+    "exit_code": 0,
+    "socket_passes": 88,
+    "socket_skips": 45,
+    "socket_pending_admitted": 6,
+    "mcp_passes": 48,
+    "rest_passes": 55,
+    "evidence": "/tmp/fn52-input-complete-contract.json"
+  },
+  "task_state": {
+    "fn48": "done",
+    "fn53": "done",
+    "fn52": "done",
+    "fn55": "blocked",
+    "fn38": "human checkpoint preserved"
+  },
+  "complete_task_criteria": 71,
+  "total_task_criteria": 77,
+  "additional_gate_attempts": [
+    {
+      "log": "/tmp/dettivo-combined-qa-20260910-Nyxanz/final-gate.log",
+      "exit_code": 1,
+      "failure": "docs self-test excluded newly linked, still-untracked QA report files from its isolated tracked-path copy; code tests passed",
+      "retry_log": "/tmp/dettivo-combined-qa-20260910-Nyxanz/final-gate-staged.log",
+      "retry_exit_code": 0,
+      "retry_cargo_passes": 1000,
+      "retry_ctest_passes": 78
+    }
+  ],
+  "post_gate_binary_checks": [
+    {
+      "path": "/home/gordon/work/dettivo-linux/target/release/dettivo-qa",
+      "sha256": "e374d39742876f055d257ee55a0724c8ec460fcd7cd8e18a1702be748a2b39aa",
+      "matches_tested_binary": true
+    },
+    {
+      "path": "/home/gordon/work/dettivo-linux/target/release/dettivod",
+      "sha256": "2d1af230355acf13d6faa89d8a3e776a20e5c70cd7abea20902a961d3e0bab2d",
+      "matches_tested_binary": true
+    },
+    {
+      "path": "/home/gordon/work/dettivo-linux/target/release/dettivo",
+      "sha256": "e4f2ac01a9f2e601617c01be3b90e4e59a715153fe7693c494607fa3d4822954",
+      "matches_tested_binary": true
+    },
+    {
+      "path": "/home/gordon/work/dettivo-linux/target/release/dettivo-mcp",
+      "sha256": "b6de1cf4e0852d7ffc8373baf272372a6f32cf9bfbb644eb1fc6eb613c670d2a",
+      "matches_tested_binary": true
+    },
+    {
+      "path": "/home/gordon/work/dettivo-linux/target/release/dettivo-engine-whisper",
+      "sha256": "47f43de0810243274c401b457550c69045091c95c8ef858e2f691ffa7da53aeb",
+      "matches_tested_binary": true
+    },
+    {
+      "path": "/home/gordon/work/dettivo-linux/build/qt/apps/dettivo-app/dettivo-app",
+      "sha256": "a383b5afc344234707fa028929cabd0b769f995158705a3cee6042f16f36e1dd",
+      "matches_tested_binary": true
+    }
+  ],
+  "running_tested_binaries_after_gate": []
+}

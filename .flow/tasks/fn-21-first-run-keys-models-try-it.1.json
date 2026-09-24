@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T20:32:48.047663Z",
+  "depends_on": [],
+  "id": "fn-21-first-run-keys-models-try-it.1",
+  "priority": null,
+  "spec": "fn-21-first-run-keys-models-try-it",
+  "spec_path": ".flow/tasks/fn-21-first-run-keys-models-try-it.1.md",
+  "status": "todo",
+  "title": "Implement fn-21: the first-run flow (keys, models, try it), its daemon additions, drives and baselines",
+  "updated_at": "2026-09-04T20:32:48.047663Z"
+}

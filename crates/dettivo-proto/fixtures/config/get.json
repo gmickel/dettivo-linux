@@ -1,0 +1,35 @@
+{
+  "capabilities": {
+    "config.methods": [
+      "config.get",
+      "config.set",
+      "config.unset",
+      "config.validate",
+      "config.path",
+      "config.print_default",
+      "config.keys"
+    ]
+  },
+  "method": "config.get",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "config.get",
+    "params": {
+      "key": "daemon.log_level"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "entries": [
+        {
+          "key": "daemon.log_level",
+          "source": "default",
+          "value": "info"
+        }
+      ]
+    }
+  }
+}

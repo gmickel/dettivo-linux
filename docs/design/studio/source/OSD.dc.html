@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@300;400;600&display=swap">
+  <style>
+    :root{--bg:#0D0D0D;--fg:#EBDBB2;--fg2:rgba(235,219,178,.62);--fg3:rgba(235,219,178,.38);--line:rgba(235,219,178,.14);--line2:rgba(235,219,178,.35);--gold:#F5BF03;--gold2:#BFA75D;--gold3:#A3850E;--red:#D35F5F;--bar:#120F02}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:"Cascadia Mono",ui-monospace,"CaskaydiaMono Nerd Font","JetBrains Mono",monospace;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+    a{color:var(--gold2)} a:hover{color:var(--gold)}
+    .label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg3)}
+    .pill{transform:scale(2);transform-origin:left top;display:flex;align-items:center;gap:12px;height:36px;padding:0 14px 0 12px;background:var(--bg);border:1px solid var(--line2);box-sizing:border-box;width:max-content}
+    .dot{width:8px;height:8px;background:var(--gold);flex:none}
+    .bars{display:flex;align-items:center;gap:2px;height:18px}
+    .bars i{display:block;width:3px;background:var(--gold)}
+    .bars.q i{background:rgba(235,219,178,.35)}
+    .txt{font-size:12px;white-space:nowrap}
+    .hint{font-size:11px;color:var(--fg3);white-space:nowrap}
+    .num{font-variant-numeric:tabular-nums}
+    .shim{width:120px;height:2px;background:linear-gradient(90deg,rgba(245,191,3,.15) 0%,rgba(245,191,3,.9) 45%,rgba(245,191,3,.15) 100%)}
+    .state{display:flex;flex-direction:column;gap:12px;padding:22px 0;border-bottom:1px solid var(--line);overflow:hidden}
+    .state .cap{display:flex;gap:16px;align-items:baseline}
+    .state .cap .label{width:120px;flex:none}
+    .state .cap .d{font-size:11px;color:var(--fg2)}
+    .state .h{height:76px}
+    .glyph{width:16px;height:16px;display:flex;align-items:center;gap:1px;justify-content:center}
+    .glyph i{display:block;width:2px;background:currentColor}
+  </style>
+</helmet>
+<div style="width:1280px;min-height:1380px;box-sizing:border-box;padding:40px 48px;display:flex;flex-direction:column;gap:0;background:var(--bg)">
+  <div style="display:flex;flex-direction:column;gap:6px;padding-bottom:16px;border-bottom:1px solid var(--line2)">
+    <div class="label">OSD · shown at 2x</div>
+    <div style="font-size:20px;font-weight:600;letter-spacing:-.02em">Recording pill</div>
+    <div style="color:var(--fg2);max-width:820px">One 36 px pill, bottom-centre of the focused monitor by default, never over the caret. Hosted by the Omarchy panel plugin on Omarchy, by dettivo-osd elsewhere. Same component in both.</div>
+  </div>
+
+  <div class="state">
+    <div class="cap"><span class="label">Listening</span><span class="d">Hold F9. Bars follow audio.level at the frame rate. The hint fades after the second use.</span></div>
+    <div class="h"><div class="pill"><span class="dot"></span><div class="bars"><i style="height:4px"></i><i style="height:9px"></i><i style="height:16px"></i><i style="height:11px"></i><i style="height:18px"></i><i style="height:7px"></i><i style="height:13px"></i><i style="height:5px"></i><i style="height:15px"></i><i style="height:9px"></i><i style="height:4px"></i><i style="height:12px"></i><i style="height:6px"></i></div><span class="txt">Listening</span><span class="hint">release to insert</span></div></div>
+  </div>
+
+  <div class="state">
+    <div class="cap"><span class="label">Transcribing</span><span class="d">Bars freeze and dim; a single gold thread travels the width. Engine and elapsed time on the right.</span></div>
+    <div class="h"><div class="pill"><span class="dot" style="background:var(--gold3)"></span><div class="bars q"><i style="height:4px"></i><i style="height:9px"></i><i style="height:16px"></i><i style="height:11px"></i><i style="height:18px"></i><i style="height:7px"></i><i style="height:13px"></i><i style="height:5px"></i><i style="height:15px"></i><i style="height:9px"></i><i style="height:4px"></i><i style="height:12px"></i><i style="height:6px"></i></div><span class="txt">Transcribing</span><span class="hint num">parakeet v3 · 0.4 s</span></div></div>
+  </div>
+
+  <div class="state">
+    <div class="cap"><span class="label">Enhancing</span><span class="d">Only in Enhanced mode. Shows the raw first words while the rewrite runs.</span></div>
+    <div class="h"><div class="pill"><span class="dot" style="background:var(--gold3)"></span><span class="shim"></span><span class="txt" style="font-weight:300;color:var(--fg2)">add a regression test for the merger…</span></div></div>
+  </div>
+
+  <div class="state">
+    <div class="cap"><span class="label">Inserted</span><span class="d">Target app id and the first words. Holds 1.6 s then exits. Ctrl+Z within 5 s undoes.</span></div>
+    <div class="h"><div class="pill" style="border-color:rgba(245,191,3,.6)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#F5BF03" stroke-width="1.5" stroke-linecap="square"><path d="M2 3h6M2 8h12M2 13h9M12.5 3l2 2-2 2"/></svg><span class="txt">Inserted into <span style="color:var(--gold)">ghostty</span></span><span class="hint">Add a regression test for the merger…</span></div></div>
+  </div>
+
+  <div class="state">
+    <div class="cap"><span class="label">Copied</span><span class="d">Clipboard fallback. Says what happened and why, in one line.</span></div>
+    <div class="h"><div class="pill"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#EBDBB2" stroke-width="1.5"><rect x="5.5" y="5.5" width="8" height="8"/><path d="M10.5 5.5v-3h-8v8h3"/></svg><span class="txt">Copied to clipboard</span><span class="hint">no text input focused · Ctrl+V</span></div></div>
+  </div>
+
+  <div class="state" style="border-bottom:0">
+    <div class="cap"><span class="label">Error</span><span class="d">Urgent colour only on the dot and the action. The sentence says what to do.</span></div>
+    <div class="h"><div class="pill" style="border-color:rgba(211,95,95,.6)"><span class="dot" style="background:var(--red)"></span><span class="txt">No microphone</span><span class="hint">Arctis Nova disconnected · <span style="color:var(--red)">choose input</span></span></div></div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px;padding-top:24px;border-top:1px solid var(--line2)">
+    <div class="label">Bar glyph · 16 px, shown in the Omarchy bar at 1x</div>
+    <div style="display:flex;align-items:center;gap:48px;padding:14px 16px;background:var(--bar);border:1px solid var(--line);width:max-content">
+      <div style="display:flex;align-items:center;gap:10px"><span class="glyph" style="color:rgba(235,219,178,.55)"><i style="height:4px"></i><i style="height:8px"></i><i style="height:12px"></i><i style="height:6px"></i><i style="height:4px"></i></span><span class="label" style="color:var(--fg3)">idle</span></div>
+      <div style="display:flex;align-items:center;gap:10px"><span class="glyph" style="color:#F5BF03"><i style="height:6px"></i><i style="height:14px"></i><i style="height:9px"></i><i style="height:16px"></i><i style="height:5px"></i></span><span class="label" style="color:var(--fg3)">listening</span></div>
+      <div style="display:flex;align-items:center;gap:10px"><span class="glyph" style="color:#A3850E"><i style="height:8px"></i><i style="height:8px"></i><i style="height:8px"></i><i style="height:8px"></i><i style="height:8px"></i></span><span class="label" style="color:var(--fg3)">transcribing</span></div>
+      <div style="display:flex;align-items:center;gap:10px"><span class="glyph" style="color:#F5BF03"><i style="height:4px"></i><i style="height:8px"></i><i style="height:12px"></i><i style="height:6px"></i><i style="height:4px"></i></span><span class="num" style="font-size:11px;color:#EBDBB2">23:41</span><span class="label" style="color:var(--fg3)">meeting</span></div>
+      <div style="display:flex;align-items:center;gap:10px"><span class="glyph" style="color:#D35F5F"><i style="height:4px"></i><i style="height:8px"></i><i style="height:12px"></i><i style="height:6px"></i><i style="height:4px"></i></span><span class="label" style="color:var(--fg3)">error</span></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "id": 4,
+  "kind": "request",
+  "name": "generate",
+  "payload": {
+    "max_tokens": 64,
+    "prompt_profile": "polish",
+    "stop": [
+      "</rewrite>"
+    ],
+    "system": "Rewrite the transcript.",
+    "temperature": 0.2,
+    "user": "<transcript>hello team</transcript>"
+  },
+  "v": 1
+}

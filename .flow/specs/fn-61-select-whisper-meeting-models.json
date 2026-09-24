@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-61-select-whisper-meeting-models",
+  "created_at": "2026-09-16T07:57:28.760939Z",
+  "depends_on_epics": [],
+  "id": "fn-61-select-whisper-meeting-models",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-61-select-whisper-meeting-models.md",
+  "status": "done",
+  "title": "Select Whisper meeting models independently of Parakeet dictation",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-16T12:57:06.998115Z"
+}

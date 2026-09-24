@@ -1,0 +1,57 @@
+# Maintainer: Gordon Mickel <gordon@mickel.tech>
+#
+# Builds Dettivo for Linux from the tagged source: every Rust crate, the
+# three ggml engines with the Vulkan backend (they fall back to the CPU at
+# run time), the Qt binaries and the shared QML module, through the same
+# `just package` a release runs (ADR 0034). `dettivo-bin` installs the
+# release tarball instead. parakeet.cpp's pinned archives and the
+# sherpa-onnx release the diarization engine links (ADR 0035) are fetched
+# and verified during the build, so the build needs the network.
+
+pkgname=dettivo
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Speech workstation for Omarchy: dictation, meetings and history on local engines"
+arch=('x86_64')
+url="https://github.com/gmickel/dettivo-linux"
+license=('GPL-3.0-or-later')
+depends=(
+  'glibc' 'gcc-libs'
+  'qt6-base' 'qt6-declarative' 'qt6-svg' 'qt6-wayland' 'qt6-multimedia'
+  'libglvnd' 'tomlplusplus' 'layer-shell-qt' 'wayland' 'libxkbcommon'
+  'libpipewire' 'pipewire'
+  'vulkan-icd-loader'
+  'hicolor-icon-theme'
+)
+makedepends=(
+  'rust' 'cmake' 'ninja' 'patch' 'just' 'git' 'clang' 'pkgconf' 'zstd'
+  'vulkan-headers' 'spirv-headers' 'shaderc'
+  'dbus' 'curl' 'bzip2' 'jq'
+)
+optdepends=(
+  'omarchy: the bar plugin and `dettivo setup omarchy`'
+  'ollama: a remote language model endpoint for Enhanced'
+  'vulkan-driver: run the engines on the GPU; without one they run on the CPU'
+  'ttf-cascadia-mono-nerd: the monospace face the pill and the app render with'
+)
+install=dettivo.install
+options=('!lto')
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  export CARGO_TARGET_DIR="${srcdir}/target"
+  export DETTIVO_QT_BUILD_DIR="${srcdir}/qt-build"
+  export DETTIVO_GIT_SHA="v${pkgver}"
+  just package "${srcdir}/dist"
+}
+
+check() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  scripts/packaging/check-manifest.sh "${srcdir}/dist/dettivo-${pkgver}-linux-x86_64"
+}
+
+package() {
+  cp -a "${srcdir}/dist/dettivo-${pkgver}-linux-x86_64/usr" "${pkgdir}/"
+}

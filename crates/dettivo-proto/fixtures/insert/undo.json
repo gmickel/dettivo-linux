@@ -1,0 +1,24 @@
+{
+  "capabilities": {
+    "insert.methods": [
+      "insert.undo",
+      "insert.target",
+      "insert.allow_self_target"
+    ]
+  },
+  "method": "insert.undo",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "insert.undo",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "reason": "unsupported_backend",
+      "undone": false
+    }
+  }
+}

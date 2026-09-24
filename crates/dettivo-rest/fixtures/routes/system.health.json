@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/system/health"
+  },
+  "expect": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "ok": true,
+      "recording_state": "idle",
+      "active_jobs": 0,
+      "uptime_seconds": 0
+    }
+  }
+}
