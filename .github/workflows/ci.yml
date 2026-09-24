@@ -52,10 +52,11 @@ env:
 
 jobs:
   # The receipt, re-proven: `just build test lint` is the local gate and
-  # the command flow-next records for every head; one build serves the
-  # format, clippy, repository-rule, unit, QML and docs checks that used
-  # to be six jobs each building the workspace again. The target cache is
-  # keyed to this job so the full build is what the next run restores.
+  # the command flow-next records for every head. CI runs it without the
+  # separate `cargo build`: `cargo test --workspace` compiles every test,
+  # binary and example the checks need, and `test-qt` builds the Qt tree,
+  # so the same checks run for one Rust build fewer. The target cache is
+  # keyed to this job so the build is what the next run restores.
   gate:
     name: gate
     timeout-minutes: 60
@@ -89,7 +90,7 @@ jobs:
       - run: scripts/models/fetch-diarization-model.sh
         env:
           XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
-      - run: just build test lint
+      - run: just toolchain test lint
         env:
           XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
 

@@ -377,7 +377,7 @@ jobs:
         if: inputs.release
         env:
           XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
-      - run: just build test lint
+      - run: just toolchain test lint
         if: inputs.release
         env:
           XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
