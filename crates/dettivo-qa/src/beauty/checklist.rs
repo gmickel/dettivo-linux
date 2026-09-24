@@ -156,13 +156,26 @@ pub fn run_check(repo: &Path, command: &str) -> Result<(bool, String), String> {
     let Some(resolved) = resolved else {
         return Err(format!("checklist: check command not found: {program}"));
     };
-    let output = Command::new(&resolved)
-        .args(&words)
-        .current_dir(repo)
-        .env_remove("DETTIVO_QA_MODE")
-        .stdin(Stdio::null())
-        .output()
-        .map_err(|e| format!("checklist: run {}: {e}", resolved.display()))?;
+    // A script written a moment ago can still be open for writing in a
+    // child another thread just forked; exec then fails with ETXTBSY until
+    // that child execs, so a few short retries cover the window.
+    let mut attempt = 0;
+    let output = loop {
+        let run = Command::new(&resolved)
+            .args(&words)
+            .current_dir(repo)
+            .env_remove("DETTIVO_QA_MODE")
+            .stdin(Stdio::null())
+            .output();
+        match run {
+            Err(e) if e.raw_os_error() == Some(26) && attempt < 5 => {
+                attempt += 1;
+                std::thread::sleep(std::time::Duration::from_millis(20));
+            }
+            other => break other,
+        }
+    }
+    .map_err(|e| format!("checklist: run {}: {e}", resolved.display()))?;
     let mut text = String::from_utf8_lossy(&output.stdout).into_owned();
     text.push_str(&String::from_utf8_lossy(&output.stderr));
     let tail: Vec<&str> = text.lines().rev().take(4).collect();
