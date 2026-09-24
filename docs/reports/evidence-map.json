@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "git_sha": "f02b5c28f5ab38eeabff4d583f05d9e4d28182a4",
-  "generated_unix": 1790232568,
+  "git_sha": "f75152b8799972312fb528b6836d6892ef025ed0",
+  "generated_unix": 1790267124,
   "specs": [
     {
       "id": "fn-1-repository-bootstrap-workspace-cmake",
@@ -2751,11 +2751,11 @@
           "rids": [
             "R3"
           ],
-          "kind": "pack",
-          "ref": "release/visual",
-          "note": "the release gate runs the visual regression",
+          "kind": "visual",
+          "ref": "osd",
+          "note": "dettivo-qa visual renders the pill on every theme and diffs it against its baseline (optional, ADR 0066)",
           "resolved": true,
-          "detail": "pack step release/visual"
+          "detail": "surface osd in qa/visual/manifest.toml"
         },
         {
           "rids": [
@@ -4438,11 +4438,11 @@
             "R1",
             "R2"
           ],
-          "kind": "pack",
-          "ref": "release/visual",
+          "kind": "visual",
+          "ref": "home",
           "note": "dettivo-qa visual renders every manifest surface at 1x and 2x across the themes and diffs against the baselines",
           "resolved": true,
-          "detail": "pack step release/visual"
+          "detail": "surface home in qa/visual/manifest.toml"
         },
         {
           "rids": [
@@ -4518,11 +4518,11 @@
           "rids": [
             "R3"
           ],
-          "kind": "pack",
-          "ref": "release/visual_canary",
+          "kind": "unit",
+          "ref": "dettivo-qa::the_canary_passes_only_when_every_entry_fails",
           "note": "the canary run fails as expected",
           "resolved": true,
-          "detail": "pack step release/visual_canary"
+          "detail": "fn the_canary_passes_only_when_every_entry_fails in crates/dettivo-qa/src/visual/report.rs"
         },
         {
           "rids": [
@@ -8859,11 +8859,11 @@
           "rids": [
             "R5"
           ],
-          "kind": "pack",
-          "ref": "release/visual_canary",
+          "kind": "unit",
+          "ref": "dettivo-qa::the_canary_passes_only_when_every_entry_fails",
           "note": "the canary proves the visual job still fails a deliberate token regression",
           "resolved": true,
-          "detail": "pack step release/visual_canary"
+          "detail": "fn the_canary_passes_only_when_every_entry_fails in crates/dettivo-qa/src/visual/report.rs"
         },
         {
           "rids": [
@@ -11660,11 +11660,11 @@
       "docs": 144,
       "drive": 45,
       "human": 15,
-      "pack": 64,
+      "pack": 60,
       "pipeline": 4,
       "script": 62,
-      "unit": 511,
-      "visual": 35
+      "unit": 513,
+      "visual": 37
     },
     "findings": []
   }

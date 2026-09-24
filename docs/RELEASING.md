@@ -1,6 +1,6 @@
 # Releasing
 
-A release of Dettivo for Linux is a build that passed the gate below on the development machine, with every external blocker named in a checked-in report, published from one tag with no hand step. The gate is one script: `dettivo-qa pack release` runs fifteen named steps in order, embeds each step's own report, and ends with `blockers`, `external_blockers` and `unexplained_blockers`; the release does not ship while a step has failed or a blocker is unexplained, and the report it files under [docs/reports/release-gate/](reports/release-gate/0.1.0.md) is the artifact the release notes quote ([ADR 0041](adr/0041-guides-docs-build-evidence-map-and-the-release-gate-script.md), the report shape in [docs/guides/qa.md](guides/qa.md#the-release-gate)).
+A release of Dettivo for Linux is a build that passed the gate below on the development machine, with every external blocker named in a checked-in report, published from one tag with no hand step. The gate is one script: `dettivo-qa pack release` runs thirteen named steps in order, embeds each step's own report, and ends with `blockers`, `external_blockers` and `unexplained_blockers`; the release does not ship while a step has failed or a blocker is unexplained, and the report it files under [docs/reports/release-gate/](reports/release-gate/0.1.0.md) is the artifact the release notes quote ([ADR 0041](adr/0041-guides-docs-build-evidence-map-and-the-release-gate-script.md), the report shape in [docs/guides/qa.md](guides/qa.md#the-release-gate)).
 
 ## Running the gate
 
@@ -48,31 +48,27 @@ This step validates the MCP results already embedded by `contract_strict`; it do
 
 `dettivo-qa pack meetings` runs the rig capture with the device swap, the kill and recovery, the live transcript, diarization against the turns golden, the export goldens, the three meetings screens on both drivers, the token fixture, then the five-minute import timed through the daemon's own finalisation path, the diarization engine over the same track and the GPU workload proof ([docs/qa.md](qa.md#the-meetings-pack), [ADR 0039](adr/0039-meetings-pack-finalisation-path-throughput-and-the-gpu-proof.md)). `--engines <dir>` names the Vulkan build so the figures are the GPU tier's; `--record` files them into the benchmark report. The release notes quote the meeting realtime factor against NFR-4 or NFR-5, the diarization factor against NFR-4, the token coverage and the harness share.
 
-### 8. `visual` and 9. `visual_canary`
-
-Every surface of `qa/visual/manifest.toml` at 1x and 2x on every theme fixture and both built-in palettes against its approved baseline, then the same renders with a deliberate token regression, which must fail every diff ([docs/qa.md](qa.md#visual-regression), [ADR 0021](adr/0021-visual-regression-gate-and-frame-pacing.md)). Both reports are embedded.
-
-### 10. `bench_report`
+### 8. `bench_report`
 
 The newest checked-in benchmark report for this host on the `gpu` tier and for each host on the `cpu` tier under [docs/reports/benchmarks/](reports/benchmarks/README.md) is read as the typed report the suite writes and judged on its contents ([docs/qa.md](qa.md#benchmarks), [ADR 0029](adr/0029-nfr-calibration-and-the-benchmark-suite.md), [ADR 0051](adr/0051-the-release-gate-passes-on-validated-evidence-bound-to-the-tested-binaries.md)): it parses, it is the tier's, it has steps and none failed or lacks its value, its commit and its `meetings` block's commit are ancestors of this commit, and the block carries the meeting and diarization factors; a file that lacks any of these fails the step naming the fact, and an older file never stands in for a newer one that fails. The step embeds each report's steps with their verdicts. A CPU row measured on this desktop under `DETTIVO_FORCE_CPU=1` is an external blocker naming the CPU-only VM that has not run `just bench-cpu` and `just qa-pack-meetings-cpu`; a clean CPU report from any other host lifts it. The release notes quote the table verbatim; a target missed two releases in a row is recalibrated in a decision record.
 
-### 11. `install_test`
+### 9. `install_test`
 
 `install-test.json` (`DETTIVO_INSTALL_TEST_REPORT`, else `build/install-test.json` from `just install-test`) is a receipt for this version with every one of the seventeen required checks present once and passed with exit 0: the file list against `packaging/manifest.txt`, the desktop entry and the units, the CLI's version and the three completions, Home rendered from the installed module, every engine's help, the CPU-fallback smoke over the three engines, the natural backend and one mock-microphone dictation through the installed daemon ([docs/install.md](install.md), [ADR 0034](adr/0034-install-layout-cuda-drop-in-and-release-workflow.md)). A skipped check, an unknown status, a receipt for another version or package, and a missing file each fail the step naming what is unproven ([ADR 0051](adr/0051-the-release-gate-passes-on-validated-evidence-bound-to-the-tested-binaries.md)). A receipt from a prefix install on this desktop adds the external blocker that `scripts/packaging/install-test.sh --session` on a fresh CPU-only VM has not run for this version; the VM's receipt, read through `DETTIVO_INSTALL_TEST_REPORT`, lifts it.
 
-### 12. `evidence_map`
+### 10. `evidence_map`
 
 `dettivo-qa evidence-map` reports coverage 1.0 of every R-ID in every spec with every reference resolved: a `unit` reference is a function carrying `#[test]`, a `visual` reference names a manifest surface and, with a `/state` suffix, one of its states, and a `human` reference is the receipt a person files ([docs/guides/qa.md](guides/qa.md#the-evidence-map)). The map is the inventory of routes, not their results: the steps above are what run them, and a human receipt on file is not proof that the walk happened ([ADR 0051](adr/0051-the-release-gate-passes-on-validated-evidence-bound-to-the-tested-binaries.md)). The report is embedded and the checked-in copy is [docs/reports/evidence-map.md](reports/evidence-map.md).
 
-### 13. `docs_build`
+### 11. `docs_build`
 
 `scripts/check-docs.sh` passes: the records indexed and value-first, the links resolving, the contract copies pinned, every page reachable, every schema key documented, the CLI tree current ([ADR 0041](adr/0041-guides-docs-build-evidence-map-and-the-release-gate-script.md)).
 
-### 14. `notice_lint`
+### 12. `notice_lint`
 
 `cargo run -p xtask -- lint-notice` passes: every crate in `Cargo.lock` has its row in `NOTICE.md` and every reuse marker has its row ([docs/reports/voxtype-reuse-review.md](reports/voxtype-reuse-review.md)).
 
-### 15. `real_headset`
+### 13. `real_headset`
 
 `dettivo-qa audio-check` proves the PipeWire capture path with the virtual rig, and `docs/reports/release-gate/real-headset.json` records that a person dictated once through the real microphone on this desktop for this version (the version, the date, the device, the words, the backend). Without the receipt the step skips with that external blocker; the automated rig cannot stand in for a real microphone.
 

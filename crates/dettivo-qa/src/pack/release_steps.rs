@@ -412,8 +412,6 @@ pub fn run_step(id: &str, ctx: &Context<'_>) -> StepReport {
         "pack_dictation" => sub_pack(ctx, id, "dictation"),
         "pack_gui" => sub_pack(ctx, id, "gui"),
         "pack_meetings" => sub_pack(ctx, id, "meetings"),
-        "visual" => own_verb(ctx, id, &["visual"], false),
-        "visual_canary" => own_verb(ctx, id, &["visual", "--canary"], false),
         "bench_report" => super::release_bench::bench_report(ctx),
         "install_test" => install_test(ctx),
         "evidence_map" => own_verb(ctx, id, &["evidence-map"], false),

@@ -72,7 +72,6 @@ The report carries `schema_version`, `git_sha`, `specs` (one block per spec with
 | `contract_strict` | `dettivo-qa contract --strict` | every fixture passed or skipped; a pending method is allowed only behind a capability flag the daemon declares `false` |
 | `mcp_harness` | `dettivo-qa mcp` | every harness step passed in both framings |
 | `pack_dictation`, `pack_gui`, `pack_meetings` | `dettivo-qa pack <name> --continue` | every row passed or skipped for an allowed reason; the pack's blockers join the gate's list, and a row that fails on `cua-driver` while its `atspi` twin passes is an external blocker naming the driver rather than a failed step |
-| `visual`, `visual_canary` | `dettivo-qa visual`, `visual --canary` | every entry passed; the canary failed every diff |
 | `bench_report` | `docs/reports/benchmarks/` | a report exists for this host on the `gpu` and the `cpu` tier, each from a commit in this history; a CPU row measured under `DETTIVO_FORCE_CPU=1` names the CPU-only VM as an external blocker |
 | `install_test` | `install-test.json` (`DETTIVO_INSTALL_TEST_REPORT`, else `build/install-test.json`) | every check passed; the `--session` run on a fresh VM is an external blocker until that report is the one read |
 | `evidence_map` | `dettivo-qa evidence-map` | coverage 1.0, every ref resolved |

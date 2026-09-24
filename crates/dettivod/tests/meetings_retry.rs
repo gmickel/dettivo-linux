@@ -118,7 +118,13 @@ fn finalization_failures_and_restart_are_retryable_for_capture_and_import() {
         );
         let row = daemon.result("meetings.get", json!({"meeting_id": original.id}));
         assert_eq!(row["notes"], original.notes_markdown);
-        let completed = daemon.request("meetings.recover", json!({"meeting_id": original.id}));
+        // `completed` can land before the retry's job has released the
+        // meeting on a slow runner; the refusal is read once it has.
+        let mut completed = daemon.request("meetings.recover", json!({"meeting_id": original.id}));
+        common::wait_for(Duration::from_secs(30), || {
+            completed = daemon.request("meetings.recover", json!({"meeting_id": original.id}));
+            completed["error"]["data"]["details"]["kind"] != "jobRunning"
+        });
         assert_eq!(
             completed["error"]["data"]["details"]["kind"],
             contract["completed_retry_error"]
