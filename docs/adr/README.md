@@ -70,6 +70,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0063](0063-the-bar-meeting-timer-ticks-from-the-recording-anchor.md) | The bar's meeting timer ticks from the recording anchor, and a stage detail takes the room its row has | Accepted 2026-09-16, amends 0030 and 0061 |
 | [0064](0064-a-release-publishes-itself-to-the-aur-and-the-plugin-mirror.md) | A release publishes itself to the AUR and the Omarchy plugin mirror | Accepted 2026-09-24 |
 | [0065](0065-dettivo-for-linux-is-gpl-3-or-later.md) | Dettivo for Linux is licensed GPL-3.0-or-later | Accepted 2026-09-24 |
+| [0067](0067-the-engines-compile-ggml-for-one-x86-64-baseline.md) | The engines compile ggml for one x86-64 baseline, never for the build machine's CPU | Accepted 2026-09-24 |
 
 ## Writing a record
 
