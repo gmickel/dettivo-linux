@@ -42,7 +42,12 @@ for name in dettivo-bin dettivo dettivo-engines-cuda; do
   pkgver="$(sed -n -E 's/^pkgver=(.*)$/\1/p' "$dir/PKGBUILD")"
   [ "$pkgver" = "$version" ] || report "$dir/PKGBUILD says pkgver=$pkgver, Cargo.toml says $version"
   if command -v makepkg >/dev/null; then
-    want="$(cd "$dir" && makepkg --printsrcinfo 2>/dev/null)" || { report "$dir: makepkg --printsrcinfo failed"; continue; }
+    # makepkg refuses root (the CI container); nobody can read a recipe.
+    if [ "$(id -u)" = 0 ]; then
+      want="$(cd "$dir" && runuser -u nobody -- makepkg --printsrcinfo 2>/dev/null)" || { report "$dir: makepkg --printsrcinfo failed"; continue; }
+    else
+      want="$(cd "$dir" && makepkg --printsrcinfo 2>/dev/null)" || { report "$dir: makepkg --printsrcinfo failed"; continue; }
+    fi
     if ! diff -u <(echo "$want") "$dir/.SRCINFO" >/dev/null; then
       report "$dir/.SRCINFO is out of step; run (cd $dir && makepkg --printsrcinfo > .SRCINFO)"
     fi

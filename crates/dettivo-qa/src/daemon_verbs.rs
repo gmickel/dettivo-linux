@@ -19,6 +19,23 @@ fn import_fixture() -> Option<PathBuf> {
     (models.join("whisper/tiny.en/ggml-tiny.en.bin").is_file() && clip.is_file()).then_some(clip)
 }
 
+/// The file under the profile root that holds the harness daemon's log.
+const DAEMON_LOG: &str = "dettivod.log";
+
+/// The last lines of the harness daemon's log on stderr, so a failure in
+/// CI names its cause; nothing when the verb used someone else's daemon.
+fn daemon_log_tail(verb: &str, profile: Option<&profile::Profile>) {
+    let Some(text) = profile.and_then(|p| std::fs::read_to_string(p.root.join(DAEMON_LOG)).ok())
+    else {
+        return;
+    };
+    let lines: Vec<&str> = text.lines().collect();
+    eprintln!("{verb}: the last lines of the daemon's log:");
+    for line in &lines[lines.len().saturating_sub(40)..] {
+        eprintln!("  {line}");
+    }
+}
+
 /// The socket to test against: `socket` as given, or a daemon of our own
 /// in a fresh profile named after the verb (`contract`, `mcp`) so its
 /// messages say which verb started it, with the history seed on (the
@@ -51,13 +68,18 @@ fn daemon_socket(
     let mut text = std::fs::read_to_string(&config).unwrap_or_default();
     text.push_str("\n[rest]\nenabled = true\nport = 0\n");
     let _ = std::fs::write(&config, text);
+    // The daemon's log stays in the profile so a failed harness can show
+    // why (`daemon_log_tail`).
+    let log = std::fs::File::create(profile.root.join(DAEMON_LOG))
+        .map(Stdio::from)
+        .unwrap_or_else(|_| Stdio::null());
     let child = profile::command(&daemon_bin, &profile.env())
         .env("DETTIVO_E2E_SEED", "1")
         .env("DETTIVO_IPC_TOKEN", REST_TOKEN)
         .env("DETTIVO_MOCK_A11Y", "1")
         .stdin(Stdio::null())
         .stdout(Stdio::null())
-        .stderr(Stdio::null())
+        .stderr(log)
         .spawn()
         .map_err(|e| {
             eprintln!("{verb}: start dettivod: {e}");
@@ -80,7 +102,7 @@ fn daemon_socket(
 
 pub(crate) fn rest(cli: &Cli, repo: &Path, socket: Option<&Path>) -> u8 {
     let own_daemon = socket.is_none();
-    let (socket, _daemon, _profile) = match daemon_socket(repo, socket, "rest") {
+    let (socket, _daemon, profile) = match daemon_socket(repo, socket, "rest") {
         Ok(s) => s,
         Err(code) => return code,
     };
@@ -106,10 +128,13 @@ pub(crate) fn rest(cli: &Cli, repo: &Path, socket: Option<&Path>) -> u8 {
     } else {
         print!("{}", dettivo_rest::harness::human(&rows));
     }
-    u8::from(
-        rows.iter()
-            .any(|r| r.verdict == dettivo_rest::harness::Verdict::Fail),
-    )
+    let failed = rows
+        .iter()
+        .any(|r| r.verdict == dettivo_rest::harness::Verdict::Fail);
+    if failed {
+        daemon_log_tail("rest", profile.as_ref());
+    }
+    u8::from(failed)
 }
 
 pub(crate) fn contract(cli: &Cli, repo: &Path, socket: Option<&Path>, strict: bool) -> u8 {
@@ -148,7 +173,7 @@ pub(crate) fn mcp(cli: &Cli, repo: &Path, socket: Option<&Path>, server: Option<
         },
     };
     let own_daemon = socket.is_none();
-    let (socket, _daemon, _profile) = match daemon_socket(repo, socket, "mcp") {
+    let (socket, _daemon, profile) = match daemon_socket(repo, socket, "mcp") {
         Ok(s) => s,
         Err(code) => return code,
     };
@@ -162,10 +187,13 @@ pub(crate) fn mcp(cli: &Cli, repo: &Path, socket: Option<&Path>, server: Option<
     } else {
         print!("{}", dettivo_mcp::harness::human(&rows));
     }
-    u8::from(
-        rows.iter()
-            .any(|r| r.verdict == dettivo_mcp::harness::Verdict::Fail),
-    )
+    let failed = rows
+        .iter()
+        .any(|r| r.verdict == dettivo_mcp::harness::Verdict::Fail);
+    if failed {
+        daemon_log_tail("mcp", profile.as_ref());
+    }
+    u8::from(failed)
 }
 
 /// Kills a child on drop.
