@@ -1,10 +1,11 @@
 {
-  "note": "Word error rate ceilings per model and backend on the jfk fixture (scripts/models/fetch-test-model.sh). The CLI test runs every row whose model is on disk and whose backend this build can use; a miss fails naming the row and the number. Measured 2026-09-04: v2 cpu 0.000, v2 vulkan 0.000, v3 vulkan 0.000. 2026-09-24: ultra cpu 0.000.",
+  "note": "Word error rate ceilings per model and backend on the jfk fixture (scripts/models/fetch-test-model.sh). The CLI test runs every row whose model is on disk and whose backend this build can use; a miss fails naming the row and the number. Measured 2026-09-04: v2 cpu 0.000, v2 vulkan 0.000, v3 vulkan 0.000. 2026-09-24: ultra cpu 0.000, ultra vulkan 0.000.",
   "fixture": "fixtures/jfk.wav",
   "rows": [
     { "model": "parakeet-v2", "file": "tdt-0.6b-v2-q8_0.gguf", "backend": "cpu", "max_wer": 0.05 },
     { "model": "parakeet-v2", "file": "tdt-0.6b-v2-q8_0.gguf", "backend": "vulkan", "max_wer": 0.05 },
     { "model": "parakeet-v3", "file": "tdt-0.6b-v3-q8_0.gguf", "backend": "vulkan", "max_wer": 0.05 },
-    { "model": "parakeet-ultra", "file": "parakeet-ultra.q8_0.gguf", "backend": "cpu", "max_wer": 0.05 }
+    { "model": "parakeet-ultra", "file": "parakeet-ultra.q8_0.gguf", "backend": "cpu", "max_wer": 0.05 },
+    { "model": "parakeet-ultra", "file": "parakeet-ultra.q8_0.gguf", "backend": "vulkan", "max_wer": 0.05 }
   ]
 }
