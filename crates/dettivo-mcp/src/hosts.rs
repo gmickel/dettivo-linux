@@ -414,8 +414,12 @@ mod tests {
         let existing = "[mcp_servers.other]\ncommand = \"x\"\n";
         std::fs::write(&path, existing).unwrap();
         std::fs::set_permissions(&path, PermissionsExt::from_mode(0o000)).unwrap();
-        let err = write(&opts(Host::Codex, false), &path).unwrap_err();
-        assert!(err.starts_with("cannot read"), "{err}");
+        // Root (the CI container) reads a mode-000 file anyway, so the
+        // refusal is only observable where the permission bits apply.
+        if std::fs::read(&path).is_err() {
+            let err = write(&opts(Host::Codex, false), &path).unwrap_err();
+            assert!(err.starts_with("cannot read"), "{err}");
+        }
         std::fs::set_permissions(&path, PermissionsExt::from_mode(0o600)).unwrap();
         assert_eq!(std::fs::read_to_string(&path).unwrap(), existing);
 
