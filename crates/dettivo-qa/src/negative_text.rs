@@ -100,7 +100,9 @@ fn texts(e: &Element) -> impl Iterator<Item = &str> {
 
 /// A path editor must expose its exact value so it can be read and edited.
 /// This exception applies to the value of a named path key only, never a
-/// label, a diagnostic, or text that merely contains a path.
+/// label, a diagnostic, or text that merely contains a path. A path such as
+/// a checkout's `target/debug` may trip the `debug` word instead of a path
+/// marker, and is still the key's value.
 fn configuration_path_value(e: &Element, text: &str, class: &str) -> bool {
     const PATH_KEYS: &[&str] = &[
         "paths.data_dir",
@@ -113,7 +115,7 @@ fn configuration_path_value(e: &Element, text: &str, class: &str) -> bool {
         "llm.api_key_file",
         "llm.experiments_dir",
     ];
-    class == "raw path"
+    matches!(class, "raw path" | "debug text")
         && matches!(e.role.as_str(), "text" | "entry")
         && PATH_KEYS.contains(&e.name.as_str())
         && e.value.as_deref() == Some(text)
@@ -373,6 +375,11 @@ mod tests {
         };
         assert!(findings(std::slice::from_ref(&field)).is_empty());
         assert!(findings_outside_profile(std::slice::from_ref(&field)).is_empty());
+        let checkout = Element {
+            value: Some("/__w/dettivo-linux/dettivo-linux/target/debug".into()),
+            ..field.clone()
+        };
+        assert!(findings(std::slice::from_ref(&checkout)).is_empty());
         let label = Element {
             role: "label".into(),
             ..field.clone()

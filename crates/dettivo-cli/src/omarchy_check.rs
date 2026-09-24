@@ -90,9 +90,12 @@ pub fn check(config_home: &Path) -> Value {
     });
     report["snippet"]["state"] = json!(snippet_state);
     report["plugin"]["state"] = json!(plugin_state);
-    if plugin_state == "skipped" {
-        report["plugin"]["detail"] = json!("the omarchy command is not on PATH");
-    }
+    // Always present, so the report has one shape with or without Omarchy.
+    report["plugin"]["detail"] = if plugin_state == "skipped" {
+        json!("the omarchy command is not on PATH")
+    } else {
+        Value::Null
+    };
     report
 }
 

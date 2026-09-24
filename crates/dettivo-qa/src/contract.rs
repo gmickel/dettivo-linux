@@ -28,12 +28,16 @@ pub fn run(
         ("DETTIVO_MOCK_A11Y".into(), "1".into()),
         ("DETTIVO_IPC_TOKEN".into(), REST_TOKEN.into()),
     ]);
-    let daemon = DaemonHandle::spawn(
+    // The daemon's log stays in the profile so a failed transport row can
+    // show why in CI, where nothing else keeps it.
+    let log = profile.root.join("dettivod.log");
+    let daemon = DaemonHandle::spawn_logged(
         &binary,
         &mut profile,
         "[rest]\nenabled = true\nport = 0\n",
         &env,
         timeout,
+        Some(&log),
     )?;
     let fixture = super::scenarios::daemon::local_model(&profile).map(|(_, wav)| wav);
     let mcp = harness_with_test_model(&server, &daemon.socket, fixture.as_deref(), true);
@@ -42,11 +46,32 @@ pub fn run(
     if selected {
         config_key(&daemon.socket, "speech.model", None);
     }
+    let failed = mcp
+        .iter()
+        .any(|r| r.verdict == dettivo_mcp::harness::Verdict::Fail)
+        || rest
+            .iter()
+            .any(|r| r.verdict == dettivo_rest::harness::Verdict::Fail);
+    if failed {
+        log_tail(&log);
+    }
     let mut report = replay::run(repo, &daemon.socket).map_err(|e| e.to_string())?;
     report.mcp = mcp;
     report.rest = rest;
     validate_required(&report)?;
     Ok(report)
+}
+
+/// The last 40 lines of the contract daemon's log on stderr.
+fn log_tail(log: &Path) {
+    let Ok(text) = std::fs::read_to_string(log) else {
+        return;
+    };
+    let lines: Vec<&str> = text.lines().collect();
+    eprintln!("contract: the last lines of the daemon's log:");
+    for line in &lines[lines.len().saturating_sub(40)..] {
+        eprintln!("  {line}");
+    }
 }
 
 /// Validates the transport sections required by a fresh-profile contract run.

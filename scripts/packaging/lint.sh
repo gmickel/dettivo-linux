@@ -42,7 +42,20 @@ for name in dettivo-bin dettivo dettivo-engines-cuda; do
   pkgver="$(sed -n -E 's/^pkgver=(.*)$/\1/p' "$dir/PKGBUILD")"
   [ "$pkgver" = "$version" ] || report "$dir/PKGBUILD says pkgver=$pkgver, Cargo.toml says $version"
   if command -v makepkg >/dev/null; then
-    want="$(cd "$dir" && makepkg --printsrcinfo 2>/dev/null)" || { report "$dir: makepkg --printsrcinfo failed"; continue; }
+    # makepkg refuses root (the CI container), so root runs it as nobody on
+    # a copy of the recipe in a directory nobody owns (makepkg wants to
+    # write there); makepkg's own error text goes into the finding.
+    err="$(mktemp)"
+    if [ "$(id -u)" = 0 ]; then
+      copy="$(mktemp -d)"
+      cp -r "$dir/." "$copy/"
+      chown -R nobody "$copy"
+      want="$(cd "$copy" && runuser -u nobody -- env HOME=/tmp makepkg --printsrcinfo 2>"$err")" || { report "$dir: makepkg --printsrcinfo failed: $(tail -n 3 "$err")"; rm -r "$copy" "$err"; continue; }
+      rm -r "$copy"
+    else
+      want="$(cd "$dir" && makepkg --printsrcinfo 2>"$err")" || { report "$dir: makepkg --printsrcinfo failed: $(tail -n 3 "$err")"; rm "$err"; continue; }
+    fi
+    rm "$err"
     if ! diff -u <(echo "$want") "$dir/.SRCINFO" >/dev/null; then
       report "$dir/.SRCINFO is out of step; run (cd $dir && makepkg --printsrcinfo > .SRCINFO)"
     fi

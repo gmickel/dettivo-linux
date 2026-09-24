@@ -1,0 +1,14 @@
+# ggml's CPU backend is compiled for one fixed x86-64 baseline (AVX, AVX2,
+# FMA, F16C, BMI2: every x86-64 CPU since 2013), never for the CPU of the
+# machine that builds it: a release tarball built on one CI runner has to
+# run on every user's machine, and a cached build has to run on the next
+# runner (ADR 0067). The instruction sets are named because ggml turns
+# them all off when SOURCE_DATE_EPOCH is set, as makepkg does.
+# whisper-rs-sys and parakeet-cpp-sys forward GGML_* variables to CMake.
+[env]
+GGML_NATIVE = "OFF"
+GGML_AVX = "ON"
+GGML_AVX2 = "ON"
+GGML_FMA = "ON"
+GGML_F16C = "ON"
+GGML_BMI2 = "ON"

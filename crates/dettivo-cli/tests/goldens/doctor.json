@@ -258,6 +258,7 @@
       "on_bus": null
     },
     "plugin": {
+      "detail": null,
       "enabled": null,
       "git": false,
       "id": "gmickel.dettivo",
