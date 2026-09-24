@@ -42,12 +42,20 @@ for name in dettivo-bin dettivo dettivo-engines-cuda; do
   pkgver="$(sed -n -E 's/^pkgver=(.*)$/\1/p' "$dir/PKGBUILD")"
   [ "$pkgver" = "$version" ] || report "$dir/PKGBUILD says pkgver=$pkgver, Cargo.toml says $version"
   if command -v makepkg >/dev/null; then
-    # makepkg refuses root (the CI container); nobody can read a recipe.
+    # makepkg refuses root (the CI container), so root reads a copy of the
+    # recipe as nobody, from a directory nobody can reach; makepkg's own
+    # error text goes into the finding.
+    err="$(mktemp)"
     if [ "$(id -u)" = 0 ]; then
-      want="$(cd "$dir" && runuser -u nobody -- makepkg --printsrcinfo 2>/dev/null)" || { report "$dir: makepkg --printsrcinfo failed"; continue; }
+      copy="$(mktemp -d)"
+      cp -r "$dir/." "$copy/"
+      chmod -R a+rX "$copy"
+      want="$(cd "$copy" && runuser -u nobody -- env HOME=/tmp makepkg --printsrcinfo 2>"$err")" || { report "$dir: makepkg --printsrcinfo failed: $(tail -n 3 "$err")"; rm -r "$copy" "$err"; continue; }
+      rm -r "$copy"
     else
-      want="$(cd "$dir" && makepkg --printsrcinfo 2>/dev/null)" || { report "$dir: makepkg --printsrcinfo failed"; continue; }
+      want="$(cd "$dir" && makepkg --printsrcinfo 2>"$err")" || { report "$dir: makepkg --printsrcinfo failed: $(tail -n 3 "$err")"; rm "$err"; continue; }
     fi
+    rm "$err"
     if ! diff -u <(echo "$want") "$dir/.SRCINFO" >/dev/null; then
       report "$dir/.SRCINFO is out of step; run (cd $dir && makepkg --printsrcinfo > .SRCINFO)"
     fi
