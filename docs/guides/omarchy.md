@@ -2,6 +2,9 @@
 
 On Omarchy, Dettivo is one command away from living in the bar with the keys you already know: `dettivo setup omarchy` enables the daemon's socket, writes the Hyprland bindings, installs the bar plugin and reloads the shell, and from then on the 16 px mark in the bar shows what the daemon is doing, its panel hosts the recording pill, and every colour, size and spacing follows the active theme. This guide walks that path and links the pages that hold the details.
 
+
+![The Dettivo mark in the Omarchy bar with its panel open during a meeting](../images/omarchy-bar-panel.png)
+
 ## One command
 
 ```

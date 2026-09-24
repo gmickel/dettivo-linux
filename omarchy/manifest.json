@@ -6,7 +6,7 @@
   "author": "Gordon Mickel",
   "license": "GPL-3.0-or-later",
   "description": "Dictation state in the bar, the Dettivo panel, and the recording pill hosted by the shell.",
-  "homepage": "https://github.com/gmickel/omarchy-dettivo",
+  "homepage": "https://github.com/gmickel/dettivo-linux",
   "repository": "https://github.com/gmickel/omarchy-dettivo",
   "kinds": [
     "bar-widget",
@@ -19,11 +19,15 @@
   },
   "keywords": [
     "dictation",
-    "speech",
+    "speech-to-text",
+    "voice-typing",
     "transcription",
-    "voice",
+    "meeting-transcription",
+    "offline",
     "whisper",
-    "parakeet"
+    "parakeet",
+    "hyprland",
+    "omarchy"
   ],
   "barWidget": {
     "displayName": "Dettivo",
