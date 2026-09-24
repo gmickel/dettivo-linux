@@ -88,6 +88,41 @@ git tag v<version> && git push origin v<version>
 
 Once the release is published and its download verified, `release.yml` calls [`.github/workflows/distribute.yml`](../.github/workflows/distribute.yml) ([ADR 0064](adr/0064-a-release-publishes-itself-to-the-aur-and-the-plugin-mirror.md)). Its `aur` job runs `packaging/aur/publish.sh <version>`, which pins the sums and pushes `dettivo-bin` and `dettivo` to the AUR, and its `plugin-mirror` job writes the released `omarchy/` folder into `gmickel/omarchy-dettivo` with `scripts/omarchy/export-plugin.sh` and pushes it as `v<version>` ([docs/omarchy.md](omarchy.md#the-plugin-folder-and-the-mirror)). Both jobs need two repository secrets. `AUR_SSH_PRIVATE_KEY` is a private key whose public half is registered on the AUR account that maintains the packages, and `OMARCHY_MIRROR_DEPLOY_KEY` is the private half of a deploy key with write access on the mirror. A missing secret fails its own job and names it. To distribute a release again, or the first release after the secrets are added, dispatch the workflow by hand: `gh workflow run distribute.yml -f version=<version>`.
 
+## Setting up distribution once
+
+Each release keeps the AUR and the plugin mirror current without anyone touching them, once three things exist. The mirror has to be its own repository because `omarchy plugin add` clones a URL and reads `manifest.json` from its root.
+
+1. The mirror repository, with its issues pointing people back here:
+   ```bash
+   gh repo create gmickel/omarchy-dettivo --public --disable-issues --disable-wiki \
+     --homepage https://github.com/gmickel/dettivo-linux \
+     --description "Omarchy bar plugin for Dettivo: local dictation and meeting transcription in the bar, with a panel and the recording pill. Mirror of omarchy/ in gmickel/dettivo-linux."
+   gh repo edit gmickel/omarchy-dettivo --enable-projects=false \
+     $(for t in omarchy omarchy-plugin hyprland quickshell wayland speech-to-text dictation voice-typing transcription whisper offline linux qml; do printf -- '--add-topic %s ' "$t"; done)
+   ```
+2. A write deploy key on the mirror, with its private half stored here:
+   ```bash
+   ssh-keygen -t ed25519 -N '' -C dettivo-mirror -f /tmp/dettivo-mirror-key
+   gh repo deploy-key add /tmp/dettivo-mirror-key.pub -R gmickel/omarchy-dettivo --allow-write --title dettivo-release
+   gh secret set OMARCHY_MIRROR_DEPLOY_KEY -R gmickel/dettivo-linux < /tmp/dettivo-mirror-key
+   trash /tmp/dettivo-mirror-key /tmp/dettivo-mirror-key.pub
+   ```
+3. An SSH key on the AUR account that maintains `dettivo` and `dettivo-bin`, used for nothing else. Paste the public half into AUR, My Account, SSH Public Key, and store the private half here:
+   ```bash
+   ssh-keygen -t ed25519 -N '' -C dettivo-aur -f ~/.ssh/aur-dettivo
+   gh secret set AUR_SSH_PRIVATE_KEY -R gmickel/dettivo-linux < ~/.ssh/aur-dettivo
+   ```
+
+To check that every channel carries the latest release:
+
+```bash
+gh release view -R gmickel/dettivo-linux --json tagName --jq .tagName       # the release
+gh api repos/gmickel/omarchy-dettivo/tags --jq '.[0].name'                  # the mirror
+curl -s 'https://aur.archlinux.org/rpc/v5/info?arg[]=dettivo-bin&arg[]=dettivo' | jq -r '.results[] | "\(.Name) \(.Version)"'
+```
+
+A channel that lags gets the release again with `gh workflow run distribute.yml -f version=<version>`.
+
 ## The report
 
 `docs/reports/release-gate/<version>.json` carries `schema_version`, `version`, `git_sha`, `machine`, `binaries`, `started_unix`, `duration_ms`, `passed`, `skipped`, `steps` (`id`, `outcome`, `duration_ms`, `command`, `exit_code`, `reason`, `evidence`, `report`, `blockers`), `blockers`, `external_blockers` and `unexplained_blockers` (`step`, `reason`, `external`, `needs`); the `.md` beside it is the same for a person. The 0.1.0 candidate's run is [docs/reports/release-gate/0.1.0.md](reports/release-gate/0.1.0.md).
