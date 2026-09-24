@@ -27,8 +27,6 @@ pub const STEP_IDS: &[&str] = &[
     "pack_dictation",
     "pack_gui",
     "pack_meetings",
-    "visual",
-    "visual_canary",
     "bench_report",
     "install_test",
     "evidence_map",
@@ -354,9 +352,9 @@ mod tests {
 
     #[test]
     fn the_release_pack_names_every_step_and_the_report_names_the_external_blockers() {
-        assert_eq!(STEP_IDS.len(), 15);
+        assert_eq!(STEP_IDS.len(), 13);
         assert_eq!(STEP_IDS[0], "version_match");
-        assert_eq!(STEP_IDS[14], "real_headset");
+        assert_eq!(STEP_IDS[12], "real_headset");
         let vm = blocker(
             "bench_report",
             "the cpu row was measured on this desktop under DETTIVO_FORCE_CPU=1; a CPU-only VM has not run it",
@@ -387,13 +385,13 @@ mod tests {
         assert!(!unproven.external, "a missing receipt is missing proof");
         let steps = vec![
             StepReport {
-                id: "visual".into(),
+                id: "evidence_map".into(),
                 outcome: StepOutcome::Pass,
                 duration_ms: 1,
-                command: "dettivo-qa visual".into(),
+                command: "dettivo-qa evidence-map".into(),
                 exit_code: Some(0),
                 reason: None,
-                evidence: Some("visual".into()),
+                evidence: Some("evidence_map".into()),
                 report: Some(serde_json::json!({"ok": true})),
                 blockers: vec![],
             },
@@ -430,7 +428,7 @@ mod tests {
         assert_eq!(report.external_blockers.len(), 1);
         assert_eq!(report.unexplained_blockers.len(), 1);
         let md = super::super::release_report::markdown(&report);
-        assert!(md.contains("| `visual` | pass |"), "{md}");
+        assert!(md.contains("| `evidence_map` | pass |"), "{md}");
         assert!(md.contains("## External blockers"), "{md}");
         assert!(md.contains("a CPU-only virtual machine"), "{md}");
         assert!(md.contains("## Unexplained blockers"), "{md}");

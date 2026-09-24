@@ -1,6 +1,6 @@
 # Evidence map
 
-Every requirement of every spec under `.flow/specs/` mapped to a verification route that exists (NFR-10): 489 of 489 R-IDs over 63 specs, coverage 1.000, 955 routes (15 of them walked by a person), at commit `f02b5c28f5ab`. This is the inventory of routes, not their results: a route that resolves exists, the release gate is what runs it, and a `human` route is the receipt a person files rather than proof that they walked it. `dettivo-qa evidence-map --write` regenerates this file from `qa/evidence-map.toml`.
+Every requirement of every spec under `.flow/specs/` mapped to a verification route that exists (NFR-10): 489 of 489 R-IDs over 63 specs, coverage 1.000, 955 routes (15 of them walked by a person), at commit `f75152b87999`. This is the inventory of routes, not their results: a route that resolves exists, the release gate is what runs it, and a `human` route is the receipt a person files rather than proof that they walked it. `dettivo-qa evidence-map --write` regenerates this file from `qa/evidence-map.toml`.
 
 | Kind | Routes |
 |---|---|
@@ -9,11 +9,11 @@ Every requirement of every spec under `.flow/specs/` mapped to a verification ro
 | `docs` | 144 |
 | `drive` | 45 |
 | `human` | 15 |
-| `pack` | 64 |
+| `pack` | 60 |
 | `pipeline` | 4 |
 | `script` | 62 |
-| `unit` | 511 |
-| `visual` | 35 |
+| `unit` | 513 |
+| `visual` | 37 |
 
 ## Findings
 
@@ -410,7 +410,7 @@ OSD: the QML pill component, dettivo-osd layer-shell host and frame pacing
 | R2 | `pack` | `dictation/osd_dictation` | pack step dictation/osd_dictation | the pack runs the pill drive on both drivers |
 | R3 | `visual` | `osd` | surface osd in qa/visual/manifest.toml | the six states under DETTIVO_E2E_OSD_STATE match the osd.png crops within the threshold; a missing crop fails by name |
 | R3 | `unit` | `qt::dettivo-visual-diff-other` | dettivo-visual-diff-other in qt/tools/visual-diff/CMakeLists.txt | the diff tool fails an unrelated state pair, so the threshold discriminates |
-| R3 | `pack` | `release/visual` | pack step release/visual | the release gate runs the visual regression |
+| R3 | `visual` | `osd` | surface osd in qa/visual/manifest.toml | dettivo-qa visual renders the pill on every theme and diffs it against its baseline (optional, ADR 0066) |
 | R4 | `unit` | `qt::dettivo-osd-layer-shell-unavailable` | dettivo-osd-layer-shell-unavailable in qt/apps/dettivo-osd/CMakeLists.txt | host = layer_shell without Wayland exits 0 naming it |
 | R4 | `unit` | `qt::dettivo-osd-disabled-notice` | dettivo-osd-disabled-notice in qt/apps/dettivo-osd/CMakeLists.txt | [osd] enabled = false exits 0 with the notice |
 | R4 | `unit` | `qt::caretAvoidanceFlipsOnlyWhenTheOtherEdgeIsFree` | caretAvoidanceFlipsOnlyWhenTheOtherEdgeIsFree in qt/host/osd/osd_host_test.cpp | the pill moves away from the focused window's band only when the other edge is free |
@@ -613,7 +613,7 @@ Visual regression: baselines for every surface and theme, frame pacing in drives
 
 | R-IDs | Kind | Ref | Resolves | Proves |
 |---|---|---|---|---|
-| R1, R2 | `pack` | `release/visual` | pack step release/visual | dettivo-qa visual renders every manifest surface at 1x and 2x across the themes and diffs against the baselines |
+| R1, R2 | `visual` | `home` | surface home in qa/visual/manifest.toml | dettivo-qa visual renders every manifest surface at 1x and 2x across the themes and diffs against the baselines |
 | R1 | `unit` | `dettivo-qa::the_manifest_parses_surfaces_states_and_defaults` | fn the_manifest_parses_surfaces_states_and_defaults in crates/dettivo-qa/src/visual/manifest.rs | manifest parsing |
 | R1 | `unit` | `dettivo-qa::the_matrix_is_states_times_themes_times_scales_with_the_right_baseline` | fn the_matrix_is_states_times_themes_times_scales_with_the_right_baseline in crates/dettivo-qa/src/visual/matrix.rs | matrix expansion and baseline resolution |
 | R1 | `unit` | `dettivo-qa::the_report_counts_outcomes_and_never_passes_a_first_approval_silently` | fn the_report_counts_outcomes_and_never_passes_a_first_approval_silently in crates/dettivo-qa/src/visual/report.rs | the report and the exit on an unapproved difference |
@@ -621,7 +621,7 @@ Visual regression: baselines for every surface and theme, frame pacing in drives
 | R2 | `visual` | `osd` | surface osd in qa/visual/manifest.toml | the six pill state baselines |
 | R2 | `visual` | `insert-target` | surface insert-target in qa/visual/manifest.toml | the insert target baseline |
 | R2 | `docs` | `docs/design/baselines.md` | file docs/design/baselines.md | every approval recorded |
-| R3 | `pack` | `release/visual_canary` | pack step release/visual_canary | the canary run fails as expected |
+| R3 | `unit` | `dettivo-qa::the_canary_passes_only_when_every_entry_fails` | fn the_canary_passes_only_when_every_entry_fails in crates/dettivo-qa/src/visual/report.rs | the canary run fails as expected |
 | R3 | `unit` | `dettivo-qa::the_canary_passes_only_when_every_entry_fails` | fn the_canary_passes_only_when_every_entry_fails in crates/dettivo-qa/src/visual/report.rs | the canary verdict logic |
 | R3 | `docs` | `docs/adr/0021-visual-regression-gate-and-frame-pacing.md` | file docs/adr/0021-visual-regression-gate-and-frame-pacing.md | the blocking CI job and the throwaway-branch proof recorded |
 | R4 | `drive` | `theme_switch` | scenario theme_switch: the pill and the app re-theme within 100 ms of the theme directory changing, frames paced | pill and app theme apply latency and pacing through the shared collector |
@@ -1131,7 +1131,7 @@ Beauty pass: every surface walked against the design checklist, the copy, the st
 | R5 | `visual` | `meeting-dialogs` | surface meeting-dialogs in qa/visual/manifest.toml | the dialogs on the light palettes |
 | R5 | `script` | `scripts/lint-icons.sh` | file scripts/lint-icons.sh | the icon set against its rules; no icon surface exists in the manifest yet |
 | R5 | `script` | `scripts/packaging/install-test-checks.sh` | file scripts/packaging/install-test-checks.sh | the install test renders the installed app and checks the packaged PNGs |
-| R5 | `pack` | `release/visual_canary` | pack step release/visual_canary | the canary proves the visual job still fails a deliberate token regression |
+| R5 | `unit` | `dettivo-qa::the_canary_passes_only_when_every_entry_fails` | fn the_canary_passes_only_when_every_entry_fails in crates/dettivo-qa/src/visual/report.rs | the canary proves the visual job still fails a deliberate token regression |
 | R5 | `unit` | `dettivo-qa::the_canary_passes_only_when_every_entry_fails` | fn the_canary_passes_only_when_every_entry_fails in crates/dettivo-qa/src/visual/report.rs | the canary verdict |
 | R5 | `script` | `scripts/lint-qml-tokens.sh` | file scripts/lint-qml-tokens.sh | every surface resolves from Omarchy theme tokens |
 | R5 | `unit` | `dettivo-qa::style_findings_are_the_prefixed_lines` | fn style_findings_are_the_prefixed_lines in crates/dettivo-qa/src/visual/render.rs | the style check's findings are read from the render log |

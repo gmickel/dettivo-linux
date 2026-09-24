@@ -1,6 +1,6 @@
 # 0021. Every surface is held to an approved baseline on every theme and scale by a blocking job with a canary; frame pacing is judged in the drives while a surface animates
 
-Status: Accepted 2026-09-04; approved renders are held strictly and the canary has axes since [0052](0052-qa-isolation-and-honest-assertions-every-check-proves-what-it-claims.md)
+Status: Accepted 2026-09-04; approved renders are held strictly and the canary has axes since [0052](0052-qa-isolation-and-honest-assertions-every-check-proves-what-it-claims.md); optional and no longer a gate since [0066](0066-visual-checks-are-optional-not-a-gate.md)
 
 ## What this gives you
 

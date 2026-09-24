@@ -1,6 +1,6 @@
 # 0040. Fast PR gates and one tested release package
 
-Status: Accepted 2026-09-05; amended by [0051](0051-the-release-gate-passes-on-validated-evidence-bound-to-the-tested-binaries.md): `prepare` decides through `release-decide.sh` and checks the gate's receipt before publishing
+Status: Accepted 2026-09-05; amended by [0051](0051-the-release-gate-passes-on-validated-evidence-bound-to-the-tested-binaries.md): `prepare` decides through `release-decide.sh` and checks the gate's receipt before publishing; the rig's visual job removed by [0066](0066-visual-checks-are-optional-not-a-gate.md)
 
 ## What this gives you
 

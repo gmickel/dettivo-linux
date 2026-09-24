@@ -1483,9 +1483,9 @@ note = "the diff tool fails an unrelated state pair, so the threshold discrimina
 
 [[spec.route]]
 rids = ["R3"]
-kind = "pack"
-ref = "release/visual"
-note = "the release gate runs the visual regression"
+kind = "visual"
+ref = "osd"
+note = "dettivo-qa visual renders the pill on every theme and diffs it against its baseline (optional, ADR 0066)"
 
 [[spec.route]]
 rids = ["R4"]
@@ -2389,8 +2389,8 @@ id = "fn-20-visual-regression-baselines-for-every"
 
 [[spec.route]]
 rids = ["R1", "R2"]
-kind = "pack"
-ref = "release/visual"
+kind = "visual"
+ref = "home"
 note = "dettivo-qa visual renders every manifest surface at 1x and 2x across the themes and diffs against the baselines"
 
 [[spec.route]]
@@ -2437,8 +2437,8 @@ note = "every approval recorded"
 
 [[spec.route]]
 rids = ["R3"]
-kind = "pack"
-ref = "release/visual_canary"
+kind = "unit"
+ref = "dettivo-qa::the_canary_passes_only_when_every_entry_fails"
 note = "the canary run fails as expected"
 
 [[spec.route]]
@@ -4660,8 +4660,8 @@ note = "the install test renders the installed app and checks the packaged PNGs"
 
 [[spec.route]]
 rids = ["R5"]
-kind = "pack"
-ref = "release/visual_canary"
+kind = "unit"
+ref = "dettivo-qa::the_canary_passes_only_when_every_entry_fails"
 note = "the canary proves the visual job still fails a deliberate token regression"
 
 [[spec.route]]
