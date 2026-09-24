@@ -102,7 +102,11 @@ check_desktop_and_units() {
     else
       for u in dettivod.socket dettivod.service dettivo-osd.service; do units+=("/usr/lib/systemd/user/$u"); done
     fi
-    run units "the three user units verify" systemd-analyze --user verify "${units[@]}"
+    # --user verify resolves RuntimeDirectory= under XDG_RUNTIME_DIR, which a
+    # root CI container has no session to provide; an empty one is enough.
+    local runtime="${XDG_RUNTIME_DIR:-}"
+    [ -n "$runtime" ] || runtime="$(mktemp -d)"
+    run units "the three user units verify" env XDG_RUNTIME_DIR="$runtime" systemd-analyze --user verify "${units[@]}"
   else
     record units skip 0 "systemd-analyze is not installed"
   fi
