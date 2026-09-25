@@ -100,7 +100,7 @@ just package   # the release tree under dist/ as a tarball
 
 You need Rust 1.85 or newer with rustfmt and clippy, CMake, Ninja, a C++20 compiler, Qt 6.8 or newer and `just`. On Arch that is `pacman -S rust cmake ninja qt6-base qt6-declarative qt6-svg qt6-wayland qt6-multimedia jq just`. The Vulkan engine builds also need `vulkan-headers` and `shaderc`. `just build` names any missing piece and stops before compiling.
 
-The code is a Rust daemon (`crates/dettivod`) that owns one JSON-RPC contract, with every interface as a client of it: the Qt 6 Quick app, pill and bar under `qt/`, the Omarchy plugin under `omarchy/`, the CLI, MCP and REST. Speech recognition (whisper.cpp and parakeet.cpp), the language model (llama.cpp) and speaker detection (sherpa-onnx) run in supervised engine processes, so a crash in native code never takes the daemon down. [STRATEGY.md](STRATEGY.md) sets out the problem and the approach, and [CONTRIBUTING.md](CONTRIBUTING.md) explains how a change lands.
+The code is a Rust daemon (`crates/dettivod`) that owns one JSON-RPC contract, with every interface as a client of it: the Qt 6 Quick app, pill and bar under `qt/`, the Omarchy plugin under `omarchy/`, the CLI, MCP and REST. Speech recognition (whisper.cpp and parakeet.cpp), the language model (llama.cpp) and speaker detection (sherpa-onnx) run in supervised engine processes, so a crash in native code never takes the daemon down. [STRATEGY.md](STRATEGY.md) sets out the problem and the approach, and [CONTRIBUTING.md](CONTRIBUTING.md) explains how to report a bug. The project doesn't take code contributions.
 
 ## Privacy
 
