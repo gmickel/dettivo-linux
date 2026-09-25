@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "git_sha": "f75152b8799972312fb528b6836d6892ef025ed0",
-  "generated_unix": 1790267124,
+  "git_sha": "7c0dd7f51dfe6a14498b45ca20a9b4309fd169d0",
+  "generated_unix": 1790327383,
   "specs": [
     {
       "id": "fn-1-repository-bootstrap-workspace-cmake",
@@ -10546,11 +10546,11 @@
             "R4",
             "R13"
           ],
-          "kind": "script",
-          "ref": "scripts/packaging/release-receipt.sh",
-          "note": "the receipt check the workflow runs before publishing",
+          "kind": "docs",
+          "ref": "docs/adr/0070-a-release-is-local-qa-and-a-tag.md",
+          "note": "superseded: a release no longer needs a gate receipt; ADR 0070 records the decision and what the tag runs instead",
           "resolved": true,
-          "detail": "file scripts/packaging/release-receipt.sh"
+          "detail": "file docs/adr/0070-a-release-is-local-qa-and-a-tag.md"
         },
         {
           "rids": [
@@ -11657,12 +11657,12 @@
     "by_kind": {
       "bench": 6,
       "contract": 69,
-      "docs": 144,
+      "docs": 145,
       "drive": 45,
       "human": 15,
       "pack": 60,
       "pipeline": 4,
-      "script": 62,
+      "script": 61,
       "unit": 513,
       "visual": 37
     },

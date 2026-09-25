@@ -1,17 +1,17 @@
 # Evidence map
 
-Every requirement of every spec under `.flow/specs/` mapped to a verification route that exists (NFR-10): 489 of 489 R-IDs over 63 specs, coverage 1.000, 955 routes (15 of them walked by a person), at commit `f75152b87999`. This is the inventory of routes, not their results: a route that resolves exists, the release gate is what runs it, and a `human` route is the receipt a person files rather than proof that they walked it. `dettivo-qa evidence-map --write` regenerates this file from `qa/evidence-map.toml`.
+Every requirement of every spec under `.flow/specs/` mapped to a verification route that exists (NFR-10): 489 of 489 R-IDs over 63 specs, coverage 1.000, 955 routes (15 of them walked by a person), at commit `7c0dd7f51dfe`. This is the inventory of routes, not their results: a route that resolves exists, the release gate is what runs it, and a `human` route is the receipt a person files rather than proof that they walked it. `dettivo-qa evidence-map --write` regenerates this file from `qa/evidence-map.toml`.
 
 | Kind | Routes |
 |---|---|
 | `bench` | 6 |
 | `contract` | 69 |
-| `docs` | 144 |
+| `docs` | 145 |
 | `drive` | 45 |
 | `human` | 15 |
 | `pack` | 60 |
 | `pipeline` | 4 |
-| `script` | 62 |
+| `script` | 61 |
 | `unit` | 513 |
 | `visual` | 37 |
 
@@ -1331,7 +1331,7 @@ Cleanup: the release gate and its evidence (16 review findings)
 | R2 | `unit` | `parakeet-cpp-sys::an_owned_tree_is_patched_once_and_a_tree_without_a_patch_builds_as_it_is` | fn an_owned_tree_is_patched_once_and_a_tree_without_a_patch_builds_as_it_is in crates/parakeet-cpp-sys/tests/patch.rs | the fetched tree is patched exactly once (engines/F15) |
 | R3 | `unit` | `dettivo-qa::a_control_whose_geometry_failed_to_read_still_has_to_carry_a_name` | fn a_control_whose_geometry_failed_to_read_still_has_to_carry_a_name in crates/dettivo-qa/src/a11y_tree.rs | unknown geometry never excludes a control from the walk (qa-rig/F8) |
 | R4, R13 | `script` | `scripts/packaging/test-release-scripts.sh` | file scripts/packaging/test-release-scripts.sh | the decision and the receipt: tag push, rehearsals on branch and tag, missing/failed/stale/corrupt/mismatched receipts (qa-packs/F1, ops-and-record/F1) |
-| R4, R13 | `script` | `scripts/packaging/release-receipt.sh` | file scripts/packaging/release-receipt.sh | the receipt check the workflow runs before publishing |
+| R4, R13 | `docs` | `docs/adr/0070-a-release-is-local-qa-and-a-tag.md` | file docs/adr/0070-a-release-is-local-qa-and-a-tag.md | superseded: a release no longer needs a gate receipt; ADR 0070 records the decision and what the tag runs instead |
 | R4, R13 | `script` | `scripts/packaging/release-decide.sh` | file scripts/packaging/release-decide.sh | the publish decision the workflow runs |
 | R5, R14 | `unit` | `dettivo-qa::a_receipt_without_evidence_is_refused` | fn a_receipt_without_evidence_is_refused in crates/dettivo-qa/src/pack/gate.rs | empty steps, omitted, skipped, unknown, nonzero, duplicate rows and another version's receipt fail (qa-packs/F2, ops-and-record/F7) |
 | R5, R14 | `unit` | `dettivo-qa::a_missing_report_is_missing_proof` | fn a_missing_report_is_missing_proof in crates/dettivo-qa/src/pack/gate.rs | a missing install-test report fails as unproven |
