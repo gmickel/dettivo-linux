@@ -1,8 +1,14 @@
 # Contributing
 
-Thank you for helping build Dettivo for Linux. This page tells you how to get a green tree, how the repository documents itself, and how to add a decision so your change is understood a year from now.
+Dettivo for Linux is open source, but it doesn't take code contributions: pull requests from outside the project are switched off. Bug reports, ideas and feedback are very welcome as [issues](https://github.com/gmickel/dettivo-linux/issues). A good bug report says what you did, what you expected, what happened instead, and includes the output of `dettivo doctor`. Please describe a fix in words rather than pasting a patch; it will be written in the repository.
 
-## Get a green tree
+The code is yours to read, build and fork under the [GPL-3.0-or-later](LICENSE).
+
+## Working on the code
+
+The rest of this page is for the people who work in this repository: how to get a green tree, how the repository documents itself, and how to add a decision so a change is understood a year from now.
+
+### Get a green tree
 
 ```bash
 just build && just test && just lint
@@ -10,7 +16,7 @@ just build && just test && just lint
 
 Those are the recipes CI runs, in a pinned Arch Linux container. If a toolchain piece is missing, `just build` names it and stops. The full list of prerequisites is in [README.md](README.md).
 
-## Decision records are the documentation
+### Decision records are the documentation
 
 The architecture decision records under [docs/adr/](docs/adr/README.md) are the main documentation of this repository: what was decided, why, and what it costs. User-facing pages sit beside them. A change that alters a decision comes with a new record that supersedes the old one, and the old one gets a pointer forward; nothing is edited into silence.
 
@@ -18,14 +24,14 @@ Every document leads with what it does for the reader. The first section of a re
 
 A behaviour change lands with its page in the same commit: the topic page under `docs/` that describes the behaviour, `docs/config.md` for a key, the delta register for a contract change, and the agent guide's tree (paste `dettivo docs cli-tree` between its markers) for a verb. The four guides under [docs/guides/](docs/guides/user.md) link the topic pages rather than repeating them, so a fact has one home. A new requirement gets its row in `qa/evidence-map.toml` naming the test, drive, pack step or fixture that proves it; `dettivo-qa evidence-map` and `cargo test -p dettivo-qa` hold the map to the tree ([docs/guides/qa.md](docs/guides/qa.md#the-evidence-map)).
 
-## Add a decision record
+### Add a decision record
 
 1. Copy [docs/adr/template.md](docs/adr/template.md) to `docs/adr/NNNN-short-title.md`, with `NNNN` the next number in the index.
 2. Fill the four sections: What this gives you, Situation, Decision, Consequences. Set `Status: Proposed` until the decision is taken, then `Accepted YYYY-MM-DD`.
 3. Add a row to the table in [docs/adr/README.md](docs/adr/README.md). Run `just docs`.
 4. Commit the record with the change it explains, or ahead of it when the decision comes first.
 
-## Code conventions
+### Code conventions
 
 - Conventional Commits (`feat`, `fix`, `refactor`, `build`, `ci`, `chore`, `docs`, `style`, `perf`, `test`).
 - Rust and C++ files stay under 500 lines, QML under 300. Generated files go in `.file-length-allow`. `just lint` enforces both limits.
@@ -33,7 +39,7 @@ A behaviour change lands with its page in the same commit: the topic page under 
 - No telemetry, no network calls the user did not configure, no web views.
 - Every interactive QML control carries an accessible name; the QA drives address controls by it.
 
-## Way of working during the build
+### Way of working during the build
 
 Specs are captured without plans or reviews and worked directly ([ADR 0012](docs/adr/0012-fast-build-then-cleanup.md)). Cheap gates run on every push; the expensive ones (plan and implementation review, the QA pipeline stage) stay off until the cleanup phase after v1.
 
