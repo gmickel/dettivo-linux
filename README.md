@@ -19,12 +19,14 @@ It is built for Omarchy and Hyprland first. It lives in the Omarchy bar, follows
 
 ## Requirements
 
-- An x86_64 Arch Linux or Omarchy machine with Qt 6.8 or newer, running PipeWire.
+- An x86_64 Linux machine with Qt 6.8 or newer, running PipeWire. The ready-made package is for Arch Linux, Omarchy and other Arch-based distributions; elsewhere you build from source (see [Other distributions](#other-distributions)).
 - A Wayland session. Hotkeys work out of the box on Hyprland, Sway and Niri, and through the GlobalShortcuts portal on GNOME and KDE.
 - A GPU is optional. The engines use Vulkan when a driver is installed and fall back to the CPU with smaller default models. `dettivo doctor` tells you which tier your machine is on.
 - Disk for the models you pick. The catalogue downloads them on first run, checks every file against a pinned checksum, and resumes interrupted downloads ([docs/models.md](docs/models.md)).
 
 ## Install
+
+On Arch Linux, Omarchy and other Arch-based distributions:
 
 ```bash
 # the pacman package from the latest release
@@ -39,6 +41,12 @@ Every release on the [Releases page](https://github.com/gmickel/dettivo-linux/re
 **Why not the AUR yet:** Dettivo belongs on the AUR as `dettivo-bin` and `dettivo`, and the recipes and the publishing job are ready. In September 2026 the AUR paused new account registration while its team deals with a wave of automated sign-ups, so the account that publishes Dettivo can't be created yet. Until registration reopens, pacman won't update Dettivo for you, so install each new release with the same command. Once the AUR packages are up, `yay -S dettivo-bin` takes over and updates arrive with the rest of your system.
 
 On plain Hyprland, Sway or Niri, run `dettivo setup hyprland` (or `sway`, `niri`) in place of the Omarchy line. It writes the binding snippet and prints the one include line to add. [docs/install.md](docs/install.md) lists every installed file and the optional CUDA engine for speaker detection on NVIDIA.
+
+### Other distributions
+
+Dettivo isn't tied to Arch. It needs Qt 6.8 or newer, PipeWire and a Wayland session. The ready-made package is only built for Arch so far, though, because it links against Arch's own Qt and system libraries. On Fedora, openSUSE Tumbleweed, Ubuntu, Debian and other distributions, [build from source](#building-from-source). Check first that your distribution ships Qt 6.8 or newer. Hotkeys work the same way there: `dettivo setup sway` or `dettivo setup niri` for those compositors, and the GlobalShortcuts portal on GNOME and KDE.
+
+Two honest caveats. Builds outside Arch haven't been tested yet, and there's no documented system-wide install from a source build yet, so you run it from the build tree. Packages for other distributions may follow. If you try it, an [issue](https://github.com/gmickel/dettivo-linux/issues) saying what worked and what didn't helps.
 
 ## First run
 
