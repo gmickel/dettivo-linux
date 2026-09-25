@@ -5,13 +5,14 @@ Hold a key, talk, let go, and the words land in the window you were typing in. T
 ## Install
 
 ```
-yay -S dettivo-bin                              # the release build
+# the pacman package from the latest release
+sudo pacman -U "$(curl -s https://api.github.com/repos/gmickel/dettivo-linux/releases/latest | grep -o 'https://[^"]*dettivo-bin-[^"]*x86_64\.pkg\.tar\.zst' | head -1)"
 systemctl --user enable --now dettivod.socket   # the daemon starts on the first request
 dettivo setup omarchy                           # the bindings, the bar plugin and the pill on Omarchy
 dettivo doctor                                  # what is installed, what is missing, which tier this machine is
 ```
 
-[docs/install.md](../install.md) names what lands where and how the daemon finds its engines; on plain Hyprland, Sway or Niri, `dettivo setup <compositor>` writes the binding snippet and prints the one include line ([docs/hotkeys.md](../hotkeys.md)). A machine with a Vulkan driver runs the engines on the GPU; one without runs them on the CPU with the smaller default models, and `dettivo doctor` says which tier you are on ([docs/engines.md](../engines.md)).
+The package comes from the latest [GitHub release](https://github.com/gmickel/dettivo-linux/releases). The AUR packages follow once AUR account registration reopens ([docs/install.md](../install.md#from-a-github-release)). [docs/install.md](../install.md) names what lands where and how the daemon finds its engines; on plain Hyprland, Sway or Niri, `dettivo setup <compositor>` writes the binding snippet and prints the one include line ([docs/hotkeys.md](../hotkeys.md)). A machine with a Vulkan driver runs the engines on the GPU; one without runs them on the CPU with the smaller default models, and `dettivo doctor` says which tier you are on ([docs/engines.md](../engines.md)).
 
 ## First run
 

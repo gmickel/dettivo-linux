@@ -11,9 +11,11 @@ This plugin is the bar side of [Dettivo for Linux](https://github.com/gmickel/de
 Install Dettivo and let it set up Omarchy for you:
 
 ```bash
-yay -S dettivo-bin
+sudo pacman -U "$(curl -s https://api.github.com/repos/gmickel/dettivo-linux/releases/latest | grep -o 'https://[^"]*dettivo-bin-[^"]*x86_64\.pkg\.tar\.zst' | head -1)"
 dettivo setup omarchy
 ```
+
+The package comes from the latest [Dettivo release](https://github.com/gmickel/dettivo-linux/releases). `yay -S dettivo-bin` replaces this once the AUR packages are published.
 
 `dettivo setup omarchy` enables the daemon, writes the Hyprland bindings (the same `F9` and `Super+Ctrl+X` chords Omarchy uses for dictation), installs this plugin in the bar's right section and reloads the shell.
 

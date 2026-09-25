@@ -119,6 +119,8 @@ curl -s 'https://aur.archlinux.org/rpc/v5/info?arg[]=dettivo-bin&arg[]=dettivo' 
 
 A channel that lags gets the release again with `gh workflow run distribute.yml -f version=<version>`.
 
+The `aur` job runs only when the repository variable `AUR_PUBLISH` is `true` ([ADR 0069](adr/0069-releases-ship-the-pacman-package-until-the-aur-account-exists.md)). Until the AUR account exists, every release carries the pacman package `dettivo-bin-<version>-<pkgrel>-x86_64.pkg.tar.zst` and its `.sha256`, and the install docs point there. Once the key is registered on the account, `gh variable set AUR_PUBLISH -b true -R gmickel/dettivo-linux` switches the job on.
+
 ## The report
 
 `docs/reports/release-gate/<version>.json` carries `schema_version`, `version`, `git_sha`, `machine`, `binaries`, `started_unix`, `duration_ms`, `passed`, `skipped`, `steps` (`id`, `outcome`, `duration_ms`, `command`, `exit_code`, `reason`, `evidence`, `report`, `blockers`), `blockers`, `external_blockers` and `unexplained_blockers` (`step`, `reason`, `external`, `needs`); the `.md` beside it is the same for a person. The 0.1.0 candidate's run is [docs/reports/release-gate/0.1.0.md](reports/release-gate/0.1.0.md).

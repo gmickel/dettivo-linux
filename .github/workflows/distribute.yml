@@ -37,8 +37,12 @@ permissions:
   contents: read
 
 jobs:
+  # Off until the AUR account exists (registration was closed in September
+  # 2026): `gh variable set AUR_PUBLISH -b true` turns it on, and a dispatch
+  # of this workflow publishes the current release (ADR 0069).
   aur:
     name: aur
+    if: vars.AUR_PUBLISH == 'true'
     timeout-minutes: 20
     runs-on: ubuntu-latest
     container:

@@ -99,17 +99,26 @@ jobs:
           version="${{ needs.prepare.outputs.version }}"
           test "$(cat release/dist/REVISION)" = "$GITHUB_SHA"
           (cd release && sha256sum --check --strict dist/ARTIFACT_SHA256SUMS)
+          # The pacman package the rig installed in its clean container, so
+          # Arch users can `pacman -U` it from the release while the AUR is
+          # not published; its checksum travels beside it rather than in
+          # SHA256SUMS, which the dettivo-bin recipe checks.
+          pkg="$(find release/build/aur -maxdepth 1 -name "dettivo-bin-${version}-*-x86_64.pkg.tar.zst" ! -name '*-debug-*' -printf '%f\n')"
+          test "$(echo "$pkg" | wc -l)" = 1 && test -n "$pkg"
+          (cd release/build/aur && sha256sum "$pkg" > "$pkg.sha256")
           cd release/dist
           sha256sum --check --strict SHA256SUMS
           gh release create "v${version}" \
             --repo "${GITHUB_REPOSITORY}" \
             --title "Dettivo for Linux ${version}" \
             --notes-file ../release-notes.md \
-            "dettivo-${version}-linux-x86_64.tar.zst" SHA256SUMS
+            "dettivo-${version}-linux-x86_64.tar.zst" SHA256SUMS \
+            "../build/aur/$pkg" "../build/aur/$pkg.sha256"
           mkdir -p ../verify && cd ../verify
-          gh release download "v${version}" --repo "${GITHUB_REPOSITORY}" --pattern "dettivo-${version}-linux-x86_64.tar.zst" --pattern SHA256SUMS
+          gh release download "v${version}" --repo "${GITHUB_REPOSITORY}" --pattern "dettivo-${version}-linux-x86_64.tar.zst" --pattern SHA256SUMS --pattern "$pkg" --pattern "$pkg.sha256"
           sha256sum --check --strict SHA256SUMS
-          echo "release: v${version} published and its checksums verify against the download"
+          sha256sum --check --strict "$pkg.sha256"
+          echo "release: v${version} published with $pkg, and every checksum verifies against the download"
         env:
           GH_TOKEN: ${{ github.token }}
 

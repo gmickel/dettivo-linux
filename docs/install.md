@@ -2,7 +2,20 @@
 
 One command puts Dettivo for Linux on an Omarchy or Arch machine, and one more enables it in your session. Nothing here needs a GPU: the engines run on Vulkan when a device is installed and on the CPU otherwise, and models download on first run ([docs/models.md](models.md)).
 
-## From the AUR
+## From a GitHub release
+
+```
+sudo pacman -U "$(curl -s https://api.github.com/repos/gmickel/dettivo-linux/releases/latest | grep -o 'https://[^"]*dettivo-bin-[^"]*x86_64\.pkg\.tar\.zst' | head -1)"
+systemctl --user enable --now dettivod.socket   # the daemon starts on the first request
+dettivo setup omarchy                           # the bindings, the bar plugin and the pill on Omarchy
+dettivo doctor                                  # what is installed, what is missing, which tier this machine is
+```
+
+Every release carries `dettivo-bin-<version>-1-x86_64.pkg.tar.zst` and its `.sha256` beside the tarball. It is the package the rig installed and tested in a clean Arch container before the release went out. To check it by hand, download both, run `sha256sum --check dettivo-bin-*.pkg.tar.zst.sha256`, then `sudo pacman -U` the file. pacman does not update a package installed this way, so install each new release with the same command.
+
+This is the install path until the AUR packages are published. The AUR paused new account registration in September 2026 because of automated sign-ups, so Dettivo's publishing account can't be created until it reopens. The recipes, the key and the release job are ready ([ADR 0069](adr/0069-releases-ship-the-pacman-package-until-the-aur-account-exists.md)).
+
+## From the AUR (once published)
 
 ```
 yay -S dettivo-bin                              # the release build, ready in a minute
