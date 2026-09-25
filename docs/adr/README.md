@@ -73,6 +73,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0066](0066-visual-checks-are-optional-not-a-gate.md) | Visual checks are optional tools; neither CI nor the release gate runs them | Accepted 2026-09-24 |
 | [0067](0067-the-engines-compile-ggml-for-one-x86-64-baseline.md) | The engines compile ggml for one x86-64 baseline, never for the build machine's CPU | Accepted 2026-09-24 |
 | [0068](0068-parakeet-ultra-is-a-catalogue-option.md) | Parakeet Ultra, Moondream's post-train of v3, is a catalogue option beside v2 and v3 | Accepted 2026-09-24 |
+| [0069](0069-releases-ship-the-pacman-package-until-the-aur-account-exists.md) | Releases ship the pacman package; the AUR job waits for an account (registration closed) | Accepted 2026-09-25 |
 
 ## Writing a record
 

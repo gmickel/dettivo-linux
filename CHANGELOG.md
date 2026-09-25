@@ -6,6 +6,7 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ### Added
 
+- Every release carries the `dettivo-bin` pacman package and its checksum, so Arch and Omarchy users can `pacman -U` it from GitHub while the AUR packages wait for AUR account registration to reopen.
 - Parakeet Ultra, Moondream's retrained Parakeet TDT 0.6B v3, is available to download beside v2 and v3: the same size and languages, with lower word error on Moondream's benchmarks.
 - Home and the meetings list offer Return to meeting while a recording or its final transcription is running.
 - Every release publishes `dettivo-bin` and `dettivo` to the AUR and the Omarchy plugin to `gmickel/omarchy-dettivo` from the release workflow.

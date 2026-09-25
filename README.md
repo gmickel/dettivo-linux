@@ -27,11 +27,16 @@ It is built for Omarchy and Hyprland first. It lives in the Omarchy bar, follows
 ## Install
 
 ```bash
-yay -S dettivo-bin                              # the release build (or `dettivo` to build from source)
+# the pacman package from the latest release
+sudo pacman -U "$(curl -s https://api.github.com/repos/gmickel/dettivo-linux/releases/latest | grep -o 'https://[^"]*dettivo-bin-[^"]*x86_64\.pkg\.tar\.zst' | head -1)"
 systemctl --user enable --now dettivod.socket   # the daemon starts on the first request
 dettivo setup omarchy                           # keys, bar plugin and recording pill on Omarchy
 dettivo doctor                                  # what is installed, what is missing, which tier this machine is
 ```
+
+Every release on the [Releases page](https://github.com/gmickel/dettivo-linux/releases) carries that package, `dettivo-bin-<version>-1-x86_64.pkg.tar.zst`, with its checksum beside it. It is the same package CI installs and tests in a clean Arch container before the release goes out.
+
+**Why not the AUR yet:** Dettivo belongs on the AUR as `dettivo-bin` and `dettivo`, and the recipes and the publishing job are ready. In September 2026 the AUR paused new account registration while its team deals with a wave of automated sign-ups, so the account that publishes Dettivo can't be created yet. Until registration reopens, pacman won't update Dettivo for you, so install each new release with the same command. Once the AUR packages are up, `yay -S dettivo-bin` takes over and updates arrive with the rest of your system.
 
 On plain Hyprland, Sway or Niri, run `dettivo setup hyprland` (or `sway`, `niri`) in place of the Omarchy line. It writes the binding snippet and prints the one include line to add. [docs/install.md](docs/install.md) lists every installed file and the optional CUDA engine for speaker detection on NVIDIA.
 

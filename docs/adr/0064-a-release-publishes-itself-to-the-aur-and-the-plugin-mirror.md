@@ -1,6 +1,6 @@
 # 0064. A release publishes itself to the AUR and the plugin mirror
 
-Status: Accepted 2026-09-24, amends 0034 (CI never touched the AUR) and 0030 (the mirror was written by hand)
+Status: Accepted 2026-09-24, amends 0034 (CI never touched the AUR) and 0030 (the mirror was written by hand); amended 2026-09-25 by [0069](0069-releases-ship-the-pacman-package-until-the-aur-account-exists.md) (the AUR job runs only with `AUR_PUBLISH=true`; releases carry the pacman package)
 
 ## What this gives you
 
