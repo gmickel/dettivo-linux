@@ -598,7 +598,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-audio"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "dettivo-proto",
  "hound",
@@ -613,7 +613,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "clap_complete",
@@ -629,7 +629,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "dettivo-proto",
  "serde",
@@ -642,7 +642,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-engine-diarize"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "dettivo-engine-proto",
@@ -658,7 +658,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-engine-llm"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "dettivo-engine-proto",
@@ -672,7 +672,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-engine-parakeet"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "dettivo-engine-proto",
@@ -687,7 +687,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-engine-proto"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "hound",
  "serde",
@@ -699,7 +699,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-engine-whisper"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "dettivo-engine-proto",
@@ -714,7 +714,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-hotkeys"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "ashpd",
  "dettivo-core",
@@ -732,7 +732,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-insert"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "ashpd",
  "dettivo-proto",
@@ -756,7 +756,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-language"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "dettivo-core",
  "dettivo-proto",
@@ -772,7 +772,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-mcp"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "base64",
  "clap",
@@ -785,7 +785,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-meeting"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "dettivo-audio",
  "dettivo-engine-proto",
@@ -802,7 +802,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-proto"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "base64",
  "libc",
@@ -815,7 +815,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-qa"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "atspi",
  "base64",
@@ -839,7 +839,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-rest"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "base64",
  "dettivo-core",
@@ -856,7 +856,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-session"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "dettivo-audio",
  "dettivo-core",
@@ -873,7 +873,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-speech"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "dettivo-engine-proto",
  "dettivo-proto",
@@ -890,7 +890,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-storage"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "dettivo-proto",
  "hound",
@@ -905,7 +905,7 @@ dependencies = [
 
 [[package]]
 name = "dettivo-transcribe"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "dettivo-engine-proto",
  "dettivo-proto",
@@ -919,7 +919,7 @@ dependencies = [
 
 [[package]]
 name = "dettivod"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "base64",
  "dettivo-audio",
@@ -1844,7 +1844,7 @@ dependencies = [
 
 [[package]]
 name = "parakeet-cpp-sys"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bindgen",
  "cc",
@@ -2416,7 +2416,7 @@ dependencies = [
 
 [[package]]
 name = "sherpa-onnx-sys"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bindgen",
  "sha2",
@@ -3551,7 +3551,7 @@ checksum = "b9cc00251562a284751c9973bace760d86c0276c471b4be569fe6b068ee97a56"
 
 [[package]]
 name = "xtask"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde_json",
  "tempfile",

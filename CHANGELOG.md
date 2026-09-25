@@ -4,17 +4,22 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-25
+
+The first public release of Dettivo for Linux, now open source under GPL-3.0-or-later.
+
 ### Added
 
 - Every release carries the `dettivo-bin` pacman package and its checksum, so Arch and Omarchy users can `pacman -U` it from GitHub while the AUR packages wait for AUR account registration to reopen.
 - Parakeet Ultra, Moondream's retrained Parakeet TDT 0.6B v3, is available to download beside v2 and v3: the same size and languages, with lower word error on Moondream's benchmarks.
 - Home and the meetings list offer Return to meeting while a recording or its final transcription is running.
-- Every release publishes `dettivo-bin` and `dettivo` to the AUR and the Omarchy plugin to `gmickel/omarchy-dettivo` from the release workflow.
+- Every release publishes the Omarchy plugin to `gmickel/omarchy-dettivo` for `omarchy plugin add`, and will publish `dettivo-bin` and `dettivo` to the AUR once AUR publishing is switched on.
 - Meeting titles can be renamed by clicking the title or pressing `t`; Enter saves and Escape cancels.
 
 ### Changed
 
 - Dettivo for Linux is now licensed under GPL-3.0-or-later instead of MIT.
+- The speech engines compile for one x86-64 baseline (AVX2, FMA, F16C), so the release package runs on any x86-64 CPU from 2013 on rather than only on CPUs like the build machine's.
 
 ### Fixed
 
