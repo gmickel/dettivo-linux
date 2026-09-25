@@ -12,8 +12,9 @@
 name: rig
 
 on:
-  schedule:
-    - cron: "23 3 * * *"
+  # By hand only (ADR 0070): the deep regression run for when you want
+  # one. A release calls it with `release: true`, which builds and tests
+  # the package and installs it on a clean container, and nothing else.
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -150,6 +151,7 @@ jobs:
       - run: just build-llm-vulkan
 
   drive:
+    if: ${{ !inputs.release }}
     name: drive
     timeout-minutes: 120
     runs-on: ubuntu-latest
@@ -404,6 +406,7 @@ jobs:
   # with the same `just package`, so the AUR `dettivo` package is proven
   # to build before a release is tagged.
   package-source:
+    if: ${{ !inputs.release }}
     name: package-source
     timeout-minutes: 120
     runs-on: ubuntu-latest

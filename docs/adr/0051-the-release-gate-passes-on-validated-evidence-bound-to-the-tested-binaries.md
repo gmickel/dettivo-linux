@@ -1,6 +1,6 @@
 # 0051. The release gate passes on validated evidence bound to the tested binaries, and an unexplained failure stays a failure
 
-Status: Accepted 2026-09-06. Amends 0030 (the plugin mirror), 0034 and 0040 (what publishes), 0039 (how `--record` files the meetings block) and 0041 (the gate's classification rules and the evidence map's claim).
+Status: Accepted 2026-09-06. Amends 0030 (the plugin mirror), 0034 and 0040 (what publishes), 0039 (how `--record` files the meetings block) and 0041 (the gate's classification rules and the evidence map's claim); the receipt requirement is superseded by [0070](0070-a-release-is-local-qa-and-a-tag.md)
 
 ## What this gives you
 

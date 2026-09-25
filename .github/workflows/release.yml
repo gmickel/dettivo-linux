@@ -1,10 +1,10 @@
 # The release workflow (ADR 0034): a `v*` tag becomes a GitHub release
 # carrying dettivo-<version>-linux-x86_64.tar.zst, SHA256SUMS and the
 # notes taken from the tag's section of CHANGELOG.md, with no hand step.
-# The reusable rig owns the full gate, package and clean-install proof.
-# Publishing consumes that same package artifact after every blocking rig
-# job succeeds, and only with the release gate's receipt for the version
-# checked in for the gated code (scripts/packaging/release-receipt.sh).
+# The reusable rig, called with `release: true`, runs the tests and lints,
+# builds the package once and installs it on a clean container (ADR 0070);
+# publishing consumes that same package artifact after those jobs pass.
+# Local QA and dogfooding stand in for the deep checks.
 # workflow_dispatch with dry_run (the default) rehearses the entire path
 # through artifact verification without publishing, on a branch or on the
 # tag itself; the decision is scripts/packaging/release-decide.sh.
@@ -46,9 +46,6 @@ jobs:
       publish: ${{ steps.version.outputs.publish }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          # The receipt check walks from the gated commit to this one.
-          fetch-depth: 0
       # The decision is a script the packaging lint tests: a tag push
       # publishes, a dispatch publishes only with dry_run=false on that
       # tag, and a rehearsal is never turned into a publication by the ref
@@ -57,12 +54,6 @@ jobs:
         run: scripts/packaging/release-decide.sh >>"$GITHUB_OUTPUT"
         env:
           DRY_RUN: ${{ inputs.dry_run }}
-      # A publishing run needs the release gate's receipt for this version
-      # (docs/RELEASING.md): the gate passed with no unexplained blocker at
-      # a commit this one descends from with nothing but docs/reports/
-      # changed since. The check reads the report and the history only.
-      - if: steps.version.outputs.publish == 'true'
-        run: scripts/packaging/release-receipt.sh "${{ steps.version.outputs.version }}" "$GITHUB_SHA"
       - run: scripts/packaging/release-notes.sh "${{ steps.version.outputs.version }}" release-notes.md
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:

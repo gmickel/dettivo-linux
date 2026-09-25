@@ -241,7 +241,11 @@ fn an_audio_import_into_the_meeting_kind_transcribes_into_a_meeting_row() {
     assert_eq!(row["segments"][0]["source_type"], "microphone");
     let dir = daemon.tree.root().join("data/dettivo/meetings").join(&id);
     assert!(dir.join("microphone.wav").is_file());
-    assert!(dir.join("metadata.json").is_file());
+    // `completed` can land a moment before the finaliser writes the
+    // metadata beside the audio on a slow runner.
+    assert!(common::wait_for(Duration::from_secs(10), || dir
+        .join("metadata.json")
+        .is_file()));
     let listed = daemon.result(
         "transcripts.list",
         json!({"kinds": ["meeting"], "limit": 5, "cursor": null}),

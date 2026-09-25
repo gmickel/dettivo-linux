@@ -11,7 +11,7 @@ The [follow-up beauty iteration](reports/qa/2026-09-08-beauty-iteration.md) reco
 ```
 just qa                                  # contract replay, the drive pack, the lints
 just qa-evidence-map                     # every spec's R-IDs mapped to routes that exist, docs/reports/evidence-map.md (docs/guides/qa.md)
-just qa-release                          # the release gate: thirteen named steps, one report under docs/reports/release-gate/ (docs/RELEASING.md)
+just qa-release                          # the optional deep gate: thirteen named steps, one report under docs/reports/release-gate/ (docs/RELEASING.md)
 just qa-drive placeholder_window atspi   # one scenario on one driver (cua|atspi)
 just qa-pack dictation                   # the dictation slice in order, one report (the release gate's first step)
 just qa-pack gui                         # the four GUI surfaces on both drivers with the scans per route (the gate's second step)
