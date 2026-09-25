@@ -34,6 +34,16 @@
    "what": "the same port with model.onnx (fp32)",
    "runtime": "onnxruntime 1.30.0, CUDAExecutionProvider",
    "threads": 4
+  },
+  "nemotron-cpu-int8+segment": {
+   "what": "scripts/qa/nemotron3/segment_assign.py, the Nemotron-specific adapter: each transcript segment takes the speaker with the highest mean per-10 ms probability over its span, with no 0.5 threshold, among the channels the recorder post-processing keeps (clusters under max(4 s, 4 % of speech) absorbed); probabilities from nemotron-cpu-int8 rerun with --probs",
+   "probabilities_rerun_check": "the --probs rerun reproduced the nemotron-cpu-int8 turns exactly on all 4 AMI test meetings and all 8 real system tracks"
+  },
+  "whisper-ami-segments": {
+   "what": "installed dettivo-bin 0.2.0-1 dettivo-engine-whisper CLI, whole AMI test recordings, --language en, Vulkan backend; used only to cut AMI into transcript segments",
+   "engine_sha256": "691101f1bdacd4220af413f3a4bf5dabb5912341a8c8bfef958325b9cee90889",
+   "model": "whisper/large-v3-turbo ggml-large-v3-turbo.bin",
+   "model_sha256": "317eb69c11673c9de1e1f0d459b253999804ec71ac4c23c17ecf5fbe24e259a1"
   }
  },
  "models": {
@@ -96,7 +106,9 @@
   "ami_contamination": "Nemotron 3 was trained on AMI train and dev; the test-split rows are the fair comparison, the train rows only continue the 2026-09-09 reports",
   "real_mix": "scripts/qa/nemotron3/channel_score.py: per-10 ms track-energy weak reference (active above -45 dBFS, quiet below -60 dBFS, 200 ms bridging and minimum run), many-to-one side mapping, on the microphone plus system mix",
   "real_system_track": "the product's input (system track); disagreement is strict DER of each system against baseline-cpu",
-  "judge": "scripts/qa/nemotron3/judge_pack.py: product ASR segments labelled by each system's system-track turns (largest overlap), 3 windows of 60 segments per meeting (seed 64), systems shown as columns A and B in random order with labels renumbered; one model judge per language class counted plausibly wrong remote lines without the key"
+  "judge": "scripts/qa/nemotron3/judge_pack.py: product ASR segments labelled by each system's system-track turns (largest overlap), 3 windows of 60 segments per meeting (seed 64), systems shown as columns A and B in random order with labels renumbered; one model judge per language class counted plausibly wrong remote lines without the key",
+  "segment_assignment": "scripts/qa/nemotron3/score_segments.py (R6): baseline-cpu and nemotron-cpu-int8 label segments with the speaker pass's rule (crates/dettivo-meeting/src/diarize.rs: most-overlap speaker when at least 0.25 of the span is diarized speech and it holds at least 0.6 of that speech, otherwise none); nemotron-cpu-int8+segment uses the adapter. Real meetings: the product's remote (system-track) segments from the Dettivo database. AMI test split, automatic count: segments cut once from the only_words reference turns and once by Whisper; labelled segments become turns scored with diarization_score.py (ADR 0058), and a line view gives each line the reference speaker with the most overlap and counts labelled lines whose label differs under the best one-to-one mapping. Port check: the Python rule on baseline-cpu turns against the labels the product stored for the same meetings.",
+  "judge_r6": "a fresh pack from scripts/qa/nemotron3/judge_pack.py --rule product: the same 8 meetings, 3 windows of 60 segments per meeting with seed 65, the three systems as columns A, B and C in random order per window with labels renumbered; one model judge per language class, same counting protocol, without the key. The judges' labelled and unlabelled line counts matched the packets exactly in all 72 columns"
  },
  "timing_note": "CPU jobs ran niced (nice 19, ionice idle) while a live meeting recorded on this machine, and the second batch of real-meeting CPU jobs overlapped the first, so CPU real-meeting times are indicative only. The AMI CPU jobs ran one at a time. CUDA jobs ran only while no meeting was recording or finalising. Wall time is a cold process, model load included.",
  "results": {
@@ -1118,6 +1130,360 @@
      "unlabelled": 100,
      "wrong_speaker_percent": 0.28
     }
+   }
+  },
+  "segment_assignment": {
+   "real_unlabelled": {
+    "baseline-cpu": {
+     "en": {
+      "remote_segments": 2899,
+      "unlabelled": 765,
+      "unlabelled_percent": 26.39
+     },
+     "de": {
+      "remote_segments": 1646,
+      "unlabelled": 266,
+      "unlabelled_percent": 16.16
+     },
+     "pooled": {
+      "remote_segments": 4545,
+      "unlabelled": 1031,
+      "unlabelled_percent": 22.68
+     }
+    },
+    "nemotron-cpu-int8": {
+     "en": {
+      "remote_segments": 2899,
+      "unlabelled": 784,
+      "unlabelled_percent": 27.04
+     },
+     "de": {
+      "remote_segments": 1646,
+      "unlabelled": 329,
+      "unlabelled_percent": 19.99
+     },
+     "pooled": {
+      "remote_segments": 4545,
+      "unlabelled": 1113,
+      "unlabelled_percent": 24.49
+     }
+    },
+    "nemotron-cpu-int8+segment": {
+     "en": {
+      "remote_segments": 2899,
+      "unlabelled": 0,
+      "unlabelled_percent": 0.0
+     },
+     "de": {
+      "remote_segments": 1646,
+      "unlabelled": 0,
+      "unlabelled_percent": 0.0
+     },
+     "pooled": {
+      "remote_segments": 4545,
+      "unlabelled": 0,
+      "unlabelled_percent": 0.0
+     }
+    }
+   },
+   "ami_test_segments": {
+    "reference_words": {
+     "baseline-cpu": {
+      "score_percent": {
+       "der": 17.78,
+       "missed": 16.716,
+       "false_alarm": 0.0,
+       "confusion": 1.064,
+       "exact_counts": "4/4",
+       "hypothesis_speakers": [
+        4,
+        4,
+        4,
+        3
+       ]
+      },
+      "segments": 1526,
+      "unlabelled_segments": 567,
+      "per_recording_confusion_percent": {
+       "ES2004a": 0.78,
+       "TS3003a": 1.08,
+       "IS1009b": 1.0,
+       "EN2002c": 1.17
+      },
+      "lines": {
+       "with_reference_speech": 1526,
+       "labelled": 959,
+       "wrong_speaker": 139,
+       "unlabelled_percent": 37.16,
+       "wrong_speaker_percent_of_labelled": 14.49
+      }
+     },
+     "nemotron-cpu-int8": {
+      "score_percent": {
+       "der": 17.584,
+       "missed": 16.971,
+       "false_alarm": 0.0,
+       "confusion": 0.613,
+       "exact_counts": "3/4",
+       "hypothesis_speakers": [
+        4,
+        2,
+        4,
+        3
+       ]
+      },
+      "segments": 1526,
+      "unlabelled_segments": 582,
+      "per_recording_confusion_percent": {
+       "ES2004a": 0.09,
+       "TS3003a": 3.67,
+       "IS1009b": 0.19,
+       "EN2002c": 0.07
+      },
+      "lines": {
+       "with_reference_speech": 1526,
+       "labelled": 944,
+       "wrong_speaker": 161,
+       "unlabelled_percent": 38.14,
+       "wrong_speaker_percent_of_labelled": 17.06
+      }
+     },
+     "nemotron-cpu-int8+segment": {
+      "score_percent": {
+       "der": 6.903,
+       "missed": 5.699,
+       "false_alarm": 0.0,
+       "confusion": 1.204,
+       "exact_counts": "3/4",
+       "hypothesis_speakers": [
+        4,
+        2,
+        4,
+        3
+       ]
+      },
+      "segments": 1526,
+      "unlabelled_segments": 0,
+      "per_recording_confusion_percent": {
+       "ES2004a": 0.54,
+       "TS3003a": 4.62,
+       "IS1009b": 0.38,
+       "EN2002c": 0.82
+      },
+      "lines": {
+       "with_reference_speech": 1526,
+       "labelled": 1526,
+       "wrong_speaker": 429,
+       "unlabelled_percent": 0.0,
+       "wrong_speaker_percent_of_labelled": 28.11
+      },
+      "on_segments_the_base_rule_labels_percent": {
+       "der": 17.494,
+       "missed": 16.864,
+       "false_alarm": 0.0,
+       "confusion": 0.63,
+       "exact_counts": "3/4",
+       "hypothesis_speakers": [
+        4,
+        2,
+        4,
+        3
+       ]
+      }
+     }
+    },
+    "whisper": {
+     "baseline-cpu": {
+      "score_percent": {
+       "der": 34.32,
+       "missed": 25.597,
+       "false_alarm": 6.753,
+       "confusion": 1.97,
+       "exact_counts": "4/4",
+       "hypothesis_speakers": [
+        4,
+        4,
+        4,
+        3
+       ]
+      },
+      "segments": 3026,
+      "unlabelled_segments": 730,
+      "per_recording_confusion_percent": {
+       "ES2004a": 1.42,
+       "TS3003a": 1.73,
+       "IS1009b": 1.64,
+       "EN2002c": 2.39
+      },
+      "lines": {
+       "with_reference_speech": 2820,
+       "labelled": 2287,
+       "wrong_speaker": 155,
+       "unlabelled_percent": 18.9,
+       "wrong_speaker_percent_of_labelled": 6.78
+      }
+     },
+     "nemotron-cpu-int8": {
+      "score_percent": {
+       "der": 33.989,
+       "missed": 25.954,
+       "false_alarm": 6.259,
+       "confusion": 1.776,
+       "exact_counts": "3/4",
+       "hypothesis_speakers": [
+        4,
+        2,
+        4,
+        3
+       ]
+      },
+      "segments": 3026,
+      "unlabelled_segments": 759,
+      "per_recording_confusion_percent": {
+       "ES2004a": 1.99,
+       "TS3003a": 3.81,
+       "IS1009b": 0.93,
+       "EN2002c": 1.59
+      },
+      "lines": {
+       "with_reference_speech": 2820,
+       "labelled": 2266,
+       "wrong_speaker": 191,
+       "unlabelled_percent": 19.65,
+       "wrong_speaker_percent_of_labelled": 8.43
+      }
+     },
+     "nemotron-cpu-int8+segment": {
+      "score_percent": {
+       "der": 36.54,
+       "missed": 16.653,
+       "false_alarm": 16.497,
+       "confusion": 3.39,
+       "exact_counts": "3/4",
+       "hypothesis_speakers": [
+        4,
+        2,
+        4,
+        3
+       ]
+      },
+      "segments": 3026,
+      "unlabelled_segments": 0,
+      "per_recording_confusion_percent": {
+       "ES2004a": 4.78,
+       "TS3003a": 6.52,
+       "IS1009b": 1.9,
+       "EN2002c": 2.93
+      },
+      "lines": {
+       "with_reference_speech": 2820,
+       "labelled": 2820,
+       "wrong_speaker": 390,
+       "unlabelled_percent": 0.0,
+       "wrong_speaker_percent_of_labelled": 13.83
+      },
+      "on_segments_the_base_rule_labels_percent": {
+       "der": 34.019,
+       "missed": 25.954,
+       "false_alarm": 6.259,
+       "confusion": 1.806,
+       "exact_counts": "3/4",
+       "hypothesis_speakers": [
+        4,
+        2,
+        4,
+        3
+       ]
+      }
+     }
+    }
+   },
+   "judge": {
+    "en": {
+     "nemotron-cpu-int8": {
+      "windows": 12,
+      "labelled_remote_lines": 396,
+      "wrong": 0,
+      "unsure": 3,
+      "unlabelled": 79,
+      "wrong_speaker_percent": 0.0
+     },
+     "baseline-cpu": {
+      "windows": 12,
+      "labelled_remote_lines": 396,
+      "wrong": 0,
+      "unsure": 1,
+      "unlabelled": 79,
+      "wrong_speaker_percent": 0.0
+     },
+     "nemotron-cpu-int8+segment": {
+      "windows": 12,
+      "labelled_remote_lines": 475,
+      "wrong": 0,
+      "unsure": 5,
+      "unlabelled": 0,
+      "wrong_speaker_percent": 0.0
+     }
+    },
+    "de": {
+     "nemotron-cpu-int8": {
+      "windows": 12,
+      "labelled_remote_lines": 292,
+      "wrong": 0,
+      "unsure": 0,
+      "unlabelled": 73,
+      "wrong_speaker_percent": 0.0
+     },
+     "baseline-cpu": {
+      "windows": 12,
+      "labelled_remote_lines": 303,
+      "wrong": 0,
+      "unsure": 1,
+      "unlabelled": 62,
+      "wrong_speaker_percent": 0.0
+     },
+     "nemotron-cpu-int8+segment": {
+      "windows": 12,
+      "labelled_remote_lines": 365,
+      "wrong": 0,
+      "unsure": 0,
+      "unlabelled": 0,
+      "wrong_speaker_percent": 0.0
+     }
+    },
+    "pooled": {
+     "nemotron-cpu-int8": {
+      "windows": 24,
+      "labelled_remote_lines": 688,
+      "wrong": 0,
+      "unsure": 3,
+      "unlabelled": 152,
+      "wrong_speaker_percent": 0.0
+     },
+     "baseline-cpu": {
+      "windows": 24,
+      "labelled_remote_lines": 699,
+      "wrong": 0,
+      "unsure": 2,
+      "unlabelled": 141,
+      "wrong_speaker_percent": 0.0
+     },
+     "nemotron-cpu-int8+segment": {
+      "windows": 24,
+      "labelled_remote_lines": 840,
+      "wrong": 0,
+      "unsure": 5,
+      "unlabelled": 0,
+      "wrong_speaker_percent": 0.0
+     }
+    }
+   },
+   "product_rule_port_check": {
+    "system": "baseline-cpu",
+    "remote_segments": 4545,
+    "same_labelled_or_not": 4534,
+    "labelled_by_both": 3510,
+    "same_speaker": 3509
    }
   }
  }

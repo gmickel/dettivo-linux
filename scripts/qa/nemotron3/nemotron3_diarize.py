@@ -8,6 +8,7 @@ arrival-order speaker cache. Post-processing is the recorder's: probability over
 same-speaker pauses under 500 ms bridged, runs under 300 ms dropped, then either the
 known count kept (largest speakers) or clusters under max(4 s, 4 % of speech) absorbed.
 `--postprocess none` keeps the raw over-0.5 runs, to isolate what post-processing costs.
+`--probs` saves the frame probabilities for segment_assign.py's segment-based labels.
 
 Prints the diarization engine's native JSON ({"turns": [...]}) with a "timing" block.
 Experiment only (fn-64); nothing in the product calls this.
@@ -214,19 +215,25 @@ def spoken(raw):
     return totals
 
 
+def kept(raw, speakers=None):
+    """The channels the recorder keeps as speakers: the known count's largest, or every
+    channel over max(4 s, 4 % of speech); all of them when none qualifies."""
+    totals = spoken(raw)
+    if speakers:
+        keep = {s for s, _ in sorted(totals.items(), key=lambda kv: (-kv[1], kv[0]))[: max(speakers, 1)]}
+    else:
+        floor = max(sum(totals.values()) * 4 // 100, 4000)
+        keep = {s for s, total in totals.items() if total >= floor}
+    return keep or set(totals)
+
+
 def turns(probs, speakers=None, postprocess="recorder"):
     if postprocess == "none":
         raw = segments(probs, 0, 0)
-    elif speakers:
-        raw = segments(probs)
-        totals = spoken(raw)
-        kept = [s for s, _ in sorted(totals.items(), key=lambda kv: (-kv[1], kv[0]))[: max(speakers, 1)]]
-        raw = reassign(raw, lambda s: s in kept)
     else:
         raw = segments(probs)
-        totals = spoken(raw)
-        floor = max(sum(totals.values()) * 4 // 100, 4000)
-        raw = reassign(raw, lambda s: totals.get(s, 0) >= floor)
+        keep = kept(raw, speakers)
+        raw = reassign(raw, lambda s: s in keep)
     raw.sort()
     order = []
     result = []
@@ -263,6 +270,7 @@ def main():
     parser.add_argument("--speakers", type=int)
     parser.add_argument("--postprocess", choices=("recorder", "none"), default="recorder",
                         help="none: raw 0.5-threshold runs, no bridging, dropping or absorbing (diagnostic)")
+    parser.add_argument("--probs", help="also save the per-10 ms speaker probabilities here (.npy, float16)")
     args = parser.parse_args()
     t0 = time.perf_counter()
     samples = read_wav(args.wav)
@@ -271,6 +279,8 @@ def main():
     t2 = time.perf_counter()
     probs = probabilities(session, samples)
     t3 = time.perf_counter()
+    if args.probs:
+        np.save(args.probs, probs.astype(np.float16))
     result = {"turns": turns(probs, args.speakers, args.postprocess)}
     t4 = time.perf_counter()
     result["timing"] = {

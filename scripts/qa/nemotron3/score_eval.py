@@ -121,8 +121,8 @@ def real(records, work, system, aliases, baseline):
     return out
 
 
-def judged(work, aliases):
-    results, key = work / "judge-results.json", work / "judge-key.json"
+def judged(work, aliases, pack="judge"):
+    results, key = work / f"{pack}-results.json", work / f"{pack}-key.json"
     if not results.exists():
         return None
     results, key = json.loads(results.read_text()), json.loads(key.read_text())
@@ -130,8 +130,8 @@ def judged(work, aliases):
     for window, counts in results.items():
         if window.rsplit("-w", 1)[0] not in aliases:
             continue
-        for column in ("A", "B"):
-            agg = out.setdefault(key[window][column], {"windows": 0, "labelled_remote_lines": 0,
+        for column, system in key[window].items():
+            agg = out.setdefault(system, {"windows": 0, "labelled_remote_lines": 0,
                                                         "wrong": 0, "unsure": 0, "unlabelled": 0})
             agg["windows"] += 1
             for k in ("labelled_remote_lines", "wrong", "unsure", "unlabelled"):

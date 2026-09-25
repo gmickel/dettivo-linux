@@ -1,6 +1,6 @@
 # Nemotron 3 Diarization against the current speaker pass
 
-This report tells a follow-up spec what swapping or adding NVIDIA Nemotron 3 Diarization would buy on this machine. Nemotron assigns far fewer words to the wrong speaker on labelled public meetings and runs about four times faster on the CPU. It also misses about twice as much speech. On Dettivo's own retained meetings, most of which have one to four remote voices, the two systems agree on almost every transcript line. The shipping default stays the current `dettivo-engine-diarize` (R4). Nothing in the daemon, the packages, `config.toml` or Settings changed.
+This report tells a follow-up spec what swapping or adding NVIDIA Nemotron 3 Diarization would buy on this machine. Nemotron assigns far fewer words to the wrong speaker on labelled public meetings and runs about four times faster on the CPU. It also misses about twice as much speech. On Dettivo's own retained meetings, most of which have one to four remote voices, the two systems agree on almost every transcript line. Today's speaker pass leaves 23% of remote transcript lines without a speaker, and Nemotron under the same rule leaves 24%. A segment-based adapter, which gives each line the Nemotron speaker with the highest mean probability over the line, labels every line, and the blind judge found no wrong speaker in any of the 840 lines it labelled. On AMI, the same adapter gets 86% of Whisper lines right against 76% for the current engine, and it also gives 13.8% a wrong speaker against 5.5%. The shipping default stays the current `dettivo-engine-diarize` (R4). Nothing in the daemon, the packages, `config.toml` or Settings changed.
 
 | AMI test split, 4 meetings, 126 minutes | Current engine, CPU | Current engine, CUDA | Nemotron int8, CPU | Nemotron fp32, CUDA |
 |---|---:|---:|---:|---:|
@@ -19,7 +19,8 @@ On the CPU, Nemotron's wall time is 25% of the current engine's. That matches Me
 ## What was compared
 
 - **Current engine (baseline).** The installed `dettivo-bin` 0.2.0-1 `dettivo-engine-diarize`, which is the shipping default. It uses the `diarize/diarization-en` model set, runs in automatic count mode with four threads, and uses the CPU provider. The CUDA row is the same crate source, unchanged since 0.2.0, built with `--features cuda` and run with `--provider cuda`.
-- **Nemotron 3 Diarization.** `scripts/qa/nemotron3/nemotron3_diarize.py` ports omarchy-meeting-recorder v1.1.0's ONNX inference and post-processing to Python on ONNX Runtime 1.30.0. The recorder's post-processing thresholds speaker probability at 0.5, bridges same-speaker pauses under 500 ms, drops runs under 300 ms and absorbs small clusters. The CPU row uses the recorder's int8 graph and the CUDA row uses the fp32 graph, both from `onnx-community/Nemotron-3-Diarization-ONNX` at revision `353b6f8a`. The model licence is OpenMDW 1.1. Read its terms before an integration spec relies on the model.
+- **Nemotron 3 Diarization.** `scripts/qa/nemotron3/nemotron3_diarize.py` ports omarchy-meeting-recorder v1.1.0's ONNX inference and post-processing to Python on ONNX Runtime 1.30.0. The recorder's post-processing thresholds speaker probability at 0.5, bridges same-speaker pauses under 500 ms, drops runs under 300 ms and absorbs small clusters. The CPU row uses the recorder's int8 graph and the CUDA row uses the fp32 graph, both from `onnx-community/Nemotron-3-Diarization-ONNX` at revision `353b6f8a`. The model licence is OpenMDW 1.1.
+- **Nemotron, segment-based.** `scripts/qa/nemotron3/segment_assign.py` is a Nemotron-specific adapter over the int8 port's per-10 ms probabilities. Each transcript segment takes the speaker with the highest mean probability over its span, with no 0.5 threshold. Only the channels the recorder post-processing keeps as speakers compete, so the adapter adds no speaker that the recorder's turns lack. A segment goes without a speaker only when it has no audio frames.
 - **Port fidelity.** Over the first 600 s of AMI ES2004a, which spans 22 chunks and exercises the speaker-cache compression, the fp32 port's per-frame probabilities match the transformers reference implementation of `nvidia/Nemotron-3-Diarization` (revision `f667ed7`, float32, CPU) within 1.1e-5. No speech decision differs and the turns are identical. The int8 graph differs from that reference in 0.04% of speech decisions, with 0.50% turn-level DER and no confusion.
 
 The [machine-readable receipt](diarization-nemotron3-2026-09-25.json) holds every score, the binary, library and model hashes, the host and the cross-check.
@@ -70,17 +71,56 @@ The mix rows come from the CPU runs. The CUDA runs of each system score within 0
 
 **Cross-system agreement.** On the system track, Nemotron's turns differ from the current engine's by 10.9% DER pooled, and 1.1% of that is speaker confusion. The remote-speaker counts matched on seven of eight meetings. On one English meeting the current engine found four remote speakers and Nemotron found two. The judged windows did not show which count is right.
 
+## Speakers on transcript lines
+
+This section scores what a user sees, which is a speaker on each transcript line. The speaker pass in `crates/dettivo-meeting/src/diarize.rs` gives a line the most-overlapping speaker when at least 25% of the line lies inside diarized speech and that speaker holds at least 60% of it (`[meetings.diarization]` `min_coverage` and `min_speaker_share`). Otherwise the line gets no speaker. The current engine and Nemotron with the recorder post-processing go through that rule. The segment-based adapter replaces it with the mean-probability choice described above. `scripts/qa/nemotron3/score_segments.py` scores all three.
+
+**Rule port check.** The Python port of the rule, run on the current engine's CPU turns, reproduces the labels the product stored for the same eight meetings. It makes the same labelled-or-not decision on 4,534 of 4,545 remote lines, and it picks the same speaker on 3,509 of the 3,510 lines both labelled.
+
+| Dettivo meetings, remote lines | Current engine | Nemotron, recorder post-processing | Nemotron, segment-based |
+|---|---:|---:|---:|
+| Left without a speaker, English (2,899 lines) | 765 (26.4%) | 784 (27.0%) | 0 |
+| Left without a speaker, German (1,646 lines) | 266 (16.2%) | 329 (20.0%) | 0 |
+| Left without a speaker, pooled (4,545 lines) | 1,031 (22.7%) | 1,113 (24.5%) | 0 |
+| Judged wrong-speaker lines, English | 0 of 396 | 0 of 396 | 0 of 475 |
+| Judged wrong-speaker lines, German | 0 of 303 | 0 of 292 | 0 of 365 |
+| Judged wrong-speaker lines, pooled | 0 of 699 | 0 of 688 | 0 of 840 |
+
+**Fresh blind pack.** `judge_pack.py --rule product` drew new windows from the same eight meetings with seed 65, three windows of 60 lines per meeting, and showed the three systems as columns A, B and C in random order per window. The counting protocol and the one-judge-per-language setup match the first pack. Both judges' counts of labelled and unlabelled lines matched the packets in all 72 columns, so each judge read every line. Neither judge found a wrong speaker in any column. The adapter labelled the 141 to 152 window lines the rule left blank, and the judges found none of those wrong either. Zero in 840 puts the adapter's judged rate below about 0.4% at 95% confidence, which is also the judge's resolution on these meetings.
+
+| AMI test split, 4 meetings, automatic count | Current engine | Nemotron, recorder post-processing | Nemotron, segment-based |
+|---|---:|---:|---:|
+| **Reference-word segments (1,526)** | | | |
+| Wrong-speaker rate (DER confusion) | 1.06% | 0.61% | 1.20% |
+| Missed speech | 16.72% | 16.97% | 5.70% |
+| Lines left without a speaker | 37.2% | 38.1% | 0% |
+| Lines with the right speaker | 53.7% | 51.3% | 71.9% |
+| Lines with a wrong speaker | 9.1% | 10.6% | 28.1% |
+| **Whisper segments (3,026, of which 2,820 hold reference speech)** | | | |
+| Wrong-speaker rate (DER confusion) | 1.97% | 1.78% | 3.39% |
+| Missed speech | 25.60% | 25.95% | 16.65% |
+| False alarm | 6.75% | 6.26% | 16.50% |
+| Lines left without a speaker | 18.9% | 19.7% | 0% |
+| Lines with the right speaker | 75.6% | 73.6% | 86.2% |
+| Lines with a wrong speaker | 5.5% | 6.8% | 13.8% |
+
+**How AMI is segmented.** AMI has no product transcript, so the scorer cuts each meeting into segments twice. The first cut uses the `only_words` reference turns, where each segment is one speaker's run of words. The second uses the installed `dettivo-engine-whisper` with large-v3-turbo on Vulkan over each whole recording, which took 74 s for the four meetings. Every system labels the same segments. The labelled segments become turns that `diarization_score.py` scores under ADR 0058, so missed speech here includes every line left without a speaker, plus the second voice wherever speech overlaps. The line rows give each line the reference speaker with the most overlap, and count a labelled line wrong when its label differs under the best one-to-one mapping of labels to reference speakers. Every reference-word segment lies inside reference speech, so false alarm there is 0% for every system and the table omits that row.
+
+**Where the adapter's extra errors come from.** On the lines the rule also labels, the adapter matches the recorder's confusion, 0.63% against 0.61% on reference-word segments and 1.81% against 1.78% on Whisper segments. All of its extra confusion therefore comes from the lines the rule refuses, which on AMI are mostly short backchannels and overlapped speech. Against the current engine, the adapter gains 18.2 points of right-speaker lines on reference-word segments and 10.6 points on Whisper segments, and it adds 19.0 and 8.3 points of wrong-speaker lines. On Whisper segments it also adds about 10 points of false alarm, because it labels line spans that the reference marks as silence. Nemotron's two-speaker count on TS3003a, against four in the reference, lifts that meeting's adapter confusion to 4.62% and 6.52%.
+
 ## What the numbers support
 
-- **Wrong-speaker rate.** Nemotron is better on labelled public meetings: 0.71% against 3.39% confusion on the AMI test split, and 0.43% against 4.10% (CUDA) with the count known. On Dettivo meetings the only measurable difference is the local/remote proxy, 0.45% against 0.88% pooled. The line-level judge finds both systems near zero. These meetings have too few remote voices to reproduce Meeting Recorder's 17% and 54% baseline rates, and the two systems' remote-speaker counts agreed on seven of eight.
+- **Wrong-speaker rate.** Nemotron is better on labelled public meetings: 0.71% against 3.39% confusion on the AMI test split, and 0.43% against 4.10% (CUDA) with the count known. On Dettivo meetings the only measurable difference is the local/remote proxy, 0.45% against 0.88% pooled. The line-level judge finds both systems near zero, and in the fresh three-column pack it found no wrong line for any system. These meetings have too few remote voices to reproduce Meeting Recorder's 17% and 54% baseline rates, and the two systems' remote-speaker counts agreed on seven of eight.
 - **Missed speech.** Nemotron misses 20.2% of reference speech on the AMI test split against 9.3%, and twice the single-side speech on Dettivo meetings. An integration that takes Nemotron's speaker labels while keeping the current engine's speech regions would sidestep this, and a follow-up spec could evaluate that combination.
+- **Segment-based assignment.** On Dettivo meetings the adapter closes the gap users see most. The speaker pass leaves 22.7% of remote lines blank with the current engine, the adapter leaves none, and the judge found no wrong speaker among the extra lines. On AMI, where four people share one room and talk over each other, the adapter gets 10.6 to 18.2 points more lines right than the current engine and 8.3 to 19.0 points more wrong, because every line it adds is one the rule refused as ambiguous. A follow-up spec could run the adapter only on the lines the rule leaves blank, which keeps the rule's accuracy on the lines it already labels. On those lines the adapter's confusion already matches the recorder's, 0.63% against 0.61%.
 - **Time.** On the CPU with four threads, Nemotron takes a quarter of the current engine's wall time and 45% of its CPU time. On CUDA it runs at about 525 to 775 times realtime against 15 to 19 for the current engine. The current engine's CUDA build saves CPU time (508 s against 2,208 s) but only 9% of wall time on the test split.
 - **Languages.** The German meetings show the largest proxy gain, 1.37% to 0.21% local/remote confusion. No labelled German corpus was cheap to get. VoxConverse is part of Nemotron's training data, and CALLHOME German is not freely licensed. The German figures therefore rest on the proxies alone.
 
 ## Limits and open items
 
 - **No human labels.** No person labelled the retained meetings, so this report gives no true wrong-speaker rate for them. The open item for a follow-up spec is labelling. One person annotating speaker turns on two or three multi-speaker meetings, at least one of them German, would turn the proxies into a rate.
-- **The judge is a model.** It reads text only, it cannot hear voices, and it saw 24 windows with 688 doubly labelled remote lines. A 0.3-point difference is below what it can resolve.
+- **The judge is a model.** It reads text only, it cannot hear voices, and it saw 24 windows with 688 doubly labelled remote lines. A 0.3-point difference is below what it can resolve. In the three-column pack, the adapter's column never shows an unlabelled line, so a judge could tell it apart from the other two without the key.
+- **AMI segments are a stand-in.** AMI has no product transcript. The reference-word cut is an oracle segmentation, and the Whisper cut ran the engine CLI over each whole recording, where the product transcribes in its own windows. Both cuts give the three systems identical segments, so the comparison between them holds, and the absolute line rates would move with a different cut.
 - **Timing conditions.** CPU jobs ran at `nice 19` with idle I/O priority while a meeting was being recorded on this machine. The AMI CPU jobs ran one at a time. The second batch of real-meeting CPU jobs overlapped the first, so real-meeting CPU times are indicative only and the table above uses AMI times. CUDA jobs waited until no meeting was recording or finalising. Every wall time is a cold process with model load included, and nothing pinned CPU affinity.
 - **Runtime.** The Nemotron port runs in Python with NumPy features, while the recorder runs in Rust. A native integration would change feature-extraction time. It would not change the ONNX Runtime inference, which dominates the CPU time.
 
@@ -95,8 +135,14 @@ python3 scripts/qa/nemotron3/judge_pack.py --selection selection.json --runs run
   --systems baseline-cpu,nemotron-cpu-int8 --out judge
 python3 scripts/qa/nemotron3/score_eval.py --work . \
   --systems baseline-cpu,baseline-cuda,nemotron-cpu-int8,nemotron-cuda-fp32
+python3 scripts/qa/nemotron3/nemotron3_diarize.py --wav real/EN-1/system.wav \
+  --model model_quantized.onnx --probs probs/EN-1.system.npy
+python3 scripts/qa/nemotron3/judge_pack.py --selection selection.json --runs runs --rule product \
+  --probs probs --systems baseline-cpu,nemotron-cpu-int8,nemotron-cpu-int8+segment --seed 65 --out judge-r6
+python3 scripts/qa/nemotron3/score_segments.py --work . --selection selection.json --probs probs \
+  --whisper whisper --systems baseline-cpu,nemotron-cpu-int8,nemotron-cpu-int8+segment
 python3 scripts/qa/nemotron3/crosscheck_reference.py --wav ES2004a.wav \
   --hf-model <nvidia/Nemotron-3-Diarization> --onnx model.onnx
 ```
 
-The Nemotron scripts need `numpy` and `onnxruntime-gpu`. The cross-check additionally needs `torch`, `librosa` and transformers with `nemotron3_diarization` support. `run_eval.py` waits with GPU jobs while any Dettivo meeting records or finalises, and it only reads the Dettivo database.
+The Nemotron scripts need `numpy` and `onnxruntime-gpu`. The cross-check additionally needs `torch`, `librosa` and transformers with `nemotron3_diarization` support. `run_eval.py` waits with GPU jobs while any Dettivo meeting records or finalises, and it only reads the Dettivo database. `--probs` runs once per AMI test recording (`probs/<name>.npy`) and once per real system track, and `whisper/<name>.json` is `dettivo-engine-whisper --json` on each AMI test recording.
