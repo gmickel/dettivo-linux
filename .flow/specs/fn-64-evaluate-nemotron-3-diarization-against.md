@@ -28,6 +28,7 @@ Release: https://github.com/jankeesvw/omarchy-meeting-recorder/releases/tag/v1.1
 - **R2:** The same meetings are scored with Nemotron 3 Diarization on this machine, including wall time versus baseline.
 - **R3:** A short evidence note records both rates, both times, model/runtime identity (CPU vs CUDA), and whether overlap/crosstalk improved.
 - **R4:** Shipping default stays the current diarize engine unless a follow-up spec, with these numbers, says otherwise.
+- **R5:** [user] At least one German retained meeting is included, and German results are reported separately from English alongside the pooled numbers.
 
 ## Boundaries
 

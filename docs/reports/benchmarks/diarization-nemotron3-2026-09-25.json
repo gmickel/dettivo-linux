@@ -1,0 +1,1124 @@
+{
+ "schema_version": 1,
+ "spec": "fn-64-evaluate-nemotron-3-diarization-against",
+ "date": "2026-09-25",
+ "validation_type": "offline side-by-side diarization evaluation; no product, package, config or default change",
+ "host": {
+  "cpu": "AMD Ryzen 9 7950X3D, 32 logical CPUs",
+  "gpu": "NVIDIA GeForce RTX 4090 24 GiB",
+  "driver": "610.57.04",
+  "kernel": "7.2.5-3-omarchy",
+  "cuda": "13.3.1 on the host; process-local cuDNN 9.25.0.15 for the baseline; nvidia-cudnn-cu13 9.26.0.51 wheel for ONNX Runtime"
+ },
+ "systems": {
+  "baseline-cpu": {
+   "what": "shipping dettivo-engine-diarize from the installed dettivo-bin 0.2.0-1 package: sherpa-onnx 1.13.7 with the calibrated clustering patch, pyannote segmentation 3.0 and English ERes2Net (diarize/diarization-en), automatic count",
+   "provider": "cpu",
+   "threads": 4,
+   "engine_sha256": "ca41ab539f823ca301905c4670395e7989991b4ff90e0009364add0e27aaced0",
+   "libonnxruntime_sha256": "ac9c3ab5caaa6e51764edbe5ca8afd5b92f0bf85d1c41e2ec54c676cd5ae1016",
+   "libsherpa_onnx_c_api_sha256": "62c35fea1b90eac6f2b0f1b6c7172d407b58e73c277978556c90200f4c9eccda"
+  },
+  "baseline-cuda": {
+   "what": "the same engine source (no crate change since 0.2.0) built with --features cuda by the checked-in build script, ONNX Runtime 1.27.1 GPU",
+   "provider": "cuda",
+   "threads": 4,
+   "engine_sha256": "c6bd4551d8c3c164eb381800abe80f7fd10874d17dde92985c0f98fb67697bea"
+  },
+  "nemotron-cpu-int8": {
+   "what": "scripts/qa/nemotron3/nemotron3_diarize.py, a Python port of omarchy-meeting-recorder v1.1.0 (src/nemotron.rs and src/diarize.rs) with its post-processing, using model_quantized.onnx (the recorder's int8 graph)",
+   "runtime": "onnxruntime 1.30.0 (onnxruntime-gpu wheel), CPUExecutionProvider",
+   "threads": 4
+  },
+  "nemotron-cuda-fp32": {
+   "what": "the same port with model.onnx (fp32)",
+   "runtime": "onnxruntime 1.30.0, CUDAExecutionProvider",
+   "threads": 4
+  }
+ },
+ "models": {
+  "diarization-en": {
+   "segmentation.onnx": "220ad67ca923bef2fa91f2390c786097bf305bceb5e261d4af67b38e938e1079",
+   "embedding.onnx": "c59158379255ad66e161679cca6af8d52d51e389e3224ab7d7a7baae295c2db5"
+  },
+  "nemotron3_onnx_revision": "onnx-community/Nemotron-3-Diarization-ONNX@353b6f8ad2cac3580e982d7fbdf0a010786b0406",
+  "nemotron3_onnx_sha256": {
+   "model_fp16.onnx": "286f56d64d80755eb0c84f9158c3620c9eccccb84ec53b48942c3795cf5a0c7b",
+   "model_fp16.onnx_data": "affecf841c462d78c86b56a6eee6216b119809285bcbdb4d5c4d541810e9d317",
+   "model.onnx": "12a7c98fc1ee6ec98ea728c7ffd9fcf6b245f3c9c1ea9f7c2a7cc47c023e3f9d",
+   "model.onnx_data": "c293d9b5930eb9f6172f095ced052c0d1bbdbeb2594a115497583ca209b1dbd6",
+   "model_quantized.onnx": "fff7d18c7439c9fdc1c6c4dfec924cb42d3344264ca879780dfaf7ee886e6c1e",
+   "model_quantized.onnx_data": "002d7483e1c865c35c82220fdb378f185ff213c6d35922b38ae421c8ec72c338"
+  },
+  "nemotron3_reference_revision": "nvidia/Nemotron-3-Diarization@f667ed73aee57d40cc39428eb768b4fd87a0a29e",
+  "nemotron3_reference_safetensors_sha256": "c074d86335b3b794f8fa5edc25594558f128bdb3914d27806a3a5a2e44963cb6",
+  "licence": "openmdw-1.1"
+ },
+ "port_crosscheck_vs_transformers": {
+  "input": "first 600 s of AMI ES2004a",
+  "reference": "transformers 5.18.0.dev0 (git main), torch 2.14.0+cpu, float32 offline forward",
+  "fp32": {
+   "frames": 60001,
+   "frames_reference": 60001,
+   "max_abs_probability_difference": 1.0669231414794922e-05,
+   "decision_flip_share": 0.0,
+   "port_vs_reference_der": 0.0,
+   "port_vs_reference_confusion": 0.0,
+   "reference_speech_share": 0.4445259245679239,
+   "port_speech_share": 0.4445259245679239
+  },
+  "int8": {
+   "frames": 60001,
+   "frames_reference": 60001,
+   "max_abs_probability_difference": 0.24072852730751038,
+   "decision_flip_share": 0.0004395760070665489,
+   "port_vs_reference_der": 0.004964953271028037,
+   "port_vs_reference_confusion": 0.0,
+   "reference_speech_share": 0.4445259245679239,
+   "port_speech_share": 0.44332594456759056
+  }
+ },
+ "nemotron_postprocessing_diagnostic": {
+  "what": "nemotron-cpu-int8 with --postprocess none on the AMI test split: missed speech rose on every recording (ES2004a 25.83, TS3003a 33.86, IS1009b 12.54, EN2002c 28.34 percent), so the recorder's bridging is not the source of the higher missed speech"
+ },
+ "scoring": {
+  "ami": "scripts/qa/diarization_score.py (ADR 0058): zero collar, overlap included, UEM union, optimal one-to-one mapping; pyannote AMI-diarization-setup only_words RTTM and UEM; pooled figures weight recordings by reference speaker-seconds",
+  "ami_test_split": [
+   "ES2004a",
+   "TS3003a",
+   "IS1009b",
+   "EN2002c"
+  ],
+  "ami_train_split": [
+   "ES2002a",
+   "EN2001b"
+  ],
+  "ami_contamination": "Nemotron 3 was trained on AMI train and dev; the test-split rows are the fair comparison, the train rows only continue the 2026-09-09 reports",
+  "real_mix": "scripts/qa/nemotron3/channel_score.py: per-10 ms track-energy weak reference (active above -45 dBFS, quiet below -60 dBFS, 200 ms bridging and minimum run), many-to-one side mapping, on the microphone plus system mix",
+  "real_system_track": "the product's input (system track); disagreement is strict DER of each system against baseline-cpu",
+  "judge": "scripts/qa/nemotron3/judge_pack.py: product ASR segments labelled by each system's system-track turns (largest overlap), 3 windows of 60 segments per meeting (seed 64), systems shown as columns A and B in random order with labels renumbered; one model judge per language class counted plausibly wrong remote lines without the key"
+ },
+ "timing_note": "CPU jobs ran niced (nice 19, ionice idle) while a live meeting recorded on this machine, and the second batch of real-meeting CPU jobs overlapped the first, so CPU real-meeting times are indicative only. The AMI CPU jobs ran one at a time. CUDA jobs ran only while no meeting was recording or finalising. Wall time is a cold process, model load included.",
+ "results": {
+  "ami_test_auto": {
+   "baseline-cpu": {
+    "score_percent": {
+     "der": 15.668,
+     "missed": 9.25,
+     "false_alarm": 3.026,
+     "confusion": 3.391,
+     "exact_counts": "4/4",
+     "hypothesis_speakers": [
+      4,
+      4,
+      4,
+      3
+     ]
+    },
+    "timing": {
+     "runs": 4,
+     "audio_seconds": 7579.59,
+     "wall_seconds": 557.38,
+     "cpu_seconds": 2208.03,
+     "realtime_factor": 13.6,
+     "max_rss_mib": 665.2,
+     "meeting_busy_during_any": true
+    },
+    "per_recording_der_percent": {
+     "ES2004a": 18.98,
+     "TS3003a": 15.5,
+     "IS1009b": 12.83,
+     "EN2002c": 16.49
+    },
+    "per_recording_confusion_percent": {
+     "ES2004a": 4.02,
+     "TS3003a": 2.19,
+     "IS1009b": 3.42,
+     "EN2002c": 3.57
+    }
+   },
+   "baseline-cuda": {
+    "score_percent": {
+     "der": 15.674,
+     "missed": 9.252,
+     "false_alarm": 3.026,
+     "confusion": 3.395,
+     "exact_counts": "4/4",
+     "hypothesis_speakers": [
+      4,
+      4,
+      4,
+      3
+     ]
+    },
+    "timing": {
+     "runs": 4,
+     "audio_seconds": 7579.59,
+     "wall_seconds": 509.81,
+     "cpu_seconds": 508.23,
+     "realtime_factor": 14.9,
+     "max_rss_mib": 1334.7,
+     "meeting_busy_during_any": false
+    },
+    "per_recording_der_percent": {
+     "ES2004a": 18.98,
+     "TS3003a": 15.54,
+     "IS1009b": 12.83,
+     "EN2002c": 16.49
+    },
+    "per_recording_confusion_percent": {
+     "ES2004a": 4.02,
+     "TS3003a": 2.22,
+     "IS1009b": 3.42,
+     "EN2002c": 3.57
+    }
+   },
+   "nemotron-cpu-int8": {
+    "score_percent": {
+     "der": 21.779,
+     "missed": 20.164,
+     "false_alarm": 0.905,
+     "confusion": 0.71,
+     "exact_counts": "3/4",
+     "hypothesis_speakers": [
+      4,
+      2,
+      4,
+      3
+     ]
+    },
+    "timing": {
+     "runs": 4,
+     "audio_seconds": 7579.59,
+     "wall_seconds": 138.31,
+     "cpu_seconds": 1003.89,
+     "realtime_factor": 54.8,
+     "max_rss_mib": 784.6,
+     "meeting_busy_during_any": true
+    },
+    "per_recording_der_percent": {
+     "ES2004a": 22.53,
+     "TS3003a": 33.8,
+     "IS1009b": 9.85,
+     "EN2002c": 24.95
+    },
+    "per_recording_confusion_percent": {
+     "ES2004a": 0.31,
+     "TS3003a": 2.41,
+     "IS1009b": 0.83,
+     "EN2002c": 0.23
+    }
+   },
+   "nemotron-cuda-fp32": {
+    "score_percent": {
+     "der": 21.679,
+     "missed": 20.069,
+     "false_alarm": 0.884,
+     "confusion": 0.726,
+     "exact_counts": "3/4",
+     "hypothesis_speakers": [
+      4,
+      2,
+      4,
+      3
+     ]
+    },
+    "timing": {
+     "runs": 4,
+     "audio_seconds": 7579.59,
+     "wall_seconds": 14.44,
+     "cpu_seconds": 266.35,
+     "realtime_factor": 524.8,
+     "max_rss_mib": 1463.3,
+     "meeting_busy_during_any": false
+    },
+    "per_recording_der_percent": {
+     "ES2004a": 22.44,
+     "TS3003a": 33.78,
+     "IS1009b": 9.74,
+     "EN2002c": 24.84
+    },
+    "per_recording_confusion_percent": {
+     "ES2004a": 0.33,
+     "TS3003a": 2.41,
+     "IS1009b": 0.86,
+     "EN2002c": 0.24
+    }
+   }
+  },
+  "ami_test_known4": {
+   "baseline-cpu": {
+    "score_percent": {
+     "der": 20.943,
+     "missed": 10.439,
+     "false_alarm": 2.634,
+     "confusion": 7.87,
+     "exact_counts": "3/4",
+     "hypothesis_speakers": [
+      4,
+      4,
+      4,
+      4
+     ]
+    },
+    "timing": {
+     "runs": 4,
+     "audio_seconds": 7579.59,
+     "wall_seconds": 606.99,
+     "cpu_seconds": 2403.51,
+     "realtime_factor": 12.5,
+     "max_rss_mib": 711.1,
+     "meeting_busy_during_any": true
+    },
+    "per_recording_der_percent": {
+     "ES2004a": 19.76,
+     "TS3003a": 17.76,
+     "IS1009b": 27.27,
+     "EN2002c": 18.49
+    },
+    "per_recording_confusion_percent": {
+     "ES2004a": 3.8,
+     "TS3003a": 3.71,
+     "IS1009b": 17.96,
+     "EN2002c": 4.29
+    }
+   },
+   "baseline-cuda": {
+    "score_percent": {
+     "der": 17.129,
+     "missed": 10.51,
+     "false_alarm": 2.523,
+     "confusion": 4.096,
+     "exact_counts": "3/4",
+     "hypothesis_speakers": [
+      4,
+      4,
+      4,
+      4
+     ]
+    },
+    "timing": {
+     "runs": 4,
+     "audio_seconds": 7579.59,
+     "wall_seconds": 459.8,
+     "cpu_seconds": 458.63,
+     "realtime_factor": 16.5,
+     "max_rss_mib": 1376.2,
+     "meeting_busy_during_any": false
+    },
+    "per_recording_der_percent": {
+     "ES2004a": 19.39,
+     "TS3003a": 19.41,
+     "IS1009b": 12.43,
+     "EN2002c": 18.6
+    },
+    "per_recording_confusion_percent": {
+     "ES2004a": 3.47,
+     "TS3003a": 5.34,
+     "IS1009b": 3.21,
+     "EN2002c": 4.41
+    }
+   },
+   "nemotron-cpu-int8": {
+    "score_percent": {
+     "der": 21.426,
+     "missed": 20.07,
+     "false_alarm": 0.928,
+     "confusion": 0.428,
+     "exact_counts": "3/4",
+     "hypothesis_speakers": [
+      4,
+      4,
+      4,
+      4
+     ]
+    },
+    "timing": {
+     "runs": 4,
+     "audio_seconds": 7579.59,
+     "wall_seconds": 163.86,
+     "cpu_seconds": 1026.26,
+     "realtime_factor": 46.3,
+     "max_rss_mib": 783.9,
+     "meeting_busy_during_any": true
+    },
+    "per_recording_der_percent": {
+     "ES2004a": 22.53,
+     "TS3003a": 31.3,
+     "IS1009b": 9.85,
+     "EN2002c": 24.95
+    },
+    "per_recording_confusion_percent": {
+     "ES2004a": 0.31,
+     "TS3003a": 0.34,
+     "IS1009b": 0.83,
+     "EN2002c": 0.25
+    }
+   },
+   "nemotron-cuda-fp32": {
+    "score_percent": {
+     "der": 21.326,
+     "missed": 19.979,
+     "false_alarm": 0.908,
+     "confusion": 0.439,
+     "exact_counts": "3/4",
+     "hypothesis_speakers": [
+      4,
+      4,
+      4,
+      4
+     ]
+    },
+    "timing": {
+     "runs": 4,
+     "audio_seconds": 7579.59,
+     "wall_seconds": 9.89,
+     "cpu_seconds": 231.67,
+     "realtime_factor": 766.5,
+     "max_rss_mib": 1500.2,
+     "meeting_busy_during_any": false
+    },
+    "per_recording_der_percent": {
+     "ES2004a": 22.44,
+     "TS3003a": 31.27,
+     "IS1009b": 9.74,
+     "EN2002c": 24.84
+    },
+    "per_recording_confusion_percent": {
+     "ES2004a": 0.33,
+     "TS3003a": 0.34,
+     "IS1009b": 0.86,
+     "EN2002c": 0.25
+    }
+   }
+  },
+  "ami_train_auto": {
+   "baseline-cpu": {
+    "score_percent": {
+     "der": 11.652,
+     "missed": 3.645,
+     "false_alarm": 6.019,
+     "confusion": 1.988,
+     "exact_counts": "2/2",
+     "hypothesis_speakers": [
+      4,
+      4
+     ]
+    },
+    "timing": {
+     "runs": 2,
+     "audio_seconds": 4724.52,
+     "wall_seconds": 373.33,
+     "cpu_seconds": 1476.46,
+     "realtime_factor": 12.7,
+     "max_rss_mib": 739.0,
+     "meeting_busy_during_any": true
+    },
+    "per_recording_der_percent": {
+     "ES2002a": 21.04,
+     "EN2001b": 8.99
+    },
+    "per_recording_confusion_percent": {
+     "ES2002a": 1.55,
+     "EN2001b": 2.11
+    }
+   },
+   "baseline-cuda": {
+    "score_percent": {
+     "der": 11.657,
+     "missed": 3.649,
+     "false_alarm": 6.02,
+     "confusion": 1.988,
+     "exact_counts": "2/2",
+     "hypothesis_speakers": [
+      4,
+      4
+     ]
+    },
+    "timing": {
+     "runs": 2,
+     "audio_seconds": 4724.52,
+     "wall_seconds": 294.93,
+     "cpu_seconds": 294.24,
+     "realtime_factor": 16.0,
+     "max_rss_mib": 1407.3,
+     "meeting_busy_during_any": false
+    },
+    "per_recording_der_percent": {
+     "ES2002a": 21.04,
+     "EN2001b": 9.0
+    },
+    "per_recording_confusion_percent": {
+     "ES2002a": 1.55,
+     "EN2001b": 2.11
+    }
+   },
+   "nemotron-cpu-int8": {
+    "score_percent": {
+     "der": 19.085,
+     "missed": 14.259,
+     "false_alarm": 3.115,
+     "confusion": 1.711,
+     "exact_counts": "0/2",
+     "hypothesis_speakers": [
+      3,
+      3
+     ]
+    },
+    "timing": {
+     "runs": 2,
+     "audio_seconds": 4724.52,
+     "wall_seconds": 97.01,
+     "cpu_seconds": 619.48,
+     "realtime_factor": 48.7,
+     "max_rss_mib": 843.3,
+     "meeting_busy_during_any": true
+    },
+    "per_recording_der_percent": {
+     "ES2002a": 33.22,
+     "EN2001b": 15.08
+    },
+    "per_recording_confusion_percent": {
+     "ES2002a": 1.96,
+     "EN2001b": 1.64
+    }
+   },
+   "nemotron-cuda-fp32": {
+    "score_percent": {
+     "der": 19.11,
+     "missed": 14.241,
+     "false_alarm": 3.159,
+     "confusion": 1.71,
+     "exact_counts": "0/2",
+     "hypothesis_speakers": [
+      3,
+      3
+     ]
+    },
+    "timing": {
+     "runs": 2,
+     "audio_seconds": 4724.52,
+     "wall_seconds": 6.09,
+     "cpu_seconds": 145.95,
+     "realtime_factor": 775.5,
+     "max_rss_mib": 1559.2,
+     "meeting_busy_during_any": false
+    },
+    "per_recording_der_percent": {
+     "ES2002a": 33.29,
+     "EN2001b": 15.09
+    },
+    "per_recording_confusion_percent": {
+     "ES2002a": 1.96,
+     "EN2001b": 1.64
+    }
+   }
+  },
+  "real": {
+   "baseline-cpu": {
+    "en": {
+     "meetings": 4,
+     "audio_minutes_per_track": 276.5,
+     "mix_vs_track_reference_percent": {
+      "side_confusion": 0.63,
+      "side_missed": 0.74,
+      "local_missed": 0.21,
+      "overlap_resolved": 72.11,
+      "overlap_share_of_scored_speech": 3.88
+     },
+     "mix_clusters": [
+      3,
+      3,
+      5,
+      5
+     ],
+     "mix_clusters_material": [
+      3,
+      3,
+      3,
+      5
+     ],
+     "system_track_clusters": [
+      2,
+      2,
+      4,
+      4
+     ],
+     "timing_mix_plus_system_track": {
+      "runs": 8,
+      "audio_seconds": 33178.82,
+      "wall_seconds": 2189.97,
+      "cpu_seconds": 8668.64,
+      "realtime_factor": 15.2,
+      "max_rss_mib": 1310.7,
+      "meeting_busy_during_any": true
+     }
+    },
+    "de": {
+     "meetings": 4,
+     "audio_minutes_per_track": 139.4,
+     "mix_vs_track_reference_percent": {
+      "side_confusion": 1.37,
+      "side_missed": 0.43,
+      "local_missed": 0.2,
+      "overlap_resolved": 77.2,
+      "overlap_share_of_scored_speech": 9.64
+     },
+     "mix_clusters": [
+      2,
+      3,
+      2,
+      4
+     ],
+     "mix_clusters_material": [
+      2,
+      3,
+      2,
+      4
+     ],
+     "system_track_clusters": [
+      1,
+      2,
+      1,
+      3
+     ],
+     "timing_mix_plus_system_track": {
+      "runs": 8,
+      "audio_seconds": 16726.22,
+      "wall_seconds": 1173.86,
+      "cpu_seconds": 4642.49,
+      "realtime_factor": 14.2,
+      "max_rss_mib": 768.2,
+      "meeting_busy_during_any": true
+     }
+    },
+    "pooled": {
+     "meetings": 8,
+     "audio_minutes_per_track": 415.9,
+     "mix_vs_track_reference_percent": {
+      "side_confusion": 0.88,
+      "side_missed": 0.63,
+      "local_missed": 0.21,
+      "overlap_resolved": 75.03,
+      "overlap_share_of_scored_speech": 5.9
+     },
+     "mix_clusters": [
+      2,
+      3,
+      2,
+      4,
+      3,
+      3,
+      5,
+      5
+     ],
+     "mix_clusters_material": [
+      2,
+      3,
+      2,
+      4,
+      3,
+      3,
+      3,
+      5
+     ],
+     "system_track_clusters": [
+      1,
+      2,
+      1,
+      3,
+      2,
+      2,
+      4,
+      4
+     ],
+     "timing_mix_plus_system_track": {
+      "runs": 16,
+      "audio_seconds": 49905.04,
+      "wall_seconds": 3363.83,
+      "cpu_seconds": 13311.13,
+      "realtime_factor": 14.8,
+      "max_rss_mib": 1310.7,
+      "meeting_busy_during_any": true
+     }
+    }
+   },
+   "baseline-cuda": {
+    "en": {
+     "meetings": 4,
+     "audio_minutes_per_track": 276.5,
+     "mix_vs_track_reference_percent": {
+      "side_confusion": 0.63,
+      "side_missed": 0.74,
+      "local_missed": 0.21,
+      "overlap_resolved": 72.11,
+      "overlap_share_of_scored_speech": 3.88
+     },
+     "mix_clusters": [
+      3,
+      3,
+      5,
+      5
+     ],
+     "mix_clusters_material": [
+      3,
+      3,
+      3,
+      5
+     ],
+     "system_track_clusters": [
+      2,
+      2,
+      4,
+      4
+     ],
+     "timing_mix_plus_system_track": {
+      "runs": 8,
+      "audio_seconds": 33178.82,
+      "wall_seconds": 1705.8,
+      "cpu_seconds": 1701.01,
+      "realtime_factor": 19.5,
+      "max_rss_mib": 1987.5,
+      "meeting_busy_during_any": false
+     },
+     "system_track_vs_baseline_percent": {
+      "disagreement": 0.02,
+      "confusion": 0.01
+     }
+    },
+    "de": {
+     "meetings": 4,
+     "audio_minutes_per_track": 139.4,
+     "mix_vs_track_reference_percent": {
+      "side_confusion": 1.37,
+      "side_missed": 0.43,
+      "local_missed": 0.2,
+      "overlap_resolved": 77.2,
+      "overlap_share_of_scored_speech": 9.64
+     },
+     "mix_clusters": [
+      2,
+      3,
+      2,
+      4
+     ],
+     "mix_clusters_material": [
+      2,
+      3,
+      2,
+      4
+     ],
+     "system_track_clusters": [
+      1,
+      2,
+      1,
+      3
+     ],
+     "timing_mix_plus_system_track": {
+      "runs": 8,
+      "audio_seconds": 16726.22,
+      "wall_seconds": 967.94,
+      "cpu_seconds": 965.63,
+      "realtime_factor": 17.3,
+      "max_rss_mib": 1442.1,
+      "meeting_busy_during_any": false
+     },
+     "system_track_vs_baseline_percent": {
+      "disagreement": 0.02,
+      "confusion": 0.0
+     }
+    },
+    "pooled": {
+     "meetings": 8,
+     "audio_minutes_per_track": 415.9,
+     "mix_vs_track_reference_percent": {
+      "side_confusion": 0.88,
+      "side_missed": 0.63,
+      "local_missed": 0.21,
+      "overlap_resolved": 75.03,
+      "overlap_share_of_scored_speech": 5.9
+     },
+     "mix_clusters": [
+      2,
+      3,
+      2,
+      4,
+      3,
+      3,
+      5,
+      5
+     ],
+     "mix_clusters_material": [
+      2,
+      3,
+      2,
+      4,
+      3,
+      3,
+      3,
+      5
+     ],
+     "system_track_clusters": [
+      1,
+      2,
+      1,
+      3,
+      2,
+      2,
+      4,
+      4
+     ],
+     "timing_mix_plus_system_track": {
+      "runs": 16,
+      "audio_seconds": 49905.04,
+      "wall_seconds": 2673.73,
+      "cpu_seconds": 2666.64,
+      "realtime_factor": 18.7,
+      "max_rss_mib": 1987.5,
+      "meeting_busy_during_any": false
+     },
+     "system_track_vs_baseline_percent": {
+      "disagreement": 0.02,
+      "confusion": 0.01
+     }
+    }
+   },
+   "nemotron-cpu-int8": {
+    "en": {
+     "meetings": 4,
+     "audio_minutes_per_track": 276.5,
+     "mix_vs_track_reference_percent": {
+      "side_confusion": 0.57,
+      "side_missed": 1.18,
+      "local_missed": 0.36,
+      "overlap_resolved": 77.43,
+      "overlap_share_of_scored_speech": 3.88
+     },
+     "mix_clusters": [
+      3,
+      3,
+      3,
+      5
+     ],
+     "mix_clusters_material": [
+      3,
+      3,
+      3,
+      5
+     ],
+     "system_track_clusters": [
+      2,
+      2,
+      2,
+      4
+     ],
+     "timing_mix_plus_system_track": {
+      "runs": 8,
+      "audio_seconds": 33178.82,
+      "wall_seconds": 647.06,
+      "cpu_seconds": 4285.27,
+      "realtime_factor": 51.3,
+      "max_rss_mib": 1389.1,
+      "meeting_busy_during_any": true
+     },
+     "system_track_vs_baseline_percent": {
+      "disagreement": 10.39,
+      "confusion": 1.48
+     }
+    },
+    "de": {
+     "meetings": 4,
+     "audio_minutes_per_track": 139.4,
+     "mix_vs_track_reference_percent": {
+      "side_confusion": 0.21,
+      "side_missed": 1.39,
+      "local_missed": 0.62,
+      "overlap_resolved": 78.95,
+      "overlap_share_of_scored_speech": 9.64
+     },
+     "mix_clusters": [
+      2,
+      3,
+      2,
+      4
+     ],
+     "mix_clusters_material": [
+      2,
+      3,
+      2,
+      4
+     ],
+     "system_track_clusters": [
+      1,
+      2,
+      1,
+      3
+     ],
+     "timing_mix_plus_system_track": {
+      "runs": 8,
+      "audio_seconds": 16726.22,
+      "wall_seconds": 322.15,
+      "cpu_seconds": 2165.94,
+      "realtime_factor": 51.9,
+      "max_rss_mib": 882.6,
+      "meeting_busy_during_any": true
+     },
+     "system_track_vs_baseline_percent": {
+      "disagreement": 12.11,
+      "confusion": 0.46
+     }
+    },
+    "pooled": {
+     "meetings": 8,
+     "audio_minutes_per_track": 415.9,
+     "mix_vs_track_reference_percent": {
+      "side_confusion": 0.45,
+      "side_missed": 1.25,
+      "local_missed": 0.46,
+      "overlap_resolved": 78.3,
+      "overlap_share_of_scored_speech": 5.9
+     },
+     "mix_clusters": [
+      2,
+      3,
+      2,
+      4,
+      3,
+      3,
+      3,
+      5
+     ],
+     "mix_clusters_material": [
+      2,
+      3,
+      2,
+      4,
+      3,
+      3,
+      3,
+      5
+     ],
+     "system_track_clusters": [
+      1,
+      2,
+      1,
+      3,
+      2,
+      2,
+      2,
+      4
+     ],
+     "timing_mix_plus_system_track": {
+      "runs": 16,
+      "audio_seconds": 49905.04,
+      "wall_seconds": 969.21,
+      "cpu_seconds": 6451.22,
+      "realtime_factor": 51.5,
+      "max_rss_mib": 1389.1,
+      "meeting_busy_during_any": true
+     },
+     "system_track_vs_baseline_percent": {
+      "disagreement": 10.98,
+      "confusion": 1.13
+     }
+    }
+   },
+   "nemotron-cuda-fp32": {
+    "en": {
+     "meetings": 4,
+     "audio_minutes_per_track": 276.5,
+     "mix_vs_track_reference_percent": {
+      "side_confusion": 0.58,
+      "side_missed": 1.17,
+      "local_missed": 0.32,
+      "overlap_resolved": 77.54,
+      "overlap_share_of_scored_speech": 3.88
+     },
+     "mix_clusters": [
+      3,
+      3,
+      3,
+      5
+     ],
+     "mix_clusters_material": [
+      3,
+      3,
+      3,
+      5
+     ],
+     "system_track_clusters": [
+      2,
+      2,
+      2,
+      4
+     ],
+     "timing_mix_plus_system_track": {
+      "runs": 8,
+      "audio_seconds": 33178.82,
+      "wall_seconds": 44.54,
+      "cpu_seconds": 986.61,
+      "realtime_factor": 744.9,
+      "max_rss_mib": 2088.5,
+      "meeting_busy_during_any": false
+     },
+     "system_track_vs_baseline_percent": {
+      "disagreement": 10.25,
+      "confusion": 1.47
+     }
+    },
+    "de": {
+     "meetings": 4,
+     "audio_minutes_per_track": 139.4,
+     "mix_vs_track_reference_percent": {
+      "side_confusion": 0.21,
+      "side_missed": 1.39,
+      "local_missed": 0.62,
+      "overlap_resolved": 79.07,
+      "overlap_share_of_scored_speech": 9.64
+     },
+     "mix_clusters": [
+      2,
+      3,
+      2,
+      4
+     ],
+     "mix_clusters_material": [
+      2,
+      3,
+      2,
+      4
+     ],
+     "system_track_clusters": [
+      1,
+      2,
+      1,
+      3
+     ],
+     "timing_mix_plus_system_track": {
+      "runs": 8,
+      "audio_seconds": 16726.22,
+      "wall_seconds": 22.95,
+      "cpu_seconds": 522.95,
+      "realtime_factor": 729.0,
+      "max_rss_mib": 1599.4,
+      "meeting_busy_during_any": false
+     },
+     "system_track_vs_baseline_percent": {
+      "disagreement": 12.09,
+      "confusion": 0.47
+     }
+    },
+    "pooled": {
+     "meetings": 8,
+     "audio_minutes_per_track": 415.9,
+     "mix_vs_track_reference_percent": {
+      "side_confusion": 0.45,
+      "side_missed": 1.24,
+      "local_missed": 0.43,
+      "overlap_resolved": 78.42,
+      "overlap_share_of_scored_speech": 5.9
+     },
+     "mix_clusters": [
+      2,
+      3,
+      2,
+      4,
+      3,
+      3,
+      3,
+      5
+     ],
+     "mix_clusters_material": [
+      2,
+      3,
+      2,
+      4,
+      3,
+      3,
+      3,
+      5
+     ],
+     "system_track_clusters": [
+      1,
+      2,
+      1,
+      3,
+      2,
+      2,
+      2,
+      4
+     ],
+     "timing_mix_plus_system_track": {
+      "runs": 16,
+      "audio_seconds": 49905.04,
+      "wall_seconds": 67.49,
+      "cpu_seconds": 1509.56,
+      "realtime_factor": 739.5,
+      "max_rss_mib": 2088.5,
+      "meeting_busy_during_any": false
+     },
+     "system_track_vs_baseline_percent": {
+      "disagreement": 10.88,
+      "confusion": 1.13
+     }
+    }
+   }
+  },
+  "judge": {
+   "en": {
+    "baseline-cpu": {
+     "windows": 12,
+     "labelled_remote_lines": 357,
+     "wrong": 2,
+     "unsure": 10,
+     "unlabelled": 95,
+     "wrong_speaker_percent": 0.56
+    },
+    "nemotron-cpu-int8": {
+     "windows": 12,
+     "labelled_remote_lines": 363,
+     "wrong": 4,
+     "unsure": 8,
+     "unlabelled": 89,
+     "wrong_speaker_percent": 1.1
+    }
+   },
+   "de": {
+    "nemotron-cpu-int8": {
+     "windows": 12,
+     "labelled_remote_lines": 343,
+     "wrong": 0,
+     "unsure": 2,
+     "unlabelled": 25,
+     "wrong_speaker_percent": 0.0
+    },
+    "baseline-cpu": {
+     "windows": 12,
+     "labelled_remote_lines": 363,
+     "wrong": 0,
+     "unsure": 4,
+     "unlabelled": 5,
+     "wrong_speaker_percent": 0.0
+    }
+   },
+   "pooled": {
+    "nemotron-cpu-int8": {
+     "windows": 24,
+     "labelled_remote_lines": 706,
+     "wrong": 4,
+     "unsure": 10,
+     "unlabelled": 114,
+     "wrong_speaker_percent": 0.57
+    },
+    "baseline-cpu": {
+     "windows": 24,
+     "labelled_remote_lines": 720,
+     "wrong": 2,
+     "unsure": 14,
+     "unlabelled": 100,
+     "wrong_speaker_percent": 0.28
+    }
+   }
+  }
+ }
+}

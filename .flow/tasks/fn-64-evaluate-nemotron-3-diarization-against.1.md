@@ -1,5 +1,5 @@
 ---
-satisfies: [R1, R2, R3, R4]
+satisfies: [R1, R2, R3, R4, R5]
 ---
 # fn-64-evaluate-nemotron-3-diarization-against.1 Implement Evaluate Nemotron 3 Diarization against current speaker pass
 
