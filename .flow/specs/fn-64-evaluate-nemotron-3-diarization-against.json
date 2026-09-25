@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-64-evaluate-nemotron-3-diarization-against.md",
-  "status": "done",
+  "status": "open",
   "title": "Evaluate Nemotron 3 Diarization against current speaker pass",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-25T21:14:35.436612Z"
+  "updated_at": "2026-09-25T22:01:39.602966Z"
 }

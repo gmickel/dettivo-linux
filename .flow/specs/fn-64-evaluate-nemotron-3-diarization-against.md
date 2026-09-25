@@ -29,6 +29,7 @@ Release: https://github.com/jankeesvw/omarchy-meeting-recorder/releases/tag/v1.1
 - **R3:** A short evidence note records both rates, both times, model/runtime identity (CPU vs CUDA), and whether overlap/crosstalk improved.
 - **R4:** Shipping default stays the current diarize engine unless a follow-up spec, with these numbers, says otherwise.
 - **R5:** [user] At least one German retained meeting is included, and German results are reported separately from English alongside the pooled numbers.
+- **R6:** [user] Nemotron is also scored with segment-based speaker assignment: each Whisper transcript segment takes the speaker with the highest mean probability over the segment, with no 0.5 threshold. The report compares it with the recorder post-processing and the current engine on lines left without a speaker, on the judged wrong-speaker rate for English, German and pooled, and on AMI confusion and missed speech. The change stays inside a Nemotron-specific adapter.
 
 ## Boundaries
 
