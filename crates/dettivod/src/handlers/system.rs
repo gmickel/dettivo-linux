@@ -9,11 +9,15 @@ use super::json;
 use crate::daemon::Daemon;
 use crate::platform;
 
-/// The build identifier baked in at compile time (`DETTIVO_BUILD`), or
-/// `dev` for a local build.
+/// The build identifier baked in at compile time: `DETTIVO_BUILD`, else the
+/// commit the packaging exports as `DETTIVO_GIT_SHA` (the one
+/// `dettivo --version` prints), else `dev` for a local build.
 pub const BUILD: &str = match option_env!("DETTIVO_BUILD") {
     Some(b) => b,
-    None => "dev",
+    None => match option_env!("DETTIVO_GIT_SHA") {
+        Some(sha) => sha,
+        None => "dev",
+    },
 };
 
 /// `system.ping`.

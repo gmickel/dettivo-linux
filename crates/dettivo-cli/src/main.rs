@@ -227,6 +227,19 @@ pub enum Command {
     },
 }
 
+/// A closed pipe on standard output (`dettivo meetings segments <id> | head`)
+/// ends the process quietly, as it does for other Unix tools, instead of
+/// `println!` panicking. The REST shim keeps Rust's ignored `SIGPIPE`, so a
+/// client that hangs up mid-response costs one error, not the server.
+#[allow(unsafe_code)]
+fn restore_default_sigpipe() {
+    // SAFETY: runs once at startup, before any thread exists; `SIG_DFL` is a
+    // valid disposition for `SIGPIPE`.
+    unsafe {
+        libc::signal(libc::SIGPIPE, libc::SIG_DFL);
+    }
+}
+
 fn main() -> ExitCode {
     let cli = match Cli::try_parse() {
         Ok(cli) => cli,
@@ -249,6 +262,14 @@ fn main() -> ExitCode {
             return Exit::InvalidArgs.code();
         }
     };
+    if !matches!(
+        &cli.command,
+        Command::Rest {
+            what: rest::RestCmd::Serve { .. }
+        }
+    ) {
+        restore_default_sigpipe();
+    }
     let outcome = run(&cli);
     match outcome {
         Ok(()) => Exit::Success.code(),
