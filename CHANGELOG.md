@@ -4,6 +4,10 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Changed
+
+- Meetings give almost every remote line a speaker. Each sentence takes the speaker who holds most of it, and a line with no diarized speech takes the nearest speaker within 10 seconds. About 1 remote line in 50 is left without a speaker, where it was about 1 in 5. A line whose sentences belong to two speakers becomes two lines. `[meetings.diarization]` gains `pause_ms` and `nearest_turn_ms`. `min_coverage` is retired: a file that still sets it keeps loading, and the value is ignored. `min_speaker_share` now applies per sentence and defaults to 0.
+
 ### Fixed
 
 - The install commands download the release package and its checksum and install the local file. pacman refused the direct URL because it asks for a signature the releases do not publish. Reported by @gmickel.
