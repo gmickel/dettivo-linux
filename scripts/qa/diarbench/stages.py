@@ -22,7 +22,11 @@ def inputs(cache, cfg, rec, full, db):
     if rec["split"].startswith("ami"):
         k, segments = engines.asr_result(cache, cfg["asr"], rec["wav"], full)
         return None if segments is None else (k, segments, rec["wav"], True)
-    segments, system_audio = meeting_row(db, rec["dir"])
+    try:
+        segments, system_audio = meeting_row(db, rec["dir"])
+    except LookupError:
+        cache.note("segments", "missing")  # deleted since setup; the next setup drops it
+        return None
     cache.note("segments", "read")
     window = label_window(rec["reference"])
     if window:

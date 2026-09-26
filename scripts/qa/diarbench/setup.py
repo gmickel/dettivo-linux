@@ -203,8 +203,10 @@ def selection(root):
     if seed.exists():
         for alias, directory in json.loads(seed.read_text()).items():
             current.setdefault(alias, {"dir": directory, "language": alias[:2].lower()})
-    known = {entry["dir"] for entry in current.values()}
     with database() as db:
+        stored = {row[0] for row in db.execute("select id from meetings")}
+        current = {a: e for a, e in current.items() if Path(e["dir"]).name in stored}
+        known = {entry["dir"] for entry in current.values()}
         rows = db.execute("""select audio_dir, language, duration_ms from meetings
             where status = 'completed' and system_audio = 1
             and coalesce(json_extract(diarization, '$.status'), '') not in ('queued', 'running')
