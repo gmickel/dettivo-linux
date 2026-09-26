@@ -39,3 +39,7 @@ Prior art: omarchy-meeting-recorder `src/transcribe.rs` (a sentence is never spl
 ## Decision Context
 
 Gordon approved recommendation 1 of the 2026-09-26 research on 2026-09-26. It is the single largest expected gain, and it needs no new model.
+
+### R2 outcome (2026-09-26)
+
+R2 is missed: on AMI dev, labelled lines with the wrong speaker rise by 5.2 points (current engine) and 5.6 (Nemotron), against a limit of 1. Most of the lines the old rule left blank hold two speakers, and without word timings a sentence can take only one. Gordon chose to ship the rule labelling everything (`min_speaker_share` 0): per 100 AMI dev lines, the current engine goes from 71 right, 13 wrong and 16 blank to 78, 20 and 2, and Nemotron from 78, 4 and 18 to 85, 11 and 4. Whisper word timings follow as their own spec to cut the new wrong names, and the voice check (fn-70) targets the same lines.

@@ -18,6 +18,7 @@ pub mod journal;
 pub mod live;
 pub mod machine;
 pub mod recovery;
+mod sentences;
 pub mod source;
 pub mod transcript;
 mod worker;

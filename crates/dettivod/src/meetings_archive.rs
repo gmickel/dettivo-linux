@@ -18,6 +18,7 @@ use dettivo_core::config::Loaded;
 use dettivo_core::config::polish_schema::Polish;
 use dettivo_language::policy::{Backend, Context, RulesConfig, resolve};
 use dettivo_language::polish;
+use dettivo_proto::methods::meetings::Segment;
 use dettivo_proto::methods::meetings_notes::AnalysisStatus;
 use dettivo_proto::methods::speakers::DiarizationStatus;
 use dettivo_storage::meetings::MeetingRow;
@@ -89,9 +90,23 @@ impl MeetingArchive {
     /// and makes `final_text` the polished join; `raw_text` keeps the
     /// engine's words.
     pub fn polish_segments(polish_config: &Polish, row: &mut MeetingRow) {
+        Self::polish_where(polish_config, row, |_| true);
+    }
+
+    /// Polishes the segments that carry no polished text, the parts the
+    /// speaker pass split (ADR 0072), and joins `final_text` again.
+    pub fn polish_missing(polish_config: &Polish, row: &mut MeetingRow) {
+        Self::polish_where(polish_config, row, |s| s.polished_text.is_none());
+    }
+
+    fn polish_where(
+        polish_config: &Polish,
+        row: &mut MeetingRow,
+        wanted: impl Fn(&Segment) -> bool,
+    ) {
         let rules = RulesConfig::from_config(polish_config);
         let policy = resolve(&rules, &Backend::Disabled, &Context::default());
-        for segment in &mut row.segments {
+        for segment in row.segments.iter_mut().filter(|s| wanted(s)) {
             let polished = polish::rewrite(
                 &segment.text,
                 &policy.transforms,

@@ -6,7 +6,7 @@
 //! Reads one JSON request on stdin and writes one JSON answer on stdout:
 //!
 //! ```json
-//! {"variant": "product", "params": {"min_coverage": 0.25},
+//! {"variant": "product", "params": {"pause_ms": 250},
 //!  "jobs": [{"id": "ES2011a", "room_audio": true, "track_ms": 1113845,
 //!            "segments": [<Segment>], "turns": [<SpeakerTurn>],
 //!            "probs": "<frame probabilities .npy or null>"}]}
@@ -54,15 +54,23 @@ struct Job {
 fn product_rule(params: &Map<String, Value>) -> Result<Rule, String> {
     let mut rule = Rule::default();
     for (key, value) in params {
-        let number = value
-            .as_f64()
-            .ok_or_else(|| format!("parameter {key}: expected a number"))?;
+        let whole = || {
+            value
+                .as_u64()
+                .ok_or_else(|| format!("parameter {key}: expected a whole number"))
+        };
         match key.as_str() {
-            "min_coverage" => rule.min_coverage = number,
-            "min_speaker_share" => rule.min_speaker_share = number,
+            "pause_ms" => rule.pause_ms = whole()?,
+            "nearest_turn_ms" => rule.nearest_turn_ms = whole()?,
+            "min_speaker_share" => {
+                rule.min_speaker_share = value
+                    .as_f64()
+                    .ok_or_else(|| format!("parameter {key}: expected a number"))?
+            }
             _ => {
                 return Err(format!(
-                    "variant product has no parameter {key} (min_coverage, min_speaker_share)"
+                    "variant product has no parameter {key} \
+                     (pause_ms, nearest_turn_ms, min_speaker_share)"
                 ));
             }
         }
