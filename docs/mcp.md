@@ -1,6 +1,6 @@
 # MCP
 
-One line makes Dettivo a tool call in Claude Code, Codex, Cursor and Claude Desktop: `dettivo mcp config --host <host> --write` registers `dettivo mcp serve`, and from then on an agent lists your transcripts, searches them, inserts one into the focused window or starts a dictation through the same nineteen tools and the same resource URIs the macOS server exposes. Instructions and skills written against Dettivo on macOS work here unchanged (ADR 0019, ADR 0008).
+One line makes Dettivo a tool call in Claude Code, Codex, Cursor and Claude Desktop: `dettivo mcp config --host <host> --write` registers `dettivo mcp serve`, and from then on an agent lists your transcripts, searches them, inserts one into the focused window or starts a dictation through the same nineteen tools and the same resource URIs the macOS server exposes, plus `get_meeting_segments` for a meeting that is still running. Instructions and skills written against Dettivo on macOS work here unchanged (ADR 0019, ADR 0008).
 
 ## Connecting a host
 
@@ -46,7 +46,7 @@ Action: Start the Dettivo daemon (systemctl --user start dettivod.socket) and re
 
 ## The tools
 
-The nineteen macOS tools, with the macOS names, input schemas (the contract's snake_case keys) and result shapes. A tool result carries the daemon's answer twice: as `structuredContent` and as pretty JSON in a text block. A tool that fails answers an `isError` result whose text says what to do; only a malformed request is a JSON-RPC error.
+The nineteen macOS tools, with the macOS names, input schemas (the contract's snake_case keys) and result shapes, and one Linux addition, `get_meeting_segments`. A tool result carries the daemon's answer twice: as `structuredContent` and as pretty JSON in a text block. A tool that fails answers an `isError` result whose text says what to do; only a malformed request is a JSON-RPC error.
 
 | Tool | Daemon method | Notes |
 |---|---|---|
@@ -58,6 +58,7 @@ The nineteen macOS tools, with the macOS names, input schemas (the contract's sn
 | `start_dictation` | `dictation.start` | `language`, `mode` (default raw). |
 | `stop_session`, `cancel_session` | `dictation.stop` / `dictation.cancel`, or `meetings.stop` / `meetings.cancel` when `meeting_id` is given | |
 | `start_meeting`, `list_meetings`, `get_meeting`, `search_meetings` | `meetings.*` | Hidden from `tools/list` while `formats.meeting_export` is empty. `start_meeting` takes `acknowledge_meeting_disclosure` and answers the running capture; `get_meeting` carries the capture-level fields and, once the meeting completed, its transcript ([docs/meetings.md](meetings.md)). |
+| `get_meeting_segments` | `meetings.segments` | Linux addition (ADR 0071), hidden with the meeting tools. `meeting_id`, and `since` (the `cursor` of an earlier answer). Answers the transcript so far, live while the meeting records and finalises, with the finals after `since`, the provisional tail and the next cursor; `reset = true` says the stored transcript replaced the live one ([docs/meetings.md](meetings.md#the-transcript-so-far)). |
 | `import_audio` | `transfer.begin`, `transfer.chunk`, `transfer.commit`, `transcripts.import` | `file_path` (must exist and be non-empty), `target_kind`, `language` (default en), `mode`. Reads and hashes bounded chunks; failure cancels the transfer. Answers at once with the running job; the item completes through the chunked pipeline ([docs/history.md](history.md)) and `get_transcript` then carries its segments. |
 | `export_transcript` | `transfer.begin`, `transcripts.export`, `transfer.pull` | Writes a sibling temporary file and publishes `out_path` only after checked completion, then answers `{transfer_id, out_path}`. Otherwise answers `{transfer_id, preview}`, retaining at most 80,000 bytes and 20,000 text characters; partial previews explicitly request `out_path`. Any failure, including the final acknowledgement, cancels the transfer and preserves an existing destination. |
 | `insert_transcript` | `insert.perform` | `text` or `source_ref`, `mode` (default polish), the target guards. |

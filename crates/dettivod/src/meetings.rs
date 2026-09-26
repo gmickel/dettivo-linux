@@ -338,6 +338,17 @@ impl Meetings {
         self.session.finalizing(meeting_id)
     }
 
+    /// The transcript of `meeting_id` so far (`meetings.segments`, ADR
+    /// 0071): the live tail while one is held, else what `stored` reads.
+    pub fn read_segments<E>(
+        &self,
+        meeting_id: &str,
+        since: Option<dettivo_proto::methods::meetings_segments::Cursor>,
+        stored: impl FnOnce() -> Result<Vec<dettivo_proto::methods::meetings::Segment>, E>,
+    ) -> Result<dettivo_meeting::transcript::Read, E> {
+        self.session.read_segments(meeting_id, since, stored)
+    }
+
     /// Stops the finalisation of `meeting_id` between chunks; true when
     /// one ran.
     pub fn cancel_finalize(&self, meeting_id: &str) -> bool {

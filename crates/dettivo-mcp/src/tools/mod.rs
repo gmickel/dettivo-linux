@@ -1,6 +1,7 @@
-//! The nineteen tools, with the names, titles, descriptions and input
-//! schemas of the macOS server (`DettivoCLI/MCP/MCPTypes.swift`), so an
-//! agent instruction written for one port drives the other. The four
+//! The nineteen macOS tools, with the names, titles, descriptions and
+//! input schemas of the macOS server (`DettivoCLI/MCP/MCPTypes.swift`), so
+//! an agent instruction written for one port drives the other, plus the
+//! Linux `get_meeting_segments` (the transcript so far, ADR 0071). The
 //! meeting tools are hidden while `formats.meeting_export` is empty, as
 //! on macOS; `dispatch` maps each tool to its daemon methods.
 
@@ -42,6 +43,7 @@ pub const MEETING_TOOLS: &[&str] = &[
     "list_meetings",
     "get_meeting",
     "search_meetings",
+    "get_meeting_segments",
 ];
 
 fn kinds() -> Value {
@@ -194,6 +196,15 @@ pub fn catalog() -> Vec<Tool> {
             ),
         ),
         tool(
+            "get_meeting_segments",
+            "Get Meeting Segments",
+            "Read a meeting's transcript so far, live while it records; pass the returned cursor as since to read only what is new.",
+            schema(
+                json!({"meeting_id": {"type": "string"}, "since": {"type": "string"}}),
+                &["meeting_id"],
+            ),
+        ),
+        tool(
             "import_audio",
             "Import Audio",
             "Upload local audio file and dettivo using transfer/import pipeline.",
@@ -295,14 +306,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn nineteen_tools_minus_the_meeting_tools_when_no_meeting_export_exists() {
+    fn twenty_tools_minus_the_meeting_tools_when_no_meeting_export_exists() {
         let all = catalog();
-        assert_eq!(all.len(), 19);
+        assert_eq!(all.len(), 20);
         let unique: std::collections::BTreeSet<&str> = all.iter().map(|t| t.name).collect();
-        assert_eq!(unique.len(), 19);
-        assert_eq!(available(None).len(), 19);
+        assert_eq!(unique.len(), 20);
+        assert_eq!(available(None).len(), 20);
         let with = json!({"formats": {"meeting_export": ["txt"]}});
-        assert_eq!(available(Some(&with)).len(), 19);
+        assert_eq!(available(Some(&with)).len(), 20);
         let without = json!({"formats": {"meeting_export": []}});
         let shown = available(Some(&without));
         assert_eq!(shown.len(), 15);

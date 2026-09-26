@@ -5,8 +5,8 @@
 //! methods with `NOT_IMPLEMENTED` before it knows anything else.
 
 use crate::methods::{
-    audio, automation, config, dictation, hotkeys, insert, llm, meetings, meetings_notes, polish,
-    speakers, speech, system, transcripts, transfer,
+    audio, automation, config, dictation, hotkeys, insert, llm, meetings, meetings_notes,
+    meetings_segments, polish, speakers, speech, system, transcripts, transfer,
 };
 use crate::{events, reserved};
 use serde::de::DeserializeOwned;
@@ -178,6 +178,7 @@ catalog! {
         "meetings.analyze" => (meetings_notes::AnalyzeParams, meetings_notes::AnalyzeResult), linux: true;
         "meetings.analysis.get" => (meetings_notes::AnalysisGetParams, meetings_notes::AnalysisGetResult), linux: true;
         "meetings.rename" => (meetings_notes::MeetingRenameParams, meetings_notes::MeetingRenameResult), linux: true;
+        "meetings.segments" => (meetings_segments::SegmentsParams, meetings_segments::SegmentsResult), linux: true;
         "transcripts.list" => (transcripts::ListParams, transcripts::ListResult);
         "transcripts.get" => (transcripts::GetParams, transcripts::GetResult);
         "transcripts.latest" => (transcripts::LatestParams, transcripts::LatestResult);
@@ -282,6 +283,7 @@ mod tests {
             Some(MethodStatus::Reserved)
         );
         assert!(lookup("speech.selection.get").unwrap().linux_addition);
+        assert!(lookup("meetings.segments").unwrap().linux_addition);
         assert!(lookup("nope.method").is_none());
     }
 

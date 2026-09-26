@@ -1,0 +1,40 @@
+{
+  "capabilities": {},
+  "method": "meetings.segments",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.segments",
+    "params": {
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "cursor": "stored:1",
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "provisional": [],
+      "reset": false,
+      "segments": [
+        {
+          "end_ms": 1200,
+          "index": 0,
+          "polished_text": "Hello.",
+          "provisional": false,
+          "segment_id": "stored-0",
+          "source": "you",
+          "source_type": "microphone",
+          "speaker": "You",
+          "speaker_confidence": 1.0,
+          "speaker_id": "you",
+          "start_ms": 0,
+          "text": "Hello."
+        }
+      ],
+      "status": "completed",
+      "transcript": "stored"
+    }
+  }
+}

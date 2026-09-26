@@ -4,6 +4,18 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-26
+
+Agents can follow a running meeting from its first word, even when they start late.
+
+### Added
+
+- Agents can read a running meeting's transcript so far through `meetings.segments`, so a live copilot that attaches late still sees the whole meeting. The same answer is available from `dettivo meetings segments <id>`, the MCP tool `get_meeting_segments` and `/v1/meetings/segments`. A cursor returns only new lines on the next call and keeps working through Stop until the stored transcript is complete. Every line carries its side (`you` or `remote`), and the provisional tail comes back flagged. `docs/guides/agents.md` has a live meeting copilot recipe.
+
+### Changed
+
+- `dettivo meetings segments <id>` prints the transcript so far during a recording instead of "no segments yet". Each line shows its side, and a `~` column marks provisional lines. `--json` prints the whole answer (segments, provisional tail, cursor) instead of the bare segment list. `--follow` started mid-meeting prints the backlog first, then streams without a gap or a duplicate.
+
 ## [0.2.0] - 2026-09-25
 
 The first public release of Dettivo for Linux, now open source under GPL-3.0-or-later.

@@ -1,0 +1,28 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32010,
+      "data": {
+        "app_code": "INVALID_PARAMS",
+        "details": {
+          "field": "since"
+        },
+        "retryable": false
+      },
+      "message": "since \"later:3\" is not a cursor; pass the cursor of an earlier answer (live:<n> or stored:<n>)"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "meetings.segments",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.segments",
+    "params": {
+      "meeting_id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "since": "later:3"
+    }
+  }
+}

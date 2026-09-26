@@ -9,7 +9,7 @@
 # and verified during the build, so the build needs the network.
 
 pkgname=dettivo
-pkgver=0.2.0
+pkgver=0.3.0
 pkgrel=1
 pkgdesc="Speech workstation for Omarchy: dictation, meetings and history on local engines"
 arch=('x86_64')

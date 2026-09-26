@@ -93,6 +93,7 @@ impl MeetingCaps {
                 "meetings.analyze",
                 "meetings.analysis.get",
                 "meetings.rename",
+                "meetings.segments",
             ]
             .iter()
             .map(|s| s.to_string())

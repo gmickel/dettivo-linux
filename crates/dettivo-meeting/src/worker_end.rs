@@ -41,6 +41,8 @@ pub(crate) struct FinalizeContext {
     pub(crate) previous: State,
     /// Milliseconds the capture measured; the takes decide when longer.
     pub(crate) capture_duration_ms: u64,
+    /// The live tail is forgotten once the settled row is stored.
+    pub(crate) tails: crate::transcript::LiveTails,
 }
 
 impl FinalizeContext {
@@ -246,6 +248,7 @@ pub(crate) fn finalize_meeting(mut ctx: FinalizeContext) -> MeetingRow {
         }
     };
     let (done, total) = (ctx.row.chunks_completed, ctx.row.chunks_total);
+    ctx.tails.remove(&ctx.row.id);
     ctx.finalizing
         .lock()
         .unwrap_or_else(|p| p.into_inner())
@@ -461,6 +464,7 @@ impl Worker {
         self.set(shared, Some(state), reason, Some(mic_takes), Some(false));
         *shared.lock().unwrap_or_else(|p| p.into_inner()) = None;
         if state != State::Stopped {
+            self.tails.remove(&self.row.id);
             return;
         }
         finalize_meeting(FinalizeContext {
@@ -474,6 +478,7 @@ impl Worker {
             finalizing: self.finalizing,
             previous: State::Stopped,
             capture_duration_ms: duration_ms,
+            tails: self.tails,
         });
     }
 }

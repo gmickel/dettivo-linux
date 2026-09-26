@@ -59,11 +59,14 @@ pub enum MeetingsCmd {
         /// The meeting id.
         id: String,
     },
-    /// The transcript as lines: side, span on the meeting clock, text; --follow streams a running meeting's live segments first.
+    /// The transcript so far as lines: side, span on the meeting clock, text, provisional lines marked ~; --since prints only what is new, --follow streams.
     Segments {
         /// The meeting id.
         id: String,
-        /// Print meeting.segment events as they arrive until the meeting settles, then the transcript.
+        /// Only what is new after this cursor (the `cursor` of an earlier --json answer).
+        #[arg(long, conflicts_with = "follow")]
+        since: Option<String>,
+        /// Print the backlog, then meeting.segment events as they arrive until the meeting settles, then the transcript.
         #[arg(long)]
         follow: bool,
     },
@@ -204,8 +207,8 @@ pub enum SpeakersAction {
 /// Runs a `meetings` subcommand.
 pub fn run(cli: &Cli, client: &Client, what: &MeetingsCmd) -> Result<(), Failure> {
     let (method, params) = match what {
-        MeetingsCmd::Segments { id, follow } => {
-            return crate::meetings_segments::run(cli, client, id, *follow);
+        MeetingsCmd::Segments { id, since, follow } => {
+            return crate::meetings_segments::run(cli, client, id, since.as_deref(), *follow);
         }
         MeetingsCmd::Notes {
             what: NotesCmd::Get { id },

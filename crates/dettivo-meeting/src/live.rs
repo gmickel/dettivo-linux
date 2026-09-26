@@ -109,7 +109,8 @@ pub(crate) struct Live {
 /// Spawns the live thread for a meeting whose first takes begin at
 /// `origins_ms` (microphone, system) on the meeting clock, the same
 /// offsets the take manifests carry into the finalisation;
-/// `next_sequence` continues a checkpoint's numbering.
+/// `next_sequence` continues a checkpoint's numbering. The thread folds
+/// its segments into `tail`, which `meetings.segments` reads beside it.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn spawn(
     meeting_id: &str,
@@ -122,12 +123,10 @@ pub(crate) fn spawn(
     journal: Journal,
     origins_ms: (u64, u64),
     next_sequence: u64,
+    tail: Arc<Mutex<Tail>>,
 ) -> std::io::Result<LiveHandle> {
     let (tx, rx) = std::sync::mpsc::channel();
-    let tail = Arc::new(Mutex::new(Tail {
-        next_sequence,
-        ..Tail::default()
-    }));
+    tail.lock().unwrap_or_else(|p| p.into_inner()).next_sequence = next_sequence;
     let lane = |source: Source, origin_ms: u64| Lane {
         windower: Windower::new(source, settings.clone(), origin_ms),
         merger: Merger::new(source, &settings, next_sequence),
