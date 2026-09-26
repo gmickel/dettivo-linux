@@ -76,6 +76,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0069](0069-releases-ship-the-pacman-package-until-the-aur-account-exists.md) | Releases ship the pacman package; the AUR job waits for an account (registration closed) | Accepted 2026-09-25 |
 | [0070](0070-a-release-is-local-qa-and-a-tag.md) | A release is local QA and a tag; CI tests, packages, clean-installs and publishes, and the deep checks are optional | Accepted 2026-09-25 |
 | [0071](0071-a-running-meeting-answers-its-transcript-so-far-with-a-cursor.md) | A running meeting answers its transcript so far through `meetings.segments`, with a cursor that holds from the first second to the stored row | Accepted 2026-09-26 |
+| [0072](0072-every-remote-line-takes-the-speaker-of-its-sentence.md) | Every remote line takes the speaker who holds most of its sentence, and a line outside every turn takes the nearest one within ten seconds | Accepted 2026-09-26, amends 0035 |
 
 ## Writing a record
 

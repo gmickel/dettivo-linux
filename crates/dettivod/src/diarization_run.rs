@@ -1,7 +1,8 @@
 //! The speaker pass thread (ADR 0035): reads the diarized track, sends it
-//! through the engine, labels the segments under the coverage and share
-//! rule and commits the result through the meeting's job entry. The
-//! service that starts and tracks passes is `diarization.rs`.
+//! through the engine, labels the segments under the sentence rule (ADR
+//! 0072), polishes the parts it split, and commits the result through
+//! the meeting's job entry. The service that starts and tracks passes is
+//! `diarization.rs`.
 
 use dettivo_meeting::diarize;
 use dettivo_proto::methods::speakers::DiarizationStatus;
@@ -12,6 +13,7 @@ use dettivo_speech::engines::DIARIZE_BINARY;
 use crate::diarization::{
     Diarization, Pass, STAGE, model_missing, publish_progress, publish_state,
 };
+use crate::meetings_archive::MeetingArchive;
 
 /// The engine's last redacted stderr line, for the row.
 fn last_line(tail: &str) -> String {
@@ -32,6 +34,7 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
         engine,
         model_id,
         rule,
+        polish,
         speakers,
         clustering_threshold,
         cancel,
@@ -97,6 +100,9 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
                 audio_ms,
                 &rule,
             );
+            if out.split > 0 {
+                MeetingArchive::polish_missing(&polish, &mut row);
+            }
             let mut speakers = out.speakers;
             diarize::carry_names(&mut speakers, &mut row.segments, &previous);
             row.speakers = speakers;
@@ -107,6 +113,7 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
                 job = %job_id,
                 speakers = row.speakers.len(),
                 turns = result.turns.len(),
+                split = out.split,
                 coverage = out.coverage,
                 "diarization done"
             );

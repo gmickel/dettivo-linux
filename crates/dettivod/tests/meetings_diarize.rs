@@ -25,19 +25,22 @@ use common::meetings::{
 };
 use serde_json::{Value, json};
 
-/// Every labelled remote segment maps onto the expected turn under its
+/// Every remote segment carries a speaker (ADR 0072), and each one a
+/// clear majority labelled maps onto the expected turn under its
 /// midpoint, one label per expected speaker.
 fn check_remote_labels(segments: &[Value]) -> BTreeMap<String, String> {
     let turns = expected_turns();
     let mut mapping: BTreeMap<String, String> = BTreeMap::new();
     let mut labelled = 0;
     for s in segments.iter().filter(|s| s["source_type"] == "system") {
-        let Some(id) = s["speaker_id"].as_str() else {
-            continue;
-        };
+        let id = s["speaker_id"]
+            .as_str()
+            .unwrap_or_else(|| panic!("an unlabelled remote segment: {s}"));
         labelled += 1;
         assert!(id.starts_with("speaker_"), "{s}");
-        assert!(s["speaker_confidence"].as_f64().unwrap() >= 0.6, "{s}");
+        if s["speaker_confidence"].as_f64().unwrap() < 0.6 {
+            continue;
+        }
         let mid = (s["start_ms"].as_u64().unwrap() + s["end_ms"].as_u64().unwrap()) / 2;
         let Some((expected, _, _)) = turns.iter().find(|(_, a, b)| *a <= mid && mid < *b) else {
             continue;
@@ -135,6 +138,16 @@ fn a_two_track_meeting_learns_its_speakers_and_a_rerun_replaces_them() {
         "meetings.speakers.rename",
         json!({"meeting_id": id, "speaker_id": remote, "name": "Amy"}),
     );
+    let text_of = |row: &Value| {
+        row["segments"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|s| s["text"].as_str().unwrap().trim().to_string())
+            .collect::<Vec<_>>()
+            .join(" ")
+    };
+    let text_before = text_of(&row);
     let rerun = daemon.result("meetings.diarize", json!({"meeting_id": id, "speakers": 2}));
     assert_eq!(rerun["job"]["job_id"], "job_diarize_2");
     assert_eq!(rerun["job"]["message"], "diarizing");
@@ -174,6 +187,18 @@ fn a_two_track_meeting_learns_its_speakers_and_a_rerun_replaces_them() {
             .iter()
             .any(|s| s["speaker"] == "Amy"),
         "the name follows the segments through a re-run"
+    );
+    // The re-run relabels without losing a word, and every part it split
+    // is polished again.
+    assert_eq!(text_of(&row), text_before);
+    assert!(
+        row["segments"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|s| s["polished_text"].is_string()),
+        "{}",
+        row["segments"]
     );
     daemon.stop();
 }

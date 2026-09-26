@@ -2,14 +2,13 @@
 //! reads (the system track, or every microphone take of a room-audio
 //! meeting, on the meeting clock with the gaps as silence), and the rule
 //! that turns the engine's speaker turns into labels on the finalised
-//! segments. A segment gets the speaker with the most overlap when at
-//! least `min_coverage` of its span lies inside diarized speech and that
-//! speaker holds at least `min_speaker_share` of the speech; otherwise it
-//! stays unlabelled. Microphone segments of a two-track meeting are
-//! `You`. The engine's labels are renumbered in order of first appearance
-//! (`speaker_00` is whoever spoke first), so a re-run maps onto the same
-//! ids, and the speakers come back with their talk time and a swatch
-//! index in that order, `you` first.
+//! segments. The rule (ADR 0072, `sentences.rs`) gives every sentence
+//! the speaker holding most of it, so a remote line is unlabelled only
+//! when no turn lies within `nearest_turn_ms` of it. Microphone segments
+//! of a two-track meeting are `You`. The engine's labels are renumbered
+//! in order of first appearance (`speaker_00` is whoever spoke first), so
+//! a re-run maps onto the same ids, and the speakers come back with their
+//! talk time and a swatch index in that order, `you` first.
 
 use std::path::Path;
 
@@ -18,25 +17,30 @@ use dettivo_engine_proto::SpeakerTurn;
 use dettivo_proto::methods::meetings::{Segment, SegmentSource};
 use dettivo_proto::methods::speakers::{Speaker, default_label};
 
-use crate::Track;
+use crate::{Track, sentences};
 
 /// The speaker id of the microphone.
 pub const YOU: &str = "you";
 
-/// The assignment rule (`[meetings.diarization]`).
+/// The assignment rule (`[meetings.diarization]`, ADR 0072).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Rule {
-    /// The least share of a segment's span inside diarized speech.
-    pub min_coverage: f64,
-    /// The least share of that speech the winner must hold.
+    /// A pause between two aligned words at least this long ends a unit
+    /// where the diarized speaker differs across it.
+    pub pause_ms: u64,
+    /// A unit no turn overlaps takes the nearest turn within this.
+    pub nearest_turn_ms: u64,
+    /// The least share of a unit's diarized speech its winner must hold;
+    /// below it the unit stays unlabelled.
     pub min_speaker_share: f64,
 }
 
 impl Default for Rule {
     fn default() -> Self {
         Self {
-            min_coverage: 0.25,
-            min_speaker_share: 0.6,
+            pause_ms: 250,
+            nearest_turn_ms: 10_000,
+            min_speaker_share: 0.0,
         }
     }
 }
@@ -48,6 +52,8 @@ pub struct Outcome {
     pub speakers: Vec<Speaker>,
     /// The share of the track inside a speaker turn.
     pub coverage: f64,
+    /// How many segments the rule split in two or more.
+    pub split: usize,
 }
 
 /// The track a meeting diarizes: the system track when one recorded, the
@@ -165,10 +171,6 @@ pub fn renumbered(turns: &[SpeakerTurn]) -> Vec<SpeakerTurn> {
         .collect()
 }
 
-fn overlap(a: (u64, u64), b: (u64, u64)) -> u64 {
-    a.1.min(b.1).saturating_sub(a.0.max(b.0))
-}
-
 /// Milliseconds of `span` inside any turn (overlapping turns count once).
 fn covered(span: (u64, u64), turns: &[SpeakerTurn]) -> u64 {
     let mut pieces: Vec<(u64, u64)> = turns
@@ -189,39 +191,15 @@ fn covered(span: (u64, u64), turns: &[SpeakerTurn]) -> u64 {
     total
 }
 
-/// The winner for one span under the rule: `(speaker id, share)`.
-fn winner(span: (u64, u64), turns: &[SpeakerTurn], rule: &Rule) -> Option<(String, f64)> {
-    let length = span.1.saturating_sub(span.0);
-    if length == 0 {
-        return None;
-    }
-    let coverage = covered(span, turns) as f64 / length as f64;
-    if coverage < rule.min_coverage {
-        return None;
-    }
-    let mut per_speaker: Vec<(String, u64)> = Vec::new();
-    for t in turns {
-        let o = overlap(span, (t.start_ms, t.end_ms));
-        if o == 0 {
-            continue;
-        }
-        match per_speaker.iter_mut().find(|(s, _)| s == &t.speaker) {
-            Some((_, sum)) => *sum += o,
-            None => per_speaker.push((t.speaker.clone(), o)),
-        }
-    }
-    let total: u64 = per_speaker.iter().map(|(_, o)| o).sum();
-    let (best, best_overlap) = per_speaker.into_iter().max_by_key(|(_, o)| *o)?;
-    let share = best_overlap as f64 / total.max(1) as f64;
-    (share >= rule.min_speaker_share).then_some((best, share))
-}
-
-/// Labels `segments` from the engine's `turns`. Every segment is assigned
-/// from the turns in a room-audio meeting; otherwise the microphone
-/// segments are `you` and the system segments are assigned. `track_ms`
-/// is the length of the diarized track, for the coverage figure.
+/// Labels `segments` from the engine's `turns` under the rule, splitting
+/// a segment whose sentences took different speakers into one segment
+/// per speaker (renumbered in order; a split part carries no polished
+/// text until the caller polishes it). Every segment is assigned from the
+/// turns in a room-audio meeting; otherwise the microphone segments are
+/// `you` and the system segments are assigned. `track_ms` is the length
+/// of the diarized track, for the coverage figure.
 pub fn assign(
-    segments: &mut [Segment],
+    segments: &mut Vec<Segment>,
     turns: &[SpeakerTurn],
     room_audio: bool,
     track_ms: u64,
@@ -256,17 +234,18 @@ pub fn assign(
             talk_ms: 0,
         });
     }
-    for s in segments.iter_mut() {
-        let span = (s.start_ms, s.end_ms);
-        let assigned = if !room_audio && s.source_type == SegmentSource::Microphone {
+    let is_you = |s: &Segment| !room_audio && s.source_type == SegmentSource::Microphone;
+    let assigned: Vec<bool> = segments.iter().map(|s| !is_you(s)).collect();
+    let (labelled, split) =
+        sentences::label(std::mem::take(segments), &assigned, turns, rule, |_| {
             Some((YOU.to_string(), 1.0))
-        } else {
-            winner(span, turns, rule)
-        };
-        match assigned {
+        });
+    for (index, (mut s, label)) in labelled.into_iter().enumerate() {
+        s.index = index as u32;
+        match label {
             Some((id, share)) => {
                 if let Some(sp) = speakers.iter_mut().find(|sp| sp.speaker_id == id) {
-                    sp.talk_ms += span.1.saturating_sub(span.0);
+                    sp.talk_ms += s.end_ms.saturating_sub(s.start_ms);
                     s.speaker = Some(sp.name.clone());
                 }
                 s.speaker_id = Some(id);
@@ -278,6 +257,7 @@ pub fn assign(
                 s.speaker_confidence = None;
             }
         }
+        segments.push(s);
     }
     let coverage = if track_ms == 0 {
         0.0
@@ -287,6 +267,7 @@ pub fn assign(
     Outcome {
         speakers,
         coverage: (coverage * 1000.0).round() / 1000.0,
+        split,
     }
 }
 
@@ -346,7 +327,7 @@ mod tests {
     }
 
     #[test]
-    fn the_rule_labels_covered_segments_and_leaves_straddling_ones_alone() {
+    fn every_remote_segment_gets_a_speaker_and_the_microphone_is_you() {
         let turns = vec![
             turn(0, 4000, "SPEAKER_01"),
             turn(4300, 7000, "SPEAKER_00"),
@@ -354,14 +335,17 @@ mod tests {
         ];
         let mut segments = vec![
             seg(0, 100, 3900, SegmentSource::System),
-            // Straddles two turns evenly: unlabelled.
+            // Straddles two turns evenly: the earlier speaker, half share.
             seg(1, 2500, 5800, SegmentSource::System),
-            // Mostly silence: coverage under a quarter.
+            // Outside every turn, 500 ms after one: the nearest turn.
             seg(2, 11500, 20000, SegmentSource::System),
             seg(3, 500, 1500, SegmentSource::Microphone),
-            // Seven tenths inside one speaker's turn: labelled.
+            // Seven tenths inside one speaker's turn.
             seg(4, 6500, 8500, SegmentSource::System),
         ];
+        for s in &mut segments {
+            s.text.push('.');
+        }
         let out = assign(&mut segments, &turns, false, 20_000, &Rule::default());
         let ids: Vec<&str> = out.speakers.iter().map(|s| s.speaker_id.as_str()).collect();
         assert_eq!(
@@ -371,20 +355,21 @@ mod tests {
         );
         assert_eq!(out.speakers[0].color_index, 0);
         assert_eq!(out.speakers[2].color_index, 2);
+        assert_eq!(segments.len(), 5, "one sentence each: nothing split");
+        assert_eq!(out.split, 0);
         assert_eq!(segments[0].speaker_id.as_deref(), Some("speaker_00"));
         assert_eq!(segments[0].speaker.as_deref(), Some("Speaker 1"));
         assert_eq!(segments[0].speaker_confidence, Some(1.0));
-        assert_eq!(
-            segments[1].speaker_id, None,
-            "a 50/50 straddle stays unlabelled"
-        );
-        assert_eq!(segments[2].speaker_id, None, "silence-heavy");
+        assert_eq!(segments[1].speaker_id.as_deref(), Some("speaker_00"));
+        assert_eq!(segments[1].speaker_confidence, Some(0.5));
+        assert_eq!(segments[2].speaker_id.as_deref(), Some("speaker_00"));
+        assert_eq!(segments[2].speaker_confidence, Some(0.0), "no overlap");
         assert_eq!(segments[3].speaker_id.as_deref(), Some("you"));
         assert_eq!(segments[3].speaker.as_deref(), Some("You"));
         assert_eq!(segments[4].speaker_id.as_deref(), Some("speaker_00"));
-        assert!(segments[4].speaker_confidence.unwrap() > 0.6);
+        assert_eq!(segments[4].speaker_confidence, Some(0.706));
         assert_eq!(out.speakers[0].talk_ms, 1000);
-        assert_eq!(out.speakers[1].talk_ms, 3800 + 2000);
+        assert_eq!(out.speakers[1].talk_ms, 3800 + 3300 + 8500 + 2000);
         assert_eq!(out.speakers[2].talk_ms, 0);
         assert!((out.coverage - 0.52).abs() < 0.001, "{}", out.coverage);
     }

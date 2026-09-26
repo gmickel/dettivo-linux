@@ -3753,13 +3753,13 @@ note = "model_missing names the path and a bad attachment is bad_request"
 rids = ["R2"]
 kind = "unit"
 ref = "dettivod::a_two_track_meeting_learns_its_speakers_and_a_rerun_replaces_them"
-note = "the auto post-pass labels remote segments under the coverage and share rule, microphone segments are You, talk_ms and diarizing progress"
+note = "the auto post-pass labels every remote segment under the sentence rule (ADR 0072), microphone segments are You, talk_ms and diarizing progress"
 
 [[spec.route]]
 rids = ["R2"]
 kind = "unit"
-ref = "dettivo-meeting::the_rule_labels_covered_segments_and_leaves_straddling_ones_alone"
-note = "the 0.25 coverage and 0.60 share rule leaves the straddling segment unlabeled"
+ref = "dettivo-meeting::every_remote_segment_gets_a_speaker_and_the_microphone_is_you"
+note = "ADR 0072 replaced the coverage and share rule: every remote segment takes its sentence's majority speaker or the nearest turn"
 
 [[spec.route]]
 rids = ["R2"]

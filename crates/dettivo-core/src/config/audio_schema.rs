@@ -116,7 +116,8 @@ impl Default for MeetingAnalysis {
 }
 
 /// `[meetings.diarization]`: the post-meeting speaker pass over the
-/// system track (ADR 0035) and the rule that labels a segment.
+/// system track (ADR 0035) and the sentence rule that labels a segment
+/// (ADR 0072).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Diarization {
@@ -126,11 +127,18 @@ pub struct Diarization {
     pub auto: bool,
     /// The catalogue model set under `<models>/diarize/`.
     pub model: String,
-    /// The least share of a segment's span inside diarized speech for a
-    /// label.
-    pub min_coverage: f64,
-    /// The least share of that speech the winning speaker must hold.
+    /// A pause between aligned words at least this long ends a sentence
+    /// unit where the diarized speaker differs across it.
+    pub pause_ms: u64,
+    /// A unit no speaker turn overlaps takes the nearest turn within this.
+    pub nearest_turn_ms: u64,
+    /// The least share of a unit's diarized speech its winner must hold;
+    /// 0 labels every unit a turn overlaps.
     pub min_speaker_share: f64,
+    /// Retired by ADR 0072: read and ignored, so a file that still sets
+    /// it loads; never written or listed.
+    #[serde(skip_serializing)]
+    pub min_coverage: serde::de::IgnoredAny,
     /// The speaker count the clustering is told; 0 lets it decide.
     pub max_speakers: u32,
     /// The clustering distance threshold when the count is not fixed.
@@ -143,8 +151,10 @@ impl Default for Diarization {
             enabled: true,
             auto: true,
             model: "diarization-en".into(),
-            min_coverage: 0.25,
-            min_speaker_share: 0.6,
+            pause_ms: 250,
+            nearest_turn_ms: 10_000,
+            min_speaker_share: 0.0,
+            min_coverage: serde::de::IgnoredAny,
             max_speakers: 0,
             clustering_threshold: 0.6,
         }

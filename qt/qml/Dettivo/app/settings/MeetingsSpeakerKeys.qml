@@ -2,8 +2,8 @@ import QtQuick
 import Dettivo
 
 // The Speakers group of the Meetings route: the post-meeting speaker pass
-// (ADR 0035), its model set, the rule that labels a segment and the
-// clustering bounds, on the settings pattern.
+// (ADR 0035), its model set, the sentence rule that labels a line (ADR
+// 0072) and the clustering bounds, on the settings pattern.
 Column {
     id: root
 
@@ -39,14 +39,21 @@ Column {
         }
 
         SettingRow {
-            hint: qsTr("share of a segment inside diarized speech for a label (0 to 1)")
-            key: "meetings.diarization.min_coverage"
-            label: qsTr("Minimum coverage")
+            hint: qsTr("a pause this long ends a sentence where the speaker changes (ms)")
+            key: "meetings.diarization.pause_ms"
+            label: qsTr("Sentence pause")
             settings: root.settings
         }
 
         SettingRow {
-            hint: qsTr("share of that speech the winning speaker must hold (0 to 1)")
+            hint: qsTr("a sentence outside every turn takes the nearest one within this (ms)")
+            key: "meetings.diarization.nearest_turn_ms"
+            label: qsTr("Nearest turn")
+            settings: root.settings
+        }
+
+        SettingRow {
+            hint: qsTr("share of a sentence the speaker must hold; 0 labels every line (0 to 1)")
             key: "meetings.diarization.min_speaker_share"
             label: qsTr("Minimum speaker share")
             settings: root.settings

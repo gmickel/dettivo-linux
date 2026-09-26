@@ -30,7 +30,10 @@ On Arch Linux, Omarchy and other Arch-based distributions:
 
 ```bash
 # the pacman package from the latest release
-sudo pacman -U "$(curl -s https://api.github.com/repos/gmickel/dettivo-linux/releases/latest | grep -o 'https://[^"]*dettivo-bin-[^"]*x86_64\.pkg\.tar\.zst' | head -1)"
+url="$(curl -s https://api.github.com/repos/gmickel/dettivo-linux/releases/latest | grep -o 'https://[^"]*dettivo-bin-[^"]*x86_64\.pkg\.tar\.zst' | head -1)"
+curl -LO "$url" && curl -LO "$url.sha256"             # the package and its checksum
+sha256sum --check "${url##*/}.sha256"                # the file CI installed and tested
+sudo pacman -U "./${url##*/}"                        # a local file: pacman needs no signature
 systemctl --user enable --now dettivod.socket   # the daemon starts on the first request
 dettivo setup omarchy                           # keys, bar plugin and recording pill on Omarchy
 dettivo doctor                                  # what is installed, what is missing, which tier this machine is

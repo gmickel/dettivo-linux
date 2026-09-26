@@ -19,6 +19,8 @@ dettivo-hotkeys.workspace = true
 dettivo-mcp = { path = "../dettivo-mcp" }
 # `dettivo rest serve` hosts the REST shim in-process (ADR 0028).
 dettivo-rest = { path = "../dettivo-rest" }
+# `SIGPIPE` back to its default so `dettivo ... | head` exits quietly.
+libc.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 clap.workspace = true
