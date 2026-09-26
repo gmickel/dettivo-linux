@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "gmickel.dettivo",
   "name": "Dettivo",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "Gordon Mickel",
   "license": "GPL-3.0-or-later",
   "description": "Dictation state in the bar, the Dettivo panel, and the recording pill hosted by the shell.",

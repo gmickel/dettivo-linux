@@ -1,6 +1,6 @@
 pkgbase = dettivo-engines-cuda
 	pkgdesc = CUDA diarization engine drop-in for Dettivo
-	pkgver = 0.2.0
+	pkgver = 0.3.0
 	pkgrel = 1
 	url = https://github.com/gmickel/dettivo-linux
 	arch = x86_64
@@ -15,8 +15,8 @@ pkgbase = dettivo-engines-cuda
 	depends = cudnn<10
 	depends = nvidia-utils
 	options = !lto
-	source = https://github.com/gmickel/dettivo-linux/releases/download/v0.2.0/dettivo-engines-cuda-0.2.0-linux-x86_64.tar.zst
-	source = dettivo-engines-cuda-0.2.0-linux-x86_64.SHA256SUMS::https://github.com/gmickel/dettivo-linux/releases/download/v0.2.0/SHA256SUMS-cuda
+	source = https://github.com/gmickel/dettivo-linux/releases/download/v0.3.0/dettivo-engines-cuda-0.3.0-linux-x86_64.tar.zst
+	source = dettivo-engines-cuda-0.3.0-linux-x86_64.SHA256SUMS::https://github.com/gmickel/dettivo-linux/releases/download/v0.3.0/SHA256SUMS-cuda
 	sha256sums = SKIP
 	sha256sums = SKIP
 

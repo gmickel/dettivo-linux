@@ -4,6 +4,10 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-26
+
+Agents can follow a running meeting from its first word, even when they start late.
+
 ### Added
 
 - Agents can read a running meeting's transcript so far through `meetings.segments`, so a live copilot that attaches late still sees the whole meeting. The same answer is available from `dettivo meetings segments <id>`, the MCP tool `get_meeting_segments` and `/v1/meetings/segments`. A cursor returns only new lines on the next call and keeps working through Stop until the stored transcript is complete. Every line carries its side (`you` or `remote`), and the provisional tail comes back flagged. `docs/guides/agents.md` has a live meeting copilot recipe.

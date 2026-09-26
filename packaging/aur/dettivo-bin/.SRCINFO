@@ -1,6 +1,6 @@
 pkgbase = dettivo-bin
 	pkgdesc = Speech workstation for Omarchy: dictation, meetings and history on local engines (release build)
-	pkgver = 0.2.0
+	pkgver = 0.3.0
 	pkgrel = 1
 	url = https://github.com/gmickel/dettivo-linux
 	install = dettivo-bin.install
@@ -29,8 +29,8 @@ pkgbase = dettivo-bin
 	provides = dettivo
 	conflicts = dettivo
 	options = !lto
-	source = https://github.com/gmickel/dettivo-linux/releases/download/v0.2.0/dettivo-0.2.0-linux-x86_64.tar.zst
-	source = dettivo-0.2.0-linux-x86_64.SHA256SUMS::https://github.com/gmickel/dettivo-linux/releases/download/v0.2.0/SHA256SUMS
+	source = https://github.com/gmickel/dettivo-linux/releases/download/v0.3.0/dettivo-0.3.0-linux-x86_64.tar.zst
+	source = dettivo-0.3.0-linux-x86_64.SHA256SUMS::https://github.com/gmickel/dettivo-linux/releases/download/v0.3.0/SHA256SUMS
 	sha256sums = SKIP
 	sha256sums = SKIP
 
