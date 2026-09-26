@@ -17,7 +17,7 @@ A change to the assignment code reruns only the assignment and scoring stages. T
 
 ## Adding a variant
 
-A variant is one arm of `label` in `crates/dettivo-meeting/examples/diar_assign.rs` plus its name in `VARIANTS`. It receives each recording's product `Segment`s, the engine's turns, the room-audio flag, the track length and, for Nemotron, the path of its per-10 ms speaker probabilities (`.npy`, frames by eight speakers). It returns the segments it labelled, and it may split or merge them. Select it with `just diar-bench --variant <name>` and pass parameters with `--set <key> <value>`. The product variant takes `min_coverage` and `min_speaker_share`, so `just diar-bench --set min_coverage 0.1` tries a looser coverage floor without writing code. The variant and its parameters are part of every assignment cache key.
+A variant is one arm of `label` in `crates/dettivo-meeting/examples/diar_assign.rs` plus its name in `VARIANTS`. It receives each recording's product `Segment`s, the engine's turns, the room-audio flag, the track length and, for Nemotron, the path of its per-10 ms speaker probabilities (`.npy`, frames by eight speakers). It returns the segments it labelled, and it may split or merge them. Select it with `just diar-bench --variant <name>` and pass parameters with `--set <key> <value>`. The product variant takes `pause_ms`, `nearest_turn_ms` and `min_speaker_share`, so `just diar-bench --set min_speaker_share 0.6` tries a share floor without writing code. The variant and its parameters are part of every assignment cache key.
 
 ## The metrics
 
@@ -31,6 +31,7 @@ A variant is one arm of `label` in `crates/dettivo-meeting/examples/diar_assign.
 | DER of labelled lines, and its missed, false alarm and confusion | The labelled lines as speaker turns, scored by `scripts/qa/diarization_score.py` under [ADR 0058](adr/0058-strict-diarization-accuracy-evaluation.md): zero collar, overlap included. Missed speech includes every unlabelled line. |
 | Engine DER | The engine's own turns under the same scorer, before any assignment. |
 | Lines right, wrong, unlabelled | fn-64's line view: a line's true speaker is the reference speaker with the most overlap, counted in lines. |
+| Labelled lines, wrong speaker | The same line view over the labelled lines only: the wrong lines over the right and wrong ones. It shows what a rule that names more lines costs in wrong names. |
 | Remote lines unlabelled | System-track lines of a two-track meeting left without a speaker. |
 | Local/remote proxy (mix) | For meetings without labels, fn-64's engine-level proxy. Each 10 ms frame is local when the microphone is active above -45 dBFS and the system track is quiet below -60 dBFS, and remote for the reverse (`scripts/qa/nemotron3/channel_score.py`). The engine diarizes the summed tracks, each output speaker maps to the side holding most of its frames, and the figure is the share of single-side speech given to the other side. It cannot see a swap between two remote voices. |
 | Engine speed | Audio seconds over the engine's wall time, model load included, from the cached run records. |
@@ -78,6 +79,10 @@ Nothing confidential enters git. The scoreboards hold per-file counts keyed by a
 4. It fetches the Nemotron int8 model and checks it against the fn-64 receipt. It also checks that the product's diarization model and Whisper large-v3-turbo are installed.
 5. It writes `selection.json` from the finished retained meetings in English and German with one take per track of equal length, at least two minutes long. It skips any meeting that is recording, finalising, or waiting on its speaker pass or analysis, and it keeps existing aliases.
 6. When fn-64's working directory (`~/.local/share/dettivo-eval/fn64`) exists, it seeds the cache with that evaluation's engine outputs, probabilities and Whisper segments, provided the binaries and models still hash to what the fn-64 receipt recorded.
+
+## Results
+
+[ADR 0072](adr/0072-every-remote-line-takes-the-speaker-of-its-sentence.md) replaced the coverage and share rule with the sentence rule, measured in the [sentence-units report](reports/benchmarks/diarization-bench-2026-09-26-sentence-units.md). It cut AMI dev attribution error from 28.99% to 22.43% with the current engine and from 22.43% to 14.65% with Nemotron. Remote lines left blank on the retained meetings fell from 18.0% to 1.1% and 2.4%.
 
 ## First results
 

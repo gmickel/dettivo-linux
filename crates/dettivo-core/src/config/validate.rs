@@ -90,7 +90,6 @@ fn semantic(config: &Config) -> Option<(&'static str, String)> {
         ),
         ("transcribe.silence_rms_floor", t.silence_rms_floor),
         ("meetings.speech_floor_rms", m.speech_floor_rms),
-        ("meetings.diarization.min_coverage", d.min_coverage),
         (
             "meetings.diarization.min_speaker_share",
             d.min_speaker_share,
@@ -210,8 +209,8 @@ mod tests {
         // Shares and floors are unit values; a non-finite one is refused.
         for (text, key) in [
             (
-                "[meetings.diarization]\nmin_coverage = 1.5\n",
-                "meetings.diarization.min_coverage",
+                "[meetings.diarization]\nmin_speaker_share = 1.5\n",
+                "meetings.diarization.min_speaker_share",
             ),
             (
                 "[meetings.diarization]\nmin_speaker_share = nan\n",
@@ -239,7 +238,9 @@ mod tests {
             assert_eq!(err.line, Some(2), "{text}");
         }
         for ok in [
-            "[meetings.diarization]\nmin_coverage = 0.0\nmin_speaker_share = 1.0\nclustering_threshold = 0.0\n",
+            "[meetings.diarization]\nmin_speaker_share = 1.0\nclustering_threshold = 0.0\n",
+            // The retired key still loads and is ignored (ADR 0072).
+            "[meetings.diarization]\nmin_coverage = 0.25\n",
             "[dictation]\nsilence_peak_threshold = 1.0\n",
         ] {
             assert!(validate(ok).is_ok(), "{ok}");
