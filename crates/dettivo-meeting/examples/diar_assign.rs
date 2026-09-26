@@ -17,7 +17,7 @@
 //! null for an unlabelled segment. A variant is one arm of [`label`]:
 //! add the arm and its name to [`VARIANTS`], select it with
 //! `just diar-bench --variant <name>`, and pass its parameters with
-//! `--set key=value`.
+//! `--set <key> <value>`.
 
 use std::io::Read;
 

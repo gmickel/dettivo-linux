@@ -17,7 +17,7 @@ A change to the assignment code reruns only the assignment and scoring stages. T
 
 ## Adding a variant
 
-A variant is one arm of `label` in `crates/dettivo-meeting/examples/diar_assign.rs` plus its name in `VARIANTS`. It receives each recording's product `Segment`s, the engine's turns, the room-audio flag, the track length and, for Nemotron, the path of its per-10 ms speaker probabilities (`.npy`, frames by eight speakers). It returns the segments it labelled, and it may split or merge them. Select it with `just diar-bench --variant <name>` and pass parameters with `--set key=value`. The product variant takes `min_coverage` and `min_speaker_share`, so `just diar-bench --set min_coverage=0.1` tries a looser coverage floor without writing code. The variant and its parameters are part of every assignment cache key.
+A variant is one arm of `label` in `crates/dettivo-meeting/examples/diar_assign.rs` plus its name in `VARIANTS`. It receives each recording's product `Segment`s, the engine's turns, the room-audio flag, the track length and, for Nemotron, the path of its per-10 ms speaker probabilities (`.npy`, frames by eight speakers). It returns the segments it labelled, and it may split or merge them. Select it with `just diar-bench --variant <name>` and pass parameters with `--set <key> <value>`. The product variant takes `min_coverage` and `min_speaker_share`, so `just diar-bench --set min_coverage 0.1` tries a looser coverage floor without writing code. The variant and its parameters are part of every assignment cache key.
 
 ## The metrics
 

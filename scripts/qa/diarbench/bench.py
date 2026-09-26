@@ -44,17 +44,14 @@ def parse():
     parser.add_argument("--save", metavar="NAME", help="store this run as a baseline")
     parser.add_argument("--report", action="store_true", help="write an aggregate-only report under docs/")
     parser.add_argument("--variant", default="product", help="assignment variant (examples/diar_assign.rs)")
-    parser.add_argument("--set", action="append", default=[], metavar="KEY=VALUE",
+    parser.add_argument("--set", action="append", default=[], nargs=2, metavar=("KEY", "VALUE"),
                         help="a variant parameter, repeatable")
     return parser.parse_args()
 
 
 def params_of(pairs):
     out = {}
-    for pair in pairs:
-        k, sep, v = pair.partition("=")
-        if not sep:
-            raise SystemExit(f"--set {pair}: expected KEY=VALUE")
+    for k, v in pairs:
         try:
             out[k] = json.loads(v)
         except ValueError:
