@@ -162,7 +162,10 @@ fn external_edits_are_picked_up_without_a_restart() {
     let entry = wait_for(&daemon, "daemon.log_level", &json!("trace"));
     assert_eq!(entry["value"], "trace");
     assert_eq!(entry["source"], "file");
-    assert!(daemon.log().contains("configuration reloaded"));
+    // The reload line is written after the new value is visible, so wait for it.
+    assert!(common::wait_for(Duration::from_secs(3), || daemon
+        .log()
+        .contains("configuration reloaded")));
     daemon.stop();
 }
 

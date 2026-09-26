@@ -6,6 +6,8 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ### Fixed
 
+- Piping the CLI into a command that stops reading early, such as `dettivo meetings segments <id> | head`, ends it quietly instead of with a Rust panic.
+- A packaged daemon reports its commit as `build` in `system.version` and `dettivo doctor` instead of `dev`. Reported by @gmickel.
 - The install commands download the release package and its checksum and install the local file. pacman refused the direct URL because it asks for a signature the releases do not publish. Reported by @gmickel.
 
 ## [0.3.0] - 2026-09-26
