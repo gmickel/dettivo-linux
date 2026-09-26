@@ -17,6 +17,7 @@ use dettivo_speech::SttEngine;
 use dettivo_storage::meetings::{MeetingArtifacts, MeetingRow, MeetingStatus};
 
 use crate::source::Sources;
+use crate::transcript::LiveTails;
 use crate::worker::Worker;
 use crate::worker_end::{FinalizeContext, finalize_meeting};
 use crate::{Archive, MeetingError, Policy, Publisher, State, StateChange};
@@ -107,6 +108,7 @@ pub struct Session {
     artifacts: MeetingArtifacts,
     publisher: Arc<dyn Publisher>,
     archive: Arc<dyn Archive>,
+    pub(crate) tails: LiveTails,
 }
 
 impl Session {
@@ -126,6 +128,7 @@ impl Session {
             artifacts,
             publisher,
             archive,
+            tails: LiveTails::default(),
         }
     }
 
@@ -201,10 +204,15 @@ impl Session {
             cancel: cancel.clone(),
             worker: None,
         });
+        // The tail is readable from the first instant the meeting is.
+        if policy.live {
+            self.tails.tail(&row.id);
+        }
         drop(guard);
         self.publisher
             .state(&snapshot.change(State::Recording, State::Idle, None));
         tracing::info!(job = %job_id, system_audio = system.is_ok(), live = policy.live, "meeting started");
+        let id = row.id.clone();
         let worker = Worker {
             job_id: job_id.clone(),
             row,
@@ -219,6 +227,7 @@ impl Session {
             archive: self.archive.clone(),
             finalizing: self.finalizing.clone(),
             live: None,
+            tails: self.tails.clone(),
         };
         let shared = self.active.clone();
         let handle = std::thread::Builder::new()
@@ -226,6 +235,7 @@ impl Session {
             .spawn(move || worker.run(mic, system.ok(), shared))
             .map_err(|e| {
                 *self.active.lock().unwrap_or_else(|p| p.into_inner()) = None;
+                self.tails.remove(&id);
                 MeetingError::Audio(format!("meeting thread: {e}"))
             })?;
         if let Some(a) = self
@@ -340,6 +350,7 @@ impl Session {
             finalizing: self.finalizing.clone(),
             previous: State::Partial,
             capture_duration_ms: 0,
+            tails: self.tails.clone(),
         };
         std::thread::Builder::new()
             .name(format!("meeting-recover-{n}"))

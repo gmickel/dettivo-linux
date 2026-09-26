@@ -362,10 +362,23 @@ fn meetings_segments_lists_the_transcript_by_side_and_span() {
     );
     let sample = "0f8fad5b-d9cb-469f-a165-70867728950e";
     let lines = stdout(&d.cli(&["meetings", "segments", sample]));
-    assert_eq!(lines, "You    00:00.000-00:01.200  Hello.\n");
+    assert_eq!(lines, " you    00:00.000-00:01.200  Hello.\n");
+    // --json is the whole answer: the cursor, the transcript it read and
+    // every segment with its side.
     let raw: Value =
         serde_json::from_str(&stdout(&d.cli(&["--json", "meetings", "segments", sample]))).unwrap();
-    assert_eq!(raw[0]["source_type"], "microphone");
+    assert_eq!(raw["transcript"], "stored");
+    assert_eq!(raw["cursor"], "stored:1");
+    assert_eq!(raw["segments"][0]["source_type"], "microphone");
+    assert_eq!(raw["segments"][0]["source"], "you");
+    assert_eq!(raw["provisional"], serde_json::json!([]));
+    // --since the cursor: nothing new, and nothing printed.
+    let since = d.cli(&["meetings", "segments", sample, "--since", "stored:1"]);
+    assert!(since.status.success(), "{}", stderr(&since));
+    assert_eq!(stdout(&since), "");
+    let bad = d.cli(&["meetings", "segments", sample, "--since", "later"]);
+    assert_eq!(bad.status.code(), Some(4), "{}", stderr(&bad));
+    assert!(stderr(&bad).contains("live:<n>"), "{}", stderr(&bad));
     // A settled meeting under --follow prints the transcript at once.
     let followed = stdout(&d.cli(&["meetings", "segments", sample, "--follow"]));
     assert_eq!(followed, lines);

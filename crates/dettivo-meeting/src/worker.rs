@@ -21,6 +21,7 @@ use crate::journal::Journal;
 use crate::live::{Command, LiveHandle};
 use crate::machine::{Active, Finalizations, Shared};
 use crate::source::{Source, Sources};
+use crate::transcript::LiveTails;
 use crate::{Archive, Level, Policy, Publisher, State, Track};
 
 /// How the loop ended.
@@ -52,6 +53,9 @@ pub(crate) struct Worker {
     pub(crate) archive: Arc<dyn Archive>,
     pub(crate) finalizing: Finalizations,
     pub(crate) live: Option<LiveHandle>,
+    /// The live tails `meetings.segments` reads; this meeting's is
+    /// registered at start and removed once its settled row is stored.
+    pub(crate) tails: LiveTails,
 }
 
 impl Worker {
@@ -216,6 +220,7 @@ impl Worker {
             journal.clone(),
             origins_ms,
             0,
+            self.tails.tail(&self.row.id),
         ) {
             Ok(handle) => self.live = Some(handle),
             Err(e) => journal.record(

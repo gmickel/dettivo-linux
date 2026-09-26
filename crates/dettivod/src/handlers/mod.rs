@@ -21,6 +21,7 @@ pub mod meetings_notes;
 pub mod meetings_read;
 pub mod meetings_recovery;
 pub mod meetings_rename;
+pub mod meetings_segments;
 pub mod meetings_speakers;
 pub mod polish;
 pub mod speech;
@@ -125,6 +126,7 @@ pub fn resolve(method: &str) -> Option<Handler> {
             |daemon, _ctx, value| meetings_notes::analysis_get(daemon, value)
         }
         "meetings.rename" => |daemon, _ctx, value| meetings_rename::rename(daemon, value),
+        "meetings.segments" => |daemon, _ctx, value| meetings_segments::segments(daemon, value),
         "events.subscribe" => |daemon, ctx, value| events::subscribe(daemon, ctx, value),
         "events.unsubscribe" => |daemon, ctx, value| events::unsubscribe(daemon, ctx, value),
         "system.ping" => |_daemon, _ctx, value| {

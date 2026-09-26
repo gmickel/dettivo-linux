@@ -39,6 +39,9 @@ This spec lets any agent read the transcript so far at any time, and then read o
 - **R5:** An MCP tool and the REST route return the same snapshot and cursor, and tests cover both.
 - **R6:** A contract fixture for the method, its catalog entry marked as a Linux addition, and the docs listed above are updated. `docs/guides/agents.md` carries the live-copilot recipe.
 - **R7:** Reading never mutates the meeting: nothing is written and capture is not slowed. A test drives reads at a high rate during a recording fixture and checks the takes and the checkpoint are unchanged.
+- **R8 [user]:** Every segment in the `meetings.segments` result and in the CLI output (plain and `--json`) carries its source (`you`/`remote`, with the contract's `source_type` beside it; a room-audio meeting has only `you`), so the live-meeting skill marks the user's own lines and keeps them out of alerts.
+- **R9 [user]:** The flagged provisional tail is included in `--json` output and in the RPC and MCP result, separated from the finals and flagged provisional, so a client can alert early on provisional text while building its summary from finals only.
+- **R10 [user]:** The cursor keeps working after Stop until the stored transcript is complete. A test covers recording, stopping, stopped, transcribing and completed while polling with the cursor throughout, with no skipped or repeated final, and a clear signal when the stored transcript replaces the live one (a `transcript` field and a `reset` rule documented with the method).
 
 ## Boundaries
 

@@ -61,7 +61,7 @@ dettivo  Talk to the Dettivo daemon
 │  ├─ status <id>  meetings.status: the state, the capture facts and the recoverable meetings
 │  ├─ list --limit  meetings.list: the newest meetings first
 │  ├─ get <id>  meetings.get: one meeting with its transcript and segments
-│  ├─ segments* <id> --follow  The transcript as lines: side, span on the meeting clock, text; --follow streams a running meeting's live segments first
+│  ├─ segments* <id> --since --follow  The transcript so far as lines: side, span on the meeting clock, text, provisional lines marked ~; --since prints only what is new, --follow streams
 │  ├─ search <query> --limit  meetings.search: word-start matches over the title, texts and summary
 │  ├─ notes*  meetings.notes.get and meetings.notes.set: the notes, Markdown
 │  │  ├─ get* <id>  Print the notes
@@ -148,7 +148,18 @@ dettivo mcp config --host codex --write
 dettivo mcp check                                # the tool count and the framing against the daemon
 ```
 
-The server speaks JSON-RPC over stdio in both framings, exposes the nineteen macOS tools (`get_status`, `list_transcripts`, `search_transcripts`, `insert_transcript`, `start_dictation`, the meeting tools and the rest) and the `status://`, `transcript://`, `meeting://` and `transcripts://` resources, and bounds every list and message the way macOS does, with `_truncated` on a shortened list ([docs/mcp.md](../mcp.md)). `get_status` merges `system.capabilities` under `capabilities`, so one call tells an agent which flags are on.
+The server speaks JSON-RPC over stdio in both framings, exposes the nineteen macOS tools (`get_status`, `list_transcripts`, `search_transcripts`, `insert_transcript`, `start_dictation`, the meeting tools and the rest) plus the Linux `get_meeting_segments` and the `status://`, `transcript://`, `meeting://` and `transcripts://` resources, and bounds every list and message the way macOS does, with `_truncated` on a shortened list ([docs/mcp.md](../mcp.md)). `get_status` merges `system.capabilities` under `capabilities`, so one call tells an agent which flags are on.
+
+## A live meeting copilot
+
+An agent can sit beside you in a call and read the conversation as it happens: what you were asked, what is still open, what to say next. It needs four steps, and it never needs a subscription that was open from the start.
+
+1. Find the meeting that records now. `dettivo --json status health` answers `recording_state = meeting`, and `dettivo --json meetings list --limit 1` answers the newest meeting with `status = recording`.
+2. Read the backlog once. `dettivo --json meetings segments <id>` answers everything said so far, including what was said before the agent attached. Keep its `cursor`.
+3. Every minute or two, read what is new. `dettivo --json meetings segments <id> --since <cursor>` answers only the finals after the cursor, plus the provisional tail, and the next cursor. Alert early from `provisional` if you like, and build the running summary from `segments` alone. `source` (`you` or `remote`) and `source_type` (`microphone` or `system`) mark your own lines, so the agent can keep them out of its alerts. An agent that prefers a stream runs `dettivo --json meetings segments <id> --follow` instead, which prints the backlog and then every event once.
+4. Watch `transcript` and `reset`. The live transcript answers until the finalisation has stored the meeting, and `status` moves through `stopping`, `stopped` and `transcribing` meanwhile. When `transcript` turns `stored` the answer carries `reset = true` and the whole finalised transcript, which replaces the live copy. The meeting is done when `status = completed`.
+
+The agent only reads. It never stops, cancels or deletes the meeting, and a read never slows the capture or writes a file (ADR 0071). Over MCP the same loop is `get_meeting_segments` with `since`; over REST it is `GET /v1/meetings/segments?meeting_id=<id>&since=<cursor>`. The cursor rules are in [docs/meetings.md](../meetings.md#the-transcript-so-far).
 
 ## REST
 

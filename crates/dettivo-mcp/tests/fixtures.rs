@@ -1,4 +1,4 @@
-//! The checked-in fixtures under `fixtures/tools/` are the nineteen tool
+//! The checked-in fixtures under `fixtures/tools/` are the twenty tool
 //! definitions as `tools/list` reports them, one file per tool, so a
 //! change to a name, a description or a schema shows up as a fixture
 //! diff. `FN18_WRITE_FIXTURES=1` rewrites them from the catalog.
