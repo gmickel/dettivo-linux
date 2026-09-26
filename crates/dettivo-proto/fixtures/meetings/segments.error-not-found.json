@@ -1,0 +1,25 @@
+{
+  "capabilities": {},
+  "error": {
+    "error": {
+      "code": -32012,
+      "data": {
+        "app_code": "NOT_FOUND",
+        "details": {},
+        "retryable": false
+      },
+      "message": "Meeting not found"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "meetings.segments",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "meetings.segments",
+    "params": {
+      "meeting_id": "c0a80101-0000-4000-8000-000000000001"
+    }
+  }
+}

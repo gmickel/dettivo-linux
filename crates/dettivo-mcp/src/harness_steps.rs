@@ -183,6 +183,23 @@ pub fn steps() -> Vec<Step> {
                 || format!("meeting {v}"),
             )
         }),
+        ("get_meeting_segments", |s| {
+            let args = json!({"meeting_id": MEETING_ID});
+            let v = structured(&s.call_tool("get_meeting_segments", args)?)?.clone();
+            ok(
+                v["transcript"] == "stored"
+                    && v["cursor"] == "stored:1"
+                    && v["segments"][0]["source_type"] == "microphone"
+                    && v["provisional"] == json!([]),
+                || format!("segments {v}"),
+            )?;
+            let args = json!({"meeting_id": MEETING_ID, "since": v["cursor"]});
+            let next = structured(&s.call_tool("get_meeting_segments", args)?)?.clone();
+            ok(
+                next["segments"] == json!([]) && next["cursor"] == v["cursor"],
+                || format!("since {next}"),
+            )
+        }),
         ("meeting://{id}", |s| {
             let r = s.result(
                 "resources/read",

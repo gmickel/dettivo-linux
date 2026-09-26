@@ -175,6 +175,15 @@ pub fn call(client: &Client, name: &str, args: &Value) -> Result<Value, ToolErro
                 json!({"query": query, "limit": clamped_limit(args, 10)}),
             )?)
         }
+        "get_meeting_segments" => {
+            let id = str_arg(args, "meeting_id")
+                .ok_or_else(|| ToolError::InvalidParams("meeting_id is required".into()))?;
+            let mut params = json!({"meeting_id": id});
+            if let Some(since) = typed_str_arg(args, "since")? {
+                params["since"] = json!(since);
+            }
+            Ok(client.call("meetings.segments", params)?)
+        }
         "import_audio" => tools::transfer::import_audio(client, args),
         "export_transcript" => tools::transfer::export_transcript(client, args),
         "insert_transcript" => insert(client, args),

@@ -432,7 +432,7 @@ mod tests {
         let r = s
             .handle(&json!({"jsonrpc": "2.0", "id": 3, "method": "tools/list"}))
             .unwrap();
-        assert_eq!(r["result"]["tools"].as_array().unwrap().len(), 19);
+        assert_eq!(r["result"]["tools"].as_array().unwrap().len(), 20);
     }
 
     #[test]

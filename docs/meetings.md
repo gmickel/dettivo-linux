@@ -8,7 +8,7 @@ dettivo meetings start [--title T] [--language L] [--no-system-audio] [--acknowl
 dettivo meetings status <id>                    # recording | stopping | stopped | partial, the takes, the recoverables
 dettivo meetings stop <id>                      # answers stopping, then the meeting is stopped
 dettivo meetings cancel <id>                    # drops the takes
-dettivo meetings list | get <id> | segments <id> [--follow] | search <words>
+dettivo meetings list | get <id> | segments <id> [--since <cursor>] [--follow] | search <words>
 dettivo meetings notes get <id> | notes set <id> [text|--file <path>|--stdin] [--source live]
 dettivo meetings analyze <id> [--force] | analysis <id>
 dettivo meetings export <id> --format txt|md|srt|vtt|json --out <path> [--raw]
@@ -68,12 +68,29 @@ A meeting is transcribed twice by the same merger (ADR 0031): live, in windows, 
 **Both sides at once.** Segments sort by start on the meeting clock, the other side first on a tie. Your microphone hears the speakers too: a microphone segment that is a filler (`yeah`, `okay`, `thank you`, or four characters or less) and overlaps, within `cross_source_padding_ms` (800), a remote segment at least twice as long and eighteen characters or more is that echo and is dropped. Everything else stays: two people talking over each other are both in the transcript, one after the other by start.
 
 ```
-dettivo meetings segments <id>              # the transcript: side, span on the meeting clock, text
-dettivo meetings segments <id> --follow     # a running meeting's live segments (~ provisional), then the transcript
+dettivo meetings segments <id>                      # the transcript so far: side, span on the meeting clock, text
+dettivo --json meetings segments <id>               # the whole answer, the cursor included
+dettivo meetings segments <id> --since live:42      # only what is new after that cursor
+dettivo meetings segments <id> --follow             # the backlog, then the live events, then the transcript
 dettivo events --follow --topic meeting.segment
 ```
 
-`segments` prints one line per segment, `remote 00:04.200-00:07.350  ask not what your country can do for you`, with `[gap 1500 ms]` on a segment that followed missing capture; `--json` prints the row's segments. Under `--follow` on a running meeting the live events stream first, provisional lines marked `~`, until the meeting settles.
+`segments` prints one line per segment, ` remote 00:04.200-00:07.350  ask not what your country can do for you`. A leading `~` marks a provisional line, `[gap 1500 ms]` marks a segment that followed missing capture, and the speaker's name precedes the text once the speaker pass assigned one (`Ada: ...`). `--json` prints the `meetings.segments` answer whole. `--follow` subscribes to the events first, prints the backlog, then streams the live events without repeating one the backlog printed, and prints the finalised transcript once the meeting settles.
+
+### The transcript so far
+
+An agent that coaches you through a call reads the whole meeting so far at any moment, including what was said before it attached, and then reads only what is new. `meetings.segments { meeting_id, since? }` answers the live transcript from the first second of the recording until the finalisation has stored the settled row, and the stored transcript after that (ADR 0071). A read copies the live tail under its lock and writes nothing, so polling never slows the capture or touches the checkpoint.
+
+The answer carries `meeting_id`, `status`, `transcript` (`live` or `stored`), `cursor`, `reset`, `segments` (the finals after `since`, in order) and `provisional` (the tail as it stands now, empty on the stored transcript). Every segment carries `segment_id`, `index`, `source` (`you`, or `remote` for the system track; a room-audio meeting has only `you`), the contract's `source_type` (`microphone`, `system`, `merged`), `provisional`, the span, the text and, once assigned, the speaker fields and `polished_text`. Live `segment_id`s match the `meeting.segment` events (`you-12` for a final, `you-p1` for a provisional segment), so a client can combine one read with the stream. Stored segments are `stored-<index>` and match `meetings.get` field for field.
+
+The cursor rules:
+
+- `live:<n>` and `stored:<n>` count the finals the transcript held at the read. Pass the cursor back as `since` and the answer holds the finals from position `n` on, plus the provisional tail whole. A final is never skipped or repeated while the transcript stays the same.
+- The provisional tail replaces the previous one on every read. Use it to react early, and build summaries from the finals.
+- `reset = true` means `since` belonged to the other transcript, or ran past its end. The answer is then the whole transcript, and the client replaces what it holds. A meeting that finalises resets exactly once, when `transcript` turns from `live` to `stored`. A daemon restart also resets a reader to the stored row.
+- A malformed `since` is `INVALID_PARAMS` with `details.field = since`. An unknown meeting is `NOT_FOUND`.
+
+MCP answers the same through `get_meeting_segments` ([docs/mcp.md](mcp.md)), and REST through `GET /v1/meetings/segments?meeting_id=<id>&since=<cursor>` ([docs/rest.md](rest.md)).
 
 ## Speakers
 
@@ -183,4 +200,4 @@ The pill shows Listening with the meeting's elapsed time while it records ([docs
 
 ## Through the contract and the agents
 
-The `meetings.*` methods are the contract's (`start`, `stop`, `cancel`, `status`, `list`, `get`, `search`, `delete`) plus the Linux additions `meetings.recover`, `meetings.discard`, `meetings.disclosure.get`, `meetings.disclosure.acknowledge`, `meetings.diarize`, `meetings.speakers.list`, `meetings.speakers.rename`, `meetings.speakers.suggest`, `meetings.notes.get`, `meetings.notes.set`, `meetings.analyze`, `meetings.analysis.get` and `meetings.rename` (the title, trimmed, at most 200 characters; ADR 0061), listed in `system.capabilities.meetings.methods` with `checkpoint_schema = 1` and registered in [docs/api/linux-deltas.md](api/linux-deltas.md) with fixtures under `crates/dettivo-proto/fixtures/meetings/`. The MCP tools `start_meeting`, `list_meetings`, `get_meeting` and `search_meetings` answer through them ([docs/mcp.md](mcp.md)), so `get_meeting` and the `meeting://{id}` resource carry the speakers, the notes and the analysis and `search_meetings` names the matched column; `stop_session` and `cancel_session` with a `meeting_id` reach the meeting. With `DETTIVO_E2E_SEED=1` the store holds four meetings across two weeks: the contract's sample (its `You` speaker from a finished pass), a completed roadmap review with two named speakers, notes and a ready analysis (the export goldens), a partial design call and a vendor intro with notes and no analysis.
+The `meetings.*` methods are the contract's (`start`, `stop`, `cancel`, `status`, `list`, `get`, `search`, `delete`) plus the Linux additions `meetings.recover`, `meetings.discard`, `meetings.disclosure.get`, `meetings.disclosure.acknowledge`, `meetings.diarize`, `meetings.speakers.list`, `meetings.speakers.rename`, `meetings.speakers.suggest`, `meetings.notes.get`, `meetings.notes.set`, `meetings.analyze`, `meetings.analysis.get`, `meetings.rename` (the title, trimmed, at most 200 characters; ADR 0061) and `meetings.segments` (the transcript so far with a cursor; ADR 0071), listed in `system.capabilities.meetings.methods` with `checkpoint_schema = 1` and registered in [docs/api/linux-deltas.md](api/linux-deltas.md) with fixtures under `crates/dettivo-proto/fixtures/meetings/`. The MCP tools `start_meeting`, `list_meetings`, `get_meeting`, `search_meetings` and `get_meeting_segments` answer through them ([docs/mcp.md](mcp.md)), so `get_meeting` and the `meeting://{id}` resource carry the speakers, the notes and the analysis and `search_meetings` names the matched column; `stop_session` and `cancel_session` with a `meeting_id` reach the meeting. With `DETTIVO_E2E_SEED=1` the store holds four meetings across two weeks: the contract's sample (its `You` speaker from a finished pass), a completed roadmap review with two named speakers, notes and a ready analysis (the export goldens), a partial design call and a vendor intro with notes and no analysis.

@@ -172,7 +172,8 @@
           "meetings.notes.set",
           "meetings.analyze",
           "meetings.analysis.get",
-          "meetings.rename"
+          "meetings.rename",
+          "meetings.segments"
         ]
       }
     }

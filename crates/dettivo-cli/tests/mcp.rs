@@ -197,21 +197,21 @@ fn check_reports_the_tool_count_and_the_framing_against_the_daemon() {
         text.starts_with("server    dettivo-mcp 1.0.0 (api 1.0.0)\n"),
         "{text}"
     );
-    assert!(text.contains("tools     19\n"), "{text}");
+    assert!(text.contains("tools     20\n"), "{text}");
     assert!(text.contains("resources 6 templates\n"), "{text}");
     // The framing line is what the served child answered, per framing.
     assert!(
-        text.contains("framing   line-delimited: initialize, tools/list 19, get_status; content-length: initialize, tools/list 19, get_status"),
+        text.contains("framing   line-delimited: initialize, tools/list 20, get_status; content-length: initialize, tools/list 20, get_status"),
         "{text}"
     );
     let json: Value = serde_json::from_str(&stdout(&d.cli(&["--json", "mcp", "check"]))).unwrap();
-    assert_eq!(json["tools"], 19);
+    assert_eq!(json["tools"], 20);
     assert_eq!(
         json["framing"],
         serde_json::json!(["line-delimited", "content-length"])
     );
     assert_eq!(json["transport"][0]["initialize"], true);
-    assert_eq!(json["transport"][1]["tools_listed"], 19);
+    assert_eq!(json["transport"][1]["tools_listed"], 20);
     assert_eq!(json["transport"][1]["get_status"], true);
     assert_eq!(json["hardened"], false);
 
@@ -264,6 +264,6 @@ fn serve_speaks_mcp_over_stdio() {
     assert_eq!(lines.len(), 2);
     assert_eq!(lines[0]["result"]["protocolVersion"], "2025-03-26");
     assert_eq!(lines[0]["result"]["serverInfo"]["name"], "dettivo-mcp");
-    assert_eq!(lines[1]["result"]["tools"].as_array().unwrap().len(), 19);
+    assert_eq!(lines[1]["result"]["tools"].as_array().unwrap().len(), 20);
     assert!(child.wait().unwrap().success());
 }

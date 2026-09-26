@@ -11,6 +11,7 @@ pub mod insert;
 pub mod llm;
 pub mod meetings;
 pub mod meetings_notes;
+pub mod meetings_segments;
 pub mod polish;
 pub mod speakers;
 pub mod speech;

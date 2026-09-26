@@ -1,0 +1,20 @@
+{
+  "description": "Read a meeting's transcript so far, live while it records; pass the returned cursor as since to read only what is new.",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "meeting_id": {
+        "type": "string"
+      },
+      "since": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "meeting_id"
+    ],
+    "type": "object"
+  },
+  "name": "get_meeting_segments",
+  "title": "Get Meeting Segments"
+}

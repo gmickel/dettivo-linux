@@ -102,7 +102,7 @@ fn a_daemon_that_is_down_answers_the_unavailable_text_and_the_session_survives()
         .unwrap();
     assert_eq!(init["serverInfo"]["name"], "dettivo-mcp");
     let listed = session.result("tools/list", json!({})).unwrap();
-    assert_eq!(listed["tools"].as_array().unwrap().len(), 19);
+    assert_eq!(listed["tools"].as_array().unwrap().len(), 20);
     for tool in ["get_status", "list_transcripts"] {
         let r = session.call_tool(tool, json!({})).unwrap();
         assert_eq!(r["isError"], true);
