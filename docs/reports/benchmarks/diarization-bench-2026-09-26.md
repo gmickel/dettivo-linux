@@ -1,6 +1,6 @@
 # Diarization bench, 2026-09-26
 
-Tree `7283ddb0dc95`, assignment variant `product`. Values are pooled over each split's files; brackets are 95% bootstrap intervals over files.
+Tree `f4abbf7f894d`, assignment variant `product`. Values are pooled over each split's files; brackets are 95% bootstrap intervals over files.
 
 ## ami-dev
 
