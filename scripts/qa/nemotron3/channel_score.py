@@ -68,8 +68,9 @@ def hypothesis(turns, n):
     return labels, active
 
 
-def score(turns, mic_wav, system_wav):
-    local, remote, overlap = reference(mic_wav, system_wav)
+def score(turns, mic_wav, system_wav, frames=None):
+    """`frames` is a precomputed reference(mic_wav, system_wav), as the bench caches it."""
+    local, remote, overlap = frames if frames is not None else reference(mic_wav, system_wav)
     n = len(local)
     labels, active = hypothesis(turns, n)
     on_local, on_remote = active[:, local].sum(axis=1), active[:, remote].sum(axis=1)

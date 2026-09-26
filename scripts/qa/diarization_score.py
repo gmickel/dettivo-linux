@@ -101,9 +101,15 @@ def hypothesis_inputs(turns):
 
 def maximum_assignment(matrix):
     """Maximum-weight one-to-one assignment using the Hungarian algorithm."""
+    return sum(matrix[row][column] for row, column in assignment_pairs(matrix))
+
+
+def assignment_pairs(matrix):
+    """The (row, column) pairs of a maximum-weight one-to-one assignment."""
     if not matrix or not matrix[0]:
-        return 0
-    if len(matrix) > len(matrix[0]):
+        return []
+    transposed = len(matrix) > len(matrix[0])
+    if transposed:
         matrix = list(zip(*matrix))
     rows, columns = len(matrix), len(matrix[0])
     u, v = [0] * (rows + 1), [0] * (columns + 1)
@@ -136,8 +142,8 @@ def maximum_assignment(matrix):
             previous = predecessor[column]
             matched[column] = matched[previous]
             column = previous
-    return sum(matrix[row - 1][column - 1]
-               for column, row in enumerate(matched[1:], 1) if row)
+    pairs = [(row - 1, column - 1) for column, row in enumerate(matched[1:], 1) if row]
+    return [(column, row) for row, column in pairs] if transposed else pairs
 
 
 def crop(turns, regions):
