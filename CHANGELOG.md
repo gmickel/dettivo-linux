@@ -4,6 +4,10 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Fixed
+
+- The install commands download the release package and its checksum and install the local file. pacman refused the direct URL because it asks for a signature the releases do not publish. Reported by @gmickel.
+
 ## [0.3.0] - 2026-09-26
 
 Agents can follow a running meeting from its first word, even when they start late.
