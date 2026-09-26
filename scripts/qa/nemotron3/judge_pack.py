@@ -82,7 +82,7 @@ def main():
                 turns = json.loads((args.runs / f"{alias}.system.{s}.json").read_text())["turns"]
                 labels[s] = [("You" if seg["source_type"] == "microphone" else assign(seg, turns))
                              for seg in segments]
-        starts = [i for i in range(0, max(len(segments) - args.size, 1), args.size)
+        starts = [i for i in range(0, max(len(segments) - args.size + 1, 1), args.size)
                   if sum(seg["source_type"] == "system" for seg in segments[i:i + args.size]) >= 20]
         for w, start in enumerate(sorted(rng.sample(starts, min(args.windows, len(starts))))):
             name = f"{alias}-w{w + 1}"
