@@ -581,15 +581,8 @@
           "section": "meetings.diarization"
         },
         {
-          "default": 0.25,
-          "doc": "A segment is labelled only when at least this share of its span lies inside diarized speech...",
-          "key": "meetings.diarization.min_coverage",
-          "kind": "float",
-          "section": "meetings.diarization"
-        },
-        {
-          "default": 0.6,
-          "doc": "...and the winning speaker holds at least this share of that speech; otherwise the segment stays unlabelled.",
+          "default": 0.0,
+          "doc": "The least share of a sentence's diarized speech the winner must hold (0 to 1); 0 labels every sentence a turn overlaps, and a higher value leaves a mixed sentence unlabelled rather than risk a wrong name.",
           "key": "meetings.diarization.min_speaker_share",
           "kind": "float",
           "section": "meetings.diarization"
@@ -599,6 +592,20 @@
           "doc": "The catalogue model set under <models>/diarize/ (`dettivo speech download --provider diarize --model diarization-en`).",
           "key": "meetings.diarization.model",
           "kind": "text",
+          "section": "meetings.diarization"
+        },
+        {
+          "default": 10000,
+          "doc": "A sentence no speaker turn overlaps takes the nearest turn within this many milliseconds; beyond it the line stays unlabelled.",
+          "key": "meetings.diarization.nearest_turn_ms",
+          "kind": "integer",
+          "section": "meetings.diarization"
+        },
+        {
+          "default": 250,
+          "doc": "Each sentence takes the speaker who holds most of it (docs/meetings.md). A pause between aligned words at least this long, in milliseconds, also ends a sentence where the speaker differs across it.",
+          "key": "meetings.diarization.pause_ms",
+          "kind": "integer",
           "section": "meetings.diarization"
         },
         {

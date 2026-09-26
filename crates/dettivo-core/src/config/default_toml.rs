@@ -268,12 +268,17 @@ auto = true
 # The catalogue model set under <models>/diarize/
 # (`dettivo speech download --provider diarize --model diarization-en`).
 model = "diarization-en"
-# A segment is labelled only when at least this share of its span lies
-# inside diarized speech...
-min_coverage = 0.25
-# ...and the winning speaker holds at least this share of that speech;
-# otherwise the segment stays unlabelled.
-min_speaker_share = 0.6
+# Each sentence takes the speaker who holds most of it (docs/meetings.md).
+# A pause between aligned words at least this long, in milliseconds, also
+# ends a sentence where the speaker differs across it.
+pause_ms = 250
+# A sentence no speaker turn overlaps takes the nearest turn within this
+# many milliseconds; beyond it the line stays unlabelled.
+nearest_turn_ms = 10000
+# The least share of a sentence's diarized speech the winner must hold
+# (0 to 1); 0 labels every sentence a turn overlaps, and a higher value
+# leaves a mixed sentence unlabelled rather than risk a wrong name.
+min_speaker_share = 0.0
 # The speaker count the clustering is told; 0 lets it decide.
 max_speakers = 0
 # Initial average-linkage cosine cutoff, followed by low-support cluster

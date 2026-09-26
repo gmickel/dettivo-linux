@@ -59,6 +59,7 @@ METRICS = [
     Metric("lines_right", "Lines, right speaker", ("lines_right",), ("lines_reference",)),
     Metric("lines_wrong", "Lines, wrong speaker", ("lines_wrong",), ("lines_reference",)),
     Metric("lines_unlabelled", "Lines, unlabelled", ("lines_reference_unlabelled",), ("lines_reference",)),
+    Metric("labelled_wrong", "Labelled lines, wrong speaker", ("lines_wrong",), ("lines_right", "lines_wrong")),
     Metric("remote_unlabelled", "Remote lines unlabelled", ("remote_unlabelled",), ("remote_lines",)),
     Metric("mix_side_confusion", "Local/remote proxy (mix)", ("mix_confused",), ("mix_single",)),
     Metric("realtime_factor", "Engine speed (x realtime)", ("audio_s",), ("engine_wall_s",), percent=False),

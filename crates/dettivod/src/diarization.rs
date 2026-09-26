@@ -7,7 +7,7 @@
 //! settled `failed`, never left queued. The job (`diarization_run.rs`)
 //! reads the diarized track from the meeting directory, sends it through
 //! `dettivo-engine-diarize` over the supervisor, labels the segments
-//! under the coverage and share rule, stores the speakers with the
+//! under the sentence rule (ADR 0072), stores the speakers with the
 //! diarization block on the row, and reports through `job.progress`
 //! (`stage = diarizing`) and `meeting.state` (`diarization_status`). A
 //! missing model set leaves `unavailable` with the download command; a
@@ -22,6 +22,7 @@ use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use dettivo_core::config::Loaded;
 use dettivo_core::config::audio_schema::Diarization as DiarizationConfig;
+use dettivo_core::config::polish_schema::Polish;
 use dettivo_meeting::diarize::Rule;
 use dettivo_proto::error::{AppCode, ErrorDetails, JsonRpcError};
 use dettivo_proto::events::{JobProgressPayload, MeetingLiveState, MeetingStatePayload, Topic};
@@ -57,6 +58,8 @@ pub(crate) struct Pass {
     /// The catalogue id of the model set.
     pub(crate) model_id: String,
     pub(crate) rule: Rule,
+    /// The global Polish transforms, for the parts a split leaves.
+    pub(crate) polish: Polish,
     pub(crate) speakers: Option<u32>,
     pub(crate) clustering_threshold: f64,
     pub(crate) cancel: Arc<AtomicBool>,
@@ -251,9 +254,11 @@ impl Diarization {
             engine,
             model_id: d.model.clone(),
             rule: Rule {
-                min_coverage: d.min_coverage,
+                pause_ms: d.pause_ms,
+                nearest_turn_ms: d.nearest_turn_ms,
                 min_speaker_share: d.min_speaker_share,
             },
+            polish: loaded.config.polish.clone(),
             speakers: expected,
             clustering_threshold: d.clustering_threshold,
             cancel: cancel.clone(),

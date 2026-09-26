@@ -359,7 +359,8 @@ pub struct Segment {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub speaker_id: Option<String>,
     /// Linux addition: the winning speaker's share of the segment's
-    /// diarized speech (0.6 to 1); omitted while unassigned.
+    /// diarized speech (0 to 1; 0 when the segment took the nearest turn,
+    /// ADR 0072); omitted while unassigned.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub speaker_confidence: Option<f64>,
     /// Which audio source produced this segment.
