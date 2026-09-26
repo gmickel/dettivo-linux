@@ -203,9 +203,13 @@ impl TakeWriter {
         Ok(())
     }
 
+    /// Writes the sidecar atomically (a temporary file renamed into place),
+    /// so a reader or a recovery after a crash never finds it half written.
     fn write_sidecar(&self) -> std::io::Result<()> {
         let text = serde_json::to_string_pretty(&self.takes).map_err(std::io::Error::other)?;
-        std::fs::write(self.dir.join(&self.sidecar), text)
+        let tmp = self.dir.join(format!(".{}.tmp", self.sidecar));
+        std::fs::write(&tmp, text)?;
+        std::fs::rename(tmp, self.dir.join(&self.sidecar))
     }
 }
 

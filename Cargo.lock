@@ -621,6 +621,7 @@ dependencies = [
  "dettivo-mcp",
  "dettivo-proto",
  "dettivo-rest",
+ "libc",
  "serde",
  "serde_json",
  "tempfile",
