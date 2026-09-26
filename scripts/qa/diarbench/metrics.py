@@ -44,7 +44,7 @@ class Metric:
 # The headline first, then its parts. Lower is better for every metric but the last.
 METRICS = [
     Metric("attribution_error", "Attribution error (headline)", ("words_wrong", "words_unlabelled"), ("words",)),
-    Metric("wrong", "  wrong speaker", ("words_wrong",), ("words",)),
+    Metric("wrong", "  wrong speaker (WDER)", ("words_wrong",), ("words",)),
     Metric("unlabelled", "  unlabelled", ("words_unlabelled",), ("words",)),
     Metric("short_turn_error", "Short-turn error (<=3 words)", ("short_wrong", "short_unlabelled"), ("short_words",)),
     Metric("der", "DER of labelled lines", ("der_missed_s", "der_false_alarm_s", "der_confusion_s"), ("der_reference_s",)),
