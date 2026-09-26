@@ -1,5 +1,8 @@
-# CUDA diarization drop-in and its distribution notices.
+# CUDA diarization drop-in (both diarization engines) and its distribution notices.
 usr/lib/dettivo/engines-cuda/dettivo-engine-diarize
+usr/lib/dettivo/engines-cuda/dettivo-engine-nemotron
+usr/lib/dettivo/engines-cuda/libnemo_speech_asr.so
+usr/lib/dettivo/engines-cuda/libnemo_speech_asr_c.so.1
 usr/lib/dettivo/engines-cuda/libonnxruntime.so
 usr/lib/dettivo/engines-cuda/libonnxruntime_providers_cuda.so
 usr/lib/dettivo/engines-cuda/libonnxruntime_providers_shared.so

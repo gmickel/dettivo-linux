@@ -1,5 +1,6 @@
-"""The engine and ASR stages: the product's engine binaries (and, until fn-69, the
-fn-64 Nemotron ONNX runner) on cached audio, one fresh niced process per job.
+"""The engine and ASR stages: the product's engine binaries (and the fn-64 Nemotron ONNX
+runner) on cached audio, one fresh niced process per job. An engine with `"probs": true`
+(dettivo-engine-nemotron) also writes its per-10 ms speaker probabilities, as the runner does.
 
 A result is keyed by the audio's hash and the engine's identity (binary or runner hash,
 model hash, parameters). A plain run never starts an engine: a missing key falls back
@@ -36,6 +37,11 @@ def identity(cache, engine):
 def asr_identity(cache, asr):
     return {"program": cache.file_hash(asr["binary"]), "model": cache.file_hash(asr["model"]),
             "language": asr["language"]}
+
+
+def available(engine):
+    """False for an engine binary that is not installed (or built) here, which the run skips."""
+    return engine["kind"] != "diarize" or Path(engine["binary"]).is_file()
 
 
 def seconds(wav):
@@ -85,6 +91,8 @@ def diarize(engine, wav, probs_path, python):
     if engine["kind"] == "diarize":
         argv = [engine["binary"], "--wav", str(wav), "--model", engine["model"], "--json",
                 "--threads", str(engine["threads"]), "--provider", engine["provider"]]
+        if probs_path:
+            argv += ["--probs", str(probs_path)]
     else:
         argv = [python, str(NEMOTRON_RUNNER), "--wav", str(wav), "--model", engine["model"],
                 "--provider", engine["provider"], "--threads", str(engine["threads"]), "--probs", str(probs_path)]
@@ -106,7 +114,8 @@ def engine_result(cache, engine_name, engine, wav, full, python):
         stale_key, stale = cache.newest("engine", slot)
         cache.note("engine", "stale" if stale else "missing")
         return stale_key, stale
-    probs = cache.path("engine", k, ".npy") if engine["kind"] == "nemotron-onnx" else None
+    keeps_probs = engine["kind"] == "nemotron-onnx" or engine.get("probs")
+    probs = cache.path("engine", k, ".npy") if keeps_probs else None
     print(f"running {engine_name} on {Path(wav).name}", file=sys.stderr, flush=True)
     turns, run = diarize(engine, wav, probs, python)
     run["audio_seconds"] = seconds(wav)

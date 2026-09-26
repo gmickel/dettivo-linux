@@ -74,6 +74,7 @@ pub const ALLOWED: &[(&str, &[&str])] = &[
     // links them (ADR 0003), so no other crate carries inference code.
     ("parakeet-cpp-sys", &[]),
     ("sherpa-onnx-sys", &[]),
+    ("nemo-speech-cpp-sys", &[]),
     (
         "dettivo-engine-parakeet",
         &["dettivo-engine-proto", "parakeet-cpp-sys"],
@@ -82,6 +83,10 @@ pub const ALLOWED: &[(&str, &[&str])] = &[
     (
         "dettivo-engine-diarize",
         &["dettivo-engine-proto", "sherpa-onnx-sys"],
+    ),
+    (
+        "dettivo-engine-nemotron",
+        &["dettivo-engine-proto", "nemo-speech-cpp-sys"],
     ),
     (
         "dettivod",
@@ -145,11 +150,12 @@ const ENGINES: &[&str] = &[
     "dettivo-engine-parakeet",
     "dettivo-engine-llm",
     "dettivo-engine-diarize",
+    "dettivo-engine-nemotron",
 ];
 
 /// The native inference bindings: an engine binary links its own, nothing
 /// else links either.
-const NATIVE_BINDINGS: &[&str] = &["parakeet-cpp-sys", "sherpa-onnx-sys"];
+const NATIVE_BINDINGS: &[&str] = &["parakeet-cpp-sys", "sherpa-onnx-sys", "nemo-speech-cpp-sys"];
 
 /// Crates that are private to the daemon process.
 const DAEMON_INTERNALS: &[&str] = &[

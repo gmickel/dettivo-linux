@@ -340,7 +340,8 @@ fn speech_engines_reports_the_whisper_binary() {
             "dettivo-engine-whisper",
             "dettivo-engine-parakeet",
             "dettivo-engine-llm",
-            "dettivo-engine-diarize"
+            "dettivo-engine-diarize",
+            "dettivo-engine-nemotron"
         ]
     );
     let whisper = &rows[0];

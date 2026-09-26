@@ -1,6 +1,6 @@
 # 0004. One ggml family with Vulkan by default, Sherpa-ONNX only for diarization
 
-Status: Accepted 2026-09-03; the Parakeet-for-meetings expectation is settled by [ADR 0018](0018-parakeet-engine-dictation-only.md): the spike measured its timestamps outside the merger's tolerance, so Parakeet is dictation-only; amended 2026-09-06 by 0049 (the strict Vulkan preference refuses instead of loading on the CPU)
+Status: Accepted 2026-09-03; the Parakeet-for-meetings expectation is settled by [ADR 0018](0018-parakeet-engine-dictation-only.md): the spike measured its timestamps outside the merger's tolerance, so Parakeet is dictation-only; amended 2026-09-06 by 0049 (the strict Vulkan preference refuses instead of loading on the CPU); amended 2026-09-26 by [0073](0073-nemotron-3-diarization-runs-through-nemo-speech-cpp.md) (diarization also runs NVIDIA Nemotron 3 Diarization on ggml through NeMo-Speech.cpp, opt-in)
 
 ## What this gives you
 

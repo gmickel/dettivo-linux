@@ -77,6 +77,43 @@ pub fn with_diarization(tree: &Tree, model: &Path) {
     }
 }
 
+/// Nemotron 3 Diarization on this machine, when downloaded
+/// (`scripts/models/fetch-diarization-model.sh "" nemotron-3-diarization`).
+pub fn nemotron_model() -> Option<PathBuf> {
+    const FILE: &str = "Nemotron-3-Diarization.q8_0.gguf";
+    let dir = match std::env::var_os("DETTIVO_TEST_NEMOTRON_MODEL") {
+        Some(path) => PathBuf::from(path),
+        None => std::env::var_os("XDG_DATA_HOME")
+            .map(PathBuf::from)
+            .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".local/share")))?
+            .join("dettivo/models/diarize/nemotron-3-diarization"),
+    };
+    dir.join(FILE).is_file().then_some(dir)
+}
+
+/// Links Nemotron into a tree as `with_diarization` links the sherpa-onnx
+/// set, and makes sure its engine is built.
+pub fn with_nemotron(tree: &Tree, model: &Path) {
+    let dir = tree
+        .root()
+        .join("data/dettivo/models/diarize/nemotron-3-diarization");
+    std::fs::create_dir_all(&dir).unwrap();
+    let file = "Nemotron-3-Diarization.q8_0.gguf";
+    std::os::unix::fs::symlink(model.join(file), dir.join(file)).unwrap();
+    if model.join("manifest.json").is_file() {
+        std::fs::copy(model.join("manifest.json"), dir.join("manifest.json")).unwrap();
+    }
+    let bin_dir = Path::new(DAEMON).parent().unwrap();
+    if !bin_dir.join("dettivo-engine-nemotron").is_file() {
+        let status =
+            std::process::Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()))
+                .args(["build", "-q", "-p", "dettivo-engine-nemotron"])
+                .status()
+                .expect("cargo build");
+        assert!(status.success());
+    }
+}
+
 /// Polls `meetings.get` until the diarization block reaches `wanted`.
 pub fn wait_diarization(daemon: &Daemon, id: &str, wanted: &str) -> Value {
     let deadline = Instant::now() + Duration::from_secs(120);

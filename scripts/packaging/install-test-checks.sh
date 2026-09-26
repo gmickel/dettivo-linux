@@ -174,9 +174,9 @@ check_render() {
 # Every engine binary starts and prints its help.
 check_engines_help() {
   local e
-  # The diarization engine's help proves the sherpa-onnx libraries load
-  # from beside it (ADR 0035).
-  for e in whisper parakeet llm diarize; do
+  # The diarization engines' help proves the sherpa-onnx and NeMo-Speech.cpp libraries load
+  # from beside them (ADR 0035, ADR 0073).
+  for e in whisper parakeet llm diarize nemotron; do
     run "engine_help_$e" "dettivo-engine-$e --help" "$engines/dettivo-engine-$e" --help
   done
 }

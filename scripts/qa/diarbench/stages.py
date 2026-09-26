@@ -66,6 +66,10 @@ def rttm_turns(path):
 
 
 def run(root, cfg, cache, variant, params, full, heldout, python):
+    for name, engine in list(cfg["engines"].items()):
+        if not engines.available(engine):
+            print(f"{name}: {engine['binary']} is not installed, skipped")
+            del cfg["engines"][name]
     assigner = Assigner(cache, variant, params)
     code = key([cache.file_hash(p) for p in SCORING_CODE])
     db = database()

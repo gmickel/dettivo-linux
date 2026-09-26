@@ -34,7 +34,7 @@ The systemd preset enables `dettivod.socket` and `dettivo-osd.service` for sessi
 
 ## Optional NVIDIA diarization
 
-The `dettivo-engines-cuda` recipe under `packaging/aur/` builds a drop-in for the post-meeting speaker pass. It depends on Dettivo, CUDA 13 and cuDNN 9. The default package keeps CPU diarization and Vulkan speech recognition and language models; AMD and Intel machines keep that default.
+The `dettivo-engines-cuda` recipe under `packaging/aur/` builds a drop-in for the post-meeting speaker pass: both diarization engines built for CUDA, the sherpa-onnx engine with its ONNX Runtime providers and the Nemotron engine with its NeMo-Speech.cpp libraries. It depends on Dettivo, CUDA 13 and cuDNN 9. The default package keeps CPU sherpa-onnx diarization, the Nemotron engine on Vulkan, and Vulkan speech recognition and language models; AMD and Intel machines keep that default.
 
 With the drop-in installed, `[engines.diarize] backend = "auto"` selects CUDA when its prerequisite checks pass and falls back to CPU with the reason when they fail. Later model initialization failures and GPU out-of-memory errors do not trigger this fallback. `cuda` requires a working CUDA provider; `cpu` forces CPU. Settings / Models edits this key. `dettivo doctor` and `dettivo speech engines` name the engine path and the backend of its last load. Removing the drop-in returns subsequent engine starts to the CPU package when no explicit engine-directory override is set. Stop active meetings before replacing engine packages, and restart the daemon afterwards to use the new binaries.
 
@@ -45,7 +45,7 @@ With the drop-in installed, `[engines.diarize] backend = "auto"` selects CUDA wh
 | `/usr/bin/dettivod`, `dettivo`, `dettivo-mcp`, `dettivo-qa` | The daemon, the command line, the MCP server and the QA runner |
 | `/usr/bin/dettivo-app`, `dettivo-osd`, `dettivo-sheet`, `dettivo-insert-target`, `dettivo-bar` | The app, the recording pill, the sheet, the insertion target the QA rig drives and the bar render host the visual QA drives |
 | `/usr/lib/dettivo/engines/dettivo-engine-{whisper,parakeet,llm,diarize}` | The three ggml engines with Vulkan and CPU fallback, plus CPU diarization |
-| `/usr/lib/dettivo/engines-cuda/` | Optional `dettivo-engines-cuda` diarization engine and ONNX Runtime provider libraries; an engine here wins over the default |
+| `/usr/lib/dettivo/engines-cuda/` | Optional `dettivo-engines-cuda` diarization engines, their ONNX Runtime provider and NeMo-Speech.cpp libraries; an engine here wins over the default |
 | `/usr/lib/dettivo/qml/Dettivo`, `DettivoStyle` | The shared QML module and the control style, with their `qmldir` and `qmltypes` |
 | `/usr/share/dettivo/omarchy/` | The Omarchy bar plugin `dettivo setup omarchy` installs into the shell |
 | `/usr/lib/systemd/user/dettivod.socket`, `dettivod.service`, `dettivo-osd.service` | The user units; `/usr/lib/systemd/user-preset/90-dettivo.preset` enables them |

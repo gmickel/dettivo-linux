@@ -1,0 +1,27 @@
+[package]
+name = "nemo-speech-cpp-sys"
+description = "Raw bindings to NeMo-Speech.cpp's diarization C API, built from the pinned source"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+links = "nemo_speech"
+
+[dependencies]
+
+[build-dependencies]
+bindgen.workspace = true
+cmake.workspace = true
+sha2.workspace = true
+
+[features]
+default = []
+# The ggml Vulkan backend (needs vulkan-headers, spirv-headers, shaderc).
+vulkan = []
+# The ggml CUDA backend (needs the CUDA toolkit; the libraries then need
+# the CUDA runtime and cuBLAS at run time).
+cuda = []
+
+[lints]
+workspace = true

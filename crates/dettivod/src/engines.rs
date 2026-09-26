@@ -28,6 +28,7 @@ pub const BINARIES: &[&str] = &[
     "dettivo-engine-parakeet",
     "dettivo-engine-llm",
     "dettivo-engine-diarize",
+    "dettivo-engine-nemotron",
 ];
 
 /// How often idle engines are checked.

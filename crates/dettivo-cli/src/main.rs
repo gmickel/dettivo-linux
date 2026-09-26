@@ -9,6 +9,7 @@ mod client;
 mod commands;
 mod docs;
 mod doctor;
+mod doctor_diarization;
 mod doctor_report;
 mod exit;
 mod experiment;

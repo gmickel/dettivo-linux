@@ -14,6 +14,7 @@ mod args;
 mod auth;
 mod daemon;
 mod diarization;
+mod diarization_choice;
 mod diarization_run;
 mod dictation;
 mod engines;

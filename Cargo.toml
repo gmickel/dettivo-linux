@@ -19,6 +19,8 @@ members = [
     "crates/dettivo-engine-llm",
     "crates/sherpa-onnx-sys",
     "crates/dettivo-engine-diarize",
+    "crates/nemo-speech-cpp-sys",
+    "crates/dettivo-engine-nemotron",
     "crates/dettivod",
     "crates/dettivo-cli",
     "crates/dettivo-mcp",
@@ -50,6 +52,7 @@ dettivo-storage = { path = "crates/dettivo-storage" }
 dettivo-meeting = { path = "crates/dettivo-meeting" }
 parakeet-cpp-sys = { path = "crates/parakeet-cpp-sys" }
 sherpa-onnx-sys = { path = "crates/sherpa-onnx-sys" }
+nemo-speech-cpp-sys = { path = "crates/nemo-speech-cpp-sys" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_path_to_error = "0.1"

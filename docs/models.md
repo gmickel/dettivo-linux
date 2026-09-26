@@ -14,6 +14,7 @@ dettivo speech selection set --meeting-model small
 dettivo speech status                          # readiness per model
 dettivo speech delete --model tiny.en          # the selected model needs --force
 dettivo speech download --provider diarize --model diarization-en --wait   # the speaker pass's model set (ADR 0035)
+dettivo speech download --provider diarize --model nemotron-3-diarization --wait   # the opt-in Nemotron model (ADR 0073)
 ```
 
 `selection set` validates against the catalogue, writes `[speech]` in `config.toml` with your comments intact, and preloads the new model when its file exists so the next session starts warm. It never downloads by itself: a model that is not on disk stays `missing` until `download` fetches it.
@@ -39,7 +40,7 @@ They are the macOS catalogue in GGUF at the 4-bit footprint (Q4_K_M from the uns
 
 ## The catalogue
 
-The catalogue is a versioned manifest compiled into the daemon (`crates/dettivo-speech/catalogue/v1.toml`) with one entry per model: provider, id, display name, kind (`stt`, `vad`, `llm`, `diarization`), size, source URL, SHA-256, license and redistribution note. A model set lists further `files` beside the entry's own, each with its source, checksum, size and license, and a file that arrives as an archive names the member to `unpack` (`tar.bz2`) with the member's own checksum; the diarization set `diarize/diarization-en` is pyannote segmentation 3.0 (MIT, unpacked from the k2-fsa archive to `segmentation.onnx`) and English VoxCeleb ERes2Net (Apache-2.0, `embedding.onnx`), 33.4 MB in all, which `dettivo-engine-diarize` loads as a directory. Model ids are the macOS and Windows aliases (`tiny.en`, `small`, `large-v3-turbo`), so a selection is portable across the ports. Whisper models come from the whisper.cpp release set on Hugging Face (`large-v3-turbo` is the `q8_0` file), the VAD model from `ggml-org/whisper-vad`, and the Parakeet models (`parakeet-v2`, English; `parakeet-v3`, 25 European languages) are parakeet.cpp's `q8_0` GGUF conversions from `mudler/parakeet-cpp-gguf`, which keep word error rate parity with the NeMo release ([docs/engines.md](engines.md)). A test keeps every entry complete and every source on an allowlisted host.
+The catalogue is a versioned manifest compiled into the daemon (`crates/dettivo-speech/catalogue/v1.toml`) with one entry per model: provider, id, display name, kind (`stt`, `vad`, `llm`, `diarization`), size, source URL, SHA-256, license and redistribution note. A model set lists further `files` beside the entry's own, each with its source, checksum, size and license, and a file that arrives as an archive names the member to `unpack` (`tar.bz2`) with the member's own checksum; the diarization set `diarize/diarization-en` is pyannote segmentation 3.0 (MIT, unpacked from the k2-fsa archive to `segmentation.onnx`) and English VoxCeleb ERes2Net (Apache-2.0, `embedding.onnx`), 33.4 MB in all, which `dettivo-engine-diarize` loads as a directory; `diarize/nemotron-3-diarization` is NVIDIA's `Nemotron-3-Diarization.q8_0.gguf` at model revision `f667ed7` (107 MB, OpenMDW 1.1), which `dettivo-engine-nemotron` loads from its directory. Model ids are the macOS and Windows aliases (`tiny.en`, `small`, `large-v3-turbo`), so a selection is portable across the ports. Whisper models come from the whisper.cpp release set on Hugging Face (`large-v3-turbo` is the `q8_0` file), the VAD model from `ggml-org/whisper-vad`, and the Parakeet models (`parakeet-v2`, English; `parakeet-v3`, 25 European languages) are parakeet.cpp's `q8_0` GGUF conversions from `mudler/parakeet-cpp-gguf`, which keep word error rate parity with the NeMo release ([docs/engines.md](engines.md)). A test keeps every entry complete and every source on an allowlisted host.
 
 The Parakeet provider offers three models, all CC-BY-4.0 and all 0.6B TDT models that return a time for every word. `parakeet-v2` is NVIDIA's English model and `parakeet-v3` NVIDIA's 25-language model, the default. `parakeet-ultra` is [Moondream's post-train of v3](https://huggingface.co/moondream/parakeet-ultra), with the same languages and size and a lower word error rate on Moondream's own benchmarks, converted for parakeet.cpp by [trevest/parakeet-ultra-GGUF](https://huggingface.co/trevest/parakeet-ultra-GGUF). `dettivo speech download --provider parakeet --model parakeet-ultra` fetches it, and `dettivo speech selection set --provider parakeet --model parakeet-ultra` makes it the dictation model ([ADR 0068](adr/0068-parakeet-ultra-is-a-catalogue-option.md)).
 
@@ -60,6 +61,8 @@ $XDG_DATA_HOME/dettivo/models/
   diarize/diarization-en/segmentation.onnx        # a model set: every file in one directory
   diarize/diarization-en/embedding.onnx
   diarize/diarization-en/manifest.json
+  diarize/nemotron-3-diarization/Nemotron-3-Diarization.q8_0.gguf
+  diarize/nemotron-3-diarization/manifest.json
   whisper/tiny.en/ggml-tiny.en.bin.part        # a paused or interrupted download
   whisper/tiny.en/ggml-tiny.en.bin.part.json   # what it was fetching
   quarantine/whisper/base/1756930000/           # a file that failed verification
@@ -79,7 +82,7 @@ A download runs on its own thread, one per model, bounded by `[models] max_concu
 
 `speech.providers.list`, `speech.selection.get` and `speech.selection.set` answer with the shapes the Windows port adopted. The Linux additions `speech.models.status`, `speech.models.download`, `speech.models.cancel` and `speech.models.delete` are recorded in [docs/api/linux-deltas.md](api/linux-deltas.md) with fixtures under `crates/dettivo-proto/fixtures/speech/`. Every row of `speech.models.status` carries the catalogue's `languages` and, on the three models first run offers (`parakeet-v3`, `large-v3-turbo`, `small.en`), `recommended_for`, the one-line recommendation the Models step shows beside the size ([docs/app.md](app.md)); a model without one is not offered there. `speech.models.delete` refuses the selected model with `CONFLICT` unless `force` is set; an unknown model is `INVALID_PARAMS` naming it. The speech methods know the speech providers and the diarization model set (`provider = "diarize"`, which `speech.providers.list` and the selection methods never offer as a dictation choice); the language models answer under `llm.models.status`, `llm.models.download`, `llm.models.cancel` and `llm.models.delete` (the same shapes over the `llm` provider, `is_selected` marking `[llm] model`, an unknown id `NOT_FOUND` naming the ids the catalogue lists), and `llm.engine.status` reports the engine process; fixtures under `crates/dettivo-proto/fixtures/llm/`. `dettivo doctor` prints a models row (how many are ready, the directory, the quarantined count and the selected speech model's readiness) and an llm row (the provider Enhanced would use, whether the local engine would answer and why not, the selected language model's readiness and the engine process).
 
-The CUDA diarization drop-in reuses the same `diarize/diarization-en` segmentation and embedding files. It needs no model conversion or second download. When CUDA prerequisite checks fail, `auto` keeps those models on CPU and reports the fallback reason ([docs/engines.md](engines.md), [installation](install.md#optional-nvidia-diarization)).
+The CUDA diarization drop-in reuses the same `diarize/diarization-en` segmentation and embedding files and the same Nemotron GGUF. It needs no model conversion or second download. When CUDA prerequisite checks fail, `auto` keeps those models on CPU and reports the fallback reason ([docs/engines.md](engines.md), [installation](install.md#optional-nvidia-diarization)).
 
 ## Configuration
 
@@ -89,8 +92,8 @@ The CUDA diarization drop-in reuses the same `diarize/diarization-en` segmentati
 | `[speech] model` | `"large-v3-turbo"` | The dictation model id. |
 | `[speech] meeting_model` | `""` | The meeting model; empty means the dictation model. |
 | `[speech] parakeet_model_id` | `"parakeet-v3"` | The Parakeet model a switch to `provider = "parakeet"` selects. |
-| `[meetings.diarization] model` | `"diarization-en"` | The model set the speaker pass loads ([docs/meetings.md](meetings.md)). |
-| `[engines.diarize] backend` | `"auto"` | CUDA when its prerequisite checks pass, else CPU with the reason; `cpu` pins CPU and `cuda` requires CUDA. Settings / Models offers the same choice. |
+| `[meetings.diarization] model` | `"diarization-en"` | The model set the speaker pass loads; `nemotron-3-diarization` selects the Nemotron engine ([docs/meetings.md](meetings.md)). |
+| `[engines.diarize] backend` | `"auto"` | The engine's GPU backend when it loads, else CPU with the reason; `cpu` pins CPU, `cuda` requires CUDA and `vulkan` requires Nemotron's ggml Vulkan. Settings / Models offers the same choice. |
 | `[llm] model` | `"qwen3-4b-instruct-2507"` | The language model the local engine loads for Enhanced. |
 | `[llm] analysis_model` | `""` | The language model meeting analysis loads; empty means `model`. |
 | `[models] max_concurrent_downloads` | `1` | Downloads that may run at once. |
