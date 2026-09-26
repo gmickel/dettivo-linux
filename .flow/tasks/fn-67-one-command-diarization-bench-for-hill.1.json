@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-67-one-command-diarization-bench-for-hill",
   "spec_path": ".flow/tasks/fn-67-one-command-diarization-bench-for-hill.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement One-command diarization bench for hill-climbing speaker accuracy",
   "updated_at": "2026-09-26T08:18:27.691553Z"
 }
