@@ -79,6 +79,7 @@ test: test-rust test-qt test-diarization-score
 
 test-diarization-score:
     {{step}} python "strict diarization scorer" python3 scripts/qa/test_diarization_score.py
+    {{step}} python "diarization bench metrics and report" python3 scripts/qa/test_diarbench.py
     {{step}} c++ "calibrated diarization clustering" bash scripts/qa/test-diarization-clustering.sh
 
 test-rust:
@@ -327,6 +328,19 @@ qa-app-timing driver="atspi": build-rust build-qt
     {{step}} qa "app live theme with the timing gate ({{driver}})" env DETTIVO_TIMING_GATE=1 cargo run -q -p dettivo-qa -- drive app_theme_live --driver {{driver}}
 
 # Every scenario uses the driver interface only.
+# The diarization bench (docs/diarization-bench.md): the current tree's
+# speaker assignment scored on cached engine outputs in the protected eval
+# directory, AMI dev and the local English and German meetings. `--full`
+# also runs the engines where their inputs changed, `--heldout` adds AMI
+# test, `--save <name>` and `--baseline <name>` compare runs. Run by hand;
+# never a CI job or a release gate.
+diar-bench *args:
+    python3 scripts/qa/diarbench/bench.py {{args}}
+
+# One-time setup of the protected eval directory for `just diar-bench`.
+diar-bench-setup:
+    python3 scripts/qa/diarbench/setup.py
+
 lint-scenarios: build-rust
     {{step}} qa "scenario lint" cargo run -q -p dettivo-qa -- lint-scenarios
 
