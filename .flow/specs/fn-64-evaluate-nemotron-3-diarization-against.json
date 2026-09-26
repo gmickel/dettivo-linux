@@ -1,13 +1,22 @@
 {
   "branch_name": "fn-64-evaluate-nemotron-3-diarization-against",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-25T18:00:58.085396Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-64-evaluate-nemotron-3-diarization-against",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-64-evaluate-nemotron-3-diarization-against.md",
-  "status": "open",
+  "status": "done",
   "title": "Evaluate Nemotron 3 Diarization against current speaker pass",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-25T18:00:58.087681Z"
+  "updated_at": "2026-09-25T22:45:53.964876Z"
 }
