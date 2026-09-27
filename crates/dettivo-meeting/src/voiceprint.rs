@@ -139,26 +139,49 @@ impl Voiceprint {
     /// Writes the print under `data_dir` atomically through a temporary
     /// file of its own, readable by the user alone.
     fn save(&self, data_dir: &Path) -> std::io::Result<()> {
-        use std::io::Write;
-        use std::os::unix::fs::OpenOptionsExt;
         std::fs::create_dir_all(data_dir)?;
         let n = WRITES.fetch_add(1, Ordering::Relaxed);
         let tmp = data_dir.join(format!("{FILE}.{}.{n}.tmp", std::process::id()));
-        let mut file = std::fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .mode(0o600)
-            .open(&tmp)?;
-        file.write_all(serde_json::to_string(self)?.as_bytes())?;
-        file.sync_all()?;
+        write_private(&tmp, serde_json::to_string(self)?.as_bytes())?;
         std::fs::rename(&tmp, data_dir.join(FILE))
     }
+}
+
+/// Writes `bytes` to a new file at `path` readable by the user alone. A file
+/// left there by an earlier process (a crash, then a reused pid) is removed
+/// first, so its permissions never carry into the file this writes.
+fn write_private(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
+    use std::io::Write;
+    use std::os::unix::fs::OpenOptionsExt;
+    match std::fs::remove_file(path) {
+        Err(e) if e.kind() != std::io::ErrorKind::NotFound => return Err(e),
+        _ => {}
+    }
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(0o600)
+        .open(path)?;
+    file.write_all(bytes)?;
+    file.sync_all()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_stale_temporary_file_never_lends_its_permissions() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("stale.tmp");
+        std::fs::write(&path, b"old").unwrap();
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o644)).unwrap();
+        write_private(&path, b"new").unwrap();
+        assert_eq!(std::fs::read(&path).unwrap(), b"new");
+        let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode, 0o600);
+    }
 
     #[test]
     fn vectors_average_compare_and_fold_into_a_bounded_print() {
