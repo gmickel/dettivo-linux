@@ -273,7 +273,7 @@ model = "diarization-en"
 # Each sentence takes the speaker who holds most of it (docs/meetings.md).
 # A pause between aligned words at least this long, in milliseconds, also
 # ends a sentence where the speaker differs across it.
-pause_ms = 250
+pause_ms = 500
 # A sentence no speaker turn overlaps takes the nearest turn within this
 # many milliseconds; beyond it the line stays unlabelled.
 nearest_turn_ms = 10000

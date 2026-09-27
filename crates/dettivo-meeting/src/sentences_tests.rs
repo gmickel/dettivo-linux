@@ -109,14 +109,14 @@ fn a_sentence_end_splits_a_segment_between_speakers_and_a_sentence_spans_segment
 
 #[test]
 fn a_pause_cuts_only_where_the_speaker_changes_across_it() {
-    let times = [(0, 300), (300, 700), (1100, 1500), (1500, 3000)];
+    let times = [(0, 300), (300, 700), (1300, 1500), (1500, 3000)];
     let changed = [turn(0, 900, "A"), turn(900, 3000, "B")];
     let mut segments = vec![aligned("we go then stop", &times)];
     assert_eq!(run(&mut segments, &changed, &Rule::default()), 1);
     assert_eq!(texts(&segments), ["we go", "then stop"]);
     assert_eq!(ids(&segments), [Some("speaker_00"), Some("speaker_01")]);
     assert_eq!((segments[0].start_ms, segments[0].end_ms), (0, 700));
-    assert_eq!((segments[1].start_ms, segments[1].end_ms), (1100, 3000));
+    assert_eq!((segments[1].start_ms, segments[1].end_ms), (1300, 3000));
     assert_eq!(segments[0].words.len(), 2);
     assert_eq!(segments[1].words[0].text, "then");
 
@@ -243,7 +243,7 @@ fn a_rerun_relabels_an_old_meeting_without_losing_text_or_words() {
         labelled,
         aligned(
             "we go then stop",
-            &[(5000, 5300), (5300, 5700), (6100, 6500), (6500, 8000)],
+            &[(5000, 5300), (5300, 5700), (6300, 6500), (6500, 8000)],
         ),
         seg(4200, 4800, "Mm.", SegmentSource::Microphone),
     ];

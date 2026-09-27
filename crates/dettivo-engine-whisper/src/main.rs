@@ -5,6 +5,7 @@
 //! inference path. Logs go to stderr and never carry transcript text.
 
 mod engine;
+mod words;
 
 use std::path::PathBuf;
 use std::process::ExitCode;

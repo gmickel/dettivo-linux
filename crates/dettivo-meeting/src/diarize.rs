@@ -38,7 +38,7 @@ pub struct Rule {
 impl Default for Rule {
     fn default() -> Self {
         Self {
-            pause_ms: 250,
+            pause_ms: 500,
             nearest_turn_ms: 10_000,
             min_speaker_share: 0.0,
         }

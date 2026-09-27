@@ -18,7 +18,8 @@ SCORING_CODE = [HERE / "metrics.py", HERE / "channels.py", HERE / "stages.py", H
 
 
 def inputs(cache, cfg, rec, full, db):
-    """(segments key, segments, wav, room_audio) for a recording, or None when missing."""
+    """(segments key, segments, wav, room_audio) for a recording, or None when missing. A
+    meeting's segments are the stored ones, or with `asr.meetings` the configured Whisper's."""
     if rec["split"].startswith("ami"):
         k, segments = engines.asr_result(cache, cfg["asr"], rec["wav"], full)
         return None if segments is None else (k, segments, rec["wav"], True)
@@ -28,6 +29,10 @@ def inputs(cache, cfg, rec, full, db):
         cache.note("segments", "missing")  # deleted since setup; the next setup drops it
         return None
     cache.note("segments", "read")
+    if cfg["asr"].get("meetings"):
+        segments = engines.meeting_asr_result(cache, cfg["asr"], rec, full)[1]
+        if segments is None:
+            return None
     window = label_window(rec["reference"])
     if window:
         segments = [s for s in segments if s["end_ms"] > window[0] and s["start_ms"] < window[1]]

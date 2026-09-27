@@ -602,7 +602,7 @@
           "section": "meetings.diarization"
         },
         {
-          "default": 250,
+          "default": 500,
           "doc": "Each sentence takes the speaker who holds most of it (docs/meetings.md). A pause between aligned words at least this long, in milliseconds, also ends a sentence where the speaker differs across it.",
           "key": "meetings.diarization.pause_ms",
           "kind": "integer",

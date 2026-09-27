@@ -151,7 +151,7 @@ impl Default for Diarization {
             enabled: true,
             auto: true,
             model: "diarization-en".into(),
-            pause_ms: 250,
+            pause_ms: 500,
             nearest_turn_ms: 10_000,
             min_speaker_share: 0.0,
             min_coverage: serde::de::IgnoredAny,
