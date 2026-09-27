@@ -119,7 +119,9 @@ def run(root, cfg, cache, variant, params, full, heldout, python):
         cell = board["splits"].setdefault(rec["split"], {}).setdefault(
             name, {"files": {}, "audio_minutes": 0.0})
         cell["files"][rec["id"]] = counts
-        cell["audio_minutes"] += result["run"]["audio_seconds"] / 60
+        window = label_window(ref)
+        seconds = result["run"]["audio_seconds"]
+        cell["audio_minutes"] += (min(seconds, (window[1] - window[0]) / 1000) if window else seconds) / 60
     pool(board["splits"], "local", ("local-en", "local-de"))
     board["splits"] = {s: board["splits"][s] for s in sorted(board["splits"], key=split_order)}
     board["stages"] = {stage: dict(c) for stage, c in cache.ledger.items()}
