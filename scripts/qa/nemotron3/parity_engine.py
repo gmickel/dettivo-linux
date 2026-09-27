@@ -49,6 +49,13 @@ def compare(engine_probs, port_probs, engine_turns, port_turns):
             "engine_speakers": agreement["hypothesis_speakers"], "port_speakers": agreement["reference_speakers"]}
 
 
+def within_tolerance(row):
+    """The verdict: both sides produced every frame (compare() scores only the shared
+    prefix, so a length mismatch would otherwise pass unseen) and each measure is within
+    ADR 0073's tolerance."""
+    return row["frames_engine"] == row["frames_port"] and all(row[k] <= v for k, v in TOLERANCE.items())
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--engine", required=True, help="the dettivo-engine-nemotron binary")
@@ -75,7 +82,7 @@ def main():
                     s = diarization_score.score(wav.stem, turns, rttm, uem)
                     row[f"{side}_vs_ami"] = {k: s[k] for k in ("der", "missed", "false_alarm", "confusion",
                                                                "hypothesis_speakers")}
-            row["within_tolerance"] = all(row[k] <= v for k, v in TOLERANCE.items())
+            row["within_tolerance"] = within_tolerance(row)
             rows.append(row)
             print(json.dumps(row), file=sys.stderr, flush=True)
     print(json.dumps({"tolerance": TOLERANCE, "port_provider": active, "onnxruntime": version,
