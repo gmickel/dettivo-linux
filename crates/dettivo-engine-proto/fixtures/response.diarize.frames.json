@@ -1,0 +1,26 @@
+{
+  "attachments": [
+    {
+      "bytes": 6400,
+      "kind": "probs_f32"
+    }
+  ],
+  "id": 6,
+  "kind": "response",
+  "name": "diarize",
+  "payload": {
+    "frames": {
+      "count": 200,
+      "frame_ms": 10,
+      "speakers": 8
+    },
+    "turns": [
+      {
+        "end_ms": 1500,
+        "speaker": "SPEAKER_00",
+        "start_ms": 0
+      }
+    ]
+  },
+  "v": 1
+}

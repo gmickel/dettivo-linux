@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Fetch the speaker diarization model set (ADR 0035) into the model layout
-# the daemon reads: pyannote segmentation 3.0 (unpacked from the sherpa-onnx
-# archive to segmentation.onnx) and 3D-Speaker ERes2Net (embedding.onnx)
-# under <models>/diarize/<model-id>/, with the pinned checksums the
-# catalogue carries and a verified manifest. Idempotent; CI caches the
-# directory.
+# Fetch a speaker diarization model set into the model layout the daemon
+# reads, under <models>/diarize/<model-id>/, with the pinned checksums the
+# catalogue carries and a verified manifest: the sherpa-onnx sets (ADR 0035)
+# are pyannote segmentation 3.0 (unpacked from the sherpa-onnx archive to
+# segmentation.onnx) and 3D-Speaker ERes2Net (embedding.onnx); Nemotron 3
+# Diarization (ADR 0073) is one GGUF. Idempotent; CI caches the directory.
 #
-# Usage: scripts/models/fetch-diarization-model.sh [models-dir] [diarization-en|diarization]
+# Usage: scripts/models/fetch-diarization-model.sh [models-dir] [diarization-en|diarization|nemotron-3-diarization]
 #   default models-dir: ${XDG_DATA_HOME:-$HOME/.local/share}/dettivo/models
 set -euo pipefail
 
@@ -16,13 +16,12 @@ case "${model_id}" in
     diarization-en)
         embedding_name="3dspeaker_speech_eres2net_sv_en_voxceleb_16k.onnx"
         embedding_sha="c59158379255ad66e161679cca6af8d52d51e389e3224ab7d7a7baae295c2db5"
-        embedding_bytes=26485263
         ;;
     diarization)
         embedding_name="3dspeaker_speech_eres2net_base_sv_zh-cn_3dspeaker_16k.onnx"
         embedding_sha="1a331345f04805badbb495c775a6ddffcdd1a732567d5ec8b3d5749e3c7a5e4b"
-        embedding_bytes=39593761
         ;;
+    nemotron-3-diarization) embedding_name="" embedding_sha="" ;;
     *) echo "fetch-diarization-model: unknown model ${model_id}" >&2; exit 1 ;;
 esac
 dir="${models}/diarize/${model_id}"
@@ -52,7 +51,45 @@ fetch() {
     echo "fetch-diarization-model: fetched ${out}"
 }
 
+# manifest <entry-sha256> <entry-size> <file>=<disk-sha256>...: the daemon's
+# verified manifest (ModelStore::write_manifest, crates/dettivo-speech/src/
+# models.rs), written once every file has hashed right this run. Each file
+# carries its size and modification time, which readiness compares, so the
+# catalogue reports the set ready without hashing it again. An existing
+# manifest keeps its download time.
+manifest() {
+    python3 - "${dir}" "${model_id}" "$@" <<'PY'
+import json, os, sys, time
+d, model_id, sha, size, *files = sys.argv[1:]
+path = os.path.join(d, "manifest.json")
+try:
+    with open(path) as f:
+        downloaded_at = int(json.load(f)["downloaded_at"])
+except (OSError, ValueError, KeyError, TypeError):
+    downloaded_at = int(time.time())
+verified = []
+for spec in files:
+    name, disk_sha = spec.split("=", 1)
+    st = os.stat(os.path.join(d, name))
+    verified.append({"file_name": name, "sha256": disk_sha, "size_bytes": st.st_size,
+                     "modified_unix_nanos": st.st_mtime_ns})
+manifest = {"provider": "diarize", "id": model_id, "sha256": sha, "size_bytes": int(size),
+            "downloaded_at": downloaded_at, "catalogue_version": 1, "verified": True, "files": verified}
+with open(path + ".part", "w") as f:
+    f.write(json.dumps(manifest, indent=2) + "\n")
+os.replace(path + ".part", path)
+PY
+    echo "fetch-diarization-model: ready under ${dir}"
+}
+
 mkdir -p "${dir}"
+if [[ "${model_id}" == nemotron-3-diarization ]]; then
+    gguf_sha="08456d9e22cd9a323c0364d98375f3746d6e68507ebb705cd46438c534c7a3a1"
+    fetch "https://huggingface.co/nvidia/Nemotron-3-Diarization/resolve/f667ed73aee57d40cc39428eb768b4fd87a0a29e/Nemotron-3-Diarization.q8_0.gguf" \
+        "${dir}/Nemotron-3-Diarization.q8_0.gguf" "${gguf_sha}"
+    manifest "${gguf_sha}" 107012128 "Nemotron-3-Diarization.q8_0.gguf=${gguf_sha}"
+    exit 0
+fi
 if [[ -f "${dir}/segmentation.onnx" ]] && [[ "$(sha "${dir}/segmentation.onnx")" == "${segmentation_sha}" ]]; then
     echo "fetch-diarization-model: ${dir}/segmentation.onnx present"
 else
@@ -69,14 +106,4 @@ else
     echo "fetch-diarization-model: unpacked ${dir}/segmentation.onnx"
 fi
 fetch "${embedding_url}" "${dir}/embedding.onnx" "${embedding_sha}"
-# The daemon's manifest shape (crates/dettivo-speech/src/models.rs), marked
-# verified so the catalogue reports the set ready without re-hashing; an
-# existing verified manifest keeps its download time.
-if [[ -f "${dir}/manifest.json" ]] && grep -q '"verified":true' "${dir}/manifest.json"; then
-    :
-else
-    now="$(date +%s)"
-    printf '{"provider":"diarize","id":"%s","sha256":"%s","size_bytes":%s,"downloaded_at":%s,"catalogue_version":1,"verified":true}\n' \
-        "${model_id}" "${archive_sha}" "$((archive_bytes + embedding_bytes))" "${now}" > "${dir}/manifest.json"
-fi
-echo "fetch-diarization-model: ready under ${dir}"
+manifest "${archive_sha}" "${archive_bytes}" "segmentation.onnx=${segmentation_sha}" "embedding.onnx=${embedding_sha}"

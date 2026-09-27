@@ -226,6 +226,10 @@ pub struct DiarizeParams {
     /// (smaller finds more speakers); the engine's default when absent.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub clustering_threshold: Option<f64>,
+    /// Also return the per-frame speaker probabilities, for an engine that
+    /// computes them (Nemotron); the others ignore it.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub frame_probabilities: bool,
 }
 
 /// One diarized turn.
@@ -241,11 +245,35 @@ pub struct SpeakerTurn {
 }
 
 /// `diarize` result.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DiarizeResult {
     /// Turns.
     pub turns: Vec<SpeakerTurn>,
+    /// The shape of the frame probabilities, when the request asked for
+    /// them and the engine computes them.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub frames: Option<FrameProbabilities>,
+    /// The frame probabilities themselves: `count` frames of `speakers`
+    /// little-endian `f32`s, frame-major. They travel as the response's
+    /// one attachment ([`FRAME_PROBABILITIES_KIND`]), never in the JSON.
+    #[serde(skip)]
+    pub probabilities: Vec<u8>,
+}
+
+/// The attachment kind of a `diarize` response's frame probabilities.
+pub const FRAME_PROBABILITIES_KIND: &str = "probs_f32";
+
+/// The shape of a `diarize` response's frame probabilities.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FrameProbabilities {
+    /// Frames.
+    pub count: u64,
+    /// Speaker channels per frame.
+    pub speakers: u32,
+    /// Milliseconds per frame.
+    pub frame_ms: u32,
 }
 
 /// `embed` (with one `pcm16k` attachment).

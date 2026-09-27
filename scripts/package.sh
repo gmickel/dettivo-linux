@@ -2,7 +2,8 @@
 # Assemble the release tree and tarball the AUR packages repackage (ADR 0034).
 #
 # Usage: scripts/package.sh [--cuda] [dist-dir]
-# --cuda builds only the optional diarization drop-in, in a separate tree.
+# --cuda builds only the optional diarization drop-in (both diarization
+# engines on CUDA), in a separate tree.
 #
 # Produces <dist-dir>/dettivo-<version>-linux-x86_64/ laid out as it lands on
 # the root filesystem (usr/bin, usr/lib/dettivo/engines, usr/lib/dettivo/qml,
@@ -12,9 +13,11 @@
 # packaging/manifest.txt before the tarball is written; a missing or extra
 # path fails naming it.
 #
-# The three ggml engines are built with the Vulkan backend and fall back to
-# the CPU at run time; the diarization engine runs on the CPU and ships the
-# sherpa-onnx and ONNX Runtime libraries beside itself; DETTIVO_PACKAGE_CPU_ONLY=1 is the explicit opt-out for
+# The four ggml engines are built with the Vulkan backend and fall back to
+# the CPU at run time; the sherpa-onnx diarization engine runs on the CPU and
+# ships the sherpa-onnx and ONNX Runtime libraries beside itself, and the
+# Nemotron engine ships NeMo-Speech.cpp's two libraries beside itself;
+# DETTIVO_PACKAGE_CPU_ONLY=1 is the explicit opt-out for
 # a machine without the Vulkan headers (never the default, never used for a
 # release). DETTIVO_GIT_SHA names the commit `dettivo --version` prints when
 # the tree is built from a tarball without .git.
@@ -36,15 +39,18 @@ stage="$dist/$name"
 build_messages="$(mktemp)"
 trap 'rm -f "$build_messages"' EXIT
 
-stage_sherpa() {
-  local destination="$1"
-  shift
+# stage_libraries <sys-crate> <destination> <library>...: the libraries the
+# crate's build script left under its OUT_DIR/lib in this build.
+stage_libraries() {
+  local crate="$1" destination="$2"
+  shift 2
   local lib_dir
-  lib_dir="$(jq -er -s '[.[] | select(.reason == "build-script-executed" and (.package_id | test("[/#]sherpa-onnx-sys[@#]"))) | .out_dir] | unique | if length == 1 then .[0] + "/lib" else error("expected one sherpa-onnx-sys OUT_DIR") end' "$build_messages")"
+  lib_dir="$(jq -er -s --arg crate "$crate" '[.[] | select(.reason == "build-script-executed" and (.package_id | test("[/#]" + $crate + "[@#]"))) | .out_dir] | unique | if length == 1 then .[0] + "/lib" else error("expected one \($crate) OUT_DIR") end' "$build_messages")"
   for library in "$@"; do
     install -m 755 "$lib_dir/$library" "$destination/$library"
   done
 }
+nemo_libraries=(libnemo_speech_asr_c.so.1 libnemo_speech_asr.so)
 
 archive() {
   local sums="$1"
@@ -59,13 +65,16 @@ if [ -z "${DETTIVO_GIT_SHA:-}" ] && git -C "$root" rev-parse --short=12 HEAD >/d
 fi
 
 if [ "$cuda" = 1 ]; then
-  DETTIVO_PACKAGE=1 cargo build -p dettivo-engine-diarize --release --features cuda --message-format=json-render-diagnostics >"$build_messages"
+  DETTIVO_PACKAGE=1 cargo build -p dettivo-engine-diarize -p dettivo-engine-nemotron --release \
+    --features dettivo-engine-diarize/cuda,dettivo-engine-nemotron/cuda --message-format=json-render-diagnostics >"$build_messages"
   rm -rf "$stage"
   engines="$stage/usr/lib/dettivo/engines-cuda"
   mkdir -p "$engines"
   install -m 755 "${CARGO_TARGET_DIR:-target}/release/dettivo-engine-diarize" "$engines/"
-  stage_sherpa "$engines" libsherpa-onnx-c-api.so libonnxruntime.so \
+  install -m 755 "${CARGO_TARGET_DIR:-target}/release/dettivo-engine-nemotron" "$engines/"
+  stage_libraries sherpa-onnx-sys "$engines" libsherpa-onnx-c-api.so libonnxruntime.so \
     libonnxruntime_providers_cuda.so libonnxruntime_providers_shared.so
+  stage_libraries nemo-speech-cpp-sys "$engines" "${nemo_libraries[@]}"
   install -Dm644 LICENSE "$stage/usr/share/licenses/dettivo-engines-cuda/LICENSE"
   install -Dm644 NOTICE.md "$stage/usr/share/doc/dettivo-engines-cuda/NOTICE.md"
   scripts/packaging/check-manifest.sh --cuda "$stage"
@@ -75,7 +84,7 @@ fi
 
 # One cargo argument: the comma-separated feature list is deliberate.
 # shellcheck disable=SC2054
-features=(--features dettivo-engine-whisper/vulkan,dettivo-engine-parakeet/vulkan,dettivo-engine-llm/vulkan)
+features=(--features dettivo-engine-whisper/vulkan,dettivo-engine-parakeet/vulkan,dettivo-engine-llm/vulkan,dettivo-engine-nemotron/vulkan)
 if [ "${DETTIVO_PACKAGE_CPU_ONLY:-0}" = "1" ]; then
   echo "package: DETTIVO_PACKAGE_CPU_ONLY=1, the engines are built without the Vulkan backend (not a release build)" >&2
   features=()
@@ -89,14 +98,16 @@ target="${CARGO_TARGET_DIR:-target}/release"
 for bin in dettivod dettivo dettivo-mcp dettivo-qa; do
   install -m 755 "$target/$bin" "$stage/usr/bin/$bin"
 done
-for engine in whisper parakeet llm diarize; do
+for engine in whisper parakeet llm diarize nemotron; do
   install -m 755 "$target/dettivo-engine-$engine" "$stage/usr/lib/dettivo/engines/dettivo-engine-$engine"
 done
 
-# The diarization engine links sherpa-onnx's C API dynamically and finds it
-# beside itself ($ORIGIN, ADR 0035); the two libraries come from where the
-# sherpa-onnx-sys build script unpacked the pinned release.
-stage_sherpa "$stage/usr/lib/dettivo/engines" libsherpa-onnx-c-api.so libonnxruntime.so
+# The diarization engines link their C APIs dynamically and find them beside
+# themselves ($ORIGIN, ADR 0035, ADR 0073): sherpa-onnx's two libraries from
+# where its build script unpacked the pinned release, NeMo-Speech.cpp's two
+# from where its build script built them.
+stage_libraries sherpa-onnx-sys "$stage/usr/lib/dettivo/engines" libsherpa-onnx-c-api.so libonnxruntime.so
+stage_libraries nemo-speech-cpp-sys "$stage/usr/lib/dettivo/engines" "${nemo_libraries[@]}"
 
 qt_build="${DETTIVO_QT_BUILD_DIR:-build/qt-release}"
 cmake -S qt -B "$qt_build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr

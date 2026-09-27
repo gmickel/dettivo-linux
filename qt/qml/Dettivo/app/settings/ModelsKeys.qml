@@ -57,8 +57,8 @@ Column {
         }
 
         SettingRow {
-            choices: ["auto", "cpu", "cuda"]
-            hint: qsTr("auto takes CUDA when its runtime loads, else CPU with the reason")
+            choices: ["auto", "cpu", "cuda", "vulkan"]
+            hint: qsTr("auto takes the engine's GPU when it loads, else CPU with the reason")
             key: "engines.diarize.backend"
             kind: "choice"
             label: qsTr("Diarization backend")

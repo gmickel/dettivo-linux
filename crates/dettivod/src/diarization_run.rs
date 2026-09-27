@@ -17,7 +17,6 @@ use dettivo_proto::methods::meetings::{Segment, SegmentSource};
 use dettivo_proto::methods::speakers::DiarizationStatus;
 use dettivo_speech::EngineError;
 use dettivo_speech::diarize::{DiarizeRequest, timeout_for};
-use dettivo_speech::engines::DIARIZE_BINARY;
 
 use crate::diarization::{
     Diarization, Pass, STAGE, model_missing, publish_progress, publish_state,
@@ -103,6 +102,7 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
         audio_dir,
         engine,
         model_id,
+        fallback_reason,
         rule,
         two_track: rules,
         data_dir,
@@ -116,8 +116,9 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
     let mut block = row.diarization.clone().unwrap_or_default();
     block.status = DiarizationStatus::Running;
     block.error = None;
-    block.engine = Some(DIARIZE_BINARY.into());
+    block.engine = Some(engine.binary().into());
     block.model = Some(format!("diarize/{model_id}"));
+    block.fallback_reason = fallback_reason;
     row.diarization = Some(block.clone());
     if let Err(e) = history.with_store(|s| s.update_meeting(&row)) {
         tracing::warn!(error = %e, "history: diarization block not stored");

@@ -1,5 +1,6 @@
-//! The diarization engine over the supervisor (ADR 0035): one `diarize`
-//! per pass with the speaker count when known, chunk progress relayed
+//! The diarization engines over the supervisor (ADR 0035, ADR 0073): the
+//! sherpa-onnx engine or the Nemotron engine, chosen by the model set, one
+//! `diarize` per pass with the speaker count when known, chunk progress relayed
 //! from the engine's `progress` events, a cancel flag the caller may
 //! raise from another thread (the engine answers `cancelled` and the pass
 //! ends in its background), and the same slot mechanics as the speech
@@ -20,6 +21,24 @@ use crate::EngineError;
 use crate::engines::DIARIZE_BINARY;
 use crate::supervisor::{EngineStatus, Supervisor};
 
+/// The Nemotron diarization engine binary (ADR 0073).
+pub const NEMOTRON_BINARY: &str = "dettivo-engine-nemotron";
+/// The catalogue id of NVIDIA's Nemotron 3 Diarization under `diarize`.
+pub const NEMOTRON_MODEL: &str = "nemotron-3-diarization";
+/// The most speakers Nemotron 3 Diarization tracks.
+pub const NEMOTRON_MAX_SPEAKERS: u32 = 8;
+/// The sherpa-onnx model set a Nemotron pass falls back to.
+pub const FALLBACK_MODEL: &str = "diarization-en";
+
+/// The engine binary that loads the catalogue model set `model`.
+pub fn binary_for(model: &str) -> &'static str {
+    if model == NEMOTRON_MODEL {
+        NEMOTRON_BINARY
+    } else {
+        DIARIZE_BINARY
+    }
+}
+
 /// One pass.
 #[derive(Debug, Clone, PartialEq)]
 pub struct DiarizeRequest {
@@ -31,20 +50,27 @@ pub struct DiarizeRequest {
     pub clustering_threshold: Option<f64>,
 }
 
-/// The diarization engine for one model directory.
+/// A diarization engine binary for one model directory.
 pub struct DiarizeEngine {
     supervisor: Arc<Supervisor>,
+    binary: &'static str,
     model_dir: String,
     threads: Option<u32>,
     backend: BackendPreference,
 }
 
 impl DiarizeEngine {
-    /// An engine over `supervisor` for the model set under `model_dir`,
+    /// `binary` over `supervisor` for the model set under `model_dir`,
     /// loading with `threads` per model (`None` is the engine's default).
-    pub fn new(supervisor: Arc<Supervisor>, model_dir: String, threads: Option<u32>) -> Self {
+    pub fn new(
+        supervisor: Arc<Supervisor>,
+        binary: &'static str,
+        model_dir: String,
+        threads: Option<u32>,
+    ) -> Self {
         Self {
             supervisor,
+            binary,
             model_dir,
             threads,
             backend: BackendPreference::Auto,
@@ -60,6 +86,11 @@ impl DiarizeEngine {
     /// The model directory this engine loads.
     pub fn model_dir(&self) -> &str {
         &self.model_dir
+    }
+
+    /// The engine binary.
+    pub fn binary(&self) -> &'static str {
+        self.binary
     }
 
     fn load_params(&self) -> LoadParams {
@@ -92,10 +123,11 @@ impl DiarizeEngine {
         let params = DiarizeParams {
             speakers: request.speakers,
             clustering_threshold: request.clustering_threshold,
+            frame_probabilities: false,
         };
         let pcm = dettivo_engine_proto::pcm_to_bytes(&request.pcm);
         self.supervisor
-            .with_engine_load(DIARIZE_BINARY, self.load_params(), |process, _| {
+            .with_engine_load(self.binary, self.load_params(), |process, _| {
                 let value = process.call_cancellable(
                     "diarize",
                     serde_json::to_value(&params).unwrap_or(Value::Null),
@@ -160,7 +192,7 @@ impl DiarizeEngine {
     /// The supervisor's row for the engine (found, running, crashes).
     pub fn status(&self) -> EngineStatus {
         self.supervisor
-            .status(&[DIARIZE_BINARY])
+            .status(&[self.binary])
             .into_iter()
             .next()
             .expect("one row per binary asked for")
@@ -181,7 +213,12 @@ mod tests {
     #[test]
     fn the_load_names_the_directory_the_provider_and_the_threads() {
         let supervisor = Supervisor::new(Default::default());
-        let engine = DiarizeEngine::new(supervisor, "/models/diarize/diarization".into(), Some(0));
+        let engine = DiarizeEngine::new(
+            supervisor,
+            DIARIZE_BINARY,
+            "/models/diarize/diarization".into(),
+            Some(0),
+        );
         let load = engine.load_params();
         assert_eq!(load.model, "/models/diarize/diarization");
         assert_eq!(load.backend_preference, BackendPreference::Auto);
@@ -194,5 +231,7 @@ mod tests {
             pinned.load_params().backend_preference,
             BackendPreference::Cuda
         );
+        assert_eq!(binary_for(NEMOTRON_MODEL), NEMOTRON_BINARY);
+        assert_eq!(binary_for(FALLBACK_MODEL), DIARIZE_BINARY);
     }
 }

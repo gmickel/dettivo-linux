@@ -60,7 +60,10 @@ impl DiarizeEngine for Fake {
             });
             progress(i + 1, seconds);
         }
-        Ok(DiarizeResult { turns })
+        Ok(DiarizeResult {
+            turns,
+            ..Default::default()
+        })
     }
 
     fn embed(&self, pcm: &[i16], params: &EmbedParams) -> Result<EmbedResult, EngineError> {

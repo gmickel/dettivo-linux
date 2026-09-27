@@ -65,6 +65,12 @@ build-llm-vulkan:
 test-llm-vulkan:
     DETTIVO_TEST_BACKEND=vulkan {{step}} cargo "llm engine tests (vulkan)" cargo test -p dettivo-engine-llm --features vulkan --test cli -- --nocapture
 
+# Tests too slow for every push, run when their engine changes and by the
+# deep rig: the Nemotron stream past its 20-minute compaction horizon
+# (needs the model under $XDG_DATA_HOME/dettivo/models/diarize).
+test-long:
+    {{step}} cargo "long-running tests" cargo test -p dettivo-engine-nemotron --bins -- --ignored --nocapture
+
 # The Parakeet WER fixtures on the Vulkan build (needs the models under
 # $XDG_DATA_HOME/dettivo/models/parakeet and a Vulkan device).
 test-parakeet-vulkan:
@@ -80,6 +86,7 @@ test: test-rust test-qt test-diarization-score
 test-diarization-score:
     {{step}} python "strict diarization scorer" python3 scripts/qa/test_diarization_score.py
     {{step}} python "diarization bench metrics and report" python3 scripts/qa/test_diarbench.py
+    {{step}} python "diarization labelling kit" python3 scripts/qa/test_diarlabel.py
     {{step}} c++ "calibrated diarization clustering" bash scripts/qa/test-diarization-clustering.sh
 
 test-rust:
@@ -340,6 +347,12 @@ diar-bench *args:
 # One-time setup of the protected eval directory for `just diar-bench`.
 diar-bench-setup:
     python3 scripts/qa/diarbench/setup.py
+
+# Label who said each line of a retained meeting on a 127.0.0.1 page
+# (docs/diarization-labelling.md); no alias lists the meetings. The labels
+# land in the protected eval directory, where `just diar-bench` scores them.
+diar-label *args:
+    python3 scripts/qa/diarbench/label.py {{args}}
 
 lint-scenarios: build-rust
     {{step}} qa "scenario lint" cargo run -q -p dettivo-qa -- lint-scenarios

@@ -105,6 +105,7 @@ fn main() -> ExitCode {
             let params = DiarizeParams {
                 speakers: cli.speakers,
                 clustering_threshold: cli.threshold,
+                frame_probabilities: false,
             };
             let pcm = match host::read_wav(&wav) {
                 Ok(pcm) => pcm,
@@ -127,7 +128,7 @@ fn main() -> ExitCode {
                 force_cpu,
                 &mut progress,
             ) {
-                Ok(json) => {
+                Ok((json, _)) => {
                     let audio_ms = pcm.len() as u64 * 1000 / 16_000;
                     tracing::info!(
                         audio_ms,

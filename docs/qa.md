@@ -10,6 +10,7 @@ The [follow-up beauty iteration](reports/qa/2026-09-08-beauty-iteration.md) reco
 
 ```
 just qa                                  # contract replay, the drive pack, the lints
+just test-long                           # the tests too slow for every push (the Nemotron stream past 20 minutes); the deep rig runs them
 just qa-evidence-map                     # every spec's R-IDs mapped to routes that exist, docs/reports/evidence-map.md (docs/guides/qa.md)
 just qa-release                          # the optional deep gate: thirteen named steps, one report under docs/reports/release-gate/ (docs/RELEASING.md)
 just qa-drive placeholder_window atspi   # one scenario on one driver (cua|atspi)
@@ -231,7 +232,7 @@ The report (`schema_version` 1) carries `generated_unix`, `date`, `git_sha`, `qu
 
 ## Speaker accuracy
 
-`just diar-bench` scores the speaker pass on AMI dev and your retained English and German meetings in under a minute, from cached engine outputs, through the product's own Rust assignment rule. The hill-climbing loop is to save a baseline (`just diar-bench --save before`), change the rule in `crates/dettivo-meeting` or add a variant, and rerun with `just diar-bench --baseline before` to read each metric's delta with a 95% interval. The headline is the attribution error, the share of reference words whose line did not get the right speaker, with an unlabelled line counting as wrong. Its parts sit beside it: wrong and unlabelled words, DER split into missed, false alarm and confusion, short-turn error, the local/remote proxy for meetings nobody labelled, and engine speed. Tune on AMI dev, and report AMI test (`--heldout`) once, without retuning on it. [The diarization bench](diarization-bench.md) defines every metric and split, shows how to add a variant, and lists the labels format and the first-time setup (`just diar-bench-setup`).
+`just diar-bench` scores the speaker pass on AMI dev and your retained English and German meetings in under a minute, from cached engine outputs, through the product's own Rust assignment rule. The hill-climbing loop is to save a baseline (`just diar-bench --save before`), change the rule in `crates/dettivo-meeting` or add a variant, and rerun with `just diar-bench --baseline before` to read each metric's delta with a 95% interval. The headline is the attribution error, the share of reference words whose line did not get the right speaker, with an unlabelled line counting as wrong. Its parts sit beside it: wrong and unlabelled words, DER split into missed, false alarm and confusion, short-turn error, the local/remote proxy for meetings nobody labelled, and engine speed. Tune on AMI dev, and report AMI test (`--heldout`) once, without retuning on it. [The diarization bench](diarization-bench.md) defines every metric and split, shows how to add a variant, and lists the labels format and the first-time setup (`just diar-bench-setup`). [Labelling meetings](diarization-labelling.md) shows how `just diar-label` turns a retained meeting into a labelled one.
 
 ## Engine pipelines
 

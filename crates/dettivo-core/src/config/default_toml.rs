@@ -104,12 +104,14 @@ context_length = 4096
 max_tokens = 1024
 
 [engines.diarize]
-# Compute backend: auto (CUDA when its provider and runtime load, else CPU
-# with the reason), cpu, cuda (CUDA or a failed load). DETTIVO_FORCE_CPU=1
-# overrides this choice. The CUDA drop-in needs CUDA 13 and cuDNN 9.
+# Compute backend: auto (the engine's GPU backend when it loads, else CPU
+# with the reason), cpu, cuda (CUDA or a failed load), vulkan (Nemotron's
+# ggml Vulkan or a failed load; the sherpa-onnx engine takes auto).
+# DETTIVO_FORCE_CPU=1 overrides this choice. The CUDA drop-in needs CUDA 13
+# and cuDNN 9.
 backend = "auto"
-# Threads the diarization engine runs its models on; 0 is the core count
-# capped at four.
+# Threads the sherpa-onnx engine runs its models on; 0 is the core count
+# capped at four. The Nemotron engine runs on four.
 threads = 0
 
 [speech]

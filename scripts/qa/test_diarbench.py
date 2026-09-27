@@ -116,6 +116,72 @@ class ReportTests(unittest.TestCase):
                                      "engines", "splits"})
 
 
+class EngineIdentityTests(unittest.TestCase):
+    def test_asking_for_probabilities_changes_the_cache_identity(self):
+        import engines
+        from cache import Cache
+        with tempfile.TemporaryDirectory() as tmp:
+            binary, model = Path(tmp) / "engine", Path(tmp) / "model"
+            binary.write_bytes(b"engine")
+            model.mkdir()
+            (model / "weights.gguf").write_bytes(b"weights")
+            engine = {"kind": "diarize", "binary": str(binary), "model": str(model), "threads": 4, "provider": "cpu"}
+            cache = Cache(tmp)
+            plain = engines.identity(cache, engine)
+            self.assertNotIn("probs", plain)  # keys cached before the option existed still match
+            self.assertNotEqual(plain, engines.identity(cache, {**engine, "probs": True}))
+            self.assertEqual(plain, engines.identity(cache, {**engine, "probs": False}))
+
+    def test_a_stale_result_without_requested_probabilities_is_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            binary, model, wav = Path(tmp) / "engine", Path(tmp) / "model", Path(tmp) / "a.wav"
+            binary.write_bytes(b"engine")
+            wav.write_bytes(b"audio")
+            model.mkdir()
+            (model / "weights.gguf").write_bytes(b"weights")
+            engine = {"kind": "diarize", "binary": str(binary), "model": str(model), "threads": 4,
+                      "provider": "cpu", "probs": True}
+            cache = Cache(tmp)
+            slot = f"{cache.file_hash(wav)}:nemotron"
+            cache.put("engine", "old", {"turns": [], "run": {}, "probs": None}, index=slot)
+            self.assertEqual(engines.engine_result(cache, "nemotron", engine, wav, False, None), (None, None))
+            self.assertEqual(cache.ledger["engine"]["missing"], 1)
+            cache.path("engine", "new", ".npy").write_bytes(b"probs")
+            with_probs = {"turns": [], "run": {}, "probs": "new.npy"}
+            cache.put("engine", "new", with_probs, index=slot)
+            self.assertEqual(engines.engine_result(cache, "nemotron", engine, wav, False, None), ("new", with_probs))
+            plain = {**engine, "probs": False}
+            cache.put("engine", "plain", {"turns": [], "run": {}, "probs": None}, index=slot)
+            self.assertEqual(engines.engine_result(cache, "nemotron", plain, wav, False, None)[0], "plain")
+
+
+class ParityVerdictTests(unittest.TestCase):
+    @staticmethod
+    def parity():
+        """parity_engine with numpy and the ONNX port stubbed where they are not installed;
+        the verdict itself is plain Python."""
+        import importlib
+        import types
+        from unittest import mock
+        sys.path.insert(0, str(Path(__file__).resolve().parent / "nemotron3"))
+        stubs = {}
+        for name in ("numpy", "nemotron3_diarize"):
+            try:
+                importlib.import_module(name)
+            except ImportError:
+                stubs[name] = types.ModuleType(name)
+        with mock.patch.dict(sys.modules, stubs):
+            return importlib.import_module("parity_engine")
+
+    def test_a_frame_count_mismatch_fails_even_within_tolerance(self):
+        parity = self.parity()
+        row = {"frames_engine": 1000, "frames_port": 1000, "turn_der": 0.0, "turn_confusion": 0.0,
+               "decision_flip_share": 0.0}
+        self.assertTrue(parity.within_tolerance(row))
+        self.assertFalse(parity.within_tolerance({**row, "frames_port": 1001}))
+        self.assertFalse(parity.within_tolerance({**row, "turn_der": 0.5}))
+
+
 class WordTimingTests(unittest.TestCase):
     """fn-74 R1: Whisper words pair with AMI words only inside runs of matching text."""
 

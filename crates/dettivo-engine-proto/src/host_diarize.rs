@@ -16,11 +16,11 @@ use std::time::{Duration, Instant};
 
 use serde_json::{Value, json};
 
-use crate::frame::{Frame, FrameError, bytes_to_pcm, read_frame, write_frame};
+use crate::frame::{Attachment, Frame, FrameError, bytes_to_pcm, read_frame, write_frame};
 use crate::host::EngineError;
 use crate::messages::{
     BackendPreference, CancelParams, DiarizeParams, DiarizeResult, EmbedParams, EmbedResult, Empty,
-    ErrorEvent, LoadParams, LoadedResult, ProgressEvent, StatusResult,
+    ErrorEvent, FRAME_PROBABILITIES_KIND, LoadParams, LoadedResult, ProgressEvent, StatusResult,
 };
 
 /// What a diarization binary implements; the host loop does the rest.
@@ -105,6 +105,24 @@ struct Host<E, W: Write> {
 impl<E: DiarizeEngine, W: Write> Host<E, W> {
     fn send(&mut self, frame: &Frame) -> bool {
         write_frame(&mut self.out, frame, &[]).is_ok()
+    }
+
+    /// The `diarize` response, with the frame probabilities as its one
+    /// attachment when the pass returned them.
+    fn send_result(&mut self, id: u64, result: &DiarizeResult) -> bool {
+        let mut frame = Frame::response(
+            id,
+            "diarize",
+            serde_json::to_value(result).unwrap_or(Value::Null),
+        );
+        if result.probabilities.is_empty() {
+            return self.send(&frame);
+        }
+        frame.attachments.push(Attachment {
+            kind: FRAME_PROBABILITIES_KIND.into(),
+            bytes: result.probabilities.len() as u64,
+        });
+        write_frame(&mut self.out, &frame, &[&result.probabilities]).is_ok()
     }
 
     fn status(&self, id: u64, busy: bool) -> Frame {
@@ -291,15 +309,12 @@ impl<E: DiarizeEngine, W: Write> Host<E, W> {
                 }
                 Ok(Update::Done(result)) => {
                     if !cancelled {
-                        let reply = match result {
-                            Ok(r) => Frame::response(
-                                id,
-                                "diarize",
-                                serde_json::to_value(&r).unwrap_or(Value::Null),
-                            ),
-                            Err(EngineError { code, message }) => error_frame(id, code, &message),
+                        ok &= match result {
+                            Ok(r) => self.send_result(id, &r),
+                            Err(EngineError { code, message }) => {
+                                self.send(&error_frame(id, code, &message))
+                            }
                         };
-                        ok &= self.send(&reply);
                     }
                     break;
                 }
@@ -380,23 +395,28 @@ pub fn serve<E: DiarizeEngine>(force_cpu: bool, provider: Option<BackendPreferen
 }
 
 /// CLI mode: loads the model set, diarizes the samples and returns the
-/// same JSON the protocol's `diarize` response carries; `progress` hears
-/// the chunk counts.
+/// same JSON the protocol's `diarize` response carries, with the result
+/// itself for its frame probabilities; `progress` hears the chunk counts.
 pub fn run_cli<E: DiarizeEngine>(
     pcm: &[i16],
     load: &LoadParams,
     params: &DiarizeParams,
     force_cpu: bool,
     progress: &mut dyn FnMut(u32, u32),
-) -> Result<String, EngineError> {
+) -> Result<(String, DiarizeResult), EngineError> {
     let engine = E::load(load, force_cpu)?;
     let result = engine.diarize(pcm, params, progress)?;
     let loaded = engine.loaded();
     let mut value = json!({"turns": result.turns, "backend": loaded.backend});
+    if let Some(frames) = &result.frames {
+        value["frames"] = json!(frames);
+    }
     if let Some(reason) = loaded.fallback_reason {
         value["fallback_reason"] = json!(reason);
     }
-    serde_json::to_string_pretty(&value).map_err(|e| EngineError::new("internal", e.to_string()))
+    let json = serde_json::to_string_pretty(&value)
+        .map_err(|e| EngineError::new("internal", e.to_string()))?;
+    Ok((json, result))
 }
 
 /// CLI mode: loads the model set, embeds each span of the samples and

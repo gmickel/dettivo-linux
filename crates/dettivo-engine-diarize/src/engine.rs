@@ -255,7 +255,10 @@ impl DiarizeEngine for Diarizer {
             params.clustering_threshold.map(|t| t as f32),
             progress,
         )?;
-        Ok(DiarizeResult { turns })
+        Ok(DiarizeResult {
+            turns,
+            ..Default::default()
+        })
     }
 
     fn embed(&self, pcm: &[i16], params: &EmbedParams) -> Result<EmbedResult, EngineError> {

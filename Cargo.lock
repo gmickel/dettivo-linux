@@ -672,6 +672,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "dettivo-engine-nemotron"
+version = "0.3.0"
+dependencies = [
+ "clap",
+ "dettivo-engine-proto",
+ "hound",
+ "nemo-speech-cpp-sys",
+ "serde_json",
+ "tempfile",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "dettivo-engine-parakeet"
 version = "0.3.0"
 dependencies = [
@@ -1742,6 +1756,15 @@ dependencies = [
  "libc",
  "wasi",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "nemo-speech-cpp-sys"
+version = "0.3.0"
+dependencies = [
+ "bindgen",
+ "cmake",
+ "sha2",
 ]
 
 [[package]]

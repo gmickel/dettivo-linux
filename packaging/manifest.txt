@@ -15,8 +15,11 @@ usr/bin/dettivo-sheet
 usr/bin/dettivod
 usr/lib/dettivo/engines/dettivo-engine-diarize
 usr/lib/dettivo/engines/dettivo-engine-llm
+usr/lib/dettivo/engines/dettivo-engine-nemotron
 usr/lib/dettivo/engines/dettivo-engine-parakeet
 usr/lib/dettivo/engines/dettivo-engine-whisper
+usr/lib/dettivo/engines/libnemo_speech_asr.so
+usr/lib/dettivo/engines/libnemo_speech_asr_c.so.1
 usr/lib/dettivo/engines/libonnxruntime.so
 usr/lib/dettivo/engines/libsherpa-onnx-c-api.so
 usr/lib/systemd/user-preset/90-dettivo.preset

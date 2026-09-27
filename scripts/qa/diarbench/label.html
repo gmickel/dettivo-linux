@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Speaker labels</title>
+<style>
+:root { --bg: #16181d; --panel: #1f2229; --line: #2c3039; --fg: #e6e8ee; --dim: #8b91a0; --accent: #7aa2f7;
+  --cur: #262b36; --warn: #e0af68; --ok: #9ece6a; color-scheme: dark; }
+@media (prefers-color-scheme: light) {
+  :root { --bg: #f6f6f4; --panel: #ffffff; --line: #e2e2dc; --fg: #1d1f24; --dim: #6b7080; --accent: #3a63c9;
+    --cur: #e8eefb; --warn: #a06a00; --ok: #3f7d1a; color-scheme: light; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, sans-serif; }
+header { position: sticky; top: 0; z-index: 2; background: var(--panel); border-bottom: 1px solid var(--line);
+  padding: 10px 16px; display: grid; gap: 8px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--dim); font-size: 13px; }
+.meta b { color: var(--fg); font-weight: 600; }
+#saved.bad { color: var(--warn); }
+#speakers { display: flex; flex-wrap: wrap; gap: 6px; }
+.sp { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px 2px 4px; border-radius: 6px;
+  border: 1px solid var(--line); font-size: 13px; }
+kbd { font: 12px ui-monospace, monospace; padding: 0 5px; border-radius: 4px; border: 1px solid var(--line);
+  color: var(--dim); }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; }
+main { padding: 8px 16px 180px; max-width: 1100px; }
+h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); margin: 18px 0 6px; }
+.row { display: grid; grid-template-columns: 52px 60px 1fr auto; gap: 10px; align-items: baseline;
+  padding: 5px 8px; border-radius: 6px; border-left: 3px solid transparent; }
+.row.cur { background: var(--cur); border-left-color: var(--accent); }
+.t { color: var(--dim); font: 12px ui-monospace, monospace; }
+.src { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
+.who { justify-self: end; display: inline-flex; gap: 6px; align-items: center; font-size: 13px; white-space: nowrap; }
+.cand { color: var(--dim); font-size: 12px; }
+.chip { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 10px;
+  border: 1px dashed var(--c, var(--dim)); }
+.chip.set { border-style: solid; background: color-mix(in srgb, var(--c) 22%, transparent); }
+.chip.unknown { border-style: solid; color: var(--dim); }
+.chip.none { color: var(--warn); border-color: var(--warn); }
+#context { position: fixed; left: 0; right: 0; bottom: 0; background: var(--panel); border-top: 1px solid var(--line);
+  padding: 8px 16px; font-size: 13px; }
+#context .row { grid-template-columns: 52px 60px 1fr auto; padding: 2px 8px; }
+#context .row.here { background: var(--cur); }
+#keys { color: var(--dim); font-size: 12px; margin-top: 6px; }
+#done { display: none; color: var(--ok); font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+  <div class="meta">
+    <span><b id="alias"></b> <span id="lang"></span></span>
+    <span>Excerpt <b id="window"></b></span>
+    <span>Draft <b id="draft"></b></span>
+    <span><b id="progress"></b> lines decided</span>
+    <span><b id="left"></b> disagreements open</span>
+    <span id="mode"></span>
+    <span id="saved"></span>
+    <span id="done">Labels written: <code>just diar-bench</code> scores them</span>
+  </div>
+  <div id="speakers"></div>
+</header>
+<main id="list"></main>
+<div id="context">
+  <div id="around"></div>
+  <div id="keys"><kbd>Enter</kbd> confirm · <kbd>1</kbd>-<kbd>9</kbd> speaker · <kbd>0</kbd> unknown ·
+    <kbd>n</kbd> new speaker · <kbd>/</kbd> speaker by name · <kbd>r</kbd> rename · <kbd>Space</kbd> play ·
+    <kbd>j</kbd>/<kbd>k</kbd> move · <kbd>Tab</kbd> next open · <kbd>Backspace</kbd> reopen ·
+    <kbd>a</kbd> autoplay · <kbd>f</kbd> speed · <kbd>o</kbd> order</div>
+</div>
+<audio id="audio"></audio>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const audio = $("audio");
+let S = null, order = [], cur = 0, rows = [], timer = null;
+const prefs = { autoplay: true, rate: 1, timeOrder: false };
+try { Object.assign(prefs, JSON.parse(localStorage.getItem("diar-label") || "{}")); } catch (e) {}
+const keep = () => { try { localStorage.setItem("diar-label", JSON.stringify(prefs)); } catch (e) {} };
+
+const clock = (ms) => { const s = Math.floor(ms / 1000);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+const hue = (sp) => `hsl(${(S.speakers.indexOf(sp) * 67 + 210) % 360} 65% 60%)`;
+const nameOf = (sp) => S.names[sp] ? `${sp} ${S.names[sp]}` : sp;
+const el = (tag, cls, text) => { const e = document.createElement(tag);
+  if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+
+function chip(line) {
+  if (line.confirmed && line.speaker === null) return el("span", "chip unknown", "unknown");
+  if (line.speaker === null) return el("span", "chip none", "?");
+  const c = el("span", "chip" + (line.confirmed ? " set" : ""));
+  c.style.setProperty("--c", hue(line.speaker));
+  c.append(el("span", "dot"), nameOf(line.speaker));
+  return c;
+}
+
+function rowOf(i, cls) {
+  const line = S.lines[i], r = el("div", cls);
+  r.append(el("span", "t", clock(line.start_ms)), el("span", "src", line.source === "system" ? "remote" : "mic"),
+    el("span", "", line.text || "(no text)"));
+  const who = el("span", "who");
+  if (!line.confirmed && line.status === "disagree" && line.candidates.length)
+    who.append(el("span", "cand", line.candidates.map(nameOf).join(" or ")));
+  who.append(chip(line));
+  r.append(who);
+  return r;
+}
+
+function paint(i) { const r = rowOf(i, "row" + (order[cur] === i ? " cur" : "")); rows[i].replaceWith(r); rows[i] = r; }
+
+function header() {
+  const open = S.lines.filter((x) => !x.confirmed);
+  $("progress").textContent = `${S.lines.length - open.length} / ${S.lines.length}`;
+  $("left").textContent = open.filter((x) => x.status === "disagree").length;
+  $("mode").textContent = `autoplay ${prefs.autoplay ? "on" : "off"} · ${prefs.rate}x`;
+  const box = $("speakers"); box.textContent = "";
+  S.speakers.forEach((sp, k) => { const s = el("span", "sp"); s.style.setProperty("--c", hue(sp));
+    s.append(el("kbd", "", k < 9 ? String(k + 1) : "/"), el("span", "dot"), nameOf(sp)); box.append(s); });
+}
+
+function around() {
+  const box = $("around"); box.textContent = "";
+  const i = order[cur];
+  for (let j = Math.max(0, i - 2); j <= Math.min(S.lines.length - 1, i + 2); j++)
+    box.append(rowOf(j, "row" + (j === i ? " here" : "")));
+}
+
+function build() {
+  const list = $("list"); list.textContent = "";
+  const all = S.lines.map((_, i) => i);
+  const split = !prefs.timeOrder && S.draft !== "blank";
+  const first = split ? all.filter((i) => S.lines[i].status !== "agree") : all;
+  const rest = split ? all.filter((i) => S.lines[i].status === "agree") : [];
+  order = first.concat(rest);
+  rows = new Array(S.lines.length);
+  const group = (title, ids) => { if (!ids.length) return; if (split) list.append(el("h2", "", title));
+    ids.forEach((i) => { rows[i] = rowOf(i, "row"); list.append(rows[i]); }); };
+  group(`Engines disagree · ${first.length}`, first);
+  group(`Engines agree · ${rest.length}`, rest);
+}
+
+function move(to, play = prefs.autoplay) {
+  const was = order[cur];
+  cur = Math.max(0, Math.min(order.length - 1, to));
+  paint(was); paint(order[cur]);
+  rows[order[cur]].scrollIntoView({ block: "center" });
+  around();
+  if (play) listen();
+}
+
+function listen() { audio.src = `audio/${order[cur]}`; audio.playbackRate = prefs.rate; audio.play().catch(() => {}); }
+
+function save() {
+  clearTimeout(timer);
+  timer = setTimeout(async () => {
+    const body = { speakers: S.speakers, names: S.names,
+      lines: S.lines.map((x) => ({ speaker: x.speaker, confirmed: x.confirmed })) };
+    try {
+      const r = await fetch("save", { method: "POST", body: JSON.stringify(body) });
+      const a = await r.json();
+      if (!r.ok) throw new Error(a.error);
+      $("saved").textContent = "saved"; $("saved").className = "";
+      $("done").style.display = a.complete ? "inline" : "none";
+    } catch (e) { $("saved").textContent = `not saved: ${e.message}`; $("saved").className = "bad"; }
+  }, 300);
+}
+
+function decide(speaker) {
+  const line = S.lines[order[cur]];
+  line.speaker = speaker; line.confirmed = true;
+  header(); save(); move(cur + 1);
+}
+
+function freshLetter() {
+  for (let i = 0; ; i++) { const l = i < 26 ? String.fromCharCode(65 + i) : `S${i + 1}`;
+    if (!S.speakers.includes(l)) return l; }
+}
+
+function byName(text) {
+  text = text.trim(); if (!text) return null;
+  const hit = S.speakers.find((sp) => sp.toLowerCase() === text.toLowerCase()
+    || (S.names[sp] || "").toLowerCase() === text.toLowerCase());
+  if (hit) return hit;
+  const sp = freshLetter(); S.speakers.push(sp); S.names[sp] = text; return sp;
+}
+
+document.addEventListener("keydown", (e) => {
+  if (!S || e.ctrlKey || e.metaKey || e.altKey) return;
+  const line = S.lines[order[cur]], k = e.key;
+  if (k === "ArrowDown" || k === "j") move(cur + 1);
+  else if (k === "ArrowUp" || k === "k") move(cur - 1);
+  else if (k === "Enter") { if (line.speaker !== null || line.confirmed) decide(line.speaker); }
+  else if (/^[1-9]$/.test(k)) { const sp = S.speakers[Number(k) - 1]; if (sp) decide(sp); }
+  else if (k === "0" || k === "x") decide(null);
+  else if (k === "n") { const sp = freshLetter(); S.speakers.push(sp); decide(sp); }
+  else if (k === "/") { const sp = byName(prompt("Speaker letter or name") || ""); if (sp) decide(sp); }
+  else if (k === "r") {
+    const sp = line.speaker || byName(prompt("Rename which speaker (letter)") || "");
+    if (sp) { const name = prompt(`Name for speaker ${sp}`, S.names[sp] || "");
+      if (name !== null) { S.names[sp] = name.trim(); save(); build(); header(); move(cur, false); } }
+  }
+  else if (k === " ") listen();
+  else if (k === "Tab") { const n = order.length;
+    for (let s = 1; s <= n; s++) if (!S.lines[order[(cur + s) % n]].confirmed) { move((cur + s) % n); break; } }
+  else if (k === "Backspace") { line.confirmed = false; header(); save(); move(cur, false); }
+  else if (k === "a") { prefs.autoplay = !prefs.autoplay; keep(); header(); }
+  else if (k === "f") { prefs.rate = prefs.rate === 1 ? 1.5 : 1; audio.playbackRate = prefs.rate; keep(); header(); }
+  else if (k === "o") { const at = order[cur]; prefs.timeOrder = !prefs.timeOrder; keep(); build();
+    cur = order.indexOf(at); move(cur, false); }
+  else return;
+  e.preventDefault();
+});
+
+fetch("session").then((r) => r.json()).then((s) => {
+  S = s;
+  $("alias").textContent = S.alias; $("lang").textContent = S.language;
+  $("window").textContent = S.window_ms ? `${clock(S.window_ms[0])} to ${clock(S.window_ms[1])}` : "whole meeting";
+  $("draft").textContent = S.draft.startsWith("blend:")
+    ? `blend of ${S.draft.slice(6).split("+").join(" and ")}` : "blank";
+  build(); header();
+  const open = order.findIndex((i) => !S.lines[i].confirmed);
+  move(open < 0 ? 0 : open, false);
+  $("done").style.display = S.lines.every((x) => x.confirmed) ? "inline" : "none";
+});
+</script>
+</body>
+</html>

@@ -87,6 +87,7 @@ fn meeting(n: usize, status: AnalysisStatus, word: &str) -> MeetingRow {
         coverage: Some(0.87),
         engine: Some("dettivo-engine-diarize".into()),
         model: Some("pyannote-3.1".into()),
+        fallback_reason: None,
         ran_at: Some(stamp.clone()),
         error: None,
         expected_speakers: Some(2),

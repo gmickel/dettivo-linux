@@ -50,7 +50,7 @@ Intervals are 95% percentile bootstraps over files (1,000 resamples, fixed seed)
 | `ami-dev` | The 18 AMI dev meetings of the pyannote `only_words` setup, Mix-Headset audio, word timings from the AMI manual annotations | Tuning |
 | `ami-test` | ES2004a, TS3003a, IS1009b and EN2002c, the four fn-64 reported on | Held out, shown only with `--heldout` |
 | `local-en`, `local-de` | The retained meetings in `selection.json`, split by the meeting's language field | Proxies only, since no person labelled them |
-| `labelled-en`, `labelled-de` | Meetings with a labels file (below) | The headline on Dettivo's own audio |
+| `labelled-en`, `labelled-de` | Meetings with a labels file (below) | The headline and the WDER on Dettivo's own audio |
 
 Nemotron was trained on the AMI train and dev splits, so its AMI dev figures flatter it. Compare engines on AMI test and the local meetings, and use AMI dev to tune the rule for a fixed engine.
 
@@ -66,7 +66,7 @@ The voiceprint rule reads one embedding per line of at least 1.5 seconds, each o
 
 ## Labels
 
-A labels file joins the bench automatically when it exists at `<eval>/labels/<alias>.json`, and fn-72's labelling kit writes it:
+A labels file joins the bench automatically when it exists at `<eval>/labels/<alias>.json`. `just diar-label <alias>` writes it from a keyboard-driven page on 127.0.0.1, and [Labelling meetings](diarization-labelling.md) covers the page and the rules for who said a line:
 
 ```json
 {"schema": 1, "alias": "DE-2", "language": "de", "draft": "blend:current+nemotron",
@@ -74,11 +74,11 @@ A labels file joins the bench automatically when it exists at `<eval>/labels/<al
  "lines": [{"start_ms": 601200, "end_ms": 604900, "source": "system", "speaker": "B", "words": 11}]}
 ```
 
-`speaker` is any stable name or letter, and null marks a line the labeller could not attribute, which the bench skips. `source` is `system` or `microphone`, and a unit only matches lines of its own source. `window_ms` is optional and limits the meeting's lines to a labelled excerpt. `draft` records which systems seeded the page, and the bench does not read it.
+`speaker` is any stable name or letter, and null marks a line the labeller could not attribute, which the bench skips. `source` is `system` or `microphone`, and a unit only matches lines of its own source. `window_ms` is optional and limits the meeting's lines to a labelled excerpt, and the split's minutes then count the excerpt. `draft` records which systems seeded the page, and the bench does not read it.
 
 ## Where things live
 
-Everything the bench reads or writes, other than the retained meetings and the database it only reads, sits in the protected eval directory, `~/.local/share/dettivo-eval/bench` (mode 700, or `$DETTIVO_EVAL_DIR`). That includes AMI audio and references under `ami/`, `selection.json` (aliases to meeting directories), `labels/`, `cache/`, one scoreboard per run under `runs/`, and `baselines/`. `bench.json` there can override an engine (`binary`, `model`, `threads`, `provider`) or add one. The engines default to the installed product binaries under `/usr/lib/dettivo/engines/` and the fn-64 Nemotron ONNX runner (`scripts/qa/nemotron3/nemotron3_diarize.py`, int8 on the CPU) until fn-69 ships a Nemotron engine.
+Everything the bench reads or writes, other than the retained meetings and the database it only reads, sits in the protected eval directory, `~/.local/share/dettivo-eval/bench` (mode 700, or `$DETTIVO_EVAL_DIR`). That includes AMI audio and references under `ami/`, `selection.json` (aliases to meeting directories), `labels/`, `cache/`, one scoreboard per run under `runs/`, and `baselines/`. `bench.json` there can override an engine (`binary`, `model`, `threads`, `provider`, and `probs` to keep a diarize engine's frame probabilities) or add one. The engines default to the installed product binaries under `/usr/lib/dettivo/engines/`: `current` (sherpa-onnx) and `nemotron-cpp` (`dettivo-engine-nemotron` on the CPU with the catalogue's `nemotron-3-diarization`, whose probabilities go to the cache as the runner's do), plus the fn-64 Nemotron ONNX runner (`scripts/qa/nemotron3/nemotron3_diarize.py`, int8 on the CPU) as `nemotron`. A run skips an engine whose binary is not installed and says so, so a tree built before the Nemotron engine was installed still runs. To bench a build, point `nemotron-cpp` at it in `bench.json`, or add a CUDA row with `"provider": "cuda"`.
 
 Nothing confidential enters git. The scoreboards hold per-file counts keyed by alias, and they stay in the eval directory. `--report` writes pooled numbers, file counts, audio minutes and engine hashes only, and `scripts/qa/test_diarbench.py` holds the writer to that.
 

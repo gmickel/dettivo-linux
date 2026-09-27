@@ -90,7 +90,7 @@ fn the_json_matches_the_golden_by_shape_and_the_human_report_groups_the_rows() {
     assert!(report["tier"]["reason"].is_string());
     assert_eq!(report["tier"]["tier"], report["platform"]["tier"]);
     let engines = report["engines"].as_array().unwrap();
-    assert_eq!(engines.len(), 4);
+    assert_eq!(engines.len(), 5);
     assert!(
         engines
             .iter()
@@ -252,7 +252,10 @@ fn required_probe_errors_after_good_health_fail_doctor_and_keep_the_error() {
                 } else if name == method {
                     json!({"jsonrpc":"2.0","id":request["id"],"error":error})
                 } else {
-                    json!({"jsonrpc":"2.0","id":request["id"],"result":probes[name]["result"]})
+                    // A call outside the snapshot (the diarization row's
+                    // `config.get`) answers empty, so doctor uses its default.
+                    let result = probes.get(name).map_or(json!({}), |p| p["result"].clone());
+                    json!({"jsonrpc":"2.0","id":request["id"],"result":result})
                 };
                 writeln!(socket, "{answer}").unwrap();
             }

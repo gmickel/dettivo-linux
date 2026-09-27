@@ -6,7 +6,10 @@
 //! same answer once the row is stored; a plan that cannot launch is
 //! settled `failed`, never left queued. The job (`diarization_run.rs`)
 //! reads the diarized track from the meeting directory, sends it through
-//! `dettivo-engine-diarize` over the supervisor, labels the segments
+//! the configured model set's engine over the supervisor
+//! (`dettivo-engine-diarize`, or `dettivo-engine-nemotron`, which falls
+//! back to the sherpa-onnx set with the reason when it is not downloaded
+//! or more than eight speakers are expected, ADR 0073), labels the segments
 //! under the sentence rule (ADR 0072), stores the speakers with the
 //! diarization block on the row, and reports through `job.progress`
 //! (`stage = diarizing`) and `meeting.state` (`diarization_status`). A
@@ -30,12 +33,13 @@ use dettivo_proto::events::{JobProgressPayload, MeetingLiveState, MeetingStatePa
 use dettivo_proto::id::Id;
 use dettivo_proto::methods::speakers::DiarizationStatus;
 use dettivo_proto::runtime::{JobState, JobStatus};
-use dettivo_speech::diarize::DiarizeEngine;
+use dettivo_speech::diarize::{DiarizeEngine, binary_for};
 use dettivo_speech::models::Readiness;
 use dettivo_storage::meetings::{MeetingRow, MeetingStatus};
 use serde_json::{Map, Value, json};
 
 use crate::daemon::Daemon;
+use crate::diarization_choice::{Choice, choose, preference};
 use crate::events::EventBus;
 use crate::history::History;
 use crate::meeting_jobs::{Job, MeetingJobs};
@@ -56,8 +60,10 @@ pub(crate) struct Pass {
     pub(crate) row: MeetingRow,
     pub(crate) audio_dir: Option<String>,
     pub(crate) engine: DiarizeEngine,
-    /// The catalogue id of the model set.
+    /// The catalogue id of the model set that runs.
     pub(crate) model_id: String,
+    /// Why that set runs instead of the configured one.
+    pub(crate) fallback_reason: Option<String>,
     pub(crate) rule: Rule,
     /// The two-track rules around it (ADR 0075).
     pub(crate) two_track: TwoTrack,
@@ -232,7 +238,10 @@ impl Diarization {
                 "diarizationRunning",
             ));
         }
-        let engine = match self.engine(daemon, &loaded) {
+        let expected = speakers
+            .or_else(|| row.diarization.as_ref().and_then(|b| b.expected_speakers))
+            .or((d.max_speakers > 0).then_some(d.max_speakers));
+        let (engine, choice) = match self.engine(daemon, &loaded, expected) {
             Ok(engine) => engine,
             Err(e) => {
                 let mut block = row.diarization.clone().unwrap_or_default();
@@ -249,15 +258,16 @@ impl Diarization {
         let n = self.seq.fetch_add(1, Ordering::Relaxed) + 1;
         let job_id = format!("job_diarize_{n}");
         let cancel = Arc::new(AtomicBool::new(false));
-        let expected = speakers
-            .or_else(|| row.diarization.as_ref().and_then(|b| b.expected_speakers))
-            .or((d.max_speakers > 0).then_some(d.max_speakers));
+        if let Some(why) = &choice.fallback_reason {
+            tracing::info!(reason = %why, "diarization falls back");
+        }
         let pass = Pass {
             job_id: job_id.clone(),
             row: row.clone(),
             audio_dir,
             engine,
-            model_id: d.model.clone(),
+            model_id: choice.model,
+            fallback_reason: choice.fallback_reason,
             rule: Rule {
                 pause_ms: d.pause_ms,
                 nearest_turn_ms: d.nearest_turn_ms,
@@ -311,41 +321,60 @@ impl Diarization {
         Ok(job(&job_id, (0, 0)))
     }
 
-    /// The engine for the configured model set, or the refusal naming the
-    /// download command when it is not on disk.
-    fn engine(&self, daemon: &Daemon, loaded: &Loaded) -> Result<DiarizeEngine, JsonRpcError> {
-        let model = &loaded.config.meetings.diarization.model;
+    /// The engine for the model set `choose` picks for `expected`
+    /// speakers, or the refusal naming the download command when it is not
+    /// on disk (the configured set's, when that one is missing too).
+    fn engine(
+        &self,
+        daemon: &Daemon,
+        loaded: &Loaded,
+        expected: Option<u32>,
+    ) -> Result<(DiarizeEngine, Choice), JsonRpcError> {
+        let configured = &loaded.config.meetings.diarization.model;
         let store = daemon.models().store();
-        let ready = store
-            .catalogue()
-            .find("diarize", model)
-            .map(|entry| (store.readiness(entry), store.load_path(entry)));
-        match ready {
-            Some((Readiness::Ready | Readiness::Unverified, dir)) => {
-                // Verified, or hashed now; a set that fails is quarantined
-                // and refused rather than opened.
+        let find = |id: &str| {
+            store
+                .catalogue()
+                .find("diarize", id)
+                .map(|entry| (store.readiness(entry), store.load_path(entry)))
+        };
+        // A quarantined set is on disk as far as the choice goes: it is
+        // refused below with the verification error, never replaced by
+        // the fallback. Only a set that is missing or still arriving is.
+        let present = |id: &str| {
+            matches!(
+                find(id),
+                Some((
+                    Readiness::Ready | Readiness::Unverified | Readiness::Quarantined,
+                    _
+                ))
+            )
+        };
+        let choice = choose(configured, expected, present);
+        let model = &choice.model;
+        let missing = if present(configured) {
+            model
+        } else {
+            configured
+        };
+        match find(model) {
+            Some((Readiness::Ready | Readiness::Unverified | Readiness::Quarantined, dir)) => {
+                // Verified, or hashed now; a set that fails, or failed
+                // before, is quarantined and refused rather than opened.
                 daemon.models().verifier().ensure(&dir).map_err(|why| {
                     JsonRpcError::new(AppCode::NotFound, why, ErrorDetails::empty())
                 })?;
-                let backend = match loaded.config.engines.diarize.backend {
-                    dettivo_core::config::schema::DiarizeBackend::Auto => {
-                        dettivo_engine_proto::BackendPreference::Auto
-                    }
-                    dettivo_core::config::schema::DiarizeBackend::Cpu => {
-                        dettivo_engine_proto::BackendPreference::Cpu
-                    }
-                    dettivo_core::config::schema::DiarizeBackend::Cuda => {
-                        dettivo_engine_proto::BackendPreference::Cuda
-                    }
-                };
-                Ok(DiarizeEngine::new(
+                let binary = binary_for(model);
+                let engine = DiarizeEngine::new(
                     daemon.engines().supervisor(),
+                    binary,
                     dir.to_string_lossy().into_owned(),
                     Some(loaded.config.engines.diarize.threads),
                 )
-                .with_backend(backend))
+                .with_backend(preference(loaded.config.engines.diarize.backend, binary));
+                Ok((engine, choice))
             }
-            _ => Err(model_missing(model)),
+            _ => Err(model_missing(missing)),
         }
     }
 

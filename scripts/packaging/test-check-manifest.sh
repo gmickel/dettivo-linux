@@ -77,7 +77,8 @@ echo "test-check-manifest: ok"
 cuda_tree="$work/cuda"
 cuda_libs=usr/lib/dettivo/engines-cuda
 mkdir -p "$cuda_tree/$cuda_libs"
-for file in dettivo-engine-diarize libsherpa-onnx-c-api.so libonnxruntime.so libonnxruntime_providers_cuda.so libonnxruntime_providers_shared.so; do
+for file in dettivo-engine-diarize dettivo-engine-nemotron libnemo_speech_asr.so libnemo_speech_asr_c.so.1 \
+  libsherpa-onnx-c-api.so libonnxruntime.so libonnxruntime_providers_cuda.so libonnxruntime_providers_shared.so; do
   : >"$cuda_tree/$cuda_libs/$file"
 done
 mkdir -p "$cuda_tree/usr/share/licenses/dettivo-engines-cuda" "$cuda_tree/usr/share/doc/dettivo-engines-cuda"
