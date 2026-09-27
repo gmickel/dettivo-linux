@@ -49,7 +49,11 @@ Intervals are 95% percentile bootstraps over files (1,000 resamples, fixed seed)
 
 Nemotron was trained on the AMI train and dev splits, so its AMI dev figures flatter it. Compare engines on AMI test and the local meetings, and use AMI dev to tune the rule for a fixed engine.
 
-AMI has no product transcript. Whisper large-v3-turbo through the product's engine CLI cuts each recording into segments, and zero-length segments are dropped. Meetings use the segments the product stored, read-only from the database.
+AMI has no product transcript. Whisper large-v3-turbo through the product's engine CLI cuts each recording into segments with timed words ([ADR 0074](adr/0074-whisper-times-every-word-by-dtw-for-speaker-labelling.md)), and zero-length segments are dropped. Meetings use the segments the product stored, read-only from the database. To measure a Whisper change on your own meetings before any stored meeting carries it, set `"asr": {"meetings": true}` in `bench.json`. The bench then runs each meeting's takes through the product's finalisation with the configured Whisper engine (`crates/dettivo-meeting/examples/meeting_asr.rs`), caches the result like the AMI transcripts, and `--full` computes it.
+
+## Word timing
+
+`python3 scripts/qa/diarbench/word_timing.py` tells you how close the cached Whisper word times sit to the AMI manual word times on AMI dev (`--heldout` measures AMI test instead). It pairs a Whisper word with a reference word of the same text inside runs of at least three matching words, so a lone "the" never pairs across a minute, and prints the median and p95 of the start, end and pooled offsets with the paired count. It reads the ASR cache of the configured engine, so run `just diar-bench --full` first. The output holds pooled figures only.
 
 ## Labels
 
@@ -81,6 +85,8 @@ Nothing confidential enters git. The scoreboards hold per-file counts keyed by a
 6. When fn-64's working directory (`~/.local/share/dettivo-eval/fn64`) exists, it seeds the cache with that evaluation's engine outputs, probabilities and Whisper segments, provided the binaries and models still hash to what the fn-64 receipt recorded.
 
 ## Results
+
+[ADR 0074](adr/0074-whisper-times-every-word-by-dtw-for-speaker-labelling.md) gave Whisper word timings and retuned `pause_ms` to 500, measured in the [word-timings report](reports/benchmarks/diarization-bench-2026-09-27-word-timings.md). AMI dev attribution error fell from 22.43% to 21.07% with the current engine and from 14.65% to 12.49% with Nemotron, and blank remote lines on the retained meetings fell to 0.36% and 1.50%. Labelled lines with the wrong speaker stayed at 21.02% and 11.24%.
 
 [ADR 0072](adr/0072-every-remote-line-takes-the-speaker-of-its-sentence.md) replaced the coverage and share rule with the sentence rule, measured in the [sentence-units report](reports/benchmarks/diarization-bench-2026-09-26-sentence-units.md). It cut AMI dev attribution error from 28.99% to 22.43% with the current engine and from 22.43% to 14.65% with Nemotron. Remote lines left blank on the retained meetings fell from 18.0% to 1.1% and 2.4%.
 

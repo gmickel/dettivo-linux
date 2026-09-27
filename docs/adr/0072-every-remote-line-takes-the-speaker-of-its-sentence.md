@@ -1,6 +1,6 @@
 # 0072. Every remote line takes the speaker who holds most of its sentence, and a line outside every turn takes the nearest one within ten seconds
 
-Status: Accepted 2026-09-26, amends [0035](0035-sherpa-onnx-diarization-engine-and-the-speaker-pass.md) (the labelling rule and its configuration)
+Status: Accepted 2026-09-26, amends [0035](0035-sherpa-onnx-diarization-engine-and-the-speaker-pass.md) (the labelling rule and its configuration); its note that the Whisper engine aligns no words is amended by [0074](0074-whisper-times-every-word-by-dtw-for-speaker-labelling.md)
 
 ## What this gives you
 

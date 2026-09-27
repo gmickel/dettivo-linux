@@ -7,43 +7,79 @@
       "provider": "whisper",
       "model": "tiny.en",
       "backend": "cpu",
-      "reason": "backend=Cpu reason=this build has no Vulkan backend",
+      "reason": "backend=Cpu reason=DETTIVO_FORCE_CPU=1 timing=Dtw",
       "words": {
         "golden_words": 22,
-        "matched_words": 0,
+        "matched_words": 22,
         "start": {
-          "count": 0,
-          "median_ms": 0,
-          "p95_ms": 0,
-          "max_ms": 0
+          "count": 22,
+          "median_ms": 339,
+          "p95_ms": 642,
+          "max_ms": 867
         },
         "end": {
-          "count": 0,
-          "median_ms": 0,
-          "p95_ms": 0,
-          "max_ms": 0
+          "count": 22,
+          "median_ms": 193,
+          "p95_ms": 321,
+          "max_ms": 687
         },
         "combined": {
-          "count": 0,
-          "median_ms": 0,
-          "p95_ms": 0,
-          "max_ms": 0
+          "count": 44,
+          "median_ms": 268,
+          "p95_ms": 642,
+          "max_ms": 867
         }
       },
       "segment_boundaries": {
         "count": 4,
-        "median_ms": 421,
-        "p95_ms": 561,
-        "max_ms": 561
+        "median_ms": 119,
+        "p95_ms": 496,
+        "max_ms": 496
       },
       "text": "And so my fellow Americans ask not what your country can do for you ask what you can do for your country.",
       "passes": null
     },
     {
+      "provider": "whisper",
+      "model": "large-v3-turbo",
+      "backend": "cpu",
+      "reason": "backend=Cpu reason=DETTIVO_FORCE_CPU=1 timing=Dtw",
+      "words": {
+        "golden_words": 22,
+        "matched_words": 22,
+        "start": {
+          "count": 22,
+          "median_ms": 144,
+          "p95_ms": 313,
+          "max_ms": 437
+        },
+        "end": {
+          "count": 22,
+          "median_ms": 23,
+          "p95_ms": 487,
+          "max_ms": 1156
+        },
+        "combined": {
+          "count": 44,
+          "median_ms": 102,
+          "p95_ms": 437,
+          "max_ms": 1156
+        }
+      },
+      "segment_boundaries": {
+        "count": 2,
+        "median_ms": 39,
+        "p95_ms": 79,
+        "max_ms": 79
+      },
+      "text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+      "passes": null
+    },
+    {
       "provider": "parakeet",
       "model": "parakeet-v2",
-      "backend": "vulkan",
-      "reason": "backend=Vulkan reason=Vulkan backend built in and a device is installed (Vulkan0) model_name=\"nvidia/parakeet-tdt-0.6b-v2\"",
+      "backend": "cpu",
+      "reason": "backend=Cpu reason=DETTIVO_FORCE_CPU=1 model_name=\"nvidia/parakeet-tdt-0.6b-v2\"",
       "words": {
         "golden_words": 22,
         "matched_words": 22,
@@ -78,8 +114,8 @@
     {
       "provider": "parakeet",
       "model": "parakeet-v3",
-      "backend": "vulkan",
-      "reason": "backend=Vulkan reason=Vulkan backend built in and a device is installed (Vulkan0) model_name=\"nvidia/parakeet-tdt-0.6b-v3\"",
+      "backend": "cpu",
+      "reason": "backend=Cpu reason=DETTIVO_FORCE_CPU=1 model_name=\"nvidia/parakeet-tdt-0.6b-v3\"",
       "words": {
         "golden_words": 22,
         "matched_words": 22,

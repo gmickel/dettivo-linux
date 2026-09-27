@@ -139,6 +139,49 @@ def asr_result(cache, asr, wav, full):
     return k, segments
 
 
+def meeting_asr_result(cache, asr, rec, full):
+    """(key, segments) for a retained meeting's takes through the product's finalisation
+    (crates/dettivo-meeting/examples/meeting_asr.rs) with the configured Whisper engine,
+    when bench.json sets `asr.meetings`; keyed like `asr_result` by both tracks."""
+    program = cache.file_hash(example("meeting_asr"))
+    k = key(cache.file_hash(rec["mic"]), cache.file_hash(rec["system"]), asr_identity(cache, asr), program)
+    slot = f"{rec['id']}:whisper-meeting"
+    hit = cache.get("asr", k)
+    if hit is not None:
+        cache.note("asr", "cached")
+        return k, hit["segments"]
+    if not full:
+        stale_key, stale = cache.newest("asr", slot)
+        cache.note("asr", "stale" if stale else "missing")
+        return stale_key, stale and stale["segments"]
+    print(f"running whisper on {rec['id']}", file=sys.stderr, flush=True)
+    out, run = timed([example("meeting_asr"), str(rec["dir"]), str(Path(asr["binary"]).parent), asr["model"],
+                      rec["language"]])
+    segments = json.loads(out)["segments"]
+    cache.put("asr", k, {"segments": segments, "run": run}, index=slot)
+    cache.note("asr", "computed")
+    return k, segments
+
+
+_EXAMPLES = {}
+
+
+def example(name):
+    """Builds a dettivo-meeting example once per run; returns its path."""
+    if name not in _EXAMPLES:
+        proc = subprocess.run(["cargo", "build", "-q", "-p", "dettivo-meeting", "--example", name,
+                               "--message-format=json-render-diagnostics"], cwd=REPO, capture_output=True, text=True)
+        if proc.returncode:
+            raise SystemExit(f"building {name} failed:\n{proc.stderr.strip()}")
+        for line in proc.stdout.splitlines():
+            msg = json.loads(line)
+            if msg.get("reason") == "compiler-artifact" and msg["target"]["name"] == name:
+                _EXAMPLES[name] = msg["executable"]
+        if name not in _EXAMPLES:
+            raise SystemExit(f"cargo reported no {name} executable")
+    return _EXAMPLES[name]
+
+
 def product_segments(raw):
     """Engine CLI segments as the product's Segment objects (room audio, no speaker)."""
     out = []

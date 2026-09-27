@@ -1,5 +1,6 @@
 //! R3, R4 and R7 through the CLI mode: the tiny model transcribes the JFK
-//! fixture under the stated word error rate on CPU, the backend is
+//! fixture under the stated word error rate on CPU with one timed word per
+//! token of every segment (ADR 0074), the backend is
 //! reported (`cpu` when forced; `vulkan` only when built with it and a
 //! device is installed), a missing model names its path, and the log never
 //! carries the prompt or the transcript.
@@ -87,7 +88,32 @@ fn cli_mode_transcribes_the_fixture_under_the_wer_threshold_and_reports_the_back
     assert!(rate < MAX_WER, "WER {rate:.3}: {:?}", result["text"]);
     assert_eq!(result["backend"], "cpu");
     assert_eq!(result["language"], "en");
-    assert!(result["segments"].as_array().is_some_and(|s| !s.is_empty()));
+    let segments = result["segments"].as_array().unwrap();
+    assert!(!segments.is_empty());
+    for s in segments {
+        let words = s["words"].as_array().cloned().unwrap_or_default();
+        let text: Vec<&str> = s["text"].as_str().unwrap().split_whitespace().collect();
+        let spelled: Vec<&str> = words.iter().map(|w| w["text"].as_str().unwrap()).collect();
+        assert_eq!(spelled, text, "one word per token of the segment text");
+        let (start, end) = (
+            s["start_ms"].as_u64().unwrap(),
+            s["end_ms"].as_u64().unwrap(),
+        );
+        let mut previous = start;
+        for w in &words {
+            let (a, b) = (
+                w["start_ms"].as_u64().unwrap(),
+                w["end_ms"].as_u64().unwrap(),
+            );
+            assert!(
+                previous <= a && a <= b && b <= end,
+                "{w} inside {start}..{end}"
+            );
+            let c = w["confidence"].as_f64().unwrap();
+            assert!(c > 0.0 && c <= 1.0, "{w}");
+            previous = a;
+        }
+    }
     assert!(result["duration_ms"].as_u64().unwrap() > 10_000);
 
     let stderr = String::from_utf8_lossy(&out.stderr);

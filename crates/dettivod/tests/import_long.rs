@@ -247,7 +247,12 @@ fn a_twelve_minute_import_uses_speech_windows_and_a_cancel_keeps_finished_chunks
     for (i, s) in segments.iter().enumerate() {
         assert_eq!(s["index"], i);
         assert_eq!(s["source_type"], "microphone");
-        assert!(s["words"].is_null(), "whisper aligns no words: {s}");
+        let words = s["words"].as_array().map_or(0, Vec::len);
+        let tokens = s["text"].as_str().unwrap().split_whitespace().count();
+        assert!(
+            words > 0 && words == tokens,
+            "one timed word per token (ADR 0074): {s}"
+        );
         let start = s["start_ms"].as_u64().unwrap();
         assert!(start >= previous, "segment {i} out of order");
         assert!(s["end_ms"].as_u64().unwrap() <= 721_000);
