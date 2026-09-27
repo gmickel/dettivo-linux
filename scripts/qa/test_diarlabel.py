@@ -74,6 +74,15 @@ class LabelsFileTests(unittest.TestCase):
         self.assertEqual([(u["speaker"], u["source"], u["words"]) for u in units],
                          [("Gordon", "system", 3), ("B", "system", 3), ("Gordon", "system", 3)])
 
+    def test_starting_over_drops_the_earlier_labels(self):
+        state = label.session("DE-2", "de", SEGMENTS, OUTPUTS, "blend", 15)
+        with tempfile.TemporaryDirectory() as tmp:
+            session_path, labels_path = Path(tmp) / "labelling" / "DE-2.json", Path(tmp) / "labels" / "DE-2.json"
+            label.write_private(labels_path, {"schema": 1})
+            label.start(session_path, labels_path, state)
+            self.assertTrue(session_path.exists())
+            self.assertFalse(labels_path.exists())
+
 
 class ServerTests(unittest.TestCase):
     def setUp(self):
@@ -126,6 +135,10 @@ class ServerTests(unittest.TestCase):
         status, _, body = self.ask("POST", base + "save", {"speakers": ["A", "B"], "names": {}, "lines": lines})
         self.assertEqual((status, json.loads(body)), (200, {"complete": True}))
         self.assertTrue(self.app.labels_path.exists())
+        reopened = [{"speaker": "A", "confirmed": False}] + lines[1:]
+        status, _, body = self.ask("POST", base + "save", {"speakers": ["A", "B"], "names": {}, "lines": reopened})
+        self.assertEqual((status, json.loads(body)), (200, {"complete": False}))
+        self.assertFalse(self.app.labels_path.exists())
 
     def test_the_page_loads_no_external_asset(self):
         page = label_server.PAGE.read_text()

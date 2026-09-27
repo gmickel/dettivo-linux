@@ -182,6 +182,13 @@ def write_private(path, value):
     os.replace(tmp, path)
 
 
+def start(session_path, labels_path, state):
+    """Writes a fresh session and drops the alias's earlier labels, so the bench never
+    scores a labelling this session is replacing."""
+    write_private(session_path, state)
+    Path(labels_path).unlink(missing_ok=True)
+
+
 def engine_outputs(root, entry, system_audio):
     """{engine: turns} from the bench cache for the track the drafts read: the summed
     tracks of a two-track meeting (one speaker space for both sides), else the microphone."""
@@ -236,6 +243,7 @@ def main():
         raise SystemExit(f"{args.alias} is not in the selection ({', '.join(sorted(chosen))})")
     entry = chosen[args.alias]
     path = root / "labelling" / f"{args.alias}.json"
+    labels_path = root / "labels" / f"{args.alias}.json"
     if path.exists():
         state = json.loads(path.read_text())
         print(f"resuming {path} (delete it to start over)")
@@ -247,9 +255,9 @@ def main():
             state = session(args.alias, entry["language"], segments, outputs, args.draft, args.minutes, args.whole)
         except ValueError as error:
             raise SystemExit(str(error))
-        write_private(path, state)
+        start(path, labels_path, state)
     import label_server
-    label_server.run(state, path, root / "labels" / f"{args.alias}.json", Path(entry["dir"]), args.port)
+    label_server.run(state, path, labels_path, Path(entry["dir"]), args.port)
 
 
 if __name__ == "__main__":

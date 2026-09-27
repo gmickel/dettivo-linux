@@ -39,6 +39,8 @@ class Labelling:
             done = label.complete(self.state)
             if done:
                 label.write_private(self.labels_path, label.labels(self.state))
+            else:
+                self.labels_path.unlink(missing_ok=True)  # only a complete session is scored
             return {"complete": done}
 
     def clip(self, i):
