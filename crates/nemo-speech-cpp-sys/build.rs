@@ -151,6 +151,12 @@ fn compile(source: &Path, deps: &Path, out: &Path) -> PathBuf {
         .define("GGML_OPENMP", "OFF")
         .define("GGML_VULKAN", on(cfg!(feature = "vulkan")))
         .define("GGML_CUDA", on(cfg!(feature = "cuda")))
+        // The libraries are copied out of the build tree, never installed,
+        // so they carry the install run path (upstream's `$ORIGIN` first).
+        // The build run path is padded with empty entries for install to
+        // rewrite, and the loader reads an empty entry as the working
+        // directory.
+        .define("CMAKE_BUILD_WITH_INSTALL_RPATH", "ON")
         .build_target("nemo_speech_asr_c")
         .pic(true);
     forward_env(&mut config);
