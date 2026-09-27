@@ -1,27 +1,33 @@
 //! The speaker pass thread (ADR 0035): reads both tracks, picks the one to
 //! diarize (the microphone when it was shared, ADR 0075), sends it through
 //! the engine, labels the segments under the sentence rule (ADR 0072) and
-//! the two-track rules, folds the user's voice into the voiceprint,
-//! polishes the parts it split, and commits the result through the
-//! meeting's job entry. The service that starts and tracks passes is
-//! `diarization.rs`.
+//! the two-track rules, folds the user's voice into the voiceprint (from
+//! the voice engine, the sherpa-onnx set whichever set diarized), polishes
+//! the parts it split, and commits the result through the meeting's job
+//! entry. The service that starts and tracks passes is `diarization.rs`.
 
 use std::path::Path;
 
+use dettivo_engine_proto::SpeakerTurn;
 use dettivo_meeting::Track;
-use dettivo_meeting::diarize;
+use dettivo_meeting::diarize::{self, Outcome, Rule};
 use dettivo_meeting::levels::Levels;
-use dettivo_meeting::two_track::{self, Evidence};
+use dettivo_meeting::two_track::{self, Evidence, Report, Rules as TwoTrack};
 use dettivo_meeting::voiceprint::Voiceprint;
 use dettivo_proto::methods::meetings::{Segment, SegmentSource};
 use dettivo_proto::methods::speakers::DiarizationStatus;
 use dettivo_speech::EngineError;
 use dettivo_speech::diarize::{DiarizeRequest, timeout_for};
+use dettivo_storage::meetings::MeetingRow;
 
 use crate::diarization::{
     Diarization, Pass, STAGE, model_missing, publish_progress, publish_state,
 };
 use crate::meetings_archive::MeetingArchive;
+
+#[cfg(test)]
+#[path = "diarization_run_tests.rs"]
+mod tests;
 
 /// The engine's last redacted stderr line, for the row.
 fn last_line(tail: &str) -> String {
@@ -57,15 +63,13 @@ fn read_tracks(dir: Option<&str>, system_audio: bool) -> Result<Tracks, String> 
     })
 }
 
+/// One embedding per span of a track: the voice engine's `embed`.
+type Embed<'a> = dyn Fn(&[i16], &[(u64, u64)]) -> Result<Vec<Option<Vec<f32>>>, EngineError> + 'a;
+
 /// One embedding per segment, each on its own track; none where the
 /// engine could not embed (an older engine, a failure), which leaves the
 /// voice rules idle.
-fn embeddings(
-    engine: &dettivo_speech::diarize::DiarizeEngine,
-    segments: &[Segment],
-    tracks: &Tracks,
-    audio_ms: u64,
-) -> Vec<Option<Vec<f32>>> {
+fn embeddings(embed: &Embed<'_>, segments: &[Segment], tracks: &Tracks) -> Vec<Option<Vec<f32>>> {
     let spans = two_track::embed_spans(segments);
     let mut out = vec![None; segments.len()];
     for (source, pcm) in [
@@ -79,7 +83,7 @@ fn embeddings(
             continue;
         }
         let asked: Vec<(u64, u64)> = mine.iter().filter_map(|&i| spans[i]).collect();
-        match engine.embed(pcm, &asked, timeout_for(audio_ms)) {
+        match embed(pcm, &asked) {
             Ok(vectors) => {
                 for (i, v) in mine.into_iter().zip(vectors) {
                     out[i] = v;
@@ -94,6 +98,62 @@ fn embeddings(
     out
 }
 
+/// What the labelling reads besides the row and the voice engine.
+struct Labelling<'a> {
+    turns: &'a [SpeakerTurn],
+    room_audio: bool,
+    audio_ms: u64,
+    rule: &'a Rule,
+    rules: &'a TwoTrack,
+    levels: Option<&'a Levels>,
+    tracks: &'a Tracks,
+    data_dir: &'a Path,
+}
+
+/// Labels the row's segments under the two-track rules and folds this
+/// meeting into the stored voiceprint. `voice` is the embedding set's id
+/// (which keys the print) with its embedder, or why this meeting has none:
+/// the voice rules then stay idle and the labelling goes on without them.
+fn label_row(
+    row: &mut MeetingRow,
+    l: &Labelling<'_>,
+    voice: Result<(&str, &Embed<'_>), &str>,
+) -> (Outcome, Report) {
+    let wanted = l.rules.voiceprint && !l.room_audio;
+    let voice = match voice {
+        Ok(voice) if wanted => Some(voice),
+        Err(why) if wanted => {
+            tracing::debug!(reason = %why, "voiceprint skipped for this meeting");
+            None
+        }
+        _ => None,
+    };
+    let stored = voice.and_then(|(model, _)| Voiceprint::load(l.data_dir, model));
+    let evidence = Evidence {
+        levels: l.levels,
+        embeddings: voice.map_or_else(Vec::new, |(_, embed)| {
+            embeddings(embed, &row.segments, l.tracks)
+        }),
+        voiceprint: stored.as_ref().map(|p| p.vector.as_slice()),
+    };
+    let (out, report) = two_track::label(
+        &mut row.segments,
+        l.turns,
+        l.room_audio,
+        l.audio_ms,
+        l.rule,
+        l.rules,
+        &evidence,
+    );
+    if let (Some((model, _)), Some(meeting)) = (voice, &report.enrolment)
+        && let Some(print) = Voiceprint::fold(stored, model, &row.id, meeting)
+        && let Err(e) = print.save(l.data_dir)
+    {
+        tracing::warn!(error = %e, "voiceprint not stored");
+    }
+    (out, report)
+}
+
 /// The pass thread: the track, the engine, the assignment, the row.
 pub(crate) fn run(service: &Diarization, pass: Pass) {
     let Pass {
@@ -101,6 +161,7 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
         mut row,
         audio_dir,
         engine,
+        voice,
         model_id,
         fallback_reason,
         rule,
@@ -186,28 +247,27 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
             } else {
                 result.turns
             };
-            let voices = rules.voiceprint && !room_audio;
-            let stored = voices
-                .then(|| Voiceprint::load(&data_dir, &model_id))
-                .flatten();
-            let evidence = Evidence {
-                levels: levels.as_ref(),
-                embeddings: if voices {
-                    embeddings(&engine, &row.segments, &tracks, audio_ms)
-                } else {
-                    Vec::new()
-                },
-                voiceprint: stored.as_ref().map(|p| p.vector.as_slice()),
-            };
-            let (out, report) = two_track::label(
-                &mut row.segments,
-                &turns,
+            let labelling = Labelling {
+                turns: &turns,
                 room_audio,
                 audio_ms,
-                &rule,
-                &rules,
-                &evidence,
-            );
+                rule: &rule,
+                rules: &rules,
+                levels: levels.as_ref(),
+                tracks: &tracks,
+                data_dir: &data_dir,
+            };
+            let embed;
+            let voice_in: Result<(&str, &Embed<'_>), &str> = match &voice {
+                Ok(v) => {
+                    embed = |pcm: &[i16], spans: &[(u64, u64)]| {
+                        v.engine.embed(pcm, spans, timeout_for(audio_ms))
+                    };
+                    Ok((v.model_id.as_str(), &embed))
+                }
+                Err(why) => Err(why.as_str()),
+            };
+            let (out, report) = label_row(&mut row, &labelling, voice_in);
             if report.dropped_bleed > 0 {
                 row.raw_text = row
                     .segments
@@ -220,12 +280,6 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
             }
             if out.split > 0 {
                 MeetingArchive::polish_missing(&polish, &mut row);
-            }
-            if let Some(meeting) = &report.enrolment
-                && let Some(print) = Voiceprint::fold(stored, &model_id, &row.id, meeting)
-                && let Err(e) = print.save(&data_dir)
-            {
-                tracing::warn!(error = %e, "voiceprint not stored");
             }
             let mut speakers = out.speakers;
             diarize::carry_names(&mut speakers, &mut row.segments, &previous);

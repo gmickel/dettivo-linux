@@ -1,12 +1,21 @@
 //! Which model set and backend a speaker pass runs (ADR 0073): Nemotron
 //! when it is configured, downloaded and the expected count fits its eight
-//! channels, the sherpa-onnx set with the reason otherwise.
+//! channels, the sherpa-onnx set with the reason otherwise; and which set
+//! embeds the user's voice (ADR 0075).
 
+use std::path::{Path, PathBuf};
+
+use dettivo_core::config::Loaded;
 use dettivo_core::config::schema::DiarizeBackend;
 use dettivo_engine_proto::BackendPreference;
 use dettivo_speech::diarize::{
-    FALLBACK_MODEL, NEMOTRON_BINARY, NEMOTRON_MAX_SPEAKERS, NEMOTRON_MODEL,
+    DiarizeEngine, FALLBACK_MODEL, NEMOTRON_BINARY, NEMOTRON_MAX_SPEAKERS, NEMOTRON_MODEL,
+    binary_for,
 };
+use dettivo_speech::engines::DIARIZE_BINARY;
+use dettivo_speech::models::Readiness;
+
+use crate::daemon::Daemon;
 
 /// The model set a pass runs, and why when it is not the configured one.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -50,6 +59,84 @@ pub(crate) fn choose(
     }
 }
 
+/// The model set whose embedding model the voice rules use (ADR 0075):
+/// the set the pass runs when the sherpa-onnx engine runs it, otherwise
+/// the sherpa-onnx fallback set when it is on disk, since Nemotron has no
+/// embedding model. The error is why this meeting skips the voiceprint.
+pub(crate) fn embedding_set(
+    chosen: &str,
+    present: impl Fn(&str) -> bool,
+) -> Result<String, String> {
+    if binary_for(chosen) == DIARIZE_BINARY {
+        Ok(chosen.to_string())
+    } else if present(FALLBACK_MODEL) {
+        Ok(FALLBACK_MODEL.to_string())
+    } else {
+        Err(format!(
+            "diarize/{chosen} has no speaker-embedding model and diarize/{FALLBACK_MODEL} \
+             is not downloaded"
+        ))
+    }
+}
+
+/// The engine that embeds the user's voice, and the set it loads, which
+/// keys the voiceprint.
+pub(crate) struct Voice {
+    pub(crate) engine: DiarizeEngine,
+    pub(crate) model_id: String,
+}
+
+/// The readiness and load path of `diarize/<id>`, when catalogued.
+pub(crate) fn find(daemon: &Daemon, id: &str) -> Option<(Readiness, PathBuf)> {
+    let store = daemon.models().store();
+    store
+        .catalogue()
+        .find("diarize", id)
+        .map(|entry| (store.readiness(entry), store.load_path(entry)))
+}
+
+/// Whether `diarize/<id>` is on disk as far as a choice goes: a
+/// quarantined set counts, so its load is refused with the verification
+/// error instead of replaced. Only a set missing or still arriving is not.
+pub(crate) fn present(daemon: &Daemon, id: &str) -> bool {
+    matches!(
+        find(daemon, id),
+        Some((
+            Readiness::Ready | Readiness::Unverified | Readiness::Quarantined,
+            _
+        ))
+    )
+}
+
+/// The engine binary for `model` over the supervisor, loading `dir`.
+pub(crate) fn open(daemon: &Daemon, loaded: &Loaded, model: &str, dir: &Path) -> DiarizeEngine {
+    let binary = binary_for(model);
+    DiarizeEngine::new(
+        daemon.engines().supervisor(),
+        binary,
+        dir.to_string_lossy().into_owned(),
+        Some(loaded.config.engines.diarize.threads),
+    )
+    .with_backend(preference(loaded.config.engines.diarize.backend, binary))
+}
+
+/// The voice engine for a pass that runs `chosen` ([`embedding_set`]),
+/// verified like any load; the error is why the voiceprint is skipped.
+pub(crate) fn voice(daemon: &Daemon, loaded: &Loaded, chosen: &str) -> Result<Voice, String> {
+    if !loaded.config.meetings.diarization.voiceprint {
+        return Err("[meetings.diarization] voiceprint = false".into());
+    }
+    let id = embedding_set(chosen, |id| present(daemon, id))?;
+    let Some((_, dir)) = find(daemon, &id) else {
+        return Err(format!("diarize/{id} is not catalogued"));
+    };
+    daemon.models().verifier().ensure(&dir)?;
+    Ok(Voice {
+        engine: open(daemon, loaded, &id, &dir),
+        model_id: id,
+    })
+}
+
 /// `[engines.diarize] backend` as the load's preference for `binary`: the
 /// sherpa-onnx engine has no Vulkan provider, so `vulkan` asks it for
 /// `auto`, which a Nemotron pass that fell back to it then gets.
@@ -66,7 +153,6 @@ pub(crate) fn preference(backend: DiarizeBackend, binary: &str) -> BackendPrefer
 #[cfg(test)]
 mod tests {
     use super::*;
-    use dettivo_speech::engines::DIARIZE_BINARY;
 
     #[test]
     fn nemotron_falls_back_over_eight_speakers_and_when_it_is_missing() {
@@ -101,6 +187,26 @@ mod tests {
         assert_eq!(
             (other.model.as_str(), other.fallback_reason),
             ("diarization", None)
+        );
+    }
+
+    #[test]
+    fn embeddings_come_from_the_sherpa_set_whichever_set_diarizes() {
+        let both = |_: &str| true;
+        assert_eq!(embedding_set(NEMOTRON_MODEL, both).unwrap(), FALLBACK_MODEL);
+        assert_eq!(
+            embedding_set(FALLBACK_MODEL, |_| false).unwrap(),
+            FALLBACK_MODEL
+        );
+        assert_eq!(
+            embedding_set("diarization", |_| false).unwrap(),
+            "diarization"
+        );
+        let why = embedding_set(NEMOTRON_MODEL, |id| id == NEMOTRON_MODEL).unwrap_err();
+        assert!(
+            why.contains("no speaker-embedding model")
+                && why.contains("diarize/diarization-en is not downloaded"),
+            "{why}"
         );
     }
 

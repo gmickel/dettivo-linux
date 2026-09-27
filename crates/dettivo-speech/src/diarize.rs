@@ -6,7 +6,8 @@
 //! ends in its background), and the same slot mechanics as the speech
 //! engines: spawn on first need, `stt_idle_seconds` reaping, crashes
 //! recorded with backoff, degraded after three. `embed` asks the same
-//! engine for one voice embedding per time span of a track.
+//! engine for one voice embedding per time span of a track; only the
+//! sherpa-onnx engine has an embedding model (Nemotron refuses it).
 
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
@@ -168,7 +169,7 @@ impl DiarizeEngine {
         };
         let bytes = dettivo_engine_proto::pcm_to_bytes(pcm);
         self.supervisor
-            .with_engine_load(DIARIZE_BINARY, self.load_params(), |process, _| {
+            .with_engine_load(self.binary, self.load_params(), |process, _| {
                 let value = process.call(
                     "embed",
                     serde_json::to_value(&params).unwrap_or(Value::Null),
