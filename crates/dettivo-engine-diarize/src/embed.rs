@@ -118,7 +118,7 @@ fn range(span: &Span, len: usize) -> Option<std::ops::Range<usize>> {
     let at = |ms: u64| ((ms.saturating_mul(SAMPLE_RATE) / 1000) as usize).min(len);
     let (start, end) = (at(span.start_ms), at(span.end_ms));
     let min = (MIN_SPAN_MS * SAMPLE_RATE / 1000) as usize;
-    (end >= start + min).then_some(start..end)
+    (end.saturating_sub(start) >= min).then_some(start..end)
 }
 
 impl Diarizer {
