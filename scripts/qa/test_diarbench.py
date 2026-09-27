@@ -132,6 +132,28 @@ class EngineIdentityTests(unittest.TestCase):
             self.assertNotEqual(plain, engines.identity(cache, {**engine, "probs": True}))
             self.assertEqual(plain, engines.identity(cache, {**engine, "probs": False}))
 
+    def test_a_stale_result_without_requested_probabilities_is_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            binary, model, wav = Path(tmp) / "engine", Path(tmp) / "model", Path(tmp) / "a.wav"
+            binary.write_bytes(b"engine")
+            wav.write_bytes(b"audio")
+            model.mkdir()
+            (model / "weights.gguf").write_bytes(b"weights")
+            engine = {"kind": "diarize", "binary": str(binary), "model": str(model), "threads": 4,
+                      "provider": "cpu", "probs": True}
+            cache = Cache(tmp)
+            slot = f"{cache.file_hash(wav)}:nemotron"
+            cache.put("engine", "old", {"turns": [], "run": {}, "probs": None}, index=slot)
+            self.assertEqual(engines.engine_result(cache, "nemotron", engine, wav, False, None), (None, None))
+            self.assertEqual(cache.ledger["engine"]["missing"], 1)
+            cache.path("engine", "new", ".npy").write_bytes(b"probs")
+            with_probs = {"turns": [], "run": {}, "probs": "new.npy"}
+            cache.put("engine", "new", with_probs, index=slot)
+            self.assertEqual(engines.engine_result(cache, "nemotron", engine, wav, False, None), ("new", with_probs))
+            plain = {**engine, "probs": False}
+            cache.put("engine", "plain", {"turns": [], "run": {}, "probs": None}, index=slot)
+            self.assertEqual(engines.engine_result(cache, "nemotron", plain, wav, False, None)[0], "plain")
+
 
 class ParityVerdictTests(unittest.TestCase):
     @staticmethod

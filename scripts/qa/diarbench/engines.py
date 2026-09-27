@@ -114,11 +114,16 @@ def engine_result(cache, engine_name, engine, wav, full, python):
     if hit is not None:
         cache.note("engine", "cached")
         return k, hit
+    keeps_probs = engine["kind"] == "nemotron-onnx" or engine.get("probs")
     if not full:
         stale_key, stale = cache.newest("engine", slot)
+        # A stale result without the probabilities this engine asks for is missing, not
+        # silently scored without them.
+        if stale and keeps_probs and not (
+                stale.get("probs") and cache.path("engine", Path(stale["probs"]).stem, ".npy").is_file()):
+            stale_key, stale = None, None
         cache.note("engine", "stale" if stale else "missing")
         return stale_key, stale
-    keeps_probs = engine["kind"] == "nemotron-onnx" or engine.get("probs")
     probs = cache.path("engine", k, ".npy") if keeps_probs else None
     print(f"running {engine_name} on {Path(wav).name}", file=sys.stderr, flush=True)
     turns, run = diarize(engine, wav, probs, python)
