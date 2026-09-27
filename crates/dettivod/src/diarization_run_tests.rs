@@ -1,6 +1,8 @@
 //! The voiceprint step under a Nemotron pass (ADR 0075): the embeddings
 //! come from the sherpa-onnx `diarization-en` set when it is on disk, and
 //! without it the pass labels the meeting with no voiceprint and no error.
+//! Labelling never writes the print: the pass stores a meeting's voice only
+//! in its ownership-checked commit, so a dropped result leaves it untouched.
 
 use super::*;
 use crate::diarization_choice::embedding_set;
@@ -62,7 +64,15 @@ fn label(voice: Result<(&str, &Embed<'_>), &str>) -> (usize, Option<Voiceprint>)
         data_dir: data.path(),
     };
     let mut row = meeting();
-    let (out, _) = label_row(&mut row, &labelling, voice);
+    let (out, _, pending) = label_row(&mut row, &labelling, voice);
+    assert!(
+        !data.path().join(FILE).exists(),
+        "labelling alone never writes the voiceprint"
+    );
+    // The pass's ownership-checked commit stores the enrolment.
+    if let Some(pending) = pending {
+        pending.store(data.path(), &row.id);
+    }
     let print =
         data.path().join(FILE).is_file().then(|| {
             Voiceprint::load(data.path(), FALLBACK_MODEL).expect("a diarization-en print")

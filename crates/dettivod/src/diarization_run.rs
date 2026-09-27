@@ -118,7 +118,7 @@ fn label_row(
     row: &mut MeetingRow,
     l: &Labelling<'_>,
     voice: Result<(&str, &Embed<'_>), &str>,
-) -> (Outcome, Report) {
+) -> (Outcome, Report, Option<Enrolment>) {
     let wanted = l.rules.voiceprint && !l.room_audio;
     let voice = match voice {
         Ok(voice) if wanted => Some(voice),
@@ -145,12 +145,29 @@ fn label_row(
         l.rules,
         &evidence,
     );
-    if let (Some((model, _)), Some(meeting)) = (voice, &report.enrolment)
-        && let Err(e) = Voiceprint::enrol(l.data_dir, model, &row.id, meeting)
-    {
-        tracing::warn!(error = %e, "voiceprint not stored");
+    let pending = match (voice, &report.enrolment) {
+        (Some((model, _)), Some(meeting)) => Some(Enrolment {
+            model: model.to_string(),
+            meeting: meeting.clone(),
+        }),
+        _ => None,
+    };
+    (out, report, pending)
+}
+
+/// A meeting's voice, folded into the user's print only once the pass
+/// that measured it still owns the meeting (see `run`'s commit).
+struct Enrolment {
+    model: String,
+    meeting: Vec<f32>,
+}
+
+impl Enrolment {
+    fn store(&self, data_dir: &Path, meeting_id: &str) {
+        if let Err(e) = Voiceprint::enrol(data_dir, &self.model, meeting_id, &self.meeting) {
+            tracing::warn!(error = %e, "voiceprint not stored");
+        }
     }
-    (out, report)
 }
 
 /// The pass thread: the track, the engine, the assignment, the row.
@@ -191,6 +208,7 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
         _ => None,
     };
     let (track, shared_mic) = two_track::plan(row.system_audio, levels.as_ref(), &rules);
+    let mut enrolment: Option<Enrolment> = None;
     let outcome = match &mut tracks {
         Err(e) => Err((format!("audio: {e}"), false)),
         Ok(t) => {
@@ -266,7 +284,8 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
                 }
                 Err(why) => Err(why.as_str()),
             };
-            let (out, report) = label_row(&mut row, &labelling, voice_in);
+            let (out, report, pending) = label_row(&mut row, &labelling, voice_in);
+            enrolment = pending;
             if report.dropped_bleed > 0 {
                 row.raw_text = row
                     .segments
@@ -320,9 +339,15 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
     // The result is written only by the pass that still owns the
     // meeting: a delete that invalidated it drops the speakers and the
     // block instead of recreating what it cleared.
+    // The voiceprint takes this meeting's voice under the same ownership
+    // check, so a meeting deleted or replaced while the pass ran never
+    // reaches the user's print.
     let stored = service.commit(&row.id, &job_id, || {
         if let Err(e) = history.with_store(|s| s.update_meeting(&row)) {
             tracing::warn!(error = %e, "history: diarization result not stored");
+        }
+        if let Some(enrolment) = &enrolment {
+            enrolment.store(&data_dir, &row.id);
         }
     });
     if stored.is_none() {
