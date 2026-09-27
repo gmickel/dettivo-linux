@@ -23,7 +23,7 @@ use dettivo_proto::methods::meetings::{Segment, SegmentSource};
 use crate::Track;
 use crate::diarize::{self, Outcome, Rule, YOU};
 use crate::levels::Levels;
-use crate::voiceprint::{centroid, cosine};
+use crate::voiceprint::{Voiceprint, centroid, cosine};
 
 /// A line shorter than this gets no embedding: too little voice to tell.
 pub const MIN_EMBED_MS: u64 = 1500;
@@ -71,7 +71,7 @@ pub struct Evidence<'a> {
     /// empty when none was computed.
     pub embeddings: Vec<Option<Vec<f32>>>,
     /// The stored voiceprint, when there is one.
-    pub voiceprint: Option<&'a [f32]>,
+    pub voiceprint: Option<&'a Voiceprint>,
 }
 
 /// What the rules did.
@@ -205,8 +205,9 @@ pub fn label(
     }
     if rules.voiceprint {
         let reference = match (evidence.voiceprint, report.enrolment.as_deref()) {
-            (Some(stored), Some(meeting)) => centroid([(stored, 1.0), (meeting, 1.0)]),
-            (stored, meeting) => stored.or(meeting).map(<[f32]>::to_vec),
+            (Some(stored), Some(meeting)) => stored.blend(meeting),
+            (Some(stored), None) => Some(stored.vector.clone()),
+            (None, meeting) => meeting.map(<[f32]>::to_vec),
         };
         if let Some(reference) = reference {
             for (s, voice) in segments.iter_mut().zip(&voice_of) {

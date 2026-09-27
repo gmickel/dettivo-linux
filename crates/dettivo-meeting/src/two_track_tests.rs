@@ -263,6 +263,75 @@ fn a_silent_system_track_switches_to_the_shared_microphone() {
     );
 }
 
+/// A stored print of `meetings` meetings pointing along the first axis.
+fn print(meetings: u32) -> Voiceprint {
+    Voiceprint {
+        schema: 1,
+        model: "m".into(),
+        meetings,
+        folded: Vec::new(),
+        vector: vec![1.0, 0.0],
+    }
+}
+
+#[test]
+fn one_off_meeting_enrolment_cannot_outvote_a_long_stored_print() {
+    // The stored print is the user's voice on the first axis. This
+    // meeting's microphone lines enrolled a different voice (a shared
+    // microphone, a headset mix-up), which a remote line also carries.
+    let user = Some(vec![1.0_f32, 0.0]);
+    let other = Some(vec![0.0_f32, 1.0]);
+    let lines = || {
+        vec![
+            seg(0, 2000, Mic, "Hello there."),
+            seg(3000, 5000, Mic, "Can you hear me?"),
+            seg(6000, 8000, Mic, "Good."),
+            seg(9000, 12_000, Sys, "Yes, loud and clear."),
+            seg(13_000, 15_000, Sys, "Good."),
+        ]
+    };
+    let turns = [turn(9000, 15_000, "A")];
+    let rules = Rules {
+        single_remote: false,
+        ..Rules::default()
+    };
+    let you = |meetings| {
+        let stored = print(meetings);
+        let evidence = Evidence {
+            embeddings: vec![
+                other.clone(),
+                other.clone(),
+                other.clone(),
+                other.clone(),
+                user.clone(),
+            ],
+            voiceprint: Some(&stored),
+            ..Default::default()
+        };
+        let mut segments = lines();
+        label(
+            &mut segments,
+            &turns,
+            false,
+            15_000,
+            &Rule::default(),
+            &rules,
+            &evidence,
+        );
+        segments[3..]
+            .iter()
+            .map(|s| s.speaker_id.as_deref() == Some("you"))
+            .collect::<Vec<_>>()
+    };
+    // A print of one meeting weighs even with this one: both remote lines
+    // sit at 0.71 of the half-way reference and become You.
+    assert_eq!(you(1), [true, true]);
+    // A print of twenty meetings or more weighs 20 to 1: only the user's
+    // real voice matches.
+    assert_eq!(you(20), [false, true]);
+    assert_eq!(you(400), [false, true]);
+}
+
 #[test]
 fn the_users_voice_on_the_system_track_is_relabelled_you() {
     let user = Some(vec![1.0_f32, 0.0]);
@@ -326,7 +395,7 @@ fn the_users_voice_on_the_system_track_is_relabelled_you() {
         &few,
     );
     assert_eq!((report.you_relabelled, report.enrolment), (0, None));
-    let stored = [1.0_f32, 0.0];
+    let stored = print(1);
     let with_print = Evidence {
         voiceprint: Some(&stored),
         ..few

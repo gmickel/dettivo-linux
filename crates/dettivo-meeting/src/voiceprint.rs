@@ -6,6 +6,8 @@
 //! the pass from reading or writing it.
 
 use std::path::Path;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Mutex, PoisonError};
 
 use serde::{Deserialize, Serialize};
 
@@ -16,6 +18,11 @@ pub const FILE: &str = "voiceprint.json";
 const MAX_WEIGHT: u32 = 20;
 /// The meeting ids the print remembers having folded, newest last.
 const REMEMBERED: usize = 200;
+/// Held across every load, fold and save of the print, so two meetings'
+/// passes finishing together both land in it.
+static UPDATE: Mutex<()> = Mutex::new(());
+/// Numbers each write's temporary file, so no two writes share one.
+static WRITES: AtomicU64 = AtomicU64::new(0);
 
 /// The stored print.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -79,10 +86,29 @@ impl Voiceprint {
         (print.schema == 1 && print.model == model && !print.vector.is_empty()).then_some(print)
     }
 
+    /// Folds meeting `id`'s centroid into the print under `data_dir` and
+    /// stores the result; false when the print already holds that meeting.
+    /// One process-wide lock covers the whole read, fold and write.
+    pub fn enrol(data_dir: &Path, model: &str, id: &str, meeting: &[f32]) -> std::io::Result<bool> {
+        let _guard = UPDATE.lock().unwrap_or_else(PoisonError::into_inner);
+        match Self::fold(Self::load(data_dir, model), model, id, meeting) {
+            Some(print) => print.save(data_dir).map(|()| true),
+            None => Ok(false),
+        }
+    }
+
+    /// This print averaged with one new meeting's centroid, the print
+    /// weighing as many meetings as it holds, up to 20 to 1; None when the
+    /// lengths differ.
+    pub fn blend(&self, meeting: &[f32]) -> Option<Vec<f32>> {
+        let weight = self.meetings.clamp(1, MAX_WEIGHT) as f32;
+        centroid([(self.vector.as_slice(), weight), (meeting, 1.0)])
+    }
+
     /// Folds meeting `id`'s centroid into `previous` (a first print when
     /// there is none or its length differs); None when `previous` already
     /// holds that meeting.
-    pub fn fold(previous: Option<Self>, model: &str, id: &str, meeting: &[f32]) -> Option<Self> {
+    fn fold(previous: Option<Self>, model: &str, id: &str, meeting: &[f32]) -> Option<Self> {
         let previous = previous.filter(|p| p.vector.len() == meeting.len());
         if previous
             .as_ref()
@@ -99,13 +125,7 @@ impl Voiceprint {
         folded.drain(..excess);
         let (meetings, vector) = match &previous {
             None => (1, normalised(meeting.to_vec())?),
-            Some(p) => {
-                let weight = p.meetings.clamp(1, MAX_WEIGHT) as f32;
-                (
-                    p.meetings.saturating_add(1),
-                    centroid([(p.vector.as_slice(), weight), (meeting, 1.0)])?,
-                )
-            }
+            Some(p) => (p.meetings.saturating_add(1), p.blend(meeting)?),
         };
         Some(Self {
             schema: 1,
@@ -116,13 +136,14 @@ impl Voiceprint {
         })
     }
 
-    /// Writes the print under `data_dir` atomically, readable by the user
-    /// alone.
-    pub fn save(&self, data_dir: &Path) -> std::io::Result<()> {
+    /// Writes the print under `data_dir` atomically through a temporary
+    /// file of its own, readable by the user alone.
+    fn save(&self, data_dir: &Path) -> std::io::Result<()> {
         use std::io::Write;
         use std::os::unix::fs::OpenOptionsExt;
         std::fs::create_dir_all(data_dir)?;
-        let tmp = data_dir.join(format!("{FILE}.tmp"));
+        let n = WRITES.fetch_add(1, Ordering::Relaxed);
+        let tmp = data_dir.join(format!("{FILE}.{}.{n}.tmp", std::process::id()));
         let mut file = std::fs::OpenOptions::new()
             .write(true)
             .create(true)
@@ -185,5 +206,46 @@ mod tests {
         assert_eq!(Voiceprint::load(dir.path(), "other"), None);
         std::fs::write(dir.path().join(FILE), "not json").unwrap();
         assert_eq!(Voiceprint::load(dir.path(), "m"), None);
+    }
+
+    #[test]
+    fn the_stored_print_outweighs_one_meeting_up_to_twenty_to_one() {
+        let print = |meetings| Voiceprint {
+            schema: 1,
+            model: "m".into(),
+            meetings,
+            folded: Vec::new(),
+            vector: vec![1.0, 0.0],
+        };
+        let tan = |v: Vec<f32>| v[1] / v[0];
+        assert!((tan(print(1).blend(&[0.0, 1.0]).unwrap()) - 1.0).abs() < 1e-6);
+        assert!((tan(print(5).blend(&[0.0, 1.0]).unwrap()) - 0.2).abs() < 1e-6);
+        assert!((tan(print(500).blend(&[0.0, 1.0]).unwrap()) - 0.05).abs() < 1e-6);
+        assert_eq!(print(5).blend(&[0.0, 1.0, 0.0]), None, "lengths differ");
+    }
+
+    #[test]
+    fn meetings_enrolling_at_once_all_land_in_the_print() {
+        let dir = tempfile::tempdir().unwrap();
+        let ids: Vec<String> = (0..16).map(|i| format!("meeting-{i}")).collect();
+        std::thread::scope(|scope| {
+            for id in &ids {
+                let dir = dir.path();
+                scope.spawn(move || Voiceprint::enrol(dir, "m", id, &[0.0, 1.0]).unwrap());
+            }
+        });
+        let print = Voiceprint::load(dir.path(), "m").unwrap();
+        assert_eq!(print.meetings, 16);
+        let mut folded = print.folded.clone();
+        folded.sort();
+        let mut expected = ids.clone();
+        expected.sort();
+        assert_eq!(folded, expected);
+        assert!(!Voiceprint::enrol(dir.path(), "m", &ids[0], &[0.0, 1.0]).unwrap());
+        let names: Vec<_> = std::fs::read_dir(dir.path())
+            .unwrap()
+            .map(|e| e.unwrap().file_name())
+            .collect();
+        assert_eq!(names, [FILE], "no temporary file is left behind");
     }
 }

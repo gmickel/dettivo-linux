@@ -134,7 +134,7 @@ fn label_row(
         embeddings: voice.map_or_else(Vec::new, |(_, embed)| {
             embeddings(embed, &row.segments, l.tracks)
         }),
-        voiceprint: stored.as_ref().map(|p| p.vector.as_slice()),
+        voiceprint: stored.as_ref(),
     };
     let (out, report) = two_track::label(
         &mut row.segments,
@@ -146,8 +146,7 @@ fn label_row(
         &evidence,
     );
     if let (Some((model, _)), Some(meeting)) = (voice, &report.enrolment)
-        && let Some(print) = Voiceprint::fold(stored, model, &row.id, meeting)
-        && let Err(e) = print.save(l.data_dir)
+        && let Err(e) = Voiceprint::enrol(l.data_dir, model, &row.id, meeting)
     {
         tracing::warn!(error = %e, "voiceprint not stored");
     }
