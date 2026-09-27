@@ -74,6 +74,7 @@ fn diarized(ran_at: &str) -> Diarization {
         coverage: Some(1.0),
         engine: Some("dettivo-engine-diarize".into()),
         model: Some("diarize/diarization".into()),
+        fallback_reason: None,
         ran_at: Some(ran_at.into()),
         error: None,
         expected_speakers: None,

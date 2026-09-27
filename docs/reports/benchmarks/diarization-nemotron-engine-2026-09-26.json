@@ -1,0 +1,1539 @@
+{
+ "spec": "fn-69",
+ "date": "2026-09-26",
+ "tree": "f584158d6281",
+ "runtime": {
+  "nemo_speech_cpp_commit": "97a15afa5caa9bce5baaa86c1184103877af4101",
+  "ggml_commit": "c03b4e2bcece5134827881af90242086daf75be5",
+  "sentencepiece_commit": "17d7580d6407802f85855d2cc9190634e2c95624",
+  "ggml_patched": false
+ },
+ "model": {
+  "catalogue": "diarize/nemotron-3-diarization",
+  "file": "Nemotron-3-Diarization.q8_0.gguf",
+  "revision": "f667ed73aee57d40cc39428eb768b4fd87a0a29e",
+  "sha256": "08456d9e22cd9a323c0364d98375f3746d6e68507ebb705cd46438c534c7a3a1"
+ },
+ "engine_binaries_sha256": {
+  "cpu": {
+   "dettivo-engine-nemotron": "aa1343e5dcb0b606437b9d8ed5b25b15bac34468eb1094b7892a6c031fb813ef"
+  },
+  "cuda": {
+   "dettivo-engine-nemotron": "e312015043fce0daed209452f1ac41feac162d4198630984de5a9d2d7bee61c6"
+  },
+  "vulkan": {
+   "dettivo-engine-nemotron": "3c808242df944c4522dcaecec33feaa84f184bbf74eb2f22aa77e0e6e57eab87"
+  }
+ },
+ "host": {
+  "cpu": "AMD Ryzen 9 7950X3D (16 cores, 32 threads)",
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "cuda": "13.3.1",
+  "vulkan_loader": "1.4.357"
+ },
+ "parity": {
+  "cpu": {
+   "tolerance": {
+    "turn_der": 0.02,
+    "turn_confusion": 0.005,
+    "decision_flip_share": 0.01
+   },
+   "port_provider": "CPUExecutionProvider",
+   "onnxruntime": "1.30.0",
+   "recordings": [
+    {
+     "recording": "ES2004a",
+     "engine_backend": "cpu",
+     "frames": 104936,
+     "frames_engine": 104936,
+     "frames_port": 104936,
+     "max_abs_probability_difference": 0.33379244804382324,
+     "mean_abs_probability_difference": 0.000701272627338767,
+     "decision_flip_share": 0.0004467008462300831,
+     "turn_der": 0.003972032538019969,
+     "turn_confusion": 1.3602851157602634e-05,
+     "engine_speakers": 4,
+     "port_speakers": 4,
+     "engine_vs_ami": {
+      "der": 0.2250522508473842,
+      "missed": 0.213454187106765,
+      "false_alarm": 0.008414281537311979,
+      "confusion": 0.0031837822033072348,
+      "hypothesis_speakers": 4
+     },
+     "port_vs_ami": {
+      "der": 0.22429420746564438,
+      "missed": 0.21247955990167094,
+      "false_alarm": 0.008576719404827654,
+      "confusion": 0.0032379281591457935,
+      "hypothesis_speakers": 4
+     },
+     "within_tolerance": true
+    },
+    {
+     "recording": "TS3003a",
+     "engine_backend": "cpu",
+     "frames": 150565,
+     "frames_engine": 150565,
+     "frames_port": 150565,
+     "max_abs_probability_difference": 0.39845913648605347,
+     "mean_abs_probability_difference": 0.0010206492152065039,
+     "decision_flip_share": 0.00037940424401421315,
+     "turn_der": 0.006084793636964067,
+     "turn_confusion": 0.0,
+     "engine_speakers": 2,
+     "port_speakers": 2,
+     "engine_vs_ami": {
+      "der": 0.3381834060454363,
+      "missed": 0.31108693872299614,
+      "false_alarm": 0.0033724380192677325,
+      "confusion": 0.023724029303172432,
+      "hypothesis_speakers": 2
+     },
+     "port_vs_ami": {
+      "der": 0.3378422634712329,
+      "missed": 0.30981009080240635,
+      "false_alarm": 0.0034114257420338337,
+      "confusion": 0.024620746926792753,
+      "hypothesis_speakers": 2
+     },
+     "within_tolerance": true
+    },
+    {
+     "recording": "IS1009b",
+     "engine_backend": "cpu",
+     "frames": 205234,
+     "frames_engine": 205234,
+     "frames_port": 205234,
+     "max_abs_probability_difference": 0.4353226125240326,
+     "mean_abs_probability_difference": 0.0009178565233014524,
+     "decision_flip_share": 0.0004647134490386583,
+     "turn_der": 0.0024061803088020316,
+     "turn_confusion": 0.0004054760609067725,
+     "engine_speakers": 4,
+     "port_speakers": 4,
+     "engine_vs_ami": {
+      "der": 0.0971270367176508,
+      "missed": 0.07161480002218894,
+      "false_alarm": 0.017493961078584145,
+      "confusion": 0.008018275616877714,
+      "hypothesis_speakers": 4
+     },
+     "port_vs_ami": {
+      "der": 0.0978885207542222,
+      "missed": 0.07214430878934124,
+      "false_alarm": 0.017362844621955954,
+      "confusion": 0.008381367342925007,
+      "hypothesis_speakers": 4
+     },
+     "within_tolerance": true
+    },
+    {
+     "recording": "EN2002c",
+     "engine_backend": "cpu",
+     "frames": 297226,
+     "frames_engine": 297226,
+     "frames_port": 297226,
+     "max_abs_probability_difference": 0.36664897203445435,
+     "mean_abs_probability_difference": 0.004785553552210331,
+     "decision_flip_share": 0.000871811348939864,
+     "turn_der": 0.008951261881990124,
+     "turn_confusion": 5.465227490094275e-05,
+     "engine_speakers": 3,
+     "port_speakers": 3,
+     "engine_vs_ami": {
+      "der": 0.24929119163546315,
+      "missed": 0.24089614910696128,
+      "false_alarm": 0.0061041260422772785,
+      "confusion": 0.0022909164862245936,
+      "hypothesis_speakers": 3
+     },
+     "port_vs_ami": {
+      "der": 0.248462753167207,
+      "missed": 0.24001387709203145,
+      "false_alarm": 0.006140015073393069,
+      "confusion": 0.0023088610017824884,
+      "hypothesis_speakers": 3
+     },
+     "within_tolerance": true
+    }
+   ],
+   "all_within_tolerance": true
+  },
+  "vulkan": {
+   "tolerance": {
+    "turn_der": 0.02,
+    "turn_confusion": 0.005,
+    "decision_flip_share": 0.01
+   },
+   "port_provider": "CPUExecutionProvider",
+   "onnxruntime": "1.30.0",
+   "recordings": [
+    {
+     "recording": "ES2004a",
+     "engine_backend": "vulkan",
+     "frames": 104936,
+     "frames_engine": 104936,
+     "frames_port": 104936,
+     "max_abs_probability_difference": 0.26010045409202576,
+     "mean_abs_probability_difference": 0.0007178724044933915,
+     "decision_flip_share": 0.0005360410154760997,
+     "turn_der": 0.00557716897461708,
+     "turn_confusion": 2.7205702315205268e-05,
+     "engine_speakers": 4,
+     "port_speakers": 4,
+     "engine_vs_ami": {
+      "der": 0.22537712658241557,
+      "missed": 0.2141797429150017,
+      "false_alarm": 0.008046089037609781,
+      "confusion": 0.0031512946298040997,
+      "hypothesis_speakers": 4
+     },
+     "port_vs_ami": {
+      "der": 0.22429420746564438,
+      "missed": 0.21247955990167094,
+      "false_alarm": 0.008576719404827654,
+      "confusion": 0.0032379281591457935,
+      "hypothesis_speakers": 4
+     },
+     "within_tolerance": true
+    },
+    {
+     "recording": "TS3003a",
+     "engine_backend": "vulkan",
+     "frames": 150565,
+     "frames_engine": 150565,
+     "frames_port": 150565,
+     "max_abs_probability_difference": 0.34211069345474243,
+     "mean_abs_probability_difference": 0.0009365134756080806,
+     "decision_flip_share": 0.00040015939959485935,
+     "turn_der": 0.0066468992847205635,
+     "turn_confusion": 0.0,
+     "engine_speakers": 2,
+     "port_speakers": 2,
+     "engine_vs_ami": {
+      "der": 0.3367408603030906,
+      "missed": 0.30965413991134194,
+      "false_alarm": 0.003382184949959258,
+      "confusion": 0.02370453544178938,
+      "hypothesis_speakers": 2
+     },
+     "port_vs_ami": {
+      "der": 0.3378422634712329,
+      "missed": 0.30981009080240635,
+      "false_alarm": 0.0034114257420338337,
+      "confusion": 0.024620746926792753,
+      "hypothesis_speakers": 2
+     },
+     "within_tolerance": true
+    },
+    {
+     "recording": "IS1009b",
+     "engine_backend": "vulkan",
+     "frames": 205234,
+     "frames_engine": 205234,
+     "frames_port": 205234,
+     "max_abs_probability_difference": 0.526017427444458,
+     "mean_abs_probability_difference": 0.0011879665544256568,
+     "decision_flip_share": 0.0005097839539257628,
+     "turn_der": 0.002811656369708804,
+     "turn_confusion": 0.0006082140913601587,
+     "engine_speakers": 4,
+     "port_speakers": 4,
+     "engine_vs_ami": {
+      "der": 0.09726319611491853,
+      "missed": 0.07227038230532988,
+      "false_alarm": 0.016908979964396838,
+      "confusion": 0.008083833845191808,
+      "hypothesis_speakers": 4
+     },
+     "port_vs_ami": {
+      "der": 0.0978885207542222,
+      "missed": 0.07214430878934124,
+      "false_alarm": 0.017362844621955954,
+      "confusion": 0.008381367342925007,
+      "hypothesis_speakers": 4
+     },
+     "within_tolerance": true
+    },
+    {
+     "recording": "EN2002c",
+     "engine_backend": "vulkan",
+     "frames": 297226,
+     "frames_engine": 297226,
+     "frames_port": 297226,
+     "max_abs_probability_difference": 0.4385226368904114,
+     "mean_abs_probability_difference": 0.0037414690013974905,
+     "decision_flip_share": 0.0008062047061831737,
+     "turn_der": 0.008139285226318974,
+     "turn_confusion": 7.807467842991822e-06,
+     "engine_speakers": 3,
+     "port_speakers": 3,
+     "engine_vs_ami": {
+      "der": 0.24893230132430524,
+      "missed": 0.240426600949863,
+      "false_alarm": 0.006412173559354476,
+      "confusion": 0.0020935268150877487,
+      "hypothesis_speakers": 3
+     },
+     "port_vs_ami": {
+      "der": 0.248462753167207,
+      "missed": 0.24001387709203145,
+      "false_alarm": 0.006140015073393069,
+      "confusion": 0.0023088610017824884,
+      "hypothesis_speakers": 3
+     },
+     "within_tolerance": true
+    }
+   ],
+   "all_within_tolerance": true
+  },
+  "cuda": {
+   "tolerance": {
+    "turn_der": 0.02,
+    "turn_confusion": 0.005,
+    "decision_flip_share": 0.01
+   },
+   "port_provider": "CPUExecutionProvider",
+   "onnxruntime": "1.30.0",
+   "recordings": [
+    {
+     "recording": "ES2004a",
+     "engine_backend": "cuda",
+     "frames": 104936,
+     "frames_engine": 104936,
+     "frames_port": 104936,
+     "max_abs_probability_difference": 0.2604824900627136,
+     "mean_abs_probability_difference": 0.0007034256705082953,
+     "decision_flip_share": 0.0004955401387512388,
+     "turn_der": 0.004298500965802432,
+     "turn_confusion": 0.0,
+     "engine_speakers": 4,
+     "port_speakers": 4,
+     "engine_vs_ami": {
+      "der": 0.2254204433470864,
+      "missed": 0.21371408769479008,
+      "false_alarm": 0.008511744257821384,
+      "confusion": 0.0031946113944749466,
+      "hypothesis_speakers": 4
+     },
+     "port_vs_ami": {
+      "der": 0.22429420746564438,
+      "missed": 0.21247955990167094,
+      "false_alarm": 0.008576719404827654,
+      "confusion": 0.0032379281591457935,
+      "hypothesis_speakers": 4
+     },
+     "within_tolerance": true
+    },
+    {
+     "recording": "TS3003a",
+     "engine_backend": "cuda",
+     "frames": 150565,
+     "frames_engine": 150565,
+     "frames_port": 150565,
+     "max_abs_probability_difference": 0.389076292514801,
+     "mean_abs_probability_difference": 0.0009683222742751241,
+     "decision_flip_share": 0.00043170723607744164,
+     "turn_der": 0.007068478520537935,
+     "turn_confusion": 0.0,
+     "engine_speakers": 2,
+     "port_speakers": 2,
+     "engine_vs_ami": {
+      "der": 0.3369455458476126,
+      "missed": 0.30992705397070464,
+      "false_alarm": 0.0033237033658101065,
+      "confusion": 0.023694788511097856,
+      "hypothesis_speakers": 2
+     },
+     "port_vs_ami": {
+      "der": 0.3378422634712329,
+      "missed": 0.30981009080240635,
+      "false_alarm": 0.0034114257420338337,
+      "confusion": 0.024620746926792753,
+      "hypothesis_speakers": 2
+     },
+     "within_tolerance": true
+    },
+    {
+     "recording": "IS1009b",
+     "engine_backend": "cuda",
+     "frames": 205234,
+     "frames_engine": 205234,
+     "frames_port": 205234,
+     "max_abs_probability_difference": 0.5616443753242493,
+     "mean_abs_probability_difference": 0.001265859231352806,
+     "decision_flip_share": 0.00041477045713673175,
+     "turn_der": 0.003078416936094839,
+     "turn_confusion": 5.335211327720691e-06,
+     "engine_speakers": 4,
+     "port_speakers": 4,
+     "engine_vs_ami": {
+      "der": 0.09788347781358266,
+      "missed": 0.07176608824137531,
+      "false_alarm": 0.017609948713293695,
+      "confusion": 0.00850744085891365,
+      "hypothesis_speakers": 4
+     },
+     "port_vs_ami": {
+      "der": 0.0978885207542222,
+      "missed": 0.07214430878934124,
+      "false_alarm": 0.017362844621955954,
+      "confusion": 0.008381367342925007,
+      "hypothesis_speakers": 4
+     },
+     "within_tolerance": true
+    },
+    {
+     "recording": "EN2002c",
+     "engine_backend": "cuda",
+     "frames": 297226,
+     "frames_engine": 297226,
+     "frames_port": 297226,
+     "max_abs_probability_difference": 0.3515181243419647,
+     "mean_abs_probability_difference": 0.0026652130763977766,
+     "decision_flip_share": 0.00068971085974982,
+     "turn_der": 0.007358538442019792,
+     "turn_confusion": 1.5614935685983643e-05,
+     "engine_speakers": 3,
+     "port_speakers": 3,
+     "engine_vs_ami": {
+      "der": 0.24819657618643157,
+      "missed": 0.2397327463482911,
+      "false_alarm": 0.006137024320800086,
+      "confusion": 0.0023268055173403836,
+      "hypothesis_speakers": 3
+     },
+     "port_vs_ami": {
+      "der": 0.248462753167207,
+      "missed": 0.24001387709203145,
+      "false_alarm": 0.006140015073393069,
+      "confusion": 0.0023088610017824884,
+      "hypothesis_speakers": 3
+     },
+     "within_tolerance": true
+    }
+   ],
+   "all_within_tolerance": true
+  }
+ },
+ "timing_ami_test": {
+  "cpu": [
+   {
+    "name": "ES2004a",
+    "wall_s": 29.25,
+    "cpu_s": 108.0,
+    "rss_mib": 271,
+    "frames": 104936
+   },
+   {
+    "name": "TS3003a",
+    "wall_s": 43.13,
+    "cpu_s": 159.5,
+    "rss_mib": 317,
+    "frames": 150565
+   },
+   {
+    "name": "IS1009b",
+    "wall_s": 59.43,
+    "cpu_s": 219.8,
+    "rss_mib": 366,
+    "frames": 205234
+   },
+   {
+    "name": "EN2002c",
+    "wall_s": 94.81,
+    "cpu_s": 351.8,
+    "rss_mib": 459,
+    "frames": 297226
+   }
+  ],
+  "vulkan": [
+   {
+    "name": "ES2004a",
+    "wall_s": 9.81,
+    "cpu_s": 9.5,
+    "rss_mib": 460,
+    "frames": 104936
+   },
+   {
+    "name": "TS3003a",
+    "wall_s": 4.97,
+    "cpu_s": 4.7,
+    "rss_mib": 306,
+    "frames": 150565
+   },
+   {
+    "name": "IS1009b",
+    "wall_s": 6.99,
+    "cpu_s": 6.6,
+    "rss_mib": 363,
+    "frames": 205234
+   },
+   {
+    "name": "EN2002c",
+    "wall_s": 9.69,
+    "cpu_s": 9.1,
+    "rss_mib": 464,
+    "frames": 297226
+   }
+  ],
+  "cuda": [
+   {
+    "name": "ES2004a",
+    "wall_s": 3.7,
+    "cpu_s": 3.7,
+    "rss_mib": 667,
+    "frames": 104936
+   },
+   {
+    "name": "TS3003a",
+    "wall_s": 4.9,
+    "cpu_s": 4.9,
+    "rss_mib": 715,
+    "frames": 150565
+   },
+   {
+    "name": "IS1009b",
+    "wall_s": 6.51,
+    "cpu_s": 6.5,
+    "rss_mib": 773,
+    "frames": 205234
+   },
+   {
+    "name": "EN2002c",
+    "wall_s": 9.81,
+    "cpu_s": 9.8,
+    "rss_mib": 860,
+    "frames": 297226
+   }
+  ]
+ },
+ "bench": {
+  "variant": "product",
+  "params": {},
+  "engines": {
+   "current": {
+    "label": "Current engine (sherpa-onnx, CPU)",
+    "identity": {
+     "kind": "diarize",
+     "program": "a5a671ab7274169c5848a8cf1547ec3a4182575fe36ca9f832096b7e5d83712b",
+     "model": "c56a8e8d2dcea876f763481ca4535ea8b1b97c47",
+     "threads": 4,
+     "provider": "cpu"
+    }
+   },
+   "nemotron": {
+    "label": "Nemotron int8 (fn-64 ONNX runner, CPU)",
+    "identity": {
+     "kind": "nemotron-onnx",
+     "program": "02189d75a9ae0fa21bffd0155513bf1c1eb52428c003df0f39865b4fd36f41d5",
+     "model": "e5800d357f54bee71a79e4850e165ffa3b7ae7d7",
+     "threads": 4,
+     "provider": "cpu"
+    }
+   },
+   "nemotron-cpp": {
+    "label": "Nemotron q8_0 (dettivo-engine-nemotron, CPU)",
+    "identity": {
+     "kind": "diarize",
+     "program": "aa1343e5dcb0b606437b9d8ed5b25b15bac34468eb1094b7892a6c031fb813ef",
+     "model": "ef11047b86d0ac268ac3e7c9277181663fdc269a",
+     "threads": 4,
+     "provider": "cpu"
+    }
+   },
+   "nemotron-cpp-cuda": {
+    "label": "Nemotron q8_0 (dettivo-engine-nemotron, CUDA)",
+    "identity": {
+     "kind": "diarize",
+     "program": "e312015043fce0daed209452f1ac41feac162d4198630984de5a9d2d7bee61c6",
+     "model": "ef11047b86d0ac268ac3e7c9277181663fdc269a",
+     "threads": 4,
+     "provider": "cuda"
+    }
+   }
+  },
+  "splits": {
+   "ami-dev": {
+    "files": {
+     "current": 18,
+     "nemotron": 18,
+     "nemotron-cpp-cuda": 18
+    },
+    "audio_minutes": 580.0,
+    "metrics": {
+     "current": {
+      "attribution_error": {
+       "value": 28.993196696760943,
+       "lo": 23.677435326154228,
+       "hi": 34.3135464885242
+      },
+      "wrong": {
+       "value": 13.878310726969321,
+       "lo": 9.572259374390622,
+       "hi": 18.6254759585584
+      },
+      "unlabelled": {
+       "value": 15.114885969791622,
+       "lo": 12.62655205348615,
+       "hi": 17.72876944614232
+      },
+      "short_turn_error": {
+       "value": 79.45490534436381,
+       "lo": 77.97664381822797,
+       "hi": 80.76472517688956
+      },
+      "der": {
+       "value": 42.19829710740208,
+       "lo": 35.84224942785286,
+       "hi": 48.78135843784977
+      },
+      "der_missed": {
+       "value": 24.324404826504807,
+       "lo": 21.434919244547583,
+       "hi": 27.169912306670753
+      },
+      "der_false_alarm": {
+       "value": 9.90726632678104,
+       "lo": 7.697695792827847,
+       "hi": 12.542982653472896
+      },
+      "der_confusion": {
+       "value": 7.966625954116234,
+       "lo": 4.006618167511667,
+       "hi": 12.390479705064294
+      },
+      "engine_der": {
+       "value": 23.318645075336704,
+       "lo": 18.48503303842305,
+       "hi": 28.723263498125814
+      },
+      "engine_missed": {
+       "value": 5.615445271669532,
+       "lo": 4.866904733641374,
+       "hi": 6.4675024511799535
+      },
+      "engine_false_alarm": {
+       "value": 6.460962135426875,
+       "lo": 5.735508312303162,
+       "hi": 7.295559588395519
+      },
+      "engine_confusion": {
+       "value": 11.242237668240298,
+       "lo": 6.8337073345044805,
+       "hi": 16.20069710779145
+      },
+      "lines_right": {
+       "value": 66.43106796116506,
+       "lo": 61.711502782931355,
+       "hi": 71.88766647365374
+      },
+      "lines_wrong": {
+       "value": 12.116504854368932,
+       "lo": 7.019536574284416,
+       "hi": 17.452798267577993
+      },
+      "lines_unlabelled": {
+       "value": 21.452427184466018,
+       "lo": 18.53818246172905,
+       "hi": 23.94527612635198
+      },
+      "realtime_factor": {
+       "value": 13.233981804039345,
+       "lo": 12.279272310990697,
+       "hi": 14.363472572159827
+      }
+     },
+     "nemotron": {
+      "attribution_error": {
+       "value": 22.434855162380728,
+       "lo": 19.062246308445047,
+       "hi": 25.943984203501262
+      },
+      "wrong": {
+       "value": 7.566000599032989,
+       "lo": 6.7773295621396885,
+       "hi": 8.203193452288916
+      },
+      "unlabelled": {
+       "value": 14.868854563347739,
+       "lo": 12.026616857342983,
+       "hi": 18.163747987117553
+      },
+      "short_turn_error": {
+       "value": 74.43536517281632,
+       "lo": 73.0980751604033,
+       "hi": 76.22255909269552
+      },
+      "der": {
+       "value": 35.38102305057045,
+       "lo": 31.385771886143765,
+       "hi": 40.10407127697396
+      },
+      "der_missed": {
+       "value": 24.792453924287965,
+       "lo": 21.481643081046386,
+       "hi": 28.41999407886546
+      },
+      "der_false_alarm": {
+       "value": 8.48664177861826,
+       "lo": 6.928483512423104,
+       "hi": 10.303666282173271
+      },
+      "der_confusion": {
+       "value": 2.101927347664215,
+       "lo": 1.822926487954437,
+       "hi": 2.4232024842489617
+      },
+      "engine_der": {
+       "value": 17.421052164612213,
+       "lo": 15.582555942574578,
+       "hi": 20.03700205657031
+      },
+      "engine_missed": {
+       "value": 15.332069760260694,
+       "lo": 13.63700187642578,
+       "hi": 17.55790922714124
+      },
+      "engine_false_alarm": {
+       "value": 1.7306971732477192,
+       "lo": 1.3516349108575945,
+       "hi": 2.210009636753227
+      },
+      "engine_confusion": {
+       "value": 0.35828523110379706,
+       "lo": 0.2448210981134027,
+       "hi": 0.5379443959526368
+      },
+      "lines_right": {
+       "value": 73.89514563106796,
+       "lo": 69.7748447204969,
+       "hi": 77.21220134101426
+      },
+      "lines_wrong": {
+       "value": 4.271844660194175,
+       "lo": 3.716673298846001,
+       "hi": 4.850052542235874
+      },
+      "lines_unlabelled": {
+       "value": 21.833009708737865,
+       "lo": 18.709744442135882,
+       "hi": 25.73603666588985
+      },
+      "realtime_factor": {
+       "value": 52.0774138597964,
+       "lo": 45.20953809215903,
+       "hi": 57.26719415262185
+      }
+     },
+     "nemotron-cpp-cuda": {
+      "attribution_error": {
+       "value": 22.45517949595653,
+       "lo": 19.089672422493802,
+       "hi": 25.97928364201957
+      },
+      "wrong": {
+       "value": 7.5692097043344315,
+       "lo": 6.790003542411811,
+       "hi": 8.192639127110413
+      },
+      "unlabelled": {
+       "value": 14.885969791622095,
+       "lo": 12.060535506402793,
+       "hi": 18.14672199832409
+      },
+      "short_turn_error": {
+       "value": 74.49626960361367,
+       "lo": 73.19890009165903,
+       "hi": 76.225370460837
+      },
+      "der": {
+       "value": 35.34090727250576,
+       "lo": 31.21030667560385,
+       "hi": 40.17530451404862
+      },
+      "der_missed": {
+       "value": 24.786211579676007,
+       "lo": 21.499266168732547,
+       "hi": 28.387525580570866
+      },
+      "der_false_alarm": {
+       "value": 8.441170892739251,
+       "lo": 6.826715666693298,
+       "hi": 10.295282624669278
+      },
+      "der_confusion": {
+       "value": 2.1135248000904987,
+       "lo": 1.8317846684141923,
+       "hi": 2.4525927929238915
+      },
+      "engine_der": {
+       "value": 17.39887124467123,
+       "lo": 15.569100188693886,
+       "hi": 19.986374263664484
+      },
+      "engine_missed": {
+       "value": 15.270089932539902,
+       "lo": 13.594020085271596,
+       "hi": 17.463502567569176
+      },
+      "engine_false_alarm": {
+       "value": 1.7586451323733534,
+       "lo": 1.3646038057692975,
+       "hi": 2.2354947253474826
+      },
+      "engine_confusion": {
+       "value": 0.37013617975797763,
+       "lo": 0.2481059831655928,
+       "hi": 0.5565117045235648
+      },
+      "lines_right": {
+       "value": 73.91844660194175,
+       "lo": 69.82919254658385,
+       "hi": 77.24053262819908
+      },
+      "lines_wrong": {
+       "value": 4.318446601941748,
+       "lo": 3.7645144589897197,
+       "hi": 4.933333333333334
+      },
+      "lines_unlabelled": {
+       "value": 21.763106796116507,
+       "lo": 18.650088809946713,
+       "hi": 25.549599937854424
+      },
+      "realtime_factor": {
+       "value": 298.9590708487243,
+       "lo": 289.71503586187237,
+       "hi": 305.8635425116508
+      }
+     }
+    },
+    "delta_nemotron_cpp_minus_current": {
+     "attribution_error": {
+      "value": -6.538017200804415,
+      "files": 18,
+      "lo": -10.99820554476051,
+      "hi": -2.438368979965567
+     },
+     "wrong": {
+      "value": -6.30910102263489,
+      "files": 18,
+      "lo": -11.12774610051073,
+      "hi": -2.30590297677241
+     },
+     "unlabelled": {
+      "value": -0.22891617816952703,
+      "files": 18,
+      "lo": -1.5053258605006015,
+      "hi": 1.2898270818509356
+     },
+     "short_turn_error": {
+      "value": -4.95863574075014,
+      "files": 18,
+      "lo": -6.77114618030906,
+      "hi": -2.8527187183610323
+     },
+     "der": {
+      "value": -6.857389834896331,
+      "files": 18,
+      "lo": -11.53981111673064,
+      "hi": -2.874676477773896
+     },
+     "der_missed": {
+      "value": 0.4618067531711958,
+      "files": 18,
+      "lo": -0.5667059037964322,
+      "hi": 1.7235178641275866
+     },
+     "der_false_alarm": {
+      "value": -1.4660954340417884,
+      "files": 18,
+      "lo": -2.3314313257009864,
+      "hi": -0.7903383742182095
+     },
+     "der_confusion": {
+      "value": -5.853101154025735,
+      "files": 18,
+      "lo": -10.433236930679934,
+      "hi": -2.0419428413104415
+     },
+     "engine_der": {
+      "value": -5.9197738306654735,
+      "files": 18,
+      "lo": -10.356699044660303,
+      "hi": -1.8695664821191045
+     },
+     "engine_missed": {
+      "value": 9.654644660870368,
+      "files": 18,
+      "lo": 8.278413966037931,
+      "hi": 11.167508077525618
+     },
+     "engine_false_alarm": {
+      "value": -4.702317003053521,
+      "files": 18,
+      "lo": -5.281548399111327,
+      "hi": -4.153211631660689
+     },
+     "engine_confusion": {
+      "value": -10.872101488482317,
+      "files": 18,
+      "lo": -15.988203627542674,
+      "hi": -6.329125232134031
+     },
+     "lines_right": {
+      "value": 7.487378640776697,
+      "files": 18,
+      "lo": 2.1556350626118075,
+      "hi": 12.85463026688079
+     },
+     "lines_wrong": {
+      "value": -7.798058252427184,
+      "files": 18,
+      "lo": -13.706067943356079,
+      "hi": -2.768793878677921
+     },
+     "lines_unlabelled": {
+      "value": 0.31067961165048885,
+      "files": 18,
+      "lo": -1.9145146927871757,
+      "hi": 3.140389693812004
+     },
+     "realtime_factor": {
+      "value": 285.72508904468503,
+      "files": 18,
+      "lo": 276.9154958920483,
+      "hi": 291.95568123152987
+     }
+    }
+   },
+   "ami-test": {
+    "files": {
+     "current": 4,
+     "nemotron": 4,
+     "nemotron-cpp-cuda": 4
+    },
+    "audio_minutes": 126.3,
+    "metrics": {
+     "current": {
+      "attribution_error": {
+       "value": 22.9771520886222,
+       "lo": 14.44884642274528,
+       "hi": 28.571428571428573
+      },
+      "wrong": {
+       "value": 8.73297945995846,
+       "lo": 6.390977443609023,
+       "hi": 9.99006344110678
+      },
+      "unlabelled": {
+       "value": 14.244172628663744,
+       "lo": 7.632253553950128,
+       "hi": 18.581365130321792
+      },
+      "short_turn_error": {
+       "value": 79.10303030303031,
+       "lo": 77.02503681885125,
+       "hi": 80.0
+      },
+      "der": {
+       "value": 34.32040444177876,
+       "lo": 24.911613215843214,
+       "hi": 40.9550347193742
+      },
+      "der_missed": {
+       "value": 25.596797362948127,
+       "lo": 14.564427135989025,
+       "hi": 33.37629802182763
+      },
+      "der_false_alarm": {
+       "value": 6.753432241103772,
+       "lo": 4.664692928523019,
+       "hi": 12.460795508758109
+      },
+      "der_confusion": {
+       "value": 1.9701748377268624,
+       "lo": 1.5046411541482738,
+       "hi": 2.266126958046062
+      },
+      "engine_der": {
+       "value": 15.66803701592248,
+       "lo": 13.655348833148533,
+       "hi": 18.03912488468896
+      },
+      "engine_missed": {
+       "value": 9.250201071907053,
+       "lo": 6.28490441392597,
+       "hi": 10.94036423119377
+      },
+      "engine_false_alarm": {
+       "value": 3.026358973964281,
+       "lo": 2.1559378352889866,
+       "hi": 4.411032559992035
+      },
+      "engine_confusion": {
+       "value": 3.3914769700511442,
+       "lo": 2.668695570043206,
+       "hi": 3.7682348535531407
+      },
+      "lines_right": {
+       "value": 75.60283687943263,
+       "lo": 71.40447068747363,
+       "hi": 81.87830687830687
+      },
+      "lines_wrong": {
+       "value": 5.49645390070922,
+       "lo": 2.380952380952381,
+       "hi": 7.10670603121046
+      },
+      "lines_unlabelled": {
+       "value": 18.900709219858157,
+       "lo": 14.033366045142296,
+       "hi": 21.654636313159354
+      },
+      "realtime_factor": {
+       "value": 13.598513532246185,
+       "lo": 12.472768037121742,
+       "hi": 15.095431832958637
+      }
+     },
+     "nemotron": {
+      "attribution_error": {
+       "value": 21.920147703669514,
+       "lo": 15.905383360522023,
+       "hi": 25.865627149736298
+      },
+      "wrong": {
+       "value": 8.045234248788368,
+       "lo": 6.038426349496798,
+       "hi": 9.240999770694796
+      },
+      "unlabelled": {
+       "value": 13.874913454881145,
+       "lo": 8.42547545333923,
+       "hi": 16.624627379041506
+      },
+      "short_turn_error": {
+       "value": 75.68484848484849,
+       "lo": 71.7377860235003,
+       "hi": 77.26894254787678
+      },
+      "der": {
+       "value": 33.98931611362501,
+       "lo": 25.637992299566086,
+       "hi": 39.39986923111175
+      },
+      "der_missed": {
+       "value": 25.954136363861267,
+       "lo": 16.600364115663552,
+       "hi": 32.54996988565925
+      },
+      "der_false_alarm": {
+       "value": 6.259204915225445,
+       "lo": 4.24585242771669,
+       "hi": 11.760577902671296
+      },
+      "der_confusion": {
+       "value": 1.775974834538299,
+       "lo": 1.1712608487444245,
+       "hi": 2.9475826846702105
+      },
+      "engine_der": {
+       "value": 21.778767576268514,
+       "lo": 13.376212960979654,
+       "hi": 29.195244997611166
+      },
+      "engine_missed": {
+       "value": 20.164145044450226,
+       "lo": 10.782904465370988,
+       "hi": 27.448777020810617
+      },
+      "engine_false_alarm": {
+       "value": 0.9047548626966123,
+       "lo": 0.47574317156715884,
+       "hi": 1.5283430209635327
+      },
+      "engine_confusion": {
+       "value": 0.7098676691216774,
+       "lo": 0.24443001872479245,
+       "hi": 1.790208861652422
+      },
+      "lines_right": {
+       "value": 73.58156028368795,
+       "lo": 70.18054746651136,
+       "hi": 79.34272300469483
+      },
+      "lines_wrong": {
+       "value": 6.773049645390071,
+       "lo": 2.901178603807797,
+       "hi": 9.26033779848573
+      },
+      "lines_unlabelled": {
+       "value": 19.645390070921987,
+       "lo": 17.271835132482828,
+       "hi": 20.98833981121599
+      },
+      "realtime_factor": {
+       "value": 54.80029920028961,
+       "lo": 54.11270882783705,
+       "hi": 56.0284025611544
+      }
+     },
+     "nemotron-cpp-cuda": {
+      "attribution_error": {
+       "value": 21.975536579736904,
+       "lo": 15.92868795152645,
+       "hi": 25.942062218145686
+      },
+      "wrong": {
+       "value": 8.012924071082391,
+       "lo": 6.038426349496798,
+       "hi": 9.202782236490101
+      },
+      "unlabelled": {
+       "value": 13.962612508654512,
+       "lo": 8.528674627745835,
+       "hi": 16.739279981655585
+      },
+      "short_turn_error": {
+       "value": 75.53939393939395,
+       "lo": 71.61410018552876,
+       "hi": 77.01917489831493
+      },
+      "der": {
+       "value": 34.08730946272158,
+       "lo": 25.685574345855997,
+       "hi": 39.477205670401474
+      },
+      "der_missed": {
+       "value": 26.059413931053367,
+       "lo": 16.698073138194452,
+       "hi": 32.660584429128185
+      },
+      "der_false_alarm": {
+       "value": 6.241337965179789,
+       "lo": 4.236653331105525,
+       "hi": 11.719026528244163
+      },
+      "der_confusion": {
+       "value": 1.7865575664884188,
+       "lo": 1.1875104250178907,
+       "hi": 2.9660499621933796
+      },
+      "engine_der": {
+       "value": 21.685447121799275,
+       "lo": 13.304813821726388,
+       "hi": 29.0734672037763
+      },
+      "engine_missed": {
+       "value": 20.055156649171717,
+       "lo": 10.679820165927012,
+       "hi": 27.33774432643176
+      },
+      "engine_false_alarm": {
+       "value": 0.9168494134967491,
+       "lo": 0.4788576931486132,
+       "hi": 1.550852388157836
+      },
+      "engine_confusion": {
+       "value": 0.7134410591308087,
+       "lo": 0.2514606041147673,
+       "hi": 1.7744012778850717
+      },
+      "lines_right": {
+       "value": 73.33333333333333,
+       "lo": 69.7146185206756,
+       "hi": 79.3854033290653
+      },
+      "lines_wrong": {
+       "value": 6.808510638297872,
+       "lo": 2.9918404351767904,
+       "hi": 9.26033779848573
+      },
+      "lines_unlabelled": {
+       "value": 19.858156028368793,
+       "lo": 17.264112072517513,
+       "hi": 21.321488062187672
+      },
+      "realtime_factor": {
+       "value": 300.6817924865122,
+       "lo": 294.6971971496437,
+       "hi": 305.47792448757934
+      }
+     }
+    },
+    "delta_nemotron_cpp_minus_current": {
+     "attribution_error": {
+      "value": -1.0016155088852976,
+      "files": 4,
+      "lo": -2.6507079258502415,
+      "hi": 1.4798415287811704
+     },
+     "wrong": {
+      "value": -0.7200553888760677,
+      "files": 4,
+      "lo": -1.386815620937063,
+      "hi": 1.4231308879534978
+     },
+     "unlabelled": {
+      "value": -0.2815601200092317,
+      "files": 4,
+      "lo": -2.2514797809371014,
+      "hi": 2.097413190398508
+     },
+     "short_turn_error": {
+      "value": -3.5636363636363626,
+      "files": 4,
+      "lo": -5.154639175257728,
+      "hi": -0.416319733555369
+     },
+     "der": {
+      "value": -0.23309497905718501,
+      "files": 4,
+      "lo": -1.6046593362454118,
+      "hi": 2.175518715981589
+     },
+     "der_missed": {
+      "value": 0.4626165681052363,
+      "files": 4,
+      "lo": -0.7157135926994442,
+      "hi": 2.133646002205431
+     },
+     "der_false_alarm": {
+      "value": -0.5120942759239826,
+      "files": 4,
+      "lo": -1.1717371467548414,
+      "hi": -0.11252991120277667
+     },
+     "der_confusion": {
+      "value": -0.18361727123844362,
+      "files": 4,
+      "lo": -0.7562032887709071,
+      "hi": 1.3809419747880622
+     },
+     "engine_der": {
+      "value": 6.017410105876797,
+      "files": 4,
+      "lo": -0.942265345444536,
+      "hi": 11.261910111552613
+     },
+     "engine_missed": {
+      "value": 10.804955577264662,
+      "files": 4,
+      "lo": 4.516353987183137,
+      "hi": 16.649071455026537
+     },
+     "engine_false_alarm": {
+      "value": -2.1095095604675316,
+      "files": 4,
+      "lo": -3.7304926556663265,
+      "hi": -1.4288387718121112
+     },
+     "engine_confusion": {
+      "value": -2.678035910920335,
+      "files": 4,
+      "lo": -3.417919087336275,
+      "hi": -0.8942942921581343
+     },
+     "lines_right": {
+      "value": -2.269503546099301,
+      "files": 4,
+      "lo": -5.77034045008655,
+      "hi": -0.9476720230737499
+     },
+     "lines_wrong": {
+      "value": 1.3120567375886525,
+      "files": 4,
+      "lo": -0.8109261630388396,
+      "hi": 2.56260920209668
+     },
+     "lines_unlabelled": {
+      "value": 0.9574468085106353,
+      "files": 4,
+      "lo": -0.7078080070780786,
+      "hi": 3.9815349105597235
+     },
+     "realtime_factor": {
+      "value": 287.08327895426606,
+      "files": 4,
+      "lo": 281.6175830023305,
+      "hi": 292.9327129074019
+     }
+    }
+   },
+   "local-en": {
+    "files": {
+     "current": 4,
+     "nemotron": 4,
+     "nemotron-cpp-cuda": 4
+    },
+    "audio_minutes": 276.5,
+    "metrics": {
+     "current": {
+      "remote_unlabelled": {
+       "value": 26.388409796481547,
+       "lo": 17.348715716151503,
+       "hi": 40.45766590389016
+      },
+      "mix_side_confusion": {
+       "value": 0.626588003749297,
+       "lo": 0.4331430794320183,
+       "hi": 1.2240247424403745
+      },
+      "realtime_factor": {
+       "value": 19.444638108833196,
+       "lo": 17.725223976142985,
+       "hi": 23.20317616645686
+      }
+     },
+     "nemotron": {
+      "remote_unlabelled": {
+       "value": 27.04380820972749,
+       "lo": 18.258245311489546,
+       "hi": 42.33409610983982
+      },
+      "mix_side_confusion": {
+       "value": 0.5733122648062791,
+       "lo": 0.09928677034255806,
+       "hi": 1.802916052983945
+      },
+      "realtime_factor": {
+       "value": 49.71648808208601,
+       "lo": 46.583232054155424,
+       "hi": 57.96030523221158
+      }
+     },
+     "nemotron-cpp-cuda": {
+      "remote_unlabelled": {
+       "value": 27.078302863056226,
+       "lo": 18.1289070920457,
+       "hi": 42.19679633867277
+      },
+      "mix_side_confusion": {
+       "value": 0.5770573829562856,
+       "lo": 0.10605769135051714,
+       "hi": 1.8023109408438767
+      },
+      "realtime_factor": {
+       "value": 301.2367999945525,
+       "lo": 295.3281112438687,
+       "hi": 310.1569360384398
+      }
+     }
+    },
+    "delta_nemotron_cpp_minus_current": {
+     "remote_unlabelled": {
+      "value": 0.6898930665746796,
+      "files": 4,
+      "lo": -0.8799171842650111,
+      "hi": 1.7391304347826093
+     },
+     "mix_side_confusion": {
+      "value": -0.049530620793011404,
+      "files": 4,
+      "lo": -0.9991434317521637,
+      "hi": 1.3841024605368752
+     },
+     "realtime_factor": {
+      "value": 281.7921618857193,
+      "files": 4,
+      "lo": 277.39728170405016,
+      "hi": 287.46105066975815
+     }
+    }
+   },
+   "local-de": {
+    "files": {
+     "current": 6,
+     "nemotron": 6,
+     "nemotron-cpp-cuda": 6
+    },
+    "audio_minutes": 278.0,
+    "metrics": {
+     "current": {
+      "remote_unlabelled": {
+       "value": 11.063464837049743,
+       "lo": 7.6502732240437155,
+       "hi": 18.613933236574745
+      },
+      "mix_side_confusion": {
+       "value": 0.8977967145366751,
+       "lo": 0.5159739903615287,
+       "hi": 1.8054429422298501
+      },
+      "realtime_factor": {
+       "value": 17.50928514324258,
+       "lo": 16.189375275595513,
+       "hi": 20.400562560044957
+      }
+     },
+     "nemotron": {
+      "remote_unlabelled": {
+       "value": 13.293310463121784,
+       "lo": 8.827238335435057,
+       "hi": 22.895500725689406
+      },
+      "mix_side_confusion": {
+       "value": 0.1407718470048064,
+       "lo": 0.0829154665530836,
+       "hi": 0.2685974937937282
+      },
+      "realtime_factor": {
+       "value": 48.982664260591875,
+       "lo": 41.93392973130722,
+       "hi": 56.25057024916955
+      }
+     },
+     "nemotron-cpp-cuda": {
+      "remote_unlabelled": {
+       "value": 13.264722698684963,
+       "lo": 8.806221101303068,
+       "hi": 22.895500725689406
+      },
+      "mix_side_confusion": {
+       "value": 0.14119519184784013,
+       "lo": 0.08479336581132584,
+       "hi": 0.2660818986279937
+      },
+      "realtime_factor": {
+       "value": 313.055374669244,
+       "lo": 306.45709513079953,
+       "hi": 316.66817053280175
+      }
+     }
+    },
+    "delta_nemotron_cpp_minus_current": {
+     "remote_unlabelled": {
+      "value": 2.20125786163522,
+      "files": 6,
+      "lo": 1.1759059275257986,
+      "hi": 4.423592493297587
+     },
+     "mix_side_confusion": {
+      "value": -0.756601522688835,
+      "files": 6,
+      "lo": -1.5822921100813319,
+      "hi": -0.40491066457957836
+     },
+     "realtime_factor": {
+      "value": 295.5460895260014,
+      "files": 6,
+      "lo": 286.65400233609444,
+      "hi": 299.6489278668255
+     }
+    }
+   },
+   "local": {
+    "files": {
+     "current": 10,
+     "nemotron": 10,
+     "nemotron-cpp-cuda": 10
+    },
+    "audio_minutes": 554.5,
+    "metrics": {
+     "current": {
+      "remote_unlabelled": {
+       "value": 18.00844145693294,
+       "lo": 11.64013644115975,
+       "hi": 27.047651348143123
+      },
+      "mix_side_confusion": {
+       "value": 0.7673012540327923,
+       "lo": 0.5171873931930375,
+       "hi": 1.2287016278472362
+      },
+      "realtime_factor": {
+       "value": 18.423603641867455,
+       "lo": 17.06370534269107,
+       "hi": 20.6858730566311
+      }
+     },
+     "nemotron": {
+      "remote_unlabelled": {
+       "value": 19.524777239330938,
+       "lo": 12.96102732566821,
+       "hi": 28.67350677903994
+      },
+      "mix_side_confusion": {
+       "value": 0.34889407450876125,
+       "lo": 0.10565240698006723,
+       "hi": 0.9120219513148227
+      },
+      "realtime_factor": {
+       "value": 49.3458296270208,
+       "lo": 45.18968764642658,
+       "hi": 54.7470007780941
+      }
+     },
+     "nemotron-cpp-cuda": {
+      "remote_unlabelled": {
+       "value": 19.524777239330938,
+       "lo": 12.990891443930117,
+       "hi": 28.744263662911973
+      },
+      "mix_side_confusion": {
+       "value": 0.3509157320908086,
+       "lo": 0.11082112646715764,
+       "hi": 0.9140662639291107
+      },
+      "realtime_factor": {
+       "value": 307.0487971584932,
+       "lo": 299.33045224872546,
+       "hi": 313.52533641081345
+      }
+     }
+    },
+    "delta_nemotron_cpp_minus_current": {
+     "remote_unlabelled": {
+      "value": 1.5163357823979986,
+      "files": 10,
+      "lo": 0.7206523800493088,
+      "hi": 2.689045298682549
+     },
+     "mix_side_confusion": {
+      "value": -0.41638552194198386,
+      "files": 10,
+      "lo": -0.9779189289170691,
+      "hi": 0.1775677399549913
+     },
+     "realtime_factor": {
+      "value": 288.62519351662576,
+      "files": 10,
+      "lo": 282.0440287030273,
+      "hi": 295.9761450290749
+     }
+    }
+   }
+  },
+  "stages": {
+   "hash": {
+    "computed": 1,
+    "cached": 975
+   },
+   "asr": {
+    "stale": 22
+   },
+   "engine": {
+    "stale": 42,
+    "cached": 86,
+    "missing": 30
+   },
+   "assign": {
+    "cached": 56,
+    "computed": 42
+   },
+   "segments": {
+    "read": 10
+   },
+   "channels": {
+    "cached": 10
+   },
+   "score": {
+    "cached": 56,
+    "computed": 42
+   }
+  }
+ }
+}

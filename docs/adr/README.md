@@ -9,7 +9,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0001](0001-rust-daemon-qt-quick-ui.md) | Rust behind the socket, Qt Quick for everything you see, a C++20 host for the Qt binaries | Accepted 2026-09-03 |
 | [0002](0002-daemon-owns-the-contract.md) | The daemon owns the contract; every interface is a client; systemd activates the socket | Accepted 2026-09-03 |
 | [0003](0003-engine-processes.md) | Inference runs in supervised engine processes | Accepted 2026-09-03 |
-| [0004](0004-ggml-family-vulkan.md) | One ggml family with Vulkan by default; Sherpa-ONNX only for diarization | Accepted 2026-09-03; Parakeet for meetings settled by 0018 (dictation-only) |
+| [0004](0004-ggml-family-vulkan.md) | One ggml family with Vulkan by default; Sherpa-ONNX only for diarization | Accepted 2026-09-03; Parakeet for meetings settled by 0018 (dictation-only); amended by 0073 (a ggml diarization engine, opt-in) |
 | [0005](0005-local-llm-and-shared-models.md) | A local language model in v1, with the same models and fine-tunes as macOS | Accepted 2026-09-03 |
 | [0006](0006-pipewire-capture.md) | PipeWire captures microphone and system audio and resamples on the way in | Accepted 2026-09-03 |
 | [0007](0007-in-process-text-insertion.md) | Text insertion through an in-process Wayland virtual keyboard with portal, uinput and clipboard fallbacks | Accepted 2026-09-03 |
@@ -40,7 +40,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0032](0032-polish-fine-tune-sideload-and-the-eval-harness.md) | A private polish fine-tune sideloads from the macOS manifest, every candidate is scored by the macOS harness through the Linux engine, and promotion stays a config change | Accepted 2026-09-05 |
 | [0033](0033-settings-routes-config-editor-key-registry.md) | Settings offers everyday controls and advanced access to one configuration file | Accepted 2026-09-05 |
 | [0034](0034-install-layout-cuda-drop-in-and-release-workflow.md) | One install layout under `/usr` with the engines in their own directory and a reserved CUDA drop-in, two AUR recipes over one release tarball, and a tag that publishes itself after a clean-machine install test | Accepted 2026-09-05; CI cadence superseded by 0040; amended by 0051 and 0053 |
-| [0035](0035-sherpa-onnx-diarization-engine-and-the-speaker-pass.md) | Diarization runs sherpa-onnx in its own engine process after the meeting, and a segment gets a speaker only under the coverage and share rule | Accepted 2026-09-05 |
+| [0035](0035-sherpa-onnx-diarization-engine-and-the-speaker-pass.md) | Diarization runs sherpa-onnx in its own engine process after the meeting, and a segment gets a speaker only under the coverage and share rule | Accepted 2026-09-05; amended by 0073 |
 | [0036](0036-meeting-notes-analysis-search-export-and-the-delete-policy.md) | A meeting keeps the user's notes and the model's analysis apart, polishes its segments at finalisation, and deletes by the contract's policy | Accepted 2026-09-05 |
 | [0037](0037-gui-packs-per-surface-and-the-tree-checks.md) | The GUI is proven by one pack of four surfaces, and every captured tree is scanned for developer text and unnamed controls | Accepted 2026-09-05 |
 | [0038](0038-meetings-gui-live-events-pause-gap-and-inline-dialogs.md) | The meetings screens are clients of the meeting events: the live model folds the segment stream, Pause waits for a verb, and the small dialogs are designed inline | Accepted 2026-09-05 |
@@ -77,6 +77,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0070](0070-a-release-is-local-qa-and-a-tag.md) | A release is local QA and a tag; CI tests, packages, clean-installs and publishes, and the deep checks are optional | Accepted 2026-09-25 |
 | [0071](0071-a-running-meeting-answers-its-transcript-so-far-with-a-cursor.md) | A running meeting answers its transcript so far through `meetings.segments`, with a cursor that holds from the first second to the stored row | Accepted 2026-09-26 |
 | [0072](0072-every-remote-line-takes-the-speaker-of-its-sentence.md) | Every remote line takes the speaker who holds most of its sentence, and a line outside every turn takes the nearest one within ten seconds | Accepted 2026-09-26, amends 0035; amended by 0074 |
+| [0073](0073-nemotron-3-diarization-runs-through-nemo-speech-cpp.md) | Nemotron 3 Diarization runs through a pinned NeMo-Speech.cpp in its own engine process on the CPU, Vulkan or CUDA, falls back to the sherpa-onnx set over eight speakers or when missing, and ships opt-in | Accepted 2026-09-26, amends 0004, 0035 and 0057 |
 | [0074](0074-whisper-times-every-word-by-dtw-for-speaker-labelling.md) | Whisper times every word by DTW, and a segment's span follows its words | Accepted 2026-09-27, amends 0072 |
 
 ## Writing a record

@@ -65,6 +65,12 @@ build-llm-vulkan:
 test-llm-vulkan:
     DETTIVO_TEST_BACKEND=vulkan {{step}} cargo "llm engine tests (vulkan)" cargo test -p dettivo-engine-llm --features vulkan --test cli -- --nocapture
 
+# Tests too slow for every push, run when their engine changes and by the
+# deep rig: the Nemotron stream past its 20-minute compaction horizon
+# (needs the model under $XDG_DATA_HOME/dettivo/models/diarize).
+test-long:
+    {{step}} cargo "long-running tests" cargo test -p dettivo-engine-nemotron --bins -- --ignored --nocapture
+
 # The Parakeet WER fixtures on the Vulkan build (needs the models under
 # $XDG_DATA_HOME/dettivo/models/parakeet and a Vulkan device).
 test-parakeet-vulkan:

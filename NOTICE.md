@@ -9,11 +9,12 @@ Dettivo for Linux is licensed under the GNU General Public License, version 3 or
 | whisper.cpp and its ggml | `dettivo-engine-whisper`, through the `whisper-rs` and `whisper-rs-sys` crates (built from the pinned source at build time) | MIT, Georgi Gerganov and the ggml authors |
 | llama.cpp and its ggml | `dettivo-engine-llm`, through the `llama-cpp-2` and `llama-cpp-sys-2` crates (built from the pinned source at build time) | MIT, Georgi Gerganov and the ggml authors |
 | parakeet.cpp 0.5.0 and its ggml 0.13.0 | `dettivo-engine-parakeet`, through the in-repo `parakeet-cpp-sys` crate (the pinned archives are fetched, verified and built at build time) | MIT, the parakeet.cpp authors; ggml MIT |
-| The ggml Vulkan shaders | compiled into the three engines above with `glslc` from shaderc | MIT (ggml); the compiled SPIR-V carries no separate licence |
+| The ggml Vulkan shaders | compiled into the three engines above and the Nemotron engine with `glslc` from shaderc | MIT (ggml); the compiled SPIR-V carries no separate licence |
 | sherpa-onnx 1.13.7 (`libsherpa-onnx-c-api.so`) | `dettivo-engine-diarize`, through the in-repo `sherpa-onnx-sys` crate; CPU uses the checksummed prebuilt archive, CUDA rebuilds the checksummed source with `cuda-conv-default.patch` selecting the default cuDNN convolution-search mode; the library is installed beside the engine | Apache-2.0, the k2-fsa authors (Xiaomi Corporation) |
 | ONNX Runtime (`libonnxruntime.so`, the build sherpa-onnx 1.13.7 ships; the CUDA drop-in also carries `libonnxruntime_providers_cuda.so` and `libonnxruntime_providers_shared.so`) | loaded by `libsherpa-onnx-c-api.so` from the same directory; nothing else in the workspace links it | MIT, Microsoft Corporation |
+| NeMo-Speech.cpp at commit `97a15afa` (`libnemo_speech_asr_c.so.1`, `libnemo_speech_asr.so`), its ggml 0.12.0 and SentencePiece at commit `17d7580d` | `dettivo-engine-nemotron`, through the in-repo `nemo-speech-cpp-sys` crate (the pinned archives are fetched, verified and built at build time; ggml and SentencePiece are linked into the two libraries, which are installed beside the engine) | Apache-2.0, NVIDIA Corporation (NeMo-Speech.cpp, including code derived from parakeet.cpp under MIT); ggml MIT; SentencePiece Apache-2.0, Google, with its bundled Abseil (Apache-2.0), protobuf-lite (BSD-3-Clause) and darts-clone (BSD-3-Clause) |
 
-The models the engines run (Whisper, Parakeet TDT, the Qwen3 GGUF catalogue, the diarization model set) are never part of the package; the catalogue downloads them on request under their own licences (see [docs/models.md](docs/models.md)).
+The models the engines run (Whisper, Parakeet TDT, the Qwen3 GGUF catalogue, the diarization model sets, NVIDIA Nemotron 3 Diarization under OpenMDW 1.1) are never part of the package; the catalogue downloads them on request under their own licences (see [docs/models.md](docs/models.md)).
 
 ## Desktop toolkit and fonts
 

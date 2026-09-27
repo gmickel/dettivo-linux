@@ -45,23 +45,28 @@ impl Default for Engines {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct DiarizeEngineSection {
-    /// The ONNX Runtime backend; independent of the ggml engines' Vulkan choice.
+    /// The diarization engine's backend; independent of the speech engines'.
     pub backend: DiarizeBackend,
-    /// Threads per model; 0 is the core count, capped at four.
+    /// Threads per model for the sherpa-onnx engine; 0 is the core count,
+    /// capped at four (NeMo-Speech.cpp runs its CPU graphs on four).
     pub threads: u32,
 }
 
-/// The diarization engine's ONNX Runtime provider preference.
+/// The diarization engine's backend preference (ADR 0057, ADR 0073).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DiarizeBackend {
-    /// CUDA when its provider and runtime load, else CPU with the reason.
+    /// The engine's GPU backend when it loads (CUDA for sherpa-onnx, the
+    /// build's ggml Vulkan or CUDA for Nemotron), else CPU with the reason.
     #[default]
     Auto,
     /// CPU only.
     Cpu,
     /// CUDA or a failed load naming the unavailable dependency.
     Cuda,
+    /// ggml Vulkan (Nemotron only) or a failed load; the sherpa-onnx engine,
+    /// which has no Vulkan provider, takes `auto`.
+    Vulkan,
 }
 
 /// `[engines.llm]`: what the language model engine is told at every load

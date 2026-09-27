@@ -321,3 +321,21 @@ size_bytes = 26485263
 url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/3dspeaker_speech_eres2net_sv_en_voxceleb_16k.onnx"
 sha256 = "c59158379255ad66e161679cca6af8d52d51e389e3224ab7d7a7baae295c2db5"
 license = "Apache-2.0"
+
+# NVIDIA Nemotron 3 Diarization (ADR 0073): a streaming Sortformer that
+# tracks up to eight speakers at 10 ms, as the q8_0 GGUF NVIDIA publishes
+# for NeMo-Speech.cpp, pinned to the model revision fn-64 evaluated.
+# `dettivo-engine-nemotron` loads the directory.
+[[models]]
+provider = "diarize"
+id = "nemotron-3-diarization"
+display_name = "Meeting speakers (Nemotron 3 Diarization)"
+kind = "diarization"
+file_name = "Nemotron-3-Diarization.q8_0.gguf"
+size_bytes = 107012128
+url = "https://huggingface.co/nvidia/Nemotron-3-Diarization/resolve/f667ed73aee57d40cc39428eb768b4fd87a0a29e/Nemotron-3-Diarization.q8_0.gguf"
+sha256 = "08456d9e22cd9a323c0364d98375f3746d6e68507ebb705cd46438c534c7a3a1"
+license = "OpenMDW-1.1"
+redistribution = "NVIDIA Nemotron 3 Diarization weights (nvidia/Nemotron-3-Diarization, revision f667ed7) under the OpenMDW 1.1 licence, which permits redistribution with the licence"
+languages = ["multilingual"]
+quantization = "q8_0"

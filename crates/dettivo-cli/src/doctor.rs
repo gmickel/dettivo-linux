@@ -176,29 +176,7 @@ pub fn run(cli: &Cli, client: &Client) -> Result<(), Failure> {
     };
     report.insert("llm".into(), llm);
     let diarization = match probe("speech.models.status") {
-        Ok(v) => {
-            let model = v["models"]
-                .as_array()
-                .and_then(|rows| {
-                    rows.iter()
-                        .find(|row| row["provider"] == "diarize")
-                        .cloned()
-                })
-                .unwrap_or(Value::Null);
-            let engine = report["engines"]
-                .as_array()
-                .and_then(|rows| {
-                    rows.iter()
-                        .find(|r| r["binary"] == "dettivo-engine-diarize")
-                        .cloned()
-                })
-                .unwrap_or(Value::Null);
-            json!({
-                "model": format!("{}/{}", model["provider"].as_str().unwrap_or("diarize"), model["id"].as_str().unwrap_or("diarization")),
-                "model_readiness": model["readiness"],
-                "engine": engine,
-            })
-        }
+        Ok(v) => crate::doctor_diarization::facts(&v, &report["engines"], client),
         Err(_) => Value::Null,
     };
     report.insert("diarization".into(), diarization);

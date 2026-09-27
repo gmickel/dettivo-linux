@@ -4,6 +4,11 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Added
+
+- The speaker pass can run NVIDIA Nemotron 3 Diarization: download `diarize/nemotron-3-diarization` and set `[meetings.diarization] model = "nemotron-3-diarization"`. It runs through the new `dettivo-engine-nemotron` on the GPU with Vulkan (or CUDA with the drop-in) and on the CPU otherwise, and diarizes an hour of meeting in about 15 seconds on an RTX 4090 through Vulkan. A meeting that expects more than eight speakers, or a machine without the model, runs the current engine instead and says why in the meeting's `diarization.fallback_reason`. The current engine stays the default ([ADR 0073](docs/adr/0073-nemotron-3-diarization-runs-through-nemo-speech-cpp.md)).
+- `[engines.diarize] backend` accepts `vulkan`, and Settings / Models offers it.
+
 ### Changed
 
 - Meetings give almost every remote line a speaker. Each sentence takes the speaker who holds most of it, and a line with no diarized speech takes the nearest speaker within 10 seconds. About 1 remote line in 50 is left without a speaker, where it was about 1 in 5. A line whose sentences belong to two speakers becomes two lines. `[meetings.diarization]` gains `pause_ms` and `nearest_turn_ms`. `min_coverage` is retired: a file that still sets it keeps loading, and the value is ignored. `min_speaker_share` now applies per sentence and defaults to 0.

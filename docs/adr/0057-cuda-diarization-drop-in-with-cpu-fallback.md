@@ -1,6 +1,6 @@
 # 0057. CUDA diarization is an optional drop-in with CPU fallback
 
-Status: Accepted for delivery with the measured performance limitation by Gordon on 2026-09-10. Amends 0034 and 0035.
+Status: Accepted for delivery with the measured performance limitation by Gordon on 2026-09-10. Amends 0034 and 0035. Amended 2026-09-26 by [0073](0073-nemotron-3-diarization-runs-through-nemo-speech-cpp.md): the drop-in also carries the Nemotron engine built for CUDA, eleven files in all.
 
 ## What this gives you
 

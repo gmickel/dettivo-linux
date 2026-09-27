@@ -87,6 +87,9 @@ pub struct Diarization {
     /// The model set that ran.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub model: Option<String>,
+    /// Why that model set ran instead of the configured one (ADR 0073).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fallback_reason: Option<String>,
     /// ISO 8601 UTC time the pass ended.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ran_at: Option<String>,
@@ -109,6 +112,7 @@ impl Default for Diarization {
             coverage: None,
             engine: None,
             model: None,
+            fallback_reason: None,
             ran_at: None,
             error: None,
             expected_speakers: None,

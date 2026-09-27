@@ -433,7 +433,7 @@ mod tests {
 
     #[test]
     fn diarization_backend_choices_are_separate_from_ggml() {
-        for backend in ["auto", "cpu", "cuda"] {
+        for backend in ["auto", "cpu", "cuda", "vulkan"] {
             let config: Config =
                 toml::from_str(&format!("[engines.diarize]\nbackend = \"{backend}\"\n")).unwrap();
             assert_eq!(
@@ -441,7 +441,7 @@ mod tests {
                 backend
             );
         }
-        assert!(toml::from_str::<Config>("[engines.diarize]\nbackend = \"vulkan\"\n").is_err());
+        assert!(toml::from_str::<Config>("[engines.diarize]\nbackend = \"metal\"\n").is_err());
         for engine in ["whisper", "parakeet", "llm"] {
             assert!(
                 toml::from_str::<Config>(&format!("[engines.{engine}]\nbackend = \"cuda\"\n"))

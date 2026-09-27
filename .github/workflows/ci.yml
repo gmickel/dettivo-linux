@@ -90,6 +90,10 @@ jobs:
       - run: scripts/models/fetch-diarization-model.sh
         env:
           XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      # Nemotron 3 Diarization (ADR 0073) for dettivo-engine-nemotron's tests.
+      - run: scripts/models/fetch-diarization-model.sh "" nemotron-3-diarization
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
       - run: just toolchain test lint
         env:
           XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
