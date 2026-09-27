@@ -116,8 +116,8 @@ impl Default for MeetingAnalysis {
 }
 
 /// `[meetings.diarization]`: the post-meeting speaker pass over the
-/// system track (ADR 0035) and the sentence rule that labels a segment
-/// (ADR 0072).
+/// system track (ADR 0035), the sentence rule that labels a segment (ADR
+/// 0072) and the two-track rules around it (ADR 0075).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Diarization {
@@ -143,6 +143,22 @@ pub struct Diarization {
     pub max_speakers: u32,
     /// The clustering distance threshold when the count is not fixed.
     pub clustering_threshold: f64,
+    /// A microphone line voiced (active and at least half as loud as the
+    /// system track) for less than this share of its time is dropped as
+    /// bleed (ADR 0075); 0 keeps every line.
+    pub bleed_min_voiced: f64,
+    /// When the engine finds one remote speaker, every remote line takes it.
+    pub single_remote: bool,
+    /// Diarize the microphone like room audio when the system track stayed
+    /// silent while it spoke.
+    pub shared_mic: bool,
+    /// Learn the user's voice from the microphone, keep it on this machine
+    /// and name remote lines in that voice `You`; false never reads or
+    /// writes the voiceprint.
+    pub voiceprint: bool,
+    /// The least cosine similarity between a remote line's voice and the
+    /// voiceprint that makes the line the user's.
+    pub voice_match: f64,
 }
 
 impl Default for Diarization {
@@ -157,6 +173,11 @@ impl Default for Diarization {
             min_coverage: serde::de::IgnoredAny,
             max_speakers: 0,
             clustering_threshold: 0.6,
+            bleed_min_voiced: 0.05,
+            single_remote: true,
+            shared_mic: true,
+            voiceprint: true,
+            voice_match: 0.6,
         }
     }
 }

@@ -24,6 +24,7 @@ use dettivo_core::config::Loaded;
 use dettivo_core::config::audio_schema::Diarization as DiarizationConfig;
 use dettivo_core::config::polish_schema::Polish;
 use dettivo_meeting::diarize::Rule;
+use dettivo_meeting::two_track::Rules as TwoTrack;
 use dettivo_proto::error::{AppCode, ErrorDetails, JsonRpcError};
 use dettivo_proto::events::{JobProgressPayload, MeetingLiveState, MeetingStatePayload, Topic};
 use dettivo_proto::id::Id;
@@ -58,6 +59,10 @@ pub(crate) struct Pass {
     /// The catalogue id of the model set.
     pub(crate) model_id: String,
     pub(crate) rule: Rule,
+    /// The two-track rules around it (ADR 0075).
+    pub(crate) two_track: TwoTrack,
+    /// Where the user's voiceprint lives.
+    pub(crate) data_dir: std::path::PathBuf,
     /// The global Polish transforms, for the parts a split leaves.
     pub(crate) polish: Polish,
     pub(crate) speakers: Option<u32>,
@@ -258,6 +263,14 @@ impl Diarization {
                 nearest_turn_ms: d.nearest_turn_ms,
                 min_speaker_share: d.min_speaker_share,
             },
+            two_track: TwoTrack {
+                bleed_min_voiced: d.bleed_min_voiced,
+                single_remote: d.single_remote,
+                shared_mic: d.shared_mic,
+                voiceprint: d.voiceprint,
+                voice_match: d.voice_match,
+            },
+            data_dir: loaded.data_dir(&daemon.paths),
             polish: loaded.config.polish.clone(),
             speakers: expected,
             clustering_threshold: d.clustering_threshold,

@@ -1,6 +1,6 @@
 # 0035. Diarization runs sherpa-onnx in its own engine process after the meeting, and a segment gets a speaker only under the coverage and share rule
 
-Status: Accepted 2026-09-05, corrected 2026-09-06 by 0053 (the speakers migration is 0006-speakers), amended 2026-09-09 by [0057](0057-cuda-diarization-drop-in-with-cpu-fallback.md) (optional CUDA provider and paired release pins) and [0058](0058-strict-diarization-accuracy-evaluation.md) (calibrated model, clustering and accuracy evaluation), amended 2026-09-26 by [0072](0072-every-remote-line-takes-the-speaker-of-its-sentence.md) (the sentence rule replaces the coverage and share rule below)
+Status: Accepted 2026-09-05, corrected 2026-09-06 by 0053 (the speakers migration is 0006-speakers), amended 2026-09-09 by [0057](0057-cuda-diarization-drop-in-with-cpu-fallback.md) (optional CUDA provider and paired release pins) and [0058](0058-strict-diarization-accuracy-evaluation.md) (calibrated model, clustering and accuracy evaluation), amended 2026-09-26 by [0072](0072-every-remote-line-takes-the-speaker-of-its-sentence.md) (the sentence rule replaces the coverage and share rule below), amended 2026-09-27 by [0075](0075-two-track-meetings-use-both-tracks-to-name-speakers.md) (a two-track meeting may diarize its shared microphone, and the pass reads both tracks)
 
 ## What this gives you
 

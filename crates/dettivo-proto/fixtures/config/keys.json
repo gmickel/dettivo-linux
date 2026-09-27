@@ -560,6 +560,13 @@
           "section": "meetings.diarization"
         },
         {
+          "default": 0.05,
+          "doc": "The two-track rules (docs/meetings.md). A microphone line on which the microphone is active and at least half as loud as the system track for less than this share of its time is the remote side heard through the microphone, or words heard in silence, and is dropped (0 to 1); 0 keeps every line.",
+          "key": "meetings.diarization.bleed_min_voiced",
+          "kind": "float",
+          "section": "meetings.diarization"
+        },
+        {
           "default": 0.6,
           "doc": "Initial average-linkage cosine cutoff, followed by low-support cluster reassignment. The final speaker count need not vary monotonically.",
           "key": "meetings.diarization.clustering_threshold",
@@ -606,6 +613,34 @@
           "doc": "Each sentence takes the speaker who holds most of it (docs/meetings.md). A pause between aligned words at least this long, in milliseconds, also ends a sentence where the speaker differs across it.",
           "key": "meetings.diarization.pause_ms",
           "kind": "integer",
+          "section": "meetings.diarization"
+        },
+        {
+          "default": true,
+          "doc": "When the system track stayed silent while the microphone spoke, several people shared the microphone: the pass diarizes it like room audio once it hears two or more voices.",
+          "key": "meetings.diarization.shared_mic",
+          "kind": "boolean",
+          "section": "meetings.diarization"
+        },
+        {
+          "default": true,
+          "doc": "When the engine finds one remote speaker, every remote line takes that speaker, including the lines no speaker turn is near.",
+          "key": "meetings.diarization.single_remote",
+          "kind": "boolean",
+          "section": "meetings.diarization"
+        },
+        {
+          "default": 0.6,
+          "doc": "The least cosine similarity (0 to 1) between a remote line's voice and your voiceprint that makes the line yours.",
+          "key": "meetings.diarization.voice_match",
+          "kind": "float",
+          "section": "meetings.diarization"
+        },
+        {
+          "default": true,
+          "doc": "Learn your voice from the microphone of every meeting and name remote lines in your voice You. The voiceprint stays on this machine in <data_dir>/voiceprint.json; false never reads or writes it, and deleting the file forgets it.",
+          "key": "meetings.diarization.voiceprint",
+          "kind": "boolean",
           "section": "meetings.diarization"
         },
         {

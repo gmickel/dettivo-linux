@@ -39,7 +39,7 @@ def inputs(cache, cfg, rec, full, db):
     return key(segments), segments, (rec["system"] if system_audio else rec["mic"]), not system_audio
 
 
-def score(rec, lines, result, mix, frames):
+def score(rec, lines, result, mix, frames, report, mic_lines):
     """The file's counts from metrics.py (and channels.py for two-track meetings)."""
     counts = {}
     ref = rec["reference"]
@@ -57,6 +57,12 @@ def score(rec, lines, result, mix, frames):
         counts.update(metrics.remote_lines(lines))
         if frames is not None and mix is not None:
             counts.update(channels.mix_proxy(mix["turns"], *frames))
+        if frames is not None:
+            counts.update(channels.you_lines(lines, frames[0], frames[1]))
+            counts.update(two_track=1, mic_lines=mic_lines, bleed_dropped=report.get("dropped_bleed", 0),
+                          you_relabelled=report.get("you_relabelled", 0),
+                          single_remote=int(report.get("single_remote", False)),
+                          shared_mic=int(report.get("shared_mic", False)))
     return counts
 
 
@@ -85,6 +91,9 @@ def run(root, cfg, cache, variant, params, full, heldout, python):
         segments_key, segments, wav, room_audio = prepared
         two_track = not rec["split"].startswith("ami") and not room_audio
         frames_key, frames = channels.frames(cache, rec["mic"], rec["system"]) if two_track else (None, None)
+        embed_key, vectors = (engines.embeddings(cache, cfg["engines"]["current"]["model"], rec, segments, full)
+                              if two_track else (None, []))
+        extra = {"dir": str(rec["dir"]), "embeddings": vectors} if two_track else {}
         for name, engine in cfg["engines"].items():
             engine_key, result = engines.engine_result(cache, name, engine, wav, full, python)
             if result is None:
@@ -96,21 +105,24 @@ def run(root, cfg, cache, variant, params, full, heldout, python):
                                                      full, python)
             window = label_window(rec["reference"])
             track_ms = round(engines.seconds(wav) * 1000)
-            assign_key = assigner.job_key(segments_key, engine_key, room_audio, track_ms, window)
+            assign_key = assigner.job_key(segments_key, engine_key, room_audio, track_ms, window,
+                                          (frames_key, embed_key) if two_track else None)
             probs = result.get("probs") and str(cache.path("engine", Path(result["probs"]).stem, ".npy"))
-            lines = assigner.request(assign_key, {"room_audio": room_audio, "track_ms": track_ms,
-                                                  "segments": segments, "turns": wire_turns(result["turns"]),
-                                                  "probs": probs})
-            jobs.append((rec, name, result, lines, assign_key, mix, mix_key, frames, frames_key))
+            done = assigner.request(assign_key, {"room_audio": room_audio, "track_ms": track_ms,
+                                                 "segments": segments, "turns": wire_turns(result["turns"]),
+                                                 "probs": probs, **extra})
+            mic_lines = sum(s["source_type"] == "microphone" for s in segments)
+            jobs.append((rec, name, result, done, assign_key, mix, mix_key, frames, frames_key, mic_lines))
     computed = assigner.run()
-    for rec, name, result, lines, assign_key, mix, mix_key, frames, frames_key in jobs:
-        lines = lines if lines is not None else computed[assign_key]
+    for rec, name, result, done, assign_key, mix, mix_key, frames, frames_key, mic_lines in jobs:
+        done = done if done is not None else computed[assign_key]
+        lines, report = done["lines"], done["report"]
         ref = rec["reference"]
         ref_files = [] if not ref else [v for k, v in ref.items() if k != "kind"]
         score_key = key(code, assign_key, [cache.file_hash(p) for p in ref_files], mix_key, frames_key)
         counts = cache.get("score", score_key)
         if counts is None:
-            counts = score(rec, lines, result, mix, frames)
+            counts = score(rec, lines, result, mix, frames, report, mic_lines)
             cache.put("score", score_key, counts)
             cache.note("score", "computed")
         else:

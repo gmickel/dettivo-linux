@@ -284,6 +284,27 @@ max_speakers = 0
 # Initial average-linkage cosine cutoff, followed by low-support cluster
 # reassignment. The final speaker count need not vary monotonically.
 clustering_threshold = 0.6
+# The two-track rules (docs/meetings.md). A microphone line on which the
+# microphone is active and at least half as loud as the system track for
+# less than this share of its time is the remote side heard through the
+# microphone, or words heard in silence, and is dropped (0 to 1); 0 keeps
+# every line.
+bleed_min_voiced = 0.05
+# When the engine finds one remote speaker, every remote line takes that
+# speaker, including the lines no speaker turn is near.
+single_remote = true
+# When the system track stayed silent while the microphone spoke, several
+# people shared the microphone: the pass diarizes it like room audio once
+# it hears two or more voices.
+shared_mic = true
+# Learn your voice from the microphone of every meeting and name remote
+# lines in your voice You. The voiceprint stays on this machine in
+# <data_dir>/voiceprint.json; false never reads or writes it, and deleting
+# the file forgets it.
+voiceprint = true
+# The least cosine similarity (0 to 1) between a remote line's voice and
+# your voiceprint that makes the line yours.
+voice_match = 0.6
 
 [transfer]
 # The largest upload transfer.chunk accumulates, in bytes (1 GiB).

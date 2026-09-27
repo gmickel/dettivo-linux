@@ -3,7 +3,8 @@ import Dettivo
 
 // The Speakers group of the Meetings route: the post-meeting speaker pass
 // (ADR 0035), its model set, the sentence rule that labels a line (ADR
-// 0072) and the clustering bounds, on the settings pattern.
+// 0072), the clustering bounds and the two-track rules (ADR 0075), on the
+// settings pattern.
 Column {
     id: root
 
@@ -70,6 +71,44 @@ Column {
             hint: qsTr("initial cosine cutoff; low-support clusters are reassigned afterward")
             key: "meetings.diarization.clustering_threshold"
             label: qsTr("Clustering threshold")
+            settings: root.settings
+        }
+
+        SettingRow {
+            hint: qsTr("drop a microphone line you voiced for less than this share of it (0 to 1)")
+            key: "meetings.diarization.bleed_min_voiced"
+            label: qsTr("Bleed gate")
+            settings: root.settings
+        }
+
+        SettingRow {
+            hint: qsTr("one remote voice labels every remote line")
+            key: "meetings.diarization.single_remote"
+            kind: "switch"
+            label: qsTr("Single remote speaker")
+            settings: root.settings
+        }
+
+        SettingRow {
+            hint: qsTr("a silent system track means several people shared the microphone")
+            key: "meetings.diarization.shared_mic"
+            kind: "switch"
+            label: qsTr("Shared microphone")
+            settings: root.settings
+        }
+
+        SettingRow {
+            hint: qsTr("learn your voice on this machine and name your remote lines You")
+            key: "meetings.diarization.voiceprint"
+            kind: "switch"
+            label: qsTr("Voiceprint")
+            settings: root.settings
+        }
+
+        SettingRow {
+            hint: qsTr("how close a remote voice must be to yours (0 to 1)")
+            key: "meetings.diarization.voice_match"
+            label: qsTr("Voice match")
             settings: root.settings
         }
     }

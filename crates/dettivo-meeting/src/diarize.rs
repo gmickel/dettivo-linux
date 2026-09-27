@@ -54,6 +54,9 @@ pub struct Outcome {
     pub coverage: f64,
     /// How many segments the rule split in two or more.
     pub split: usize,
+    /// For each labelled segment, the position of the input segment it
+    /// came from (a split segment's parts share one).
+    pub origins: Vec<usize>,
 }
 
 /// The track a meeting diarizes: the system track when one recorded, the
@@ -236,11 +239,18 @@ pub fn assign(
     }
     let is_you = |s: &Segment| !room_audio && s.source_type == SegmentSource::Microphone;
     let assigned: Vec<bool> = segments.iter().map(|s| !is_you(s)).collect();
+    // The input position rides on `index` through the split, then the
+    // segments are numbered afresh.
+    for (position, s) in segments.iter_mut().enumerate() {
+        s.index = position as u32;
+    }
+    let mut origins = Vec::with_capacity(segments.len());
     let (labelled, split) =
         sentences::label(std::mem::take(segments), &assigned, turns, rule, |_| {
             Some((YOU.to_string(), 1.0))
         });
     for (index, (mut s, label)) in labelled.into_iter().enumerate() {
+        origins.push(s.index as usize);
         s.index = index as u32;
         match label {
             Some((id, share)) => {
@@ -268,6 +278,7 @@ pub fn assign(
         speakers,
         coverage: (coverage * 1000.0).round() / 1000.0,
         split,
+        origins,
     }
 }
 

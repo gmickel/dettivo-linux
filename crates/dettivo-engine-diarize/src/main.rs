@@ -3,8 +3,10 @@
 //! on stdin/stdout for the daemon's supervisor; CLI mode takes a WAV and
 //! prints the same JSON the protocol's `diarize` response carries, so the
 //! fixture, the benchmark and `dettivo doctor` exercise the exact path.
+//! With `--embed` it prints one voice embedding per span instead.
 //! ONNX Runtime is linked into this binary alone.
 
+mod embed;
 mod engine;
 mod provider;
 
@@ -12,7 +14,9 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use clap::{Parser, ValueEnum};
-use dettivo_engine_proto::{BackendPreference, DiarizeParams, LoadParams, host, host_diarize};
+use dettivo_engine_proto::{
+    BackendPreference, DiarizeParams, EmbedParams, LoadParams, host, host_diarize,
+};
 
 /// Package names of the workspace crates this binary builds on.
 const UPSTREAM: &[&str] = &[dettivo_engine_proto::CRATE_NAME];
@@ -62,6 +66,10 @@ struct Cli {
     /// Force the CPU backend (also DETTIVO_FORCE_CPU=1).
     #[arg(long)]
     cpu: bool,
+    /// CLI mode: embed the spans this JSON file names
+    /// (`{"spans": [{"start_ms": .., "end_ms": ..}]}`) and print JSON.
+    #[arg(long, value_name = "FILE")]
+    embed: Option<PathBuf>,
     /// Print JSON (CLI mode; the only output format).
     #[arg(long)]
     json: bool,
@@ -105,6 +113,9 @@ fn main() -> ExitCode {
                     return ExitCode::from(1);
                 }
             };
+            if let Some(spans) = cli.embed {
+                return embed(&pcm, &load, &spans, force_cpu);
+            }
             let started = std::time::Instant::now();
             let mut progress = |done: u32, total: u32| {
                 tracing::info!(completed = done, total, "progress");
@@ -143,5 +154,29 @@ fn main() -> ExitCode {
             }
         }
         None => host_diarize::serve::<engine::Diarizer>(force_cpu, cli.provider.map(Into::into)),
+    }
+}
+
+/// `--embed`: prints `run_cli_embed`'s JSON for the spans in `spans`.
+fn embed(pcm: &[i16], load: &LoadParams, spans: &std::path::Path, force_cpu: bool) -> ExitCode {
+    let params = std::fs::read_to_string(spans)
+        .map_err(|e| format!("{}: {e}", spans.display()))
+        .and_then(|text| {
+            serde_json::from_str::<EmbedParams>(&text)
+                .map_err(|e| format!("{}: {e}", spans.display()))
+        });
+    let result = params.and_then(|params| {
+        host_diarize::run_cli_embed::<engine::Diarizer>(pcm, load, &params, force_cpu)
+            .map_err(|e| e.to_string())
+    });
+    match result {
+        Ok(json) => {
+            println!("{json}");
+            ExitCode::SUCCESS
+        }
+        Err(e) => {
+            eprintln!("dettivo-engine-diarize: {e}");
+            ExitCode::from(1)
+        }
     }
 }

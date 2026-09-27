@@ -1,10 +1,19 @@
-//! The speaker pass thread (ADR 0035): reads the diarized track, sends it
-//! through the engine, labels the segments under the sentence rule (ADR
-//! 0072), polishes the parts it split, and commits the result through
-//! the meeting's job entry. The service that starts and tracks passes is
+//! The speaker pass thread (ADR 0035): reads both tracks, picks the one to
+//! diarize (the microphone when it was shared, ADR 0075), sends it through
+//! the engine, labels the segments under the sentence rule (ADR 0072) and
+//! the two-track rules, folds the user's voice into the voiceprint,
+//! polishes the parts it split, and commits the result through the
+//! meeting's job entry. The service that starts and tracks passes is
 //! `diarization.rs`.
 
+use std::path::Path;
+
+use dettivo_meeting::Track;
 use dettivo_meeting::diarize;
+use dettivo_meeting::levels::Levels;
+use dettivo_meeting::two_track::{self, Evidence};
+use dettivo_meeting::voiceprint::Voiceprint;
+use dettivo_proto::methods::meetings::{Segment, SegmentSource};
 use dettivo_proto::methods::speakers::DiarizationStatus;
 use dettivo_speech::EngineError;
 use dettivo_speech::diarize::{DiarizeRequest, timeout_for};
@@ -25,6 +34,67 @@ fn last_line(tail: &str) -> String {
         .to_string()
 }
 
+/// Both tracks on the meeting clock: the system track (required when the
+/// meeting recorded one) and the microphone (required for room audio,
+/// optional beside a system track).
+struct Tracks {
+    mic: Vec<i16>,
+    system: Vec<i16>,
+}
+
+fn read_tracks(dir: Option<&str>, system_audio: bool) -> Result<Tracks, String> {
+    let dir = Path::new(dir.ok_or("the meeting keeps no audio")?);
+    let mic = diarize::read_track(dir, Track::Microphone);
+    if !system_audio {
+        return Ok(Tracks {
+            mic: mic?,
+            system: Vec::new(),
+        });
+    }
+    let system = diarize::read_track(dir, Track::System)?;
+    Ok(Tracks {
+        mic: mic.unwrap_or_default(),
+        system,
+    })
+}
+
+/// One embedding per segment, each on its own track; none where the
+/// engine could not embed (an older engine, a failure), which leaves the
+/// voice rules idle.
+fn embeddings(
+    engine: &dettivo_speech::diarize::DiarizeEngine,
+    segments: &[Segment],
+    tracks: &Tracks,
+    audio_ms: u64,
+) -> Vec<Option<Vec<f32>>> {
+    let spans = two_track::embed_spans(segments);
+    let mut out = vec![None; segments.len()];
+    for (source, pcm) in [
+        (SegmentSource::Microphone, &tracks.mic),
+        (SegmentSource::System, &tracks.system),
+    ] {
+        let mine: Vec<usize> = (0..segments.len())
+            .filter(|&i| segments[i].source_type == source && spans[i].is_some())
+            .collect();
+        if mine.is_empty() || pcm.is_empty() {
+            continue;
+        }
+        let asked: Vec<(u64, u64)> = mine.iter().filter_map(|&i| spans[i]).collect();
+        match engine.embed(pcm, &asked, timeout_for(audio_ms)) {
+            Ok(vectors) => {
+                for (i, v) in mine.into_iter().zip(vectors) {
+                    out[i] = v;
+                }
+            }
+            Err(e) => {
+                tracing::warn!(error = %e, "speaker embeddings unavailable; the voiceprint rule is idle");
+                return Vec::new();
+            }
+        }
+    }
+    out
+}
+
 /// The pass thread: the track, the engine, the assignment, the row.
 pub(crate) fn run(service: &Diarization, pass: Pass) {
     let Pass {
@@ -34,6 +104,8 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
         engine,
         model_id,
         rule,
+        two_track: rules,
+        data_dir,
         polish,
         speakers,
         clustering_threshold,
@@ -52,32 +124,45 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
     }
     publish_state(&bus, &row, DiarizationStatus::Running);
     publish_progress(&bus, &job_id, (0, 0), STAGE);
-    let track = diarize::track_for(row.system_audio);
-    let outcome = match audio_dir.as_deref() {
-        None => Err("the meeting keeps no audio".to_string()),
-        Some(dir) => diarize::read_track(std::path::Path::new(dir), track),
-    }
-    .map_err(|e| (format!("audio: {e}"), false))
-    .and_then(|pcm| {
-        let audio_ms = pcm.len() as u64 * 1000 / 16_000;
-        let request = DiarizeRequest {
-            pcm,
-            speakers,
-            clustering_threshold: Some(clustering_threshold),
-        };
-        let mut progress = |done: u32, total: u32| {
-            service.note_progress(&row.id, (done, total));
-            publish_progress(&bus, &job_id, (done, total), STAGE);
-        };
-        engine
-            .diarize(&request, timeout_for(audio_ms), &cancel, &mut progress)
-            .map(|r| (r, audio_ms))
-            .map_err(|e| match e {
-                EngineError::ModelMissing(m) => (m, true),
-                EngineError::Crashed(tail) => (last_line(&tail), false),
-                EngineError::Cancelled => ("cancelled".into(), false),
-                other => (other.to_string(), false),
-            })
+    let mut tracks = read_tracks(audio_dir.as_deref(), row.system_audio);
+    let levels = match &tracks {
+        Ok(t) if row.system_audio && !t.mic.is_empty() => Some(Levels::from_pcm(&t.mic, &t.system)),
+        _ => None,
+    };
+    let (track, shared_mic) = two_track::plan(row.system_audio, levels.as_ref(), &rules);
+    let outcome = match &mut tracks {
+        Err(e) => Err((format!("audio: {e}"), false)),
+        Ok(t) => {
+            let chosen = match track {
+                Track::System => &mut t.system,
+                Track::Microphone => &mut t.mic,
+            };
+            let audio_ms = chosen.len() as u64 * 1000 / 16_000;
+            let mut request = DiarizeRequest {
+                pcm: std::mem::take(chosen),
+                speakers,
+                clustering_threshold: Some(clustering_threshold),
+            };
+            let mut progress = |done: u32, total: u32| {
+                service.note_progress(&row.id, (done, total));
+                publish_progress(&bus, &job_id, (done, total), STAGE);
+            };
+            let outcome = engine
+                .diarize(&request, timeout_for(audio_ms), &cancel, &mut progress)
+                .map(|r| (r, audio_ms))
+                .map_err(|e| match e {
+                    EngineError::ModelMissing(m) => (m, true),
+                    EngineError::Crashed(tail) => (last_line(&tail), false),
+                    EngineError::Cancelled => ("cancelled".into(), false),
+                    other => (other.to_string(), false),
+                });
+            *chosen = std::mem::take(&mut request.pcm);
+            outcome
+        }
+    };
+    let tracks = tracks.unwrap_or(Tracks {
+        mic: Vec::new(),
+        system: Vec::new(),
     });
     // The row may have changed (a rename, a delete) while the pass ran.
     let current = match history.with_store(|s| s.get_meeting(&row.id)) {
@@ -92,16 +177,54 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
     let previous = row.speakers.clone();
     let (status, stage, chunks) = match outcome {
         Ok((result, audio_ms)) => {
-            let room_audio = !row.system_audio;
-            let out = diarize::assign(
+            let room_audio = two_track::room_labelling(row.system_audio, shared_mic, &result.turns);
+            // One voice on a shared microphone is the user: no turns name
+            // the (silent) system track's lines.
+            let turns = if shared_mic && !room_audio {
+                Vec::new()
+            } else {
+                result.turns
+            };
+            let voices = rules.voiceprint && !room_audio;
+            let stored = voices
+                .then(|| Voiceprint::load(&data_dir, &model_id))
+                .flatten();
+            let evidence = Evidence {
+                levels: levels.as_ref(),
+                embeddings: if voices {
+                    embeddings(&engine, &row.segments, &tracks, audio_ms)
+                } else {
+                    Vec::new()
+                },
+                voiceprint: stored.as_ref().map(|p| p.vector.as_slice()),
+            };
+            let (out, report) = two_track::label(
                 &mut row.segments,
-                &result.turns,
+                &turns,
                 room_audio,
                 audio_ms,
                 &rule,
+                &rules,
+                &evidence,
             );
+            if report.dropped_bleed > 0 {
+                row.raw_text = row
+                    .segments
+                    .iter()
+                    .map(|s| s.text.trim())
+                    .filter(|t| !t.is_empty())
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                row.final_text = row.polished_join();
+            }
             if out.split > 0 {
                 MeetingArchive::polish_missing(&polish, &mut row);
+            }
+            if let Some(meeting) = &report.enrolment
+                && let Some(print) = Voiceprint::fold(stored, &model_id, &row.id, meeting)
+                && let Err(e) = print.save(&data_dir)
+            {
+                tracing::warn!(error = %e, "voiceprint not stored");
             }
             let mut speakers = out.speakers;
             diarize::carry_names(&mut speakers, &mut row.segments, &previous);
@@ -112,9 +235,13 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
             tracing::info!(
                 job = %job_id,
                 speakers = row.speakers.len(),
-                turns = result.turns.len(),
+                turns = turns.len(),
                 split = out.split,
                 coverage = out.coverage,
+                shared_mic,
+                bleed_dropped = report.dropped_bleed,
+                single_remote = report.single_remote,
+                you_relabelled = report.you_relabelled,
                 "diarization done"
             );
             (DiarizationStatus::Ready, "done", (1, 1))

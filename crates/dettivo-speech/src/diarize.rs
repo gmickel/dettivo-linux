@@ -4,13 +4,16 @@
 //! raise from another thread (the engine answers `cancelled` and the pass
 //! ends in its background), and the same slot mechanics as the speech
 //! engines: spawn on first need, `stt_idle_seconds` reaping, crashes
-//! recorded with backoff, degraded after three.
+//! recorded with backoff, degraded after three. `embed` asks the same
+//! engine for one voice embedding per time span of a track.
 
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 
-use dettivo_engine_proto::{BackendPreference, DiarizeParams, DiarizeResult, LoadParams};
+use dettivo_engine_proto::{
+    BackendPreference, DiarizeParams, DiarizeResult, EmbedParams, EmbedResult, LoadParams, Span,
+};
 use serde_json::Value;
 
 use crate::EngineError;
@@ -109,6 +112,48 @@ impl DiarizeEngine {
                 )?;
                 serde_json::from_value(value)
                     .map_err(|e| EngineError::Transport(format!("diarize response: {e}")))
+            })
+    }
+
+    /// One embedding per span of `pcm` (16 kHz mono), within `timeout`.
+    pub fn embed(
+        &self,
+        pcm: &[i16],
+        spans: &[(u64, u64)],
+        timeout: Duration,
+    ) -> Result<Vec<Option<Vec<f32>>>, EngineError> {
+        dettivo_engine_proto::validate_pcm_samples(pcm.len() as u64).map_err(|e| {
+            EngineError::Engine {
+                code: "bad_request".into(),
+                message: e.to_string(),
+            }
+        })?;
+        let params = EmbedParams {
+            spans: spans
+                .iter()
+                .map(|&(start_ms, end_ms)| Span { start_ms, end_ms })
+                .collect(),
+        };
+        let bytes = dettivo_engine_proto::pcm_to_bytes(pcm);
+        self.supervisor
+            .with_engine_load(DIARIZE_BINARY, self.load_params(), |process, _| {
+                let value = process.call(
+                    "embed",
+                    serde_json::to_value(&params).unwrap_or(Value::Null),
+                    &[&bytes],
+                    timeout,
+                    |_| {},
+                )?;
+                let result = serde_json::from_value::<EmbedResult>(value)
+                    .map_err(|e| EngineError::Transport(format!("embed response: {e}")))?;
+                if result.embeddings.len() != spans.len() {
+                    return Err(EngineError::Transport(format!(
+                        "embed response: {} vectors for {} spans",
+                        result.embeddings.len(),
+                        spans.len()
+                    )));
+                }
+                Ok(result.embeddings)
             })
     }
 
