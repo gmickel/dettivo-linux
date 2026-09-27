@@ -19,18 +19,20 @@ pub(crate) struct Choice {
 
 /// Nemotron runs when it is configured, downloaded and the expected count
 /// fits its eight channels; otherwise the sherpa-onnx set runs with the
-/// reason (ADR 0073). Any other configured set runs as it is.
+/// reason (ADR 0073). Any other configured set runs as it is. `present`
+/// answers whether a set is on disk; a quarantined one counts, so the
+/// caller refuses it with the verification error instead of falling back.
 pub(crate) fn choose(
     configured: &str,
     expected: Option<u32>,
-    ready: impl Fn(&str) -> bool,
+    present: impl Fn(&str) -> bool,
 ) -> Choice {
     let why = match expected {
         _ if configured != NEMOTRON_MODEL => None,
         Some(n) if n > NEMOTRON_MAX_SPEAKERS => Some(format!(
             "{n} speakers are expected and Nemotron tracks at most {NEMOTRON_MAX_SPEAKERS}"
         )),
-        _ if !ready(configured) => Some(format!(
+        _ if !present(configured) => Some(format!(
             "diarize/{configured} is not downloaded (`{}`)",
             crate::engines::download_command("diarize", configured)
         )),

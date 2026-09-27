@@ -3,7 +3,9 @@
 //! sherpa-onnx set alone on disk the pass runs it and the block says
 //! Nemotron is not downloaded; with Nemotron on disk the pass runs
 //! `dettivo-engine-nemotron`, and a meeting expecting nine speakers falls
-//! back to the sherpa-onnx set naming the eight-speaker limit. Skipped
+//! back to the sherpa-onnx set naming the eight-speaker limit. A Nemotron
+//! file that fails its checksum is quarantined and the pass refused with
+//! the verification error, never replaced by the sherpa-onnx set. Skipped
 //! without the models.
 
 mod common;
@@ -38,6 +40,37 @@ fn a_missing_nemotron_model_falls_back_to_the_sherpa_set_with_the_reason() {
         "{why}"
     );
     assert_eq!(row["speakers"].as_array().unwrap().len(), 2);
+    daemon.stop();
+}
+
+#[test]
+fn a_quarantined_nemotron_model_is_refused_not_replaced() {
+    let (Some(tree), Some(sherpa)) = (tree(CONFIG), diarization_model()) else {
+        eprintln!("skip: tiny.en, jfk.wav or the diarization model set missing");
+        return;
+    };
+    with_diarization(&tree, &sherpa);
+    let dir = tree
+        .root()
+        .join("data/dettivo/models/diarize/nemotron-3-diarization");
+    std::fs::create_dir_all(&dir).unwrap();
+    let file = dir.join("Nemotron-3-Diarization.q8_0.gguf");
+    std::fs::write(&file, b"not the model").unwrap();
+    let mic = track_fixture("mic");
+    let daemon = spawn(tree, &env(&mic, &mic, &[("DETTIVO_E2E_SEED", "1")]));
+    let id = import_meeting(&daemon, json!({"expected_speakers": 2}));
+    let row = wait_diarization(&daemon, &id, "unavailable");
+    let block = &row["diarization"];
+    let error = block["error"].as_str().unwrap();
+    assert!(
+        error.contains("diarize/nemotron-3-diarization failed verification and is quarantined"),
+        "{block}"
+    );
+    assert!(block.get("fallback_reason").is_none(), "{block}");
+    assert!(
+        !file.exists(),
+        "the corrupt file is moved aside, never loaded"
+    );
     daemon.stop();
 }
 

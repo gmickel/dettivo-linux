@@ -325,19 +325,29 @@ impl Diarization {
                 .find("diarize", id)
                 .map(|entry| (store.readiness(entry), store.load_path(entry)))
         };
-        let ready = |id: &str| {
+        // A quarantined set is on disk as far as the choice goes: it is
+        // refused below with the verification error, never replaced by
+        // the fallback. Only a set that is missing or still arriving is.
+        let present = |id: &str| {
             matches!(
                 find(id),
-                Some((Readiness::Ready | Readiness::Unverified, _))
+                Some((
+                    Readiness::Ready | Readiness::Unverified | Readiness::Quarantined,
+                    _
+                ))
             )
         };
-        let choice = choose(configured, expected, ready);
+        let choice = choose(configured, expected, present);
         let model = &choice.model;
-        let missing = if ready(configured) { model } else { configured };
+        let missing = if present(configured) {
+            model
+        } else {
+            configured
+        };
         match find(model) {
-            Some((Readiness::Ready | Readiness::Unverified, dir)) => {
-                // Verified, or hashed now; a set that fails is quarantined
-                // and refused rather than opened.
+            Some((Readiness::Ready | Readiness::Unverified | Readiness::Quarantined, dir)) => {
+                // Verified, or hashed now; a set that fails, or failed
+                // before, is quarantined and refused rather than opened.
                 daemon.models().verifier().ensure(&dir).map_err(|why| {
                     JsonRpcError::new(AppCode::NotFound, why, ErrorDetails::empty())
                 })?;
