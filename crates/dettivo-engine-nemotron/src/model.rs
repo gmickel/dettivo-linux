@@ -23,8 +23,12 @@ const SPEAKER_CACHE: i32 = 264;
 const UPDATE_PERIOD: i32 = 300;
 
 /// Audio pushed per step (60 s): the pass reports progress and reads the
-/// new frames between pushes, before the stream's compaction (after about
-/// 20 minutes) drops the oldest raw probabilities.
+/// new frames between pushes. Past about 20 minutes the stream compacts:
+/// it freezes a silent-gap-bounded prefix into segments and drops that
+/// prefix's raw probabilities, always keeping at least the latest 10
+/// minutes (`DiarStream::maybe_compact` in the pinned source). A read
+/// every 60 s therefore copies every frame before it can be dropped, and
+/// the pass returns the whole timeline however long the meeting.
 pub const PUSH_SAMPLES: usize = 60 * 16_000;
 
 /// The library's reason for the last failed call on this thread.
@@ -153,6 +157,21 @@ impl Model {
         samples: &[f32],
         progress: &mut dyn FnMut(u32, u32),
     ) -> Result<Vec<f32>, String> {
+        let (probs, compacted) = self.stream(samples, progress)?;
+        tracing::debug!(
+            compacted,
+            "frames the stream compacted after they were read"
+        );
+        Ok(probs)
+    }
+
+    /// The pass behind [`Self::probabilities`], also answering the stream's
+    /// final compaction frontier (`frame_probs_start`).
+    fn stream(
+        &self,
+        samples: &[f32],
+        progress: &mut dyn FnMut(u32, u32),
+    ) -> Result<(Vec<f32>, i64), String> {
         let mut raw = std::ptr::null_mut();
         // SAFETY: the model is live and `raw` is a valid out pointer.
         check(unsafe { ffi::nemo_speech_diar_stream_open(self.raw, &mut raw) })?;
@@ -172,7 +191,9 @@ impl Model {
         // SAFETY: the stream is live.
         check(unsafe { ffi::nemo_speech_diar_stream_finish(stream.0) })?;
         self.collect(&stream, &mut read, &mut out)?;
-        Ok(out)
+        // SAFETY: the stream is live; the counter takes no pointers.
+        let compacted = unsafe { ffi::nemo_speech_diar_frame_probs_start(stream.0) };
+        Ok((out, compacted))
     }
 
     /// Appends the frames labelled since `read` to `out`.
@@ -185,6 +206,10 @@ impl Model {
                 ffi::nemo_speech_diar_frame_probs_start(stream.0),
             )
         };
+        // Unreachable while the stream keeps 10 minutes and the pass reads
+        // every `PUSH_SAMPLES` (see there); a source bump that shrinks the
+        // retained window fails here, and in the compaction test, rather
+        // than returning a timeline with a hole.
         if start > *read {
             return Err(format!(
                 "frames {read}..{start} were compacted before they were read"
@@ -208,5 +233,74 @@ impl Drop for Model {
     fn drop(&mut self) {
         // SAFETY: the model was created by `open` and is destroyed once.
         unsafe { ffi::nemo_speech_diar_destroy(self.raw) };
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The GGUF, when this machine has it (as in `tests/cli.rs`).
+    fn model_file() -> Option<std::path::PathBuf> {
+        let dir = std::env::var_os("DETTIVO_TEST_NEMOTRON_MODEL")
+            .map(std::path::PathBuf::from)
+            .or_else(|| {
+                let data = std::env::var_os("XDG_DATA_HOME")
+                    .map(std::path::PathBuf::from)
+                    .or_else(|| {
+                        std::env::var_os("HOME")
+                            .map(|h| std::path::PathBuf::from(h).join(".local/share"))
+                    })?;
+                Some(data.join("dettivo/models/diarize/nemotron-3-diarization"))
+            })?;
+        let file = dir.join(crate::engine::MODEL_FILE);
+        file.is_file().then_some(file)
+    }
+
+    /// The two-speaker fixture with two seconds of silence after it,
+    /// repeated `times` times.
+    fn repeated_fixture(times: usize) -> Vec<f32> {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../dettivo-qa/fixtures/diarization/two-speakers.wav");
+        let mut clip: Vec<f32> = hound::WavReader::open(path)
+            .unwrap()
+            .samples::<i16>()
+            .map(|s| f32::from(s.unwrap()) / 32_768.0)
+            .collect();
+        clip.extend(std::iter::repeat_n(0.0, 2 * 16_000));
+        clip.repeat(times)
+    }
+
+    #[test]
+    fn a_stream_past_the_compaction_horizon_returns_every_frame() {
+        let Some(path) = model_file() else {
+            eprintln!("skip: Nemotron 3 Diarization is not downloaded");
+            return;
+        };
+        let model = Model::open(&path, -1).unwrap();
+        let n = model.speakers() as usize;
+        // 61 repeats of 20.9 s: 21.2 minutes, past the 20-minute trigger.
+        let long = repeated_fixture(61);
+        let (probs, compacted) = model.stream(&long, &mut |_, _| {}).unwrap();
+        assert!(compacted > 0, "the stream never compacted");
+        let frames = long.len() / 160;
+        assert!(
+            probs.len() / n >= frames - 1 && probs.len() / n <= frames + 1,
+            "{} frames for {frames} expected",
+            probs.len() / n
+        );
+        // The compacted prefix is exactly what a pass that never compacts
+        // labels; the short pass's last chunk is flushed differently, so
+        // compare up to a minute before its end.
+        let short = repeated_fixture(6);
+        let (reference, none) = model.stream(&short, &mut |_, _| {}).unwrap();
+        assert_eq!(none, 0);
+        let shared = (short.len() / 160 - 6_000) * n;
+        let worst = probs[..shared]
+            .iter()
+            .zip(&reference[..shared])
+            .map(|(a, b)| (a - b).abs())
+            .fold(0f32, f32::max);
+        assert!(worst <= 1e-4, "the prefix moved by {worst}");
     }
 }
