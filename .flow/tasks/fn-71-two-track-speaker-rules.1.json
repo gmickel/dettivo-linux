@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-71-two-track-speaker-rules",
   "spec_path": ".flow/tasks/fn-71-two-track-speaker-rules.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Two-track speaker rules",
   "updated_at": "2026-09-27T15:44:33.233587Z"
 }
