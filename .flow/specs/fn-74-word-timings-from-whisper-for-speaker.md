@@ -38,3 +38,7 @@ This spec makes Whisper return timed words in meetings and imports, and measures
 ## Decision Context
 
 Gordon chose fn-68's label-everything default on 2026-09-26 with word timings as the immediate follow-up, to bring the wrong-name rate back down.
+
+### R2 outcome (2026-09-27)
+
+R2 is missed: with word timings, labelled lines with the wrong speaker on AMI dev are 21.02% (current engine) and 11.24% (Nemotron), against targets of 15.4% and 5.5%. A pause cut needs the diarized speaker change within `pause_ms` of the word gap, and the engines place changes a few hundred milliseconds off. R3 is met: attribution error falls to 21.07% and 12.49% on AMI dev, and to 14.11% and 11.96% on the held-out test. Gordon chose to merge on 2026-09-27 and continue hill-climbing, with the voice check (fn-70) and turn-boundary work targeting the wrong names.
