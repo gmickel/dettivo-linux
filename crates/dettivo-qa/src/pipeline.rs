@@ -30,13 +30,14 @@ pub struct Run {
     pub backend: String,
     /// Why that backend (the engine's `model loaded` log line).
     pub reason: String,
-    /// Word precision (Whisper reports no words; zeros then).
+    /// Word precision.
     pub words: WordPrecision,
     /// Segment boundary precision.
     pub segment_boundaries: Offsets,
     /// The transcript the engine returned.
     pub text: String,
-    /// The verdict for this run under the rule (`null` for Whisper).
+    /// The verdict for this run under the rule (`null` for Whisper, which
+    /// the rule does not judge).
     pub passes: Option<bool>,
 }
 
@@ -102,6 +103,11 @@ pub fn parakeet_alignment(repo: &Path, force_cpu: bool) -> Result<Report, String
             "whisper",
             "tiny.en",
             models.join("whisper/tiny.en/ggml-tiny.en.bin"),
+        ),
+        (
+            "whisper",
+            "large-v3-turbo",
+            models.join("whisper/large-v3-turbo/ggml-large-v3-turbo.bin"),
         ),
         (
             "parakeet",

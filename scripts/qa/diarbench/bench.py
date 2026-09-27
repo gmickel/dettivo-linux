@@ -2,7 +2,8 @@
 """`just diar-bench`: score the current tree's speaker assignment on cached inputs.
 
 Stages: audio (hashed), engine turns, transcript segments (Whisper for AMI, the product's
-stored segments for meetings), assignment (the product's Rust rule), scoring. Each is
+stored segments for meetings, or with `asr.meetings` the product's finalisation under the
+configured Whisper), assignment (the product's Rust rule), scoring. Each is
 cached by content, so a changed rule reruns only assignment and scoring. `--full` also
 runs the engines and Whisper wherever their inputs changed. The scoreboard goes to
 <eval>/runs/; `--save` keeps it as a baseline, `--baseline` prints deltas against one.

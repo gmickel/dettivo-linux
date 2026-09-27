@@ -18,7 +18,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-74-word-timings-from-whisper-for-speaker.md",
-  "status": "open",
+  "status": "done",
   "title": "Word timings from Whisper for speaker labelling",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-26T20:50:50.426208Z"
+  "updated_at": "2026-09-27T14:11:55.824541Z"
 }

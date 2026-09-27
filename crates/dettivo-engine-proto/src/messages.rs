@@ -98,8 +98,8 @@ fn yes() -> bool {
     true
 }
 
-/// One recognized word with its timestamps and confidence, from an engine
-/// that aligns words (Parakeet); Whisper segments carry no words.
+/// One recognized word with its timestamps and confidence. Whisper
+/// (ADR 0074) and Parakeet (ADR 0018) both time every word.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Word {

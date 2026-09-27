@@ -137,7 +137,7 @@ QJsonArray settingsEntries()
         entry("meetings.diarization.enabled", true, "default"),
         entry("meetings.diarization.auto", true, "default"),
         entry("meetings.diarization.model", QStringLiteral("diarization"), "default"),
-        entry("meetings.diarization.pause_ms", 250, "default"),
+        entry("meetings.diarization.pause_ms", 500, "default"),
         entry("meetings.diarization.nearest_turn_ms", 10000, "default"),
         entry("meetings.diarization.min_speaker_share", 0.0, "default"),
         entry("meetings.diarization.max_speakers", 0, "default"),

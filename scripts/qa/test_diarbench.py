@@ -8,8 +8,11 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "diarbench"))
+from cache import Cache  # noqa: E402
+import engines  # noqa: E402
 import metrics  # noqa: E402
 import report  # noqa: E402
+import word_timing  # noqa: E402
 from diarization_score import assignment_pairs, maximum_assignment  # noqa: E402
 
 
@@ -111,6 +114,36 @@ class ReportTests(unittest.TestCase):
         self.assertLessEqual(set(cell["metrics"]), set(metrics.BY_NAME))
         self.assertEqual(set(data), {"schema", "date", "tree", "variant", "params", "heldout_included",
                                      "engines", "splits"})
+
+
+class WordTimingTests(unittest.TestCase):
+    """fn-74 R1: Whisper words pair with AMI words only inside runs of matching text."""
+
+    def test_only_runs_of_matching_words_pair(self):
+        ref = [("the", 0, 100), ("cat", 100, 200), ("sat", 200, 300), ("down", 300, 400), ("and", 400, 500),
+               ("the", 9000, 9100)]
+        hyp = [("the", 20, 90), ("cat", 110, 230), ("sat", 200, 300), ("down", 350, 420), ("the", 500, 600)]
+        pairs = list(word_timing.pairs(ref, hyp))
+        self.assertEqual([(r[1], h[1]) for r, h in pairs], [(0, 20), (100, 110), (200, 200), (300, 350)])
+        self.assertEqual(word_timing.rank([10, 20, 30, 40, 1000], 0.5), 30)
+        self.assertEqual(word_timing.rank([10, 20, 30, 40, 1000], 0.95), 1000)
+
+
+class MeetingTrackTests(unittest.TestCase):
+    """A mic-only retained meeting keys its missing system track instead of failing."""
+
+    def test_mic_only_meeting_keys_system_as_absent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "meeting"
+            d.mkdir()
+            (d / "microphone.wav").write_bytes(b"mic")
+            rec = {"mic": d / "microphone.wav", "system": d / "system.wav"}
+            cache = Cache(tmp)
+            mic, system = engines.meeting_tracks(cache, rec)
+            self.assertEqual(system, "no-system")
+            self.assertEqual(engines.meeting_tracks(cache, rec), (mic, "no-system"))
+            (d / "system.wav").write_bytes(b"sys")
+            self.assertEqual(engines.meeting_tracks(cache, rec), (mic, cache.file_hash(d / "system.wav")))
 
 
 if __name__ == "__main__":
