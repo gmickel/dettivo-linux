@@ -272,6 +272,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "streams 21 minutes of audio; run with `just test-long`"]
     fn a_stream_past_the_compaction_horizon_returns_every_frame() {
         let Some(path) = model_file() else {
             eprintln!("skip: Nemotron 3 Diarization is not downloaded");

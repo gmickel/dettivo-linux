@@ -74,7 +74,11 @@ jobs:
       - run: scripts/models/fetch-diarization-model.sh
         env:
           XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
-      - run: just build-rust test-rust
+      # Nemotron 3 Diarization for the long-running tests (`just test-long`).
+      - run: scripts/models/fetch-diarization-model.sh "" nemotron-3-diarization
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+      - run: just build-rust test-rust test-long
         env:
           XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
       # The benchmark suite on the CPU with three iterations (ADR 0029):
