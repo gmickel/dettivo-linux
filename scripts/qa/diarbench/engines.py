@@ -263,6 +263,32 @@ def embeddings(cache, model, rec, segments, full):
     return k, out
 
 
+def unit_embeddings(cache, model, wav, spans, full, threads=4, provider="cpu"):
+    """(key, [[start_ms, end_ms, vector or None]], run record) for the voice check's
+    sentence units on the diarized track (ADR 0076), through the tree's engine and the
+    product's embedding model. A plain run uses cached vectors only; without them the
+    check sees no voice and leaves every unit as the sentence rule voted."""
+    binary = tree_engine()
+    k = key(cache.file_hash(binary), cache.tree_hash(model), cache.file_hash(wav), spans, provider)
+    hit = cache.get("embed", k)
+    if hit is not None:
+        cache.note("embed", "cached")
+        return k, hit["units"], hit["run"]
+    if not full or not spans:
+        cache.note("embed", "missing" if spans else "cached")
+        return None, [], None
+    with tempfile.NamedTemporaryFile("w", suffix=".json") as f:
+        json.dump({"spans": [{"start_ms": a, "end_ms": b} for a, b in spans]}, f)
+        f.flush()
+        print(f"embedding {len(spans)} units of {Path(wav).name}", file=sys.stderr, flush=True)
+        raw, run = timed([binary, "--wav", str(wav), "--model", str(model), "--embed", f.name, "--threads",
+                          str(threads), "--provider", provider])
+    units = [[a, b, v] for (a, b), v in zip(spans, json.loads(raw)["embeddings"])]
+    cache.put("embed", k, {"units": units, "run": run})
+    cache.note("embed", "computed")
+    return k, units, run
+
+
 def product_segments(raw):
     """Engine CLI segments as the product's Segment objects (room audio, no speaker)."""
     out = []

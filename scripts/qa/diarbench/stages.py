@@ -9,7 +9,7 @@ from pathlib import Path
 import channels
 import engines
 import metrics
-from assign import Assigner
+from assign import Assigner, wants_voice
 from cache import key
 from data import database, label_window, meeting_row, recordings, reference_units
 
@@ -39,13 +39,16 @@ def inputs(cache, cfg, rec, full, db):
     return key(segments), segments, (rec["system"] if system_audio else rec["mic"]), not system_audio
 
 
-def score(rec, lines, result, mix, frames, report, mic_lines):
-    """The file's counts from metrics.py (and channels.py for two-track meetings)."""
-    counts = {}
+def score(rec, lines, result, mix, frames, report, mic_lines, before=None):
+    """The file's counts from metrics.py (and channels.py for two-track meetings);
+    `before` is the lines without the voice check, when it ran."""
+    counts = {"voice_units": report.get("voice_checked", 0), "voice_moved": report.get("voice_moved", 0)}
     ref = rec["reference"]
     if ref:
         units = reference_units(ref)
         counts.update(metrics.attribution(lines, units))
+        if before is not None:
+            counts.update(metrics.fixed_broken(before, lines, units))
         if ref["kind"] == "ami":
             labelled = [x for x in lines if x["speaker"] is not None]
             counts.update(metrics.line_view(lines, rttm_turns(ref["rttm"])))
@@ -87,7 +90,8 @@ def run(root, cfg, cache, variant, params, full, heldout, python):
     board = {"variant": variant, "params": params, "heldout": heldout, "splits": {},
              "engines": {n: {"label": e["label"], "identity": engines.identity(cache, e)}
                          for n, e in cfg["engines"].items()}}
-    jobs = []
+    voice = wants_voice(params)
+    queued = []
     for rec in recordings(root, heldout):
         prepared = inputs(cache, cfg, rec, full, db)
         if prepared is None:
@@ -109,16 +113,29 @@ def run(root, cfg, cache, variant, params, full, heldout, python):
                                                      full, python)
             window = label_window(rec["reference"])
             track_ms = round(engines.seconds(wav) * 1000)
-            assign_key = assigner.job_key(segments_key, engine_key, room_audio, track_ms, window,
-                                          (frames_key, embed_key) if two_track else None)
+            pre_key = assigner.job_key(segments_key, engine_key, room_audio, track_ms, window,
+                                       (frames_key, embed_key) if two_track else None)
             probs = result.get("probs") and str(cache.path("engine", Path(result["probs"]).stem, ".npy"))
-            done = assigner.request(assign_key, {"room_audio": room_audio, "track_ms": track_ms,
-                                                 "segments": segments, "turns": wire_turns(result["turns"]),
-                                                 "probs": probs, **extra})
+            job = {"room_audio": room_audio, "track_ms": track_ms, "segments": segments,
+                   "turns": wire_turns(result["turns"]), "probs": probs, **extra}
             mic_lines = sum(s["source_type"] == "microphone" for s in segments)
-            jobs.append((rec, name, result, done, assign_key, mix, mix_key, frames, frames_key, mic_lines))
+            queued.append((rec, name, result, job, pre_key, wav, mix, mix_key, frames, frames_key, mic_lines))
+    # The voice check (ADR 0076) embeds the sentence units the rule forms, so the units
+    # come first, then their voices on the diarized track, then the labelling.
+    spans = assigner.spans({q[4]: q[3] for q in queued}) if voice else {}
+    jobs = []
+    for rec, name, result, job, pre_key, wav, mix, mix_key, frames, frames_key, mic_lines in queued:
+        assign_key, embed_run = pre_key, None
+        if voice:
+            embed_key, units, embed_run = engines.unit_embeddings(
+                cache, cfg["engines"]["current"]["model"], wav, spans[pre_key], full,
+                cfg["engines"]["current"]["threads"])
+            job = dict(job, unit_embeddings=units)
+            assign_key = key(pre_key, embed_key)
+        done = assigner.request(assign_key, job)
+        jobs.append((rec, name, result, done, assign_key, mix, mix_key, frames, frames_key, mic_lines, embed_run))
     computed = assigner.run()
-    for rec, name, result, done, assign_key, mix, mix_key, frames, frames_key, mic_lines in jobs:
+    for rec, name, result, done, assign_key, mix, mix_key, frames, frames_key, mic_lines, embed_run in jobs:
         done = done if done is not None else computed[assign_key]
         lines, report = done["lines"], done["report"]
         ref = rec["reference"]
@@ -126,12 +143,14 @@ def run(root, cfg, cache, variant, params, full, heldout, python):
         score_key = key(code, assign_key, [cache.file_hash(p) for p in ref_files], mix_key, frames_key)
         counts = cache.get("score", score_key)
         if counts is None:
-            counts = score(rec, lines, result, mix, frames, report, mic_lines)
+            counts = score(rec, lines, result, mix, frames, report, mic_lines, done.get("before"))
             cache.put("score", score_key, counts)
             cache.note("score", "computed")
         else:
             cache.note("score", "cached")
         counts = dict(counts, audio_s=result["run"]["audio_seconds"], engine_wall_s=result["run"]["wall_seconds"])
+        if embed_run:
+            counts.update(voice_audio_s=result["run"]["audio_seconds"], voice_embed_s=embed_run["wall_seconds"])
         cell = board["splits"].setdefault(rec["split"], {}).setdefault(
             name, {"files": {}, "audio_minutes": 0.0})
         cell["files"][rec["id"]] = counts

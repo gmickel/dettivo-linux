@@ -38,6 +38,16 @@ class MetricTests(unittest.TestCase):
         self.assertEqual(counts["words_uncovered"], 1)
         self.assertAlmostEqual(metrics.BY_NAME["attribution_error"].value(counts), 100 * 2 / 6)
 
+    def test_the_voice_check_counts_the_words_it_fixed_and_broke(self):
+        units = [unit(0, 900, "A", words=3), unit(1000, 1900, "B", words=2), unit(2000, 2900, "A", words=4),
+                 unit(3000, 3900, "B", words=1), unit(9000, 9100, "A")]
+        before = [line(0, 1000, "s0"), line(1000, 2000, "s0"), line(2000, 3000, "s0"), line(3000, 4000, "s1")]
+        # The check moved the B line to s1 (fixed, 2 words) and the last A line to s1 (broken, 4 words);
+        # the uncovered unit counts neither way.
+        after = [line(0, 1000, "s0"), line(1000, 2000, "s1"), line(2000, 3000, "s1"), line(3000, 4000, "s1")]
+        counts = metrics.fixed_broken(before, after, units)
+        self.assertEqual((counts["voice_fixed"], counts["voice_broken"]), (2, 4))
+
     def test_short_turns_are_runs_of_three_words_or_fewer(self):
         units = [unit(i * 100, i * 100 + 50, s) for i, s in enumerate("AAAABBBAAAAAB")]
         short = metrics.short_units(units)

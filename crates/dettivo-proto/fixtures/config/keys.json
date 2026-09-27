@@ -630,6 +630,13 @@
           "section": "meetings.diarization"
         },
         {
+          "default": true,
+          "doc": "Check each sentence's voice against the voices of the speakers the pass found, and move a sentence that clearly sounds like another speaker to that speaker. The voices come from the diarization model on this machine.",
+          "key": "meetings.diarization.voice_check",
+          "kind": "boolean",
+          "section": "meetings.diarization"
+        },
+        {
           "default": 0.6,
           "doc": "The least cosine similarity (0 to 1) between a remote line's voice and your voiceprint that makes the line yours.",
           "key": "meetings.diarization.voice_match",

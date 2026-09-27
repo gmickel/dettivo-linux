@@ -159,6 +159,9 @@ pub struct Diarization {
     /// The least cosine similarity between a remote line's voice and the
     /// voiceprint that makes the line the user's.
     pub voice_match: f64,
+    /// Check each sentence's voice against the speakers' voices and move
+    /// it to the one it sounds like (ADR 0076).
+    pub voice_check: bool,
 }
 
 impl Default for Diarization {
@@ -178,6 +181,7 @@ impl Default for Diarization {
             shared_mic: true,
             voiceprint: true,
             voice_match: 0.6,
+            voice_check: true,
         }
     }
 }

@@ -1,8 +1,9 @@
 //! The speaker pass thread (ADR 0035): reads both tracks, picks the one to
 //! diarize (the microphone when it was shared, ADR 0075), sends it through
 //! the engine, labels the segments under the sentence rule (ADR 0072) and
-//! the two-track rules, folds the user's voice into the voiceprint (from
-//! the voice engine, the sherpa-onnx set whichever set diarized), polishes
+//! the voice check on each sentence (ADR 0076) and the two-track rules,
+//! folds the user's voice into the voiceprint (both voices from the voice
+//! engine, the sherpa-onnx set whichever set diarized), polishes
 //! the parts it split, and commits the result through the meeting's job
 //! entry. The service that starts and tracks passes is `diarization.rs`.
 
@@ -13,6 +14,7 @@ use dettivo_meeting::Track;
 use dettivo_meeting::diarize::{self, Outcome, Rule};
 use dettivo_meeting::levels::Levels;
 use dettivo_meeting::two_track::{self, Evidence, Report, Rules as TwoTrack};
+use dettivo_meeting::voice_check::{Evidence as UnitEvidence, Voices};
 use dettivo_meeting::voiceprint::Voiceprint;
 use dettivo_proto::methods::meetings::{Segment, SegmentSource};
 use dettivo_proto::methods::speakers::DiarizationStatus;
@@ -107,35 +109,53 @@ struct Labelling<'a> {
     rules: &'a TwoTrack,
     levels: Option<&'a Levels>,
     tracks: &'a Tracks,
+    /// The track the engine diarized, where the voice check embeds.
+    track: Track,
     data_dir: &'a Path,
 }
 
-/// Labels the row's segments under the two-track rules and folds this
-/// meeting into the stored voiceprint. `voice` is the embedding set's id
-/// (which keys the print) with its embedder, or why this meeting has none:
-/// the voice rules then stay idle and the labelling goes on without them.
+/// Labels the row's segments under the voice check and the two-track
+/// rules and folds this meeting into the stored voiceprint. `voice` is the
+/// embedding set's id (which keys the print) with its embedder, or why this
+/// meeting has none: the voice rules then stay idle and the labelling goes
+/// on without them.
 fn label_row(
     row: &mut MeetingRow,
     l: &Labelling<'_>,
     voice: Result<(&str, &Embed<'_>), &str>,
 ) -> (Outcome, Report, Option<Enrolment>) {
-    let wanted = l.rules.voiceprint && !l.room_audio;
     let voice = match voice {
-        Ok(voice) if wanted => Some(voice),
-        Err(why) if wanted => {
-            tracing::debug!(reason = %why, "voiceprint skipped for this meeting");
+        Ok(voice) => Some(voice),
+        Err(why) => {
+            tracing::debug!(reason = %why, "voiceprint and voice check skipped for this meeting");
             None
         }
-        _ => None,
     };
-    let stored = voice.and_then(|(model, _)| Voiceprint::load(l.data_dir, model));
+    let print = voice.filter(|_| l.rules.voiceprint && !l.room_audio);
+    let stored = print.and_then(|(model, _)| Voiceprint::load(l.data_dir, model));
     let evidence = Evidence {
         levels: l.levels,
-        embeddings: voice.map_or_else(Vec::new, |(_, embed)| {
+        embeddings: print.map_or_else(Vec::new, |(_, embed)| {
             embeddings(embed, &row.segments, l.tracks)
         }),
         voiceprint: stored.as_ref(),
     };
+    let diarized = match l.track {
+        Track::System => &l.tracks.system,
+        Track::Microphone => &l.tracks.mic,
+    };
+    let mut unit_voices = |spans: &[(u64, u64)]| match voice {
+        Some((_, embed)) => embed(diarized, spans).unwrap_or_else(|e| {
+            tracing::warn!(error = %e, "sentence embeddings unavailable; the voice check is idle");
+            vec![None; spans.len()]
+        }),
+        None => vec![None; spans.len()],
+    };
+    let mut voices = Voices {
+        embed: &mut unit_voices,
+    };
+    let check: Option<&mut dyn UnitEvidence> =
+        (voice.is_some() && l.rule.voice_check.on).then_some(&mut voices);
     let (out, report) = two_track::label(
         &mut row.segments,
         l.turns,
@@ -144,8 +164,9 @@ fn label_row(
         l.rule,
         l.rules,
         &evidence,
+        check,
     );
-    let pending = match (voice, &report.enrolment) {
+    let pending = match (print, &report.enrolment) {
         (Some((model, _)), Some(meeting)) => Some(Enrolment {
             model: model.to_string(),
             meeting: meeting.clone(),
@@ -272,6 +293,7 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
                 rules: &rules,
                 levels: levels.as_ref(),
                 tracks: &tracks,
+                track,
                 data_dir: &data_dir,
             };
             let embed;
@@ -315,6 +337,8 @@ pub(crate) fn run(service: &Diarization, pass: Pass) {
                 bleed_dropped = report.dropped_bleed,
                 single_remote = report.single_remote,
                 you_relabelled = report.you_relabelled,
+                voice_checked = out.voice.checked,
+                voice_moved = out.voice.moved,
                 "diarization done"
             );
             (DiarizationStatus::Ready, "done", (1, 1))

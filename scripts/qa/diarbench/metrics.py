@@ -69,7 +69,12 @@ METRICS = [
     Metric("you_relabelled", "Remote lines relabelled You", ("you_relabelled",), ("remote_lines",)),
     Metric("single_remote", "Meetings under the single-remote rule", ("single_remote",), ("two_track",)),
     Metric("shared_mic", "Meetings switched to the shared mic", ("shared_mic",), ("two_track",)),
+    Metric("voice_fixed", "Words the voice check fixed", ("voice_fixed",), ("words",)),
+    Metric("voice_broken", "Words the voice check broke", ("voice_broken",), ("words",)),
+    Metric("voice_moved", "Units the voice check moved", ("voice_moved",), ("voice_units",)),
     Metric("realtime_factor", "Engine speed (x realtime)", ("audio_s",), ("engine_wall_s",), percent=False),
+    Metric("voice_speed", "Voice check embedding speed (x realtime)", ("voice_audio_s",), ("voice_embed_s",),
+           percent=False),
 ]
 BY_NAME = {m.name: m for m in METRICS}
 
@@ -140,28 +145,43 @@ def short_units(units):
     return short
 
 
-def attribution(lines, units):
-    """Word counts: a reference unit's words count against the line holding it. The line
-    is right when its speaker maps to the unit's speaker under the best one-to-one map,
-    wrong when it maps elsewhere, unlabelled when it has no speaker. Units no line holds
-    are `words_uncovered` and stay out of the headline, since no speaker choice fixes them."""
+def verdicts(lines, units):
+    """Each reference unit's verdict against the line holding it: "right" when the line's
+    speaker maps to the unit's speaker under the best one-to-one map, "wrong" when it maps
+    elsewhere, "unlabelled" when it has no speaker, None when no line holds it."""
     index = Lines(lines)
     held = [index.holding(u["start_ms"], u["end_ms"], u.get("source")) for u in units]
     labels = mapping((line["speaker"], u["speaker"], u["words"]) for u, line in zip(units, held)
                      if line is not None and line["speaker"] is not None)
+    return [None if line is None else "unlabelled" if line["speaker"] is None
+            else "right" if labels.get(line["speaker"]) == u["speaker"] else "wrong"
+            for u, line in zip(units, held)]
+
+
+def attribution(lines, units):
+    """Word counts by `verdicts`. Units no line holds are `words_uncovered` and stay out
+    of the headline, since no speaker choice fixes them."""
     short = short_units(units)
     out = Counter()
-    for i, (u, line) in enumerate(zip(units, held)):
-        if line is None:
+    for i, (u, verdict) in enumerate(zip(units, verdicts(lines, units))):
+        if verdict is None:
             out["words_uncovered"] += u["words"]
             continue
-        verdict = ("unlabelled" if line["speaker"] is None
-                   else "right" if labels.get(line["speaker"]) == u["speaker"] else "wrong")
         out["words"] += u["words"]
         out[f"words_{verdict}"] += u["words"]
         if i in short:
             out["short_words"] += u["words"]
             out[f"short_{verdict}"] += u["words"]
+    return out
+
+
+def fixed_broken(before, after, units):
+    """The words the voice check moved onto the right speaker (`voice_fixed`) and off it
+    (`voice_broken`), comparing the lines without the check and with it (ADR 0076)."""
+    out = Counter(voice_fixed=0, voice_broken=0)
+    for u, then, now in zip(units, verdicts(before, units), verdicts(after, units)):
+        if then is not None and now is not None and (then == "right") != (now == "right"):
+            out["voice_fixed" if now == "right" else "voice_broken"] += u["words"]
     return out
 
 

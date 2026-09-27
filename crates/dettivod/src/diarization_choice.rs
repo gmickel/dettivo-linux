@@ -1,7 +1,7 @@
 //! Which model set and backend a speaker pass runs (ADR 0073): Nemotron
 //! when it is configured, downloaded and the expected count fits its eight
 //! channels, the sherpa-onnx set with the reason otherwise; and which set
-//! embeds the user's voice (ADR 0075).
+//! embeds the voices (the user's, ADR 0075, and each sentence's, ADR 0076).
 
 use std::path::{Path, PathBuf};
 
@@ -121,10 +121,12 @@ pub(crate) fn open(daemon: &Daemon, loaded: &Loaded, model: &str, dir: &Path) ->
 }
 
 /// The voice engine for a pass that runs `chosen` ([`embedding_set`]),
-/// verified like any load; the error is why the voiceprint is skipped.
+/// verified like any load; the error is why the voiceprint and the voice
+/// check (ADR 0076) are skipped.
 pub(crate) fn voice(daemon: &Daemon, loaded: &Loaded, chosen: &str) -> Result<Voice, String> {
-    if !loaded.config.meetings.diarization.voiceprint {
-        return Err("[meetings.diarization] voiceprint = false".into());
+    let d = &loaded.config.meetings.diarization;
+    if !d.voiceprint && !d.voice_check {
+        return Err("[meetings.diarization] voiceprint = false and voice_check = false".into());
     }
     let id = embedding_set(chosen, |id| present(daemon, id))?;
     let Some((_, dir)) = find(daemon, &id) else {

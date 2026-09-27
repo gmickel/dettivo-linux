@@ -111,6 +111,14 @@ Column {
             label: qsTr("Voice match")
             settings: root.settings
         }
+
+        SettingRow {
+            hint: qsTr("move a sentence that clearly sounds like another speaker to them")
+            key: "meetings.diarization.voice_check"
+            kind: "switch"
+            label: qsTr("Voice check")
+            settings: root.settings
+        }
     }
 
     Accessible.role: Accessible.Grouping
