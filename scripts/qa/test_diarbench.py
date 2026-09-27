@@ -8,6 +8,8 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "diarbench"))
+from cache import Cache  # noqa: E402
+import engines  # noqa: E402
 import metrics  # noqa: E402
 import report  # noqa: E402
 import word_timing  # noqa: E402
@@ -125,6 +127,23 @@ class WordTimingTests(unittest.TestCase):
         self.assertEqual([(r[1], h[1]) for r, h in pairs], [(0, 20), (100, 110), (200, 200), (300, 350)])
         self.assertEqual(word_timing.rank([10, 20, 30, 40, 1000], 0.5), 30)
         self.assertEqual(word_timing.rank([10, 20, 30, 40, 1000], 0.95), 1000)
+
+
+class MeetingTrackTests(unittest.TestCase):
+    """A mic-only retained meeting keys its missing system track instead of failing."""
+
+    def test_mic_only_meeting_keys_system_as_absent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "meeting"
+            d.mkdir()
+            (d / "microphone.wav").write_bytes(b"mic")
+            rec = {"mic": d / "microphone.wav", "system": d / "system.wav"}
+            cache = Cache(tmp)
+            mic, system = engines.meeting_tracks(cache, rec)
+            self.assertEqual(system, "no-system")
+            self.assertEqual(engines.meeting_tracks(cache, rec), (mic, "no-system"))
+            (d / "system.wav").write_bytes(b"sys")
+            self.assertEqual(engines.meeting_tracks(cache, rec), (mic, cache.file_hash(d / "system.wav")))
 
 
 if __name__ == "__main__":

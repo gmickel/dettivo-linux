@@ -144,7 +144,7 @@ def meeting_asr_result(cache, asr, rec, full):
     (crates/dettivo-meeting/examples/meeting_asr.rs) with the configured Whisper engine,
     when bench.json sets `asr.meetings`; keyed like `asr_result` by both tracks."""
     program = cache.file_hash(example("meeting_asr"))
-    k = key(cache.file_hash(rec["mic"]), cache.file_hash(rec["system"]), asr_identity(cache, asr), program)
+    k = key(*meeting_tracks(cache, rec), asr_identity(cache, asr), program)
     slot = f"{rec['id']}:whisper-meeting"
     hit = cache.get("asr", k)
     if hit is not None:
@@ -161,6 +161,13 @@ def meeting_asr_result(cache, asr, rec, full):
     cache.put("asr", k, {"segments": segments, "run": run}, index=slot)
     cache.note("asr", "computed")
     return k, segments
+
+
+def meeting_tracks(cache, rec):
+    """A meeting's track hashes for its keys; a mic-only meeting (no system.wav, which
+    `finalize::takes_in` also accepts) keys its system track as absent."""
+    system = Path(rec["system"])
+    return cache.file_hash(rec["mic"]), (cache.file_hash(system) if system.exists() else "no-system")
 
 
 _EXAMPLES = {}
