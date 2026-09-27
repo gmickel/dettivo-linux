@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-74-word-timings-from-whisper-for-speaker",
   "spec_path": ".flow/tasks/fn-74-word-timings-from-whisper-for-speaker.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Word timings from Whisper for speaker labelling",
   "updated_at": "2026-09-26T20:51:03.938199Z"
 }
