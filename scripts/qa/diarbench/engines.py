@@ -30,8 +30,12 @@ def identity(cache, engine):
         program = cache.file_hash(NEMOTRON_RUNNER)
     else:
         raise SystemExit(f"unknown engine kind {engine['kind']}")
-    return {"kind": engine["kind"], "program": program, "model": cache.tree_hash(engine["model"]),
-            "threads": engine["threads"], "provider": engine["provider"]}
+    out = {"kind": engine["kind"], "program": program, "model": cache.tree_hash(engine["model"]),
+           "threads": engine["threads"], "provider": engine["provider"]}
+    if engine.get("probs"):
+        # A result cached without probabilities never answers a run that wants them.
+        out["probs"] = True
+    return out
 
 
 def asr_identity(cache, asr):
