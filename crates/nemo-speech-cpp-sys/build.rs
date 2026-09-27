@@ -77,6 +77,10 @@ fn main() {
     println!("cargo:rustc-link-search=native={}", lib.display());
     println!("cargo:rustc-link-lib=dylib=nemo_speech_asr_c");
     println!("cargo:rustc-link-lib=dylib=nemo_speech_asr");
+    // This crate's own test binaries find the libraries where they were
+    // copied, outside Cargo's library path too; the engine binary sets its
+    // run path in its own build.
+    println!("cargo:rustc-link-arg=-Wl,-rpath,{}", lib.display());
     bind(&nemo, &out);
 }
 
