@@ -8,6 +8,7 @@ use std::collections::BTreeMap;
 use dettivo_proto::capabilities::IpcMode;
 use serde::{Deserialize, Serialize};
 
+pub use crate::config::app_schema::{App, AppRenderer};
 pub use crate::config::audio_schema::{Audio, Diarization, MeetingAnalysis, Meetings};
 pub use crate::config::import_schema::{Transcribe, Transfer};
 pub use crate::config::omarchy_schema::{Omarchy, OmarchyGlyph, OmarchyOsd};
@@ -25,6 +26,8 @@ pub use crate::config::default_toml::DEFAULT_TOML;
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Config {
+    /// `[app]`: how the Dettivo windows draw (ADR 0077).
+    pub app: App,
     /// `[daemon]`: process behaviour.
     pub daemon: Daemon,
     /// `[ipc]`: the socket and its authentication.

@@ -6,7 +6,8 @@
 # Without flags: what every crate and Qt binary in this repository needs today
 # (Rust, Cargo, CMake, a C++20 compiler, Qt 6.8 or newer with the Quick and
 # QuickControls2 modules and their qmllint and qmlformat tools) and what the
-# lints of `just lint` read fixtures with (jq).
+# lints of `just lint` read fixtures with (jq), and the X server the Qt
+# fallback tests of `just test` run on (Xvfb).
 # With --engines: additionally the Vulkan headers and the shader compiler that
 # the ggml engine builds need (ADR 0004). The engine specs turn this on once an
 # engine links ggml; until then the bootstrap crates compile without them.
@@ -40,6 +41,7 @@ need_cmd cmake "CMake" "pacman -S cmake"
 need_cmd ninja "Ninja build backend" "pacman -S ninja"
 need_cmd patch "GNU patch; both diarization providers build the calibrated C API" "pacman -S patch"
 need_cmd jq "JSON tool; the plugin, settings and docs lints read the fixtures with it" "pacman -S jq"
+need_cmd Xvfb "headless X server; the Qt hosts' software-renderer fallback tests run on it (ADR 0077)" "pacman -S xorg-server-xvfb"
 if ! command -v c++ >/dev/null 2>&1 && ! command -v g++ >/dev/null 2>&1 && ! command -v clang++ >/dev/null 2>&1; then
   missing+=("c++ (C++20 compiler): pacman -S gcc or clang")
 fi

@@ -23,6 +23,13 @@
     "result": {
       "keys": [
         {
+          "default": "auto",
+          "doc": "auto: every Dettivo window draws on the GPU and restarts once on the software renderer when the GPU cannot draw it (a game holding its memory). software: every window draws on the CPU from the start. A set QT_QUICK_BACKEND wins. Applies at each window's next start.",
+          "key": "app.renderer",
+          "kind": "text",
+          "section": "app"
+        },
+        {
           "default": "",
           "doc": "PipeWire node name to capture from (see `dettivo doctor` or audio.devices). Empty follows the default source, including when the default changes.",
           "key": "audio.input_device",

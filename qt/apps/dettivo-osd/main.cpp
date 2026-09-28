@@ -14,6 +14,7 @@
 #include "pacing_collector.h"
 #include "qa_environment.h"
 #include "render.h"
+#include "render_fallback.h"
 #include "theme_backend.h"
 #include "unix_signals.h"
 #include "wayland_probe.h"
@@ -105,6 +106,7 @@ int main(int argc, char **argv)
     QString probeDetail;
     const bool layerShellOffered = headless ? false : waylandHasLayerShell(&probeDetail);
 
+    renderer::choose("dettivo-osd", argc, argv);
     QGuiApplication app(argc, argv);
     QGuiApplication::setApplicationName(QStringLiteral("dettivo-osd"));
     QGuiApplication::setApplicationVersion(QStringLiteral(DETTIVO_VERSION));
@@ -151,6 +153,7 @@ int main(int argc, char **argv)
         std::fprintf(stderr, "dettivo-osd: Main.qml has no window with a pill\n");
         return 1;
     }
+    renderer::guard(window);
 
     auto *theme = engine.singletonInstance<ThemeBackend *>(QStringLiteral("Dettivo"), QStringLiteral("ThemeBackend"));
     model.setThemeProvider([theme]() { return theme != nullptr ? theme->status() : QJsonObject(); });

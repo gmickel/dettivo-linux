@@ -162,6 +162,20 @@ fn find_binary() -> Option<PathBuf> {
     })
 }
 
+/// The app's block in `dettivo doctor`: whether it runs, and the renderer
+/// its window draws with and why (ADR 0077); `null` while it is not running.
+pub fn doctor_facts(daemon_socket: &Path) -> Value {
+    let socket = socket_for(daemon_socket);
+    let status = crate::osd::call(&socket, &json!({"cmd": "status"}), 2000).ok();
+    let environment = status.as_ref().map(|s| &s["environment"]);
+    json!({
+        "running": status.is_some(),
+        "socket": socket.to_string_lossy(),
+        "renderer": environment.map_or(Value::Null, |e| e["renderer"].clone()),
+        "renderer_reason": environment.map_or(Value::Null, |e| e["renderer_reason"].clone()),
+    })
+}
+
 fn not_running(failure: Failure) -> Failure {
     if failure.exit == Exit::Unavailable {
         Failure::new(
@@ -185,6 +199,14 @@ mod tests {
             socket_for(Path::new("/run/user/7/dettivo/dettivo.sock")),
             PathBuf::from("/run/user/7/dettivo/app.sock")
         );
+    }
+
+    #[test]
+    fn an_absent_app_reports_no_renderer() {
+        let dir = tempfile::tempdir().unwrap();
+        let facts = doctor_facts(&dir.path().join("dettivo.sock"));
+        assert_eq!(facts["running"], false);
+        assert!(facts["renderer"].is_null() && facts["renderer_reason"].is_null());
     }
 
     #[test]

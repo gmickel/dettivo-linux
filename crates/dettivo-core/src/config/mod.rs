@@ -2,6 +2,7 @@
 //! per-key sources, validation that names key and line, and
 //! comment-preserving edits (ADR 0009).
 
+pub mod app_schema;
 pub mod audio_schema;
 pub mod default_toml;
 pub mod edit;

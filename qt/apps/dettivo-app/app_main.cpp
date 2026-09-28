@@ -27,6 +27,7 @@
 #include "pacing_collector.h"
 #include "qa_environment.h"
 #include "render.h"
+#include "render_fallback.h"
 #include "router.h"
 #include "sample_data.h"
 #include "settings_model.h"
@@ -207,6 +208,7 @@ int runApp(int argc, char **argv)
         return 2;
     }
 
+    renderer::choose("dettivo-app", argc, argv);
     QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
     QGuiApplication app(argc, argv);
     const qint64 appMs = sinceStart.elapsed();
@@ -362,6 +364,7 @@ int runApp(int argc, char **argv)
         std::fprintf(stderr, "dettivo-app: Main.qml has no window\n");
         return 1;
     }
+    renderer::guard(window);
     if (args.smoke) {
         std::printf("dettivo-app: route %s title \"%s\"\n", qUtf8Printable(router.page()), qUtf8Printable(router.title()));
         return 0;

@@ -203,6 +203,18 @@ pub fn human(report: &Value) -> String {
         },
     );
     row(
+        "app",
+        if report["app"]["running"] == true {
+            format!(
+                "renderer {} ({})",
+                show(&report["app"]["renderer"]),
+                show(&report["app"]["renderer_reason"])
+            )
+        } else {
+            "not running".into()
+        },
+    );
+    row(
         "rest",
         format!(
             "enabled {}, {}:{}",

@@ -81,6 +81,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0074](0074-whisper-times-every-word-by-dtw-for-speaker-labelling.md) | Whisper times every word by DTW, and a segment's span follows its words | Accepted 2026-09-27, amends 0072 |
 | [0075](0075-two-track-meetings-use-both-tracks-to-name-speakers.md) | A two-track meeting drops the microphone lines you did not voice, gives one remote voice every remote line, diarizes a shared microphone, and names your voice You from a voiceprint kept on this machine | Accepted 2026-09-27, amends 0035 and 0072 |
 | [0076](0076-each-sentence-is-checked-against-the-speakers-voices.md) | Each sentence is checked against the speakers' voices, and moves when its voice clearly belongs to another speaker | Accepted 2026-09-28, amends 0072 |
+| [0077](0077-a-window-the-gpu-cannot-draw-restarts-once-on-the-software-renderer.md) | A window the GPU cannot draw restarts once on Qt's software renderer, and `[app] renderer` can choose software from the start | Accepted 2026-09-28 |
 
 ## Writing a record
 
