@@ -403,12 +403,18 @@ fn a_recovered_meeting_finalises_from_its_takes() {
             .iter()
             .all(|(j, _)| j == "job_recover_1")
     );
+    // The row is stored before the machine publishes its last state, so
+    // wait for the state log to catch up instead of racing it.
+    let deadline = std::time::Instant::now() + Duration::from_secs(5);
+    while states(&log2).last().map(|s| s.0) != Some(State::Completed) {
+        assert!(std::time::Instant::now() < deadline, "{:?}", states(&log2));
+        std::thread::sleep(Duration::from_millis(20));
+    }
     let seen = states(&log2);
     assert!(
         seen.iter()
             .any(|(s, p, _)| *s == State::Transcribing && *p == State::Partial)
     );
-    assert_eq!(seen.last().unwrap().0, State::Completed);
     assert!(session.wait_idle(Duration::from_secs(5)));
     drop(log);
 }
