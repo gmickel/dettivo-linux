@@ -4,6 +4,8 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-28
+
 ### Added
 
 - The speaker pass can run NVIDIA Nemotron 3 Diarization: download `diarize/nemotron-3-diarization` and set `[meetings.diarization] model = "nemotron-3-diarization"`. It runs through the new `dettivo-engine-nemotron` on the GPU with Vulkan (or CUDA with the drop-in) and on the CPU otherwise, and diarizes an hour of meeting in about 15 seconds on an RTX 4090 through Vulkan. A meeting that expects more than eight speakers, or a machine without the model, runs the current engine instead and says why in the meeting's `diarization.fallback_reason`. The current engine stays the default ([ADR 0073](docs/adr/0073-nemotron-3-diarization-runs-through-nemo-speech-cpp.md)).
