@@ -4,7 +4,7 @@ Status: Accepted 2026-09-28, amends [0072](0072-every-remote-line-takes-the-spea
 
 ## What this gives you
 
-Fewer lines carry the wrong name. With the current engine, AMI dev words under the wrong speaker fall from 21.07% to 18.61%, and the held-out AMI test words fall from 14.11% to 11.81%. With Nemotron they fall from 12.49% to 11.98% on AMI dev and from 11.96% to 11.54% on AMI test. The check costs about 25 seconds per hour of meeting on the CPU, and `[meetings.diarization] voice_check = false` turns it off.
+Fewer lines carry the wrong name. With the current engine, AMI dev words under the wrong speaker fall from 21.07% to 18.60%, and the held-out AMI test words fall from 14.11% to 11.85%. With Nemotron they fall from 12.49% to 11.98% on AMI dev and from 11.96% to 11.52% on AMI test. The check costs about 25 seconds per hour of meeting on the CPU, and `[meetings.diarization] voice_check = false` turns it off.
 
 ## Situation
 
@@ -25,20 +25,20 @@ The product already ships an embedding model, the sherpa-onnx set's ERes2Net, an
 
 ## Consequences
 
-The fn-67 bench measured the check against its own rule with `voice_check false` on the same cached inputs, with Whisper's word timings of ADR 0074. The check-off run reproduced the ADR 0074 scoreboard exactly (AMI dev 21.07% and 12.49%). The margins were tuned on AMI dev only, and AMI test was scored once afterwards. The report is [diarization-bench-2026-09-28-voice-check](../reports/benchmarks/diarization-bench-2026-09-28-voice-check.md). Its tree hash is the commit the change was measured on, before the change was committed.
+The fn-67 bench measured the check against its own rule with `voice_check false` on the same cached inputs, with Whisper's word timings of ADR 0074. The check-off run reproduced the ADR 0074 scoreboard exactly (AMI dev 21.07% and 12.49%). The margins were tuned on AMI dev only, and AMI test was scored once afterwards. The report is [diarization-bench-2026-09-28-voice-check](../reports/benchmarks/diarization-bench-2026-09-28-voice-check.md). Its tree hash is the commit that keeps units no turn overlaps out of the confident set; the table below was re-measured there on the same cached embeddings. The margin sweep, the frame-probability comparison and the 2-means figures below were measured before that fix.
 
 | Split, metric | Current engine, off → on | Nemotron, off → on |
 |---|---:|---:|
-| AMI dev, attribution error | 21.07% → 18.61% (-2.46 [-3.19, -1.70]) | 12.49% → 11.98% (-0.50 [-1.14, -0.17]) |
-| AMI dev, short-turn error | 61.70% → 56.88% (-4.82 [-6.19, -3.30]) | 52.21% → 51.38% (-0.83 [-1.14, -0.58]) |
-| AMI dev, words fixed / broken | 3.89% / 1.41% | 1.57% / 1.06% |
-| AMI dev, labelled lines with the wrong speaker | 21.02% → 19.58% | 11.24% → 11.87% |
-| AMI test (held out), attribution error | 14.11% → 11.81% (-2.29 [-3.45, -0.73]) | 11.96% → 11.54% (-0.42 [-0.62, +0.00]) |
-| AMI test (held out), short-turn error | 60.85% → 57.35% (-3.50 [-5.08, -1.70]) | 54.87% → 54.33% (-0.54 [-1.90, +0.35]) |
-| AMI test (held out), words fixed / broken | 3.82% / 1.52% | 1.26% / 0.83% |
-| Retained meetings, units moved | 1.17% (English 1.67%, German 0.84%) | 0.51% (English 0.73%, German 0.37%) |
+| AMI dev, attribution error | 21.07% → 18.60% (-2.47 [-3.19, -1.71]) | 12.49% → 11.98% (-0.50 [-1.14, -0.17]) |
+| AMI dev, short-turn error | 61.70% → 56.86% (-4.84 [-6.21, -3.34]) | 52.21% → 51.41% (-0.80 [-1.10, -0.54]) |
+| AMI dev, words fixed / broken | 3.90% / 1.41% | 1.57% / 1.05% |
+| AMI dev, labelled lines with the wrong speaker | 21.02% → 19.53% | 11.24% → 11.88% |
+| AMI test (held out), attribution error | 14.11% → 11.85% (-2.26 [-3.39, -0.71]) | 11.96% → 11.52% (-0.44 [-0.63, -0.09]) |
+| AMI test (held out), short-turn error | 60.85% → 57.46% (-3.39 [-4.87, -1.01]) | 54.87% → 54.30% (-0.57 [-1.77, +0.17]) |
+| AMI test (held out), words fixed / broken | 3.77% / 1.50% | 1.25% / 0.80% |
+| Retained meetings, units moved | 1.02% (English 1.27%, German 0.84%) | 0.51% (English 0.73%, German 0.37%) |
 
-- The gain is mostly the current engine's. Nemotron already confuses few speakers (0.36% engine confusion on AMI dev), so the check has less to fix, and on AMI test its short-turn interval spans zero. With Nemotron the check splits more lines, and the line-count view of wrong names rises by 0.63 points on AMI dev while the word-weighted headline falls.
+- The gain is mostly the current engine's. Nemotron already confuses few speakers (0.36% engine confusion on AMI dev), so the check has less to fix, and on AMI test its short-turn interval spans zero. With Nemotron the check splits more lines, and the line-count view of wrong names rises by 0.64 points on AMI dev while the word-weighted headline falls.
 - The margins barely matter. On AMI dev every pair tried from agree 0 to 0.15 and overrule 0.12 to 0.3 lands within 0.35 points of the others for the current engine and 0.15 for Nemotron, inside every interval. The chosen pair breaks the fewest words: noScribe's pair (0, 0.12) broke 1.90% and 1.67%.
 - The retained meetings carry no speaker labels, so the bench has no headline for them and cannot say whether the moves there are right. The check moves under 2% of their units, fewer in German than in English, and changes no proxy: blank remote lines, "You" lines on remote-only speech and local speech outside "You" lines are identical with the check on and off. A German regression cannot be ruled out until fn-72's labels exist. noScribe measured German CallHome calls improving from 2,838 to 1,754 wrong words with the same method.
 - The cost is one more embedding call per meeting. On this machine a release build of the engine embeds 1,484 units from 1.44 hours of AMI audio in 24 seconds per hour on the CPU with four threads, and in 33 seconds per hour on CUDA (RTX 4090, shared with another GPU program during the run). The bench's debug build ran at about 100 to 110 times realtime. The speaker pass itself takes about 3 to 4.5 minutes per hour with the current engine on the CPU and about 70 seconds with Nemotron on the CPU, so the check adds about a tenth to the former and a third to the latter. No time budget for the pass is written down, so this states the cost instead.
