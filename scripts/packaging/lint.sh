@@ -33,6 +33,7 @@ scripts/packaging/test-install-test-session.sh >/dev/null || report "scripts/pac
 
 scripts/packaging/test-check-manifest.sh >/dev/null || report "scripts/packaging/test-check-manifest.sh failed"
 scripts/packaging/test-package-cuda.sh >/dev/null || report "scripts/packaging/test-package-cuda.sh failed"
+scripts/packaging/test-package-engine.sh >/dev/null || report "scripts/packaging/test-package-engine.sh failed"
 
 scripts/packaging/test-release-scripts.sh >/dev/null || report "scripts/packaging/test-release-scripts.sh failed"
 

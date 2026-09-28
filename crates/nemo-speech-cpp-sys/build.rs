@@ -161,6 +161,11 @@ fn compile(source: &Path, deps: &Path, out: &Path) -> PathBuf {
         // rewrite, and the loader reads an empty entry as the working
         // directory.
         .define("CMAKE_BUILD_WITH_INSTALL_RPATH", "ON")
+        // ggml's shader generator skips a shader it could not embed and
+        // carries on, which leaves the library naming a symbol nothing
+        // defines; refusing undefined symbols fails the build there
+        // rather than the engine at load.
+        .define("CMAKE_SHARED_LINKER_FLAGS", "-Wl,--no-undefined")
         .build_target("nemo_speech_asr_c")
         .pic(true);
     forward_env(&mut config);

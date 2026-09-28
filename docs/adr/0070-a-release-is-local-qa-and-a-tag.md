@@ -1,6 +1,6 @@
 # 0070. A release is local QA and a tag
 
-Status: Accepted 2026-09-25, supersedes the receipt requirement of 0051 and amends 0040 (what the rig runs) and 0034 (what the tag runs)
+Status: Accepted 2026-09-25, supersedes the receipt requirement of 0051 and amends 0040 (what the rig runs) and 0034 (what the tag runs); amended by [0079](0079-a-release-builds-each-ggml-engine-in-its-own-job.md)
 
 ## What this gives you
 

@@ -347,8 +347,11 @@ jobs:
           path: qa-evidence/
           if-no-files-found: ignore
 
-  package:
-    name: package
+  # The release gate, `just toolchain test lint` with the models present,
+  # beside the package build rather than before it (ADR 0079).
+  gate:
+    if: inputs.release
+    name: gate
     timeout-minutes: 120
     runs-on: ubuntu-latest
     container:
@@ -359,7 +362,6 @@ jobs:
       - uses: ./.github/actions/setup-toolchain
         with:
           cache-scope: rig
-      - run: pacman -Syu --noconfirm --needed namcap desktop-file-utils
       # tiny.en, Parakeet TDT 0.6B v2 (the CPU WER fixture) and jfk.wav.
       - name: Cache the test models
         if: inputs.release
@@ -387,9 +389,60 @@ jobs:
         if: inputs.release
         env:
           XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
+
+  # The four ggml engines on Vulkan, one job each (ADR 0079): four copies of
+  # ggml compiling their shaders in one build on one runner lost shaders,
+  # and side by side the package waits for the slowest engine rather than
+  # the sum of them.
+  engines:
+    name: engine-${{ matrix.engine }}
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        engine: [whisper, parakeet, llm, nemotron]
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      - run: pacman -Syu --noconfirm --needed git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-toolchain
+        with:
+          cache-scope: rig-${{ matrix.engine }}
+      - run: just package-engine ${{ matrix.engine }}
+        env:
+          DETTIVO_GIT_SHA: ${{ github.sha }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: engine-${{ matrix.engine }}
+          path: dist/engines/
+          if-no-files-found: error
+
+  package:
+    name: package
+    needs: engines
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
+    steps:
+      - run: pacman -Syu --noconfirm --needed git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-toolchain
+        with:
+          cache-scope: rig
+      - run: pacman -Syu --noconfirm --needed namcap desktop-file-utils
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: engine-*
+          path: build/engines
+          merge-multiple: true
+      # Artifacts drop the executable bit.
+      - run: chmod 755 build/engines/*
       - run: just package-bin
         env:
           DETTIVO_GIT_SHA: ${{ github.sha }}
+          DETTIVO_PREBUILT_ENGINES: build/engines
       - name: Bind package bytes to this revision
         run: |
           set -euo pipefail
