@@ -1,10 +1,10 @@
 # 0073. Nemotron 3 Diarization runs through NeMo-Speech.cpp and ships opt-in
 
-Status: Accepted 2026-09-26; default re-decided 2026-09-28 on the final bench. Amends [0004](0004-ggml-family-vulkan.md) (diarization gains a ggml engine), [0035](0035-sherpa-onnx-diarization-engine-and-the-speaker-pass.md) (the speaker pass chooses its engine by model set) and [0057](0057-cuda-diarization-drop-in-with-cpu-fallback.md) (the CUDA drop-in carries both diarization engines).
+Status: Accepted 2026-09-26; the default engine is re-decided by [0078](0078-the-final-bench-keeps-the-sherpa-onnx-set-the-default.md). Amends [0004](0004-ggml-family-vulkan.md) (diarization gains a ggml engine), [0035](0035-sherpa-onnx-diarization-engine-and-the-speaker-pass.md) (the speaker pass chooses its engine by model set) and [0057](0057-cuda-diarization-drop-in-with-cpu-fallback.md) (the CUDA drop-in carries both diarization engines).
 
 ## What this gives you
 
-Setting `[meetings.diarization] model = "nemotron-3-diarization"` runs the post-meeting speaker pass through NVIDIA's Nemotron 3 Diarization. On this machine it diarizes an hour of meeting in 12 seconds with CUDA, 15 seconds with Vulkan (any vendor's GPU) and under 2 minutes on the CPU. It ties the current engine on the held-out AMI meetings and on German meetings, and trails it on English meetings with several remote voices. The sherpa-onnx set stays the default; Nemotron is the choice when speed matters more, at about 330x realtime against about 15x.
+Setting `[meetings.diarization] model = "nemotron-3-diarization"` runs the post-meeting speaker pass through NVIDIA's Nemotron 3 Diarization. On this machine it diarizes an hour of meeting in 12 seconds with CUDA, 15 seconds with Vulkan (any vendor's GPU) and under 2 minutes on the CPU. It gives 6.5 points fewer AMI dev words the wrong or no speaker than the current engine. The sherpa-onnx set stays the default, because Nemotron leaves 2.2 points more German remote lines without a speaker under today's labelling rule.
 
 ## Situation
 
@@ -20,18 +20,16 @@ NeMo-Speech.cpp's only release, v0.1.0 (2026-08-19), predates the model; support
 - **Frame probabilities for fn-70.** `diarize` with `frame_probabilities` answers `frames` (`count`, `speakers`, `frame_ms`) and the floats as one `probs_f32` attachment. The CLI writes them with `--probs` as `.npy`. The daemon does not ask for them yet.
 - **Backends.** `[engines.diarize] backend` gains `vulkan`. A build carries one GPU backend: the default package builds the engine with ggml Vulkan and the `dettivo-engines-cuda` drop-in builds it with ggml CUDA. `auto` falls back to the CPU with `fallback_reason` when the GPU load fails; an explicit `vulkan` or `cuda` fails the load. The sherpa-onnx engine takes `vulkan` as `auto`.
 - **Fallbacks to the sherpa-onnx set.** When Nemotron is configured, the daemon runs `diarization-en` through `dettivo-engine-diarize` instead in two cases, recording the reason in the diarization block's new `fallback_reason` beside the `engine` and `model` that ran: when more than eight speakers are expected, and when Nemotron is not downloaded. Without either model set the pass is `unavailable` naming the configured model's download command. A quarantined Nemotron set (one that failed its checksum) is not a fallback case: the pass is `unavailable` with the verifier's quarantine error, so a tampered or corrupt model is never hidden behind the other engine.
-- **Opt-in, by the rule fn-69 set.** The spec's rule makes Nemotron the default only if it is ahead of the current engine on the pooled headline number and not behind on German, both within the bench's intervals. The final fn-67 bench, run on 2026-09-28 with every product default on (the sentence rule, Whisper word timings, the two-track rules and the voice check), gives these paired 95% intervals, Nemotron minus the current engine ([report](../reports/benchmarks/diarization-bench-2026-09-28.md)):
+- **Opt-in, by the rule fn-69 set.** The spec's rule makes Nemotron the default only if it is ahead of the current engine on the pooled headline number and not behind on German, both within the bench's intervals. The fn-67 bench under today's labelling rule gives these paired 95% intervals, Nemotron minus the current engine:
 
 | Split | Metric | Delta, points | 95% interval |
 |---|---|---:|---:|
-| AMI dev, 18 meetings | Attribution error (headline) | −6.60 | [−11.68, −2.20] |
-| AMI test, 4 meetings, held out | Attribution error (headline) | −0.30 | [−0.71, +1.11] |
-| AMI test, 4 meetings, held out | Labelled lines, wrong speaker | +3.28 | [+0.63, +5.89] |
-| German meetings, 6 | Remote lines unlabelled | +0.25 | [+0.12, +0.35] |
+| AMI dev, 18 meetings | Attribution error (headline) | −6.54 | [−11.00, −2.44] |
+| AMI test, 4 meetings, held out | Attribution error (headline) | −1.00 | [−2.65, +1.48] |
+| German meetings, 6 | Remote lines unlabelled | +2.20 | [+1.18, +4.42] |
 | German meetings, 6 | Local/remote proxy (mix) | −0.76 | [−1.58, −0.40] |
-| English meetings, 4 | Remote lines unlabelled | +1.76 | [+0.74, +3.09] |
 
-  Nemotron is ahead only on AMI dev, a split it was trained on. On the held-out test meetings it ties on words and gets more labelled lines wrong. No German meeting is labelled, so the meetings were also judged without labels, by fn-64's blind method: a model judge read each remote row both engines labelled differently, with the engines' columns shuffled, and named the one that fit who was addressed, the turn-taking and self-references. On German meetings the judge sided with each engine 13 times. On English meetings it sided with the current engine 29 times and with Nemotron 10 times, almost all in one meeting where Nemotron merged four remote voices into two. Random windows put both engines near 0.6% wrong remote rows, the judge's resolution. The rule is not met, so Nemotron ships opt-in and `[meetings.diarization] model` stays `diarization-en`.
+  Nemotron is ahead on AMI dev, a split it was trained on, and ties on the held-out test meetings. No German meeting is labelled yet, so German has no headline number, and on its two proxies Nemotron is ahead on one and behind on the other with neither interval spanning zero. It ships opt-in, and `[meetings.diarization] model` stays `diarization-en`.
 
 - **Parity is measured.** `scripts/qa/nemotron3/parity_engine.py` runs the engine and fn-64's fp32 ONNX port on the same audio. The tolerance, fixed before the first run, is per AMI test meeting against the port: at most 2.0% turn-level DER, at most 0.5% confusion and at most 1% of 10 ms speech decisions flipped. Every meeting passed on the CPU, on Vulkan and on CUDA ([report](../reports/benchmarks/diarization-nemotron-engine-2026-09-26.md)).
 
@@ -40,6 +38,6 @@ NeMo-Speech.cpp's only release, v0.1.0 (2026-08-19), predates the model; support
 - The model tracks at most eight speakers, and without an expected count a meeting with more speakers gets eight. Only an expected count over eight reaches the sherpa-onnx engine.
 - The runtime runs its CPU graphs on four threads, a value NeMo-Speech.cpp hard-codes, so `[engines.diarize] threads` applies to the sherpa-onnx engine only.
 - Stock ggml gives up NeMo-Speech.cpp's fused CUDA kernels. CUDA and Vulkan both run the AMI test meetings at about 300x realtime, and their CPU time equals their wall time, which points at host-side feature extraction and the speaker cache as the limit on this machine.
-- Nemotron keeps fn-64's higher missed speech (20.1% engine missed speech on AMI test against 9.3%), the source of its extra unlabelled remote lines, and undercounts speakers when a call has several remote voices. A later bench that meets the rule, after those two are fixed or a labelled German meeting shows otherwise, makes Nemotron the default through `Diarization::default` and the default configuration text.
+- Nemotron keeps fn-64's higher missed speech (20.1% engine missed speech on AMI test against 9.3%), the likely source of the extra German unlabelled lines. fn-68 changes the labelling rule on another branch, and these figures use the rule on this branch. The conductor re-runs the bench after both land; a result that meets the rule makes Nemotron the default through `Diarization::default` and the default configuration text.
 - The build fetches three more archives (2.3 MB NeMo-Speech.cpp source, 3.1 MB ggml, 12 MB SentencePiece) and the CPU build compiles in about 40 seconds on this 32-thread machine. The Vulkan build needs `vulkan-headers`, `spirv-headers` and `shaderc` like the other ggml engines. The CUDA build needs the CUDA toolkit, and the drop-in's engine links the CUDA runtime and cuBLAS, so the drop-in grows from seven files to eleven.
 - The pin is a `main` commit, not a release. Moving it means new checksums in `build.rs` and the parity run again.
