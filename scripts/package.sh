@@ -6,9 +6,9 @@
 # engines on CUDA), in a separate tree.
 # --engine <name> builds one ggml engine (whisper, parakeet, llm or
 # nemotron) on Vulkan into <dist-dir>/engines/, with the libraries it loads
-# beside it, so CI builds the four side by side (ADR 0079).
-# DETTIVO_PREBUILT_ENGINES=<dir> makes the full build take those four from
-# <dir> instead of building them.
+# beside it, so CI builds the four side by side (ADR 0079). The full build
+# builds the four the same way, one after another and never in one cargo
+# build; DETTIVO_PREBUILT_ENGINES=<dir> makes it take them from <dir>.
 #
 # Produces <dist-dir>/dettivo-<version>-linux-x86_64/ laid out as it lands on
 # the root filesystem (usr/bin, usr/lib/dettivo/engines, usr/lib/dettivo/qml,
@@ -35,6 +35,10 @@ cuda=0
 engine=""
 if [ "${1:-}" = --cuda ]; then cuda=1; shift; fi
 if [ "${1:-}" = --engine ]; then engine="${2:?--engine needs a name}"; shift 2; fi
+if [ "$cuda" = 1 ] && [ -n "$engine" ] || [ "${1:-}" = --cuda ] || [ "${1:-}" = --engine ]; then
+  echo 'package: --cuda and --engine are separate builds; pass one' >&2
+  exit 2
+fi
 [ "$#" -le 1 ] || { echo 'usage: package.sh [--cuda | --engine <name>] [dist-dir]' >&2; exit 2; }
 ggml_engines=(whisper parakeet llm nemotron)
 dist="${1:-dist}"
@@ -90,47 +94,50 @@ if [ "$cuda" = 1 ]; then
   exit 0
 fi
 
-# One ggml engine on Vulkan, for a CI job of its own: its binary and the
-# libraries it loads land flat in <dist>/engines/, which the full build reads
-# back through DETTIVO_PREBUILT_ENGINES.
+# build_engine <name> <dir>: one ggml engine on Vulkan in a cargo build of
+# its own, with the libraries it loads, flat in <dir>. Four copies of ggml
+# compiling their shaders in one build lost shaders (ADR 0079).
+build_engine() {
+  local ggml="$1" out="$2" features=(--features "dettivo-engine-$1/vulkan")
+  [ "${DETTIVO_PACKAGE_CPU_ONLY:-0}" != 1 ] || features=()
+  DETTIVO_PACKAGE=1 cargo build -p "dettivo-engine-$ggml" --release --bins \
+    "${features[@]}" --message-format=json-render-diagnostics >"$build_messages"
+  mkdir -p "$out"
+  install -m 755 "${CARGO_TARGET_DIR:-target}/release/dettivo-engine-$ggml" "$out/"
+  [ "$ggml" != nemotron ] || stage_libraries nemo-speech-cpp-sys "$out" "${nemo_libraries[@]}"
+  "$out/dettivo-engine-$ggml" --help >/dev/null
+}
+
 if [ -n "$engine" ]; then
   case " ${ggml_engines[*]} " in *" $engine "*) ;; *) echo "package: --engine takes one of: ${ggml_engines[*]}" >&2; exit 2 ;; esac
-  DETTIVO_PACKAGE=1 cargo build -p "dettivo-engine-$engine" --release --bins \
-    --features "dettivo-engine-$engine/vulkan" --message-format=json-render-diagnostics >"$build_messages"
-  mkdir -p "$dist/engines"
-  install -m 755 "${CARGO_TARGET_DIR:-target}/release/dettivo-engine-$engine" "$dist/engines/"
-  [ "$engine" != nemotron ] || stage_libraries nemo-speech-cpp-sys "$dist/engines" "${nemo_libraries[@]}"
-  "$dist/engines/dettivo-engine-$engine" --help >/dev/null
+  build_engine "$engine" "$dist/engines"
   echo "package: $dist/engines/dettivo-engine-$engine"
   exit 0
 fi
 
-# One cargo argument: the comma-separated feature list is deliberate.
-# shellcheck disable=SC2054
-features=(--features dettivo-engine-whisper/vulkan,dettivo-engine-parakeet/vulkan,dettivo-engine-llm/vulkan,dettivo-engine-nemotron/vulkan)
 if [ "${DETTIVO_PACKAGE_CPU_ONLY:-0}" = "1" ]; then
   echo "package: DETTIVO_PACKAGE_CPU_ONLY=1, the engines are built without the Vulkan backend (not a release build)" >&2
-  features=()
+fi
+
+prebuilt="${DETTIVO_PREBUILT_ENGINES:-}"
+if [ -z "$prebuilt" ]; then
+  prebuilt="$dist/engines"
+  for ggml in "${ggml_engines[@]}"; do build_engine "$ggml" "$prebuilt"; done
 fi
 
 rm -rf "$stage"
 mkdir -p "$stage/usr/bin" "$stage/usr/lib/dettivo/engines"
 
-prebuilt="${DETTIVO_PREBUILT_ENGINES:-}"
-if [ -n "$prebuilt" ]; then
-  excludes=()
-  for ggml in "${ggml_engines[@]}"; do excludes+=(--exclude "dettivo-engine-$ggml"); done
-  DETTIVO_PACKAGE=1 cargo build --workspace "${excludes[@]}" --release --bins --message-format=json-render-diagnostics >"$build_messages"
-else
-  DETTIVO_PACKAGE=1 cargo build --workspace --release --bins "${features[@]}" --message-format=json-render-diagnostics >"$build_messages"
-fi
+excludes=()
+for ggml in "${ggml_engines[@]}"; do excludes+=(--exclude "dettivo-engine-$ggml"); done
+DETTIVO_PACKAGE=1 cargo build --workspace "${excludes[@]}" --release --bins --message-format=json-render-diagnostics >"$build_messages"
 target="${CARGO_TARGET_DIR:-target}/release"
 for bin in dettivod dettivo dettivo-mcp dettivo-qa; do
   install -m 755 "$target/$bin" "$stage/usr/bin/$bin"
 done
 install -m 755 "$target/dettivo-engine-diarize" "$stage/usr/lib/dettivo/engines/dettivo-engine-diarize"
 for ggml in "${ggml_engines[@]}"; do
-  install -m 755 "${prebuilt:-$target}/dettivo-engine-$ggml" "$stage/usr/lib/dettivo/engines/dettivo-engine-$ggml"
+  install -m 755 "$prebuilt/dettivo-engine-$ggml" "$stage/usr/lib/dettivo/engines/dettivo-engine-$ggml"
 done
 
 # The diarization engines link their C APIs dynamically and find them beside
@@ -138,13 +145,9 @@ done
 # where its build script unpacked the pinned release, NeMo-Speech.cpp's two
 # from where its build script built them.
 stage_libraries sherpa-onnx-sys "$stage/usr/lib/dettivo/engines" libsherpa-onnx-c-api.so libonnxruntime.so
-if [ -n "$prebuilt" ]; then
-  for library in "${nemo_libraries[@]}"; do
-    install -m 755 "$prebuilt/$library" "$stage/usr/lib/dettivo/engines/$library"
-  done
-else
-  stage_libraries nemo-speech-cpp-sys "$stage/usr/lib/dettivo/engines" "${nemo_libraries[@]}"
-fi
+for library in "${nemo_libraries[@]}"; do
+  install -m 755 "$prebuilt/$library" "$stage/usr/lib/dettivo/engines/$library"
+done
 
 qt_build="${DETTIVO_QT_BUILD_DIR:-build/qt-release}"
 cmake -S qt -B "$qt_build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
