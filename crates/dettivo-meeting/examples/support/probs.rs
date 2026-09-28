@@ -43,8 +43,10 @@ impl Probs {
         let (len, at) = if bytes[6] == 1 {
             (usize::from(u16::from_le_bytes([bytes[8], bytes[9]])), 10)
         } else {
-            let n = u32::from_le_bytes([bytes[8], bytes[9], bytes[10], bytes[11]]);
-            (n as usize, 12)
+            let Some(&[a, b, c, d]) = bytes.get(8..12) else {
+                return Err(format!("{path}: truncated header"));
+            };
+            (u32::from_le_bytes([a, b, c, d]) as usize, 12)
         };
         let header = std::str::from_utf8(bytes.get(at..at + len).ok_or("short header")?)
             .map_err(|e| e.to_string())?;
@@ -130,5 +132,41 @@ impl Evidence for Probs {
                 )
             })
             .collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Probs;
+
+    fn open(bytes: &[u8]) -> Result<Probs, String> {
+        let file = tempfile::NamedTempFile::new().unwrap();
+        std::fs::write(file.path(), bytes).unwrap();
+        Probs::open(file.path().to_str().unwrap(), &[])
+    }
+
+    #[test]
+    fn a_truncated_version_2_header_is_an_error() {
+        for len in [10, 11] {
+            let mut bytes = b"\x93NUMPY\x02\x00\x00\x00\x00".to_vec();
+            bytes.truncate(len);
+            let err = open(&bytes).err().expect("an error, not a panic");
+            assert!(err.ends_with("truncated header"), "{err}");
+        }
+    }
+
+    #[test]
+    fn a_version_2_file_reads() {
+        let mut header = "{'descr': '<f4', 'fortran_order': False, 'shape': (1, 2), }".to_string();
+        header.push_str(&" ".repeat(63 - header.len()));
+        header.push('\n');
+        let mut bytes = b"\x93NUMPY\x02\x00".to_vec();
+        bytes.extend((header.len() as u32).to_le_bytes());
+        bytes.extend(header.as_bytes());
+        bytes.extend(0.25f32.to_le_bytes());
+        bytes.extend(0.75f32.to_le_bytes());
+        let probs = open(&bytes).unwrap();
+        assert_eq!((probs.frames, probs.channels), (1, 2));
+        assert_eq!(probs.values, [0.25, 0.75]);
     }
 }

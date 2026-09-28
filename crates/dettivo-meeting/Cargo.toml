@@ -24,3 +24,8 @@ tempfile.workspace = true
 
 [lints]
 workspace = true
+
+# Runs the unit tests of the bench's example support modules under `cargo test`.
+[[example]]
+name = "diar_assign"
+test = true

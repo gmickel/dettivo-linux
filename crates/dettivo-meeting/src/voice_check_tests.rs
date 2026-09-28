@@ -135,6 +135,21 @@ fn centroids_come_from_confident_units_and_short_units_go_unembedded() {
     assert!(score(third, "B").unwrap().abs() < 1e-6);
 }
 
+#[test]
+fn a_unit_no_turn_overlaps_is_never_confident() {
+    // Labelled by the nearest turn: long, but nothing inside names A.
+    let nearest = unit((0, 2000), "A", &[]);
+    assert!(!nearest.confident());
+    assert!(unit((0, 2000), "A", &[("A", 2000)]).confident());
+    // So it shapes neither the margin scale nor A's centroid.
+    let given = vec![Some(scores(&[("A", 0.9), ("B", 0.1)]))];
+    assert_eq!(margin_scale(std::slice::from_ref(&nearest), &given), 1.0);
+    let units = vec![nearest, unit((2000, 4000), "A", &[("A", 2000)])];
+    let mut embed = |_: &[(u64, u64)]| vec![Some(vec![1.0, 0.0]), Some(vec![0.0, 1.0])];
+    let s = Voices { embed: &mut embed }.scores(&units);
+    assert!((score(s[1].as_ref().unwrap(), "A").unwrap() - 1.0).abs() < 1e-6);
+}
+
 fn remote(start: u64, end: u64, text: &str) -> Segment {
     Segment {
         index: 0,

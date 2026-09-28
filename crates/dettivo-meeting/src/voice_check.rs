@@ -62,10 +62,12 @@ impl Unit {
         self.span.1.saturating_sub(self.span.0)
     }
 
-    /// True when the unit is long and its turns name its speaker alone.
+    /// True when the unit is long and its turns name its speaker alone. A
+    /// unit no turn overlaps (labelled by the nearest turn) is not.
     fn confident(&self) -> bool {
         self.ms() >= CONFIDENT_MS
             && self.speaker.is_some()
+            && !self.tally.is_empty()
             && self
                 .tally
                 .iter()
