@@ -178,7 +178,7 @@ class VoiceEmbeddingTests(unittest.TestCase):
             model.mkdir()
             self.assertIs(engines.embedder({"engines": {"current": current}}), current)
 
-    def test_the_thread_count_is_part_of_the_unit_embedding_key(self):
+    def test_the_thread_count_and_provider_are_part_of_the_embedding_keys(self):
         with tempfile.TemporaryDirectory() as tmp:
             binary, model, wav = Path(tmp) / "engine", Path(tmp) / "model", Path(tmp) / "a.wav"
             binary.write_bytes(b"engine")
@@ -194,6 +194,17 @@ class VoiceEmbeddingTests(unittest.TestCase):
                 self.assertEqual(engines.unit_embeddings(cache, model, wav, [(0, 1000)], False, 4)[0], k4)
                 # Vectors embedded under four threads never answer a run that asks for eight.
                 self.assertEqual(engines.unit_embeddings(cache, model, wav, [(0, 1000)], False, 8)[:2], (None, []))
+                # The per-line voiceprint vectors of a two-track meeting, likewise, and they run
+                # under the configured settings.
+                calls = []
+                engines.timed = lambda cmd: (calls.append(cmd), (json.dumps({"embeddings": [[1.0]]}), {}))[1]
+                rec = {"id": "m", "mic": wav, "system": wav}
+                segments = [{"start_ms": 0, "end_ms": 5000, "source_type": "microphone"}]
+                k8 = engines.embeddings(cache, model, rec, segments, True, 8, "cuda")[0]
+                self.assertEqual(calls[0][calls[0].index("--threads") + 1:][:3], ["8", "--provider", "cuda"])
+                self.assertEqual(engines.embeddings(cache, model, rec, segments, False, 8, "cuda")[0], k8)
+                self.assertEqual(engines.embeddings(cache, model, rec, segments, False, 4, "cuda"), (None, []))
+                self.assertEqual(engines.embeddings(cache, model, rec, segments, False, 8, "cpu"), (None, []))
             finally:
                 engines.tree_engine, engines.timed = saved
 

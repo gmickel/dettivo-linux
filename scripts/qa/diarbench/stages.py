@@ -103,7 +103,8 @@ def run(root, cfg, cache, variant, params, full, heldout, python):
         segments_key, segments, wav, room_audio = prepared
         two_track = not rec["split"].startswith("ami") and not room_audio
         frames_key, frames = channels.frames(cache, rec["mic"], rec["system"]) if two_track else (None, None)
-        embed_key, vectors = (engines.embeddings(cache, embed["model"], rec, segments, full)
+        embed_key, vectors = (engines.embeddings(cache, embed["model"], rec, segments, full,
+                                                  embed["threads"], embed["provider"])
                               if two_track and embed else (None, []))
         extra = {"dir": str(rec["dir"]), "embeddings": vectors} if two_track else {}
         for name, engine in cfg["engines"].items():

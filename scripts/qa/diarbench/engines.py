@@ -229,7 +229,7 @@ def tree_engine():
     return _ENGINE["path"]
 
 
-def embeddings(cache, model, rec, segments, full):
+def embeddings(cache, model, rec, segments, full, threads=4, provider="cpu"):
     """(key, one embedding or None per segment) for a two-track meeting: each line of at
     least MIN_EMBED_MS on its own track, through the product's embedding model. A plain
     run uses the cached vectors only; without them the voice rules see none."""
@@ -237,7 +237,7 @@ def embeddings(cache, model, rec, segments, full):
     tracks = {"microphone": rec["mic"], "system": rec["system"]}
     binary = tree_engine()
     k = key(cache.file_hash(binary), cache.tree_hash(model), [cache.file_hash(p) for p in tracks.values()],
-            [s["source_type"] for s in segments], spans)
+            [s["source_type"] for s in segments], spans, provider, threads)
     hit = cache.get("embed", k)
     if hit is not None:
         cache.note("embed", "cached")
@@ -254,8 +254,8 @@ def embeddings(cache, model, rec, segments, full):
             json.dump({"spans": [{"start_ms": spans[i][0], "end_ms": spans[i][1]} for i in mine]}, f)
             f.flush()
             print(f"embedding {len(mine)} {source} lines of {rec['id']}", file=sys.stderr, flush=True)
-            raw, _ = timed([binary, "--wav", str(wav), "--model", str(model), "--embed", f.name, "--threads", "4",
-                            "--provider", "cpu"])
+            raw, _ = timed([binary, "--wav", str(wav), "--model", str(model), "--embed", f.name, "--threads",
+                            str(threads), "--provider", provider])
         for i, vector in zip(mine, json.loads(raw)["embeddings"]):
             out[i] = vector
     cache.put("embed", k, {"embeddings": out})
