@@ -170,9 +170,21 @@ mod tests {
         );
         let dir = tempfile::tempdir().unwrap();
         let bin = dir.path().join("dettivo");
-        std::fs::write(&bin, b"#!/bin/sh\necho 'dettivo 0.1.0 (2582ff95409a)'\n").unwrap();
-        use std::os::unix::fs::PermissionsExt;
-        std::fs::set_permissions(&bin, std::fs::Permissions::from_mode(0o755)).unwrap();
+        // A child shell writes the script, so this process never holds a
+        // write handle to it that a test forking beside it could inherit,
+        // which would make running it fail with ETXTBSY.
+        let script = "#!/bin/sh\necho 'dettivo 0.1.0 (2582ff95409a)'\n";
+        let wrote = std::process::Command::new("sh")
+            .args([
+                "-c",
+                "printf '%s' \"$1\" > \"$2\" && chmod 755 \"$2\"",
+                "sh",
+            ])
+            .arg(script)
+            .arg(&bin)
+            .status()
+            .unwrap();
+        assert!(wrote.success());
         assert_eq!(cli_revision(&bin).as_deref(), Some("2582ff95409a"));
         let hashed = BinaryInfo::at(&bin, "release");
         assert_eq!(hashed.sha256.len(), 64);

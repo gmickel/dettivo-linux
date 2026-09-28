@@ -1,6 +1,6 @@
 # 0073. Nemotron 3 Diarization runs through NeMo-Speech.cpp and ships opt-in
 
-Status: Accepted 2026-09-26. Amends [0004](0004-ggml-family-vulkan.md) (diarization gains a ggml engine), [0035](0035-sherpa-onnx-diarization-engine-and-the-speaker-pass.md) (the speaker pass chooses its engine by model set) and [0057](0057-cuda-diarization-drop-in-with-cpu-fallback.md) (the CUDA drop-in carries both diarization engines).
+Status: Accepted 2026-09-26; the default engine is re-decided by [0078](0078-the-final-bench-keeps-the-sherpa-onnx-set-the-default.md). Amends [0004](0004-ggml-family-vulkan.md) (diarization gains a ggml engine), [0035](0035-sherpa-onnx-diarization-engine-and-the-speaker-pass.md) (the speaker pass chooses its engine by model set) and [0057](0057-cuda-diarization-drop-in-with-cpu-fallback.md) (the CUDA drop-in carries both diarization engines).
 
 ## What this gives you
 

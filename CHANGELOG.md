@@ -4,14 +4,16 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-28
+
 ### Added
 
-- The speaker pass can run NVIDIA Nemotron 3 Diarization: download `diarize/nemotron-3-diarization` and set `[meetings.diarization] model = "nemotron-3-diarization"`. It runs through the new `dettivo-engine-nemotron` on the GPU with Vulkan (or CUDA with the drop-in) and on the CPU otherwise, and diarizes an hour of meeting in about 15 seconds on an RTX 4090 through Vulkan. A meeting that expects more than eight speakers, or a machine without the model, runs the current engine instead and says why in the meeting's `diarization.fallback_reason`. The current engine stays the default ([ADR 0073](docs/adr/0073-nemotron-3-diarization-runs-through-nemo-speech-cpp.md)).
+- The speaker pass can run NVIDIA Nemotron 3 Diarization: download `diarize/nemotron-3-diarization` and set `[meetings.diarization] model = "nemotron-3-diarization"`. It runs through the new `dettivo-engine-nemotron` on the GPU with Vulkan (or CUDA with the drop-in) and on the CPU otherwise, and diarizes an hour of meeting in about 15 seconds on an RTX 4090 through Vulkan. A meeting that expects more than eight speakers, or a machine without the model, runs the current engine instead and says why in the meeting's `diarization.fallback_reason`. The current engine stays the default: on the final bench the two tie on held-out AMI and German meetings, and the current engine labels English calls with several remote voices better ([ADR 0073](docs/adr/0073-nemotron-3-diarization-runs-through-nemo-speech-cpp.md), [ADR 0078](docs/adr/0078-the-final-bench-keeps-the-sherpa-onnx-set-the-default.md)).
 - `[engines.diarize] backend` accepts `vulkan`, and Settings / Models offers it.
 
 ### Changed
 
-- Meetings give almost every remote line a speaker. Each sentence takes the speaker who holds most of it, and a line with no diarized speech takes the nearest speaker within 10 seconds. About 1 remote line in 50 is left without a speaker, where it was about 1 in 5. A line whose sentences belong to two speakers becomes two lines. `[meetings.diarization]` gains `pause_ms` and `nearest_turn_ms`. `min_coverage` is retired: a file that still sets it keeps loading, and the value is ignored. `min_speaker_share` now applies per sentence and defaults to 0.
+- Meetings give almost every remote line a speaker. Each sentence takes the speaker who holds most of it, and a line with no diarized speech takes the nearest speaker within 10 seconds. On the final bench about 1 remote line in 300 is left without a speaker, where it was about 1 in 5. A line whose sentences belong to two speakers becomes two lines. `[meetings.diarization]` gains `pause_ms` and `nearest_turn_ms`. `min_coverage` is retired: a file that still sets it keeps loading, and the value is ignored. `min_speaker_share` now applies per sentence and defaults to 0.
 
 - Meetings, imports and re-runs transcribed with Whisper store every word with its start, end and confidence, and each line's start and end follow its words instead of Whisper's segment timestamps, which drift by seconds in long recordings. The speaker pass gets 1.4 points fewer AMI words wrong with the current diarization engine and 2.2 with Nemotron. Named lines with the wrong speaker stay where they were. `[meetings.diarization] pause_ms` defaults to 500.
 
