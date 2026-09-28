@@ -322,6 +322,7 @@ fn one_off_meeting_enrolment_cannot_outvote_a_long_stored_print() {
             &Rule::default(),
             &rules,
             &evidence,
+            None,
         );
         segments[3..]
             .iter()
