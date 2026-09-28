@@ -80,6 +80,10 @@ def rttm_turns(path):
 
 
 def run(root, cfg, cache, variant, params, full, heldout, python):
+    embed = engines.embedder(cfg)
+    if embed is None:
+        print("no voice embedding model: the voice check and speaker prints see no voice")
+        cache.note("embed", "no model")
     for name, engine in list(cfg["engines"].items()):
         if not engines.available(engine):
             print(f"{name}: {engine['binary']} is not installed, skipped")
@@ -90,7 +94,7 @@ def run(root, cfg, cache, variant, params, full, heldout, python):
     board = {"variant": variant, "params": params, "heldout": heldout, "splits": {},
              "engines": {n: {"label": e["label"], "identity": engines.identity(cache, e)}
                          for n, e in cfg["engines"].items()}}
-    voice = wants_voice(params)
+    voice = wants_voice(params) and embed is not None
     queued = []
     for rec in recordings(root, heldout):
         prepared = inputs(cache, cfg, rec, full, db)
@@ -99,8 +103,8 @@ def run(root, cfg, cache, variant, params, full, heldout, python):
         segments_key, segments, wav, room_audio = prepared
         two_track = not rec["split"].startswith("ami") and not room_audio
         frames_key, frames = channels.frames(cache, rec["mic"], rec["system"]) if two_track else (None, None)
-        embed_key, vectors = (engines.embeddings(cache, cfg["engines"]["current"]["model"], rec, segments, full)
-                              if two_track else (None, []))
+        embed_key, vectors = (engines.embeddings(cache, embed["model"], rec, segments, full)
+                              if two_track and embed else (None, []))
         extra = {"dir": str(rec["dir"]), "embeddings": vectors} if two_track else {}
         for name, engine in cfg["engines"].items():
             engine_key, result = engines.engine_result(cache, name, engine, wav, full, python)
@@ -128,8 +132,7 @@ def run(root, cfg, cache, variant, params, full, heldout, python):
         assign_key, embed_run = pre_key, None
         if voice:
             embed_key, units, embed_run = engines.unit_embeddings(
-                cache, cfg["engines"]["current"]["model"], wav, spans[pre_key], full,
-                cfg["engines"]["current"]["threads"])
+                cache, embed["model"], wav, spans[pre_key], full, embed["threads"], embed["provider"])
             job = dict(job, unit_embeddings=units)
             assign_key = key(pre_key, embed_key)
         done = assigner.request(assign_key, job)

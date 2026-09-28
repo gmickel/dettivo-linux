@@ -263,13 +263,21 @@ def embeddings(cache, model, rec, segments, full):
     return k, out
 
 
+def embedder(cfg):
+    """The voice embedding settings, taken from the `current` engine's entry before any
+    engine is skipped: the tree's engine embeds with that model whether or not the
+    installed engine binary is here. None when that model is not here."""
+    engine = cfg["engines"].get("current")
+    return engine if engine and Path(engine["model"]).exists() else None
+
+
 def unit_embeddings(cache, model, wav, spans, full, threads=4, provider="cpu"):
     """(key, [[start_ms, end_ms, vector or None]], run record) for the voice check's
     sentence units on the diarized track (ADR 0076), through the tree's engine and the
     product's embedding model. A plain run uses cached vectors only; without them the
     check sees no voice and leaves every unit as the sentence rule voted."""
     binary = tree_engine()
-    k = key(cache.file_hash(binary), cache.tree_hash(model), cache.file_hash(wav), spans, provider)
+    k = key(cache.file_hash(binary), cache.tree_hash(model), cache.file_hash(wav), spans, provider, threads)
     hit = cache.get("embed", k)
     if hit is not None:
         cache.note("embed", "cached")
