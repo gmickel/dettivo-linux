@@ -238,6 +238,9 @@ mod tests {
         sys.write(&[4; 8_000]).unwrap();
         mic.flush().unwrap();
         sys.flush().unwrap();
+        // The takes open a moment after the clock starts, later on a busy
+        // machine, and the duration counts from the clock.
+        let start = mic.takes().takes[0].start_offset_ms;
         // The kill: samples written after the last header update sit past
         // the length the header states.
         drop(mic);
@@ -258,7 +261,8 @@ mod tests {
         assert_eq!(promoted.microphone_takes, 1);
         assert!(promoted.system_audio);
         assert_eq!(
-            promoted.duration_ms, 1250,
+            promoted.duration_ms,
+            start + 1250,
             "the samples past the header count"
         );
         assert!(promoted.reason.is_none());
@@ -269,7 +273,7 @@ mod tests {
         std::fs::write(Checkpoint::path(dir.path()), "{").unwrap();
         let mut row = MeetingRow::new();
         let again = promote(dir.path(), &mut row);
-        assert_eq!(again.duration_ms, 1250);
+        assert_eq!(again.duration_ms, start + 1250);
         assert!(
             again
                 .reason

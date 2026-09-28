@@ -45,6 +45,11 @@ fn crashing_engine_dir() -> PathBuf {
     )
     .unwrap();
     std::fs::write(dir.join("crash-on-diarize"), b"").unwrap();
+    // The directory is searched before the installed package, so the
+    // build's whisper engine sits here too rather than an installed one.
+    let whisper = dir.join("dettivo-engine-whisper");
+    let _ = std::fs::remove_file(&whisper);
+    std::os::unix::fs::symlink(target.join("dettivo-engine-whisper"), whisper).unwrap();
     dir
 }
 
@@ -113,8 +118,7 @@ fn an_engine_crash_fails_the_pass_keeps_the_daemon_and_degrades_after_three() {
     std::fs::write(model.join("embedding.onnx"), b"fake").unwrap();
     let catalogue = tree.root().join("catalogue.toml");
     std::fs::write(&catalogue, fake_set_catalogue()).unwrap();
-    // The engine directory is searched first; whisper is not in it and
-    // comes from the build directory beside the daemon as before.
+    // The engine directory is searched first and holds both engines.
     let config = std::fs::read_to_string(tree.config_file()).unwrap();
     let (head, tail) = config.split_once("\n[speech]").unwrap();
     let head: Vec<&str> = head
