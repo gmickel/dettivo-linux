@@ -1,10 +1,13 @@
-"""The local/remote proxy for two-track meetings, from the tracks' levels.
+"""The local/remote proxies for two-track meetings, from the tracks' levels.
 
 fn-64's weak reference (scripts/qa/nemotron3/channel_score.py) marks each 10 ms frame
 `local` (microphone active, system track quiet), `remote` (the reverse) or `overlap`.
 The frames are cached per meeting, so a run reads no audio once they exist. The engine
 diarizes the summed tracks, each of its speakers maps to the side holding most of its
 frames, and the proxy is the share of single-side speech given to the other side.
+The same frames score the transcript's "You" lines (ADR 0075): the time they spend on
+remote-only speech, which is leaked remote audio or words heard in silence, and the
+local speech no "You" line holds, which is what a gate that drops too much costs.
 """
 import sys
 from pathlib import Path
@@ -37,3 +40,14 @@ def mix_proxy(turns, local, remote, overlap):
     s = channel_score.score(turns, None, None, frames=(local, remote, overlap))
     single = s["frames_local"] + s["frames_remote"]
     return {"mix_single": single, "mix_confused": s["side_confusion"] * single}
+
+
+def you_lines(lines, local, remote):
+    """Frame counts of the lines labelled `you` on local-only and remote-only speech,
+    and of local-only speech outside every such line."""
+    held = np.zeros(len(local), bool)
+    for line in lines:
+        if line["speaker"] == "you":
+            held[line["start_ms"] // 10:line["end_ms"] // 10] = True
+    return {"you_local_frames": int((held & local).sum()), "you_remote_frames": int((held & remote).sum()),
+            "local_frames": int(local.sum()), "local_unheld_frames": int((local & ~held).sum())}

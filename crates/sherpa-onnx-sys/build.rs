@@ -6,7 +6,8 @@
 //! dynamically and sets its own run path from the `lib_dir` this script
 //! exports (`DEP_SHERPA_ONNX_LIB_DIR`), so ONNX Runtime is loaded by that
 //! one process and nothing else in the workspace. Bindgen runs over
-//! `c-api.h`, allowlisting the offline speaker diarization surface.
+//! `c-api.h`, allowlisting the offline speaker diarization surface and the
+//! speaker embedding extractor with the online-stream calls it feeds on.
 //!
 //! `SHERPA_ONNX_DIST_DIR` points the build at an unpacked release
 //! directory (with `include/` and `lib/`) instead of fetching;
@@ -148,7 +149,14 @@ fn bind(dist: &Path, out: &Path) {
         .allowlist_function("SherpaOnnxGetVersionStr")
         .allowlist_type("SherpaOnnx.*SpeakerDiarization.*")
         .allowlist_type("SherpaOnnx.*SpeakerSegmentation.*")
-        .allowlist_type("SherpaOnnxSpeakerEmbeddingExtractorConfig")
+        .allowlist_function("SherpaOnnxCreateSpeakerEmbeddingExtractor")
+        .allowlist_function("SherpaOnnxDestroySpeakerEmbeddingExtractor")
+        .allowlist_function("SherpaOnnxSpeakerEmbeddingExtractor(Dim|CreateStream|IsReady)")
+        .allowlist_function("SherpaOnnxSpeakerEmbeddingExtractor(Compute|Destroy)Embedding")
+        .allowlist_function("SherpaOnnxOnlineStream(AcceptWaveform|InputFinished)")
+        .allowlist_function("SherpaOnnxDestroyOnlineStream")
+        .allowlist_type("SherpaOnnxSpeakerEmbeddingExtractor(Config)?")
+        .allowlist_type("SherpaOnnxOnlineStream")
         .allowlist_type("SherpaOnnxFastClusteringConfig")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()

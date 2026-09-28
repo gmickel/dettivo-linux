@@ -15,6 +15,8 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 - Meetings, imports and re-runs transcribed with Whisper store every word with its start, end and confidence, and each line's start and end follow its words instead of Whisper's segment timestamps, which drift by seconds in long recordings. The speaker pass gets 1.4 points fewer AMI words wrong with the current diarization engine and 2.2 with Nemotron. Named lines with the wrong speaker stay where they were. `[meetings.diarization] pause_ms` defaults to 500.
 
+- Meetings recorded with a system track use both tracks to name speakers. The speaker pass drops a microphone line you barely voiced, which is the other side heard through your microphone or words Whisper heard in silence. On the retained meetings that cut the time "You" lines spent on remote-only speech from 38% to 22%. A call with one remote voice gets that voice on every remote line. A silent system track means several people shared your microphone, so it is diarized like room audio. The pass also learns your voice from your microphone and names a remote line in your voice You. The voiceprint stays on this machine in `<data_dir>/voiceprint.json`. `[meetings.diarization]` gains `bleed_min_voiced`, `single_remote`, `shared_mic`, `voiceprint` (set it to `false` to opt out) and `voice_match`.
+
 ### Fixed
 
 - Piping the CLI into a command that stops reading early, such as `dettivo meetings segments <id> | head`, ends it quietly instead of with a Rust panic.

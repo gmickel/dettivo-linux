@@ -76,9 +76,10 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0069](0069-releases-ship-the-pacman-package-until-the-aur-account-exists.md) | Releases ship the pacman package; the AUR job waits for an account (registration closed) | Accepted 2026-09-25 |
 | [0070](0070-a-release-is-local-qa-and-a-tag.md) | A release is local QA and a tag; CI tests, packages, clean-installs and publishes, and the deep checks are optional | Accepted 2026-09-25 |
 | [0071](0071-a-running-meeting-answers-its-transcript-so-far-with-a-cursor.md) | A running meeting answers its transcript so far through `meetings.segments`, with a cursor that holds from the first second to the stored row | Accepted 2026-09-26 |
-| [0072](0072-every-remote-line-takes-the-speaker-of-its-sentence.md) | Every remote line takes the speaker who holds most of its sentence, and a line outside every turn takes the nearest one within ten seconds | Accepted 2026-09-26, amends 0035; amended by 0074 |
+| [0072](0072-every-remote-line-takes-the-speaker-of-its-sentence.md) | Every remote line takes the speaker who holds most of its sentence, and a line outside every turn takes the nearest one within ten seconds | Accepted 2026-09-26, amends 0035; amended by 0074 and 0075 |
 | [0073](0073-nemotron-3-diarization-runs-through-nemo-speech-cpp.md) | Nemotron 3 Diarization runs through a pinned NeMo-Speech.cpp in its own engine process on the CPU, Vulkan or CUDA, falls back to the sherpa-onnx set over eight speakers or when missing, and ships opt-in | Accepted 2026-09-26, amends 0004, 0035 and 0057 |
 | [0074](0074-whisper-times-every-word-by-dtw-for-speaker-labelling.md) | Whisper times every word by DTW, and a segment's span follows its words | Accepted 2026-09-27, amends 0072 |
+| [0075](0075-two-track-meetings-use-both-tracks-to-name-speakers.md) | A two-track meeting drops the microphone lines you did not voice, gives one remote voice every remote line, diarizes a shared microphone, and names your voice You from a voiceprint kept on this machine | Accepted 2026-09-27, amends 0035 and 0072 |
 
 ## Writing a record
 

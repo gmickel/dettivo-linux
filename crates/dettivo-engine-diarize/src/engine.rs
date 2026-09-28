@@ -9,11 +9,13 @@
 
 use std::ffi::{CString, c_void};
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
+use crate::embed::Extractor;
 use crate::provider::{self, Selection};
 use dettivo_engine_proto::{
-    Backend, DiarizeEngine, DiarizeParams, DiarizeResult, EngineError, LoadParams, LoadedResult,
-    SpeakerTurn,
+    Backend, DiarizeEngine, DiarizeParams, DiarizeResult, EmbedParams, EmbedResult, EngineError,
+    LoadParams, LoadedResult, SpeakerTurn,
 };
 use sherpa_onnx_sys as ffi;
 
@@ -34,11 +36,13 @@ const MIN_DURATION_OFF: f32 = 0.1;
 pub struct Diarizer {
     sd: *const ffi::SherpaOnnxOfflineSpeakerDiarization,
     dir: PathBuf,
-    threads: u32,
+    pub(crate) threads: u32,
     segmentation: CString,
-    embedding: CString,
-    provider: CString,
+    pub(crate) embedding: CString,
+    pub(crate) provider: CString,
     selection: Selection,
+    /// The span embedder, created on the first `embed`.
+    pub(crate) embedder: Mutex<Option<Extractor>>,
 }
 
 // SAFETY: the diarizer is used from one thread at a time (the host runs
@@ -85,6 +89,7 @@ impl Diarizer {
             })
             .expect("static"),
             selection,
+            embedder: Mutex::new(None),
         };
         let config = this.config(-1, DEFAULT_THRESHOLD);
         // SAFETY: every pointer in `config` points at a CString this struct
@@ -255,6 +260,27 @@ impl DiarizeEngine for Diarizer {
             ..Default::default()
         })
     }
+
+    fn embed(&self, pcm: &[i16], params: &EmbedParams) -> Result<EmbedResult, EngineError> {
+        self.embed_spans(pcm, params)
+    }
+}
+
+/// The downloaded English model set, when this machine has it
+/// (`DETTIVO_TEST_DIARIZATION_MODEL` overrides the data directory).
+#[cfg(test)]
+pub(crate) fn downloaded_model() -> Option<PathBuf> {
+    std::env::var_os("DETTIVO_TEST_DIARIZATION_MODEL")
+        .map(PathBuf::from)
+        .or_else(|| {
+            let data = std::env::var_os("XDG_DATA_HOME")
+                .map(PathBuf::from)
+                .or_else(|| {
+                    std::env::var_os("HOME").map(|p| PathBuf::from(p).join(".local/share"))
+                })?;
+            Some(data.join("dettivo/models/diarize/diarization-en"))
+        })
+        .filter(|p| p.join(EMBEDDING_FILE).is_file())
 }
 
 #[cfg(test)]
@@ -263,17 +289,7 @@ mod tests {
 
     #[test]
     fn switching_count_mode_restores_its_duration_settings() {
-        let model = std::env::var_os("DETTIVO_TEST_DIARIZATION_MODEL")
-            .map(PathBuf::from)
-            .or_else(|| {
-                let data = std::env::var_os("XDG_DATA_HOME")
-                    .map(PathBuf::from)
-                    .or_else(|| {
-                        std::env::var_os("HOME").map(|p| PathBuf::from(p).join(".local/share"))
-                    })?;
-                Some(data.join("dettivo/models/diarize/diarization-en"))
-            });
-        let Some(model) = model.filter(|p| p.join(EMBEDDING_FILE).is_file()) else {
+        let Some(model) = downloaded_model() else {
             eprintln!("skip: the calibrated diarization model is not downloaded");
             return;
         };

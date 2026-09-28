@@ -164,7 +164,7 @@ impl<E: LanguageEngine, W: Write> Host<E, W> {
                 }
                 Ok(p) => return self.generate(id, &p, rx),
             },
-            "recognize" | "diarize" => error_frame(
+            "recognize" | "diarize" | "embed" => error_frame(
                 id,
                 "bad_request",
                 "this engine does not implement that request",

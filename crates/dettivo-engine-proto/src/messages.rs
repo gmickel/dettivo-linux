@@ -1,7 +1,7 @@
 //! Typed payloads for every message and event, and the catalogue that
 //! names them. Segments carry word timestamps with confidence when the
 //! engine aligns words. Requests: `load`, `unload`, `recognize`, `generate`,
-//! `diarize`, `cancel`, `status`. Events: `progress`, `partial`, `loaded`,
+//! `diarize`, `embed`, `cancel`, `status`. Events: `progress`, `partial`, `loaded`,
 //! `error`.
 
 use serde::{Deserialize, Serialize};
@@ -276,6 +276,33 @@ pub struct FrameProbabilities {
     pub frame_ms: u32,
 }
 
+/// `embed` (with one `pcm16k` attachment).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
+pub struct EmbedParams {
+    /// The spans of the attached samples to embed, one vector each.
+    pub spans: Vec<Span>,
+}
+
+/// One time span of an attachment.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Span {
+    /// Start in milliseconds.
+    pub start_ms: u64,
+    /// End in milliseconds.
+    pub end_ms: u64,
+}
+
+/// `embed` result: one L2-normalised vector per span, `None` where the
+/// span holds too little audio for the model (or lies outside the samples).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
+pub struct EmbedResult {
+    /// One entry per requested span, in request order.
+    pub embeddings: Vec<Option<Vec<f32>>>,
+}
+
 /// `cancel`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -352,6 +379,7 @@ pub const REQUESTS: &[&str] = &[
     "recognize",
     "generate",
     "diarize",
+    "embed",
     "cancel",
     "status",
 ];
@@ -370,6 +398,7 @@ pub fn check_request(name: &str, payload: &Value) -> Result<Value, String> {
         "recognize" => rt::<RecognizeParams>(payload),
         "generate" => rt::<GenerateParams>(payload),
         "diarize" => rt::<DiarizeParams>(payload),
+        "embed" => rt::<EmbedParams>(payload),
         "cancel" => rt::<CancelParams>(payload),
         other => Err(format!("unknown request {other:?}")),
     }
@@ -387,6 +416,7 @@ pub fn check_response(name: &str, payload: &Value) -> Result<Value, String> {
         "recognize" => rt::<RecognizeResult>(payload),
         "generate" => rt::<GenerateResult>(payload),
         "diarize" => rt::<DiarizeResult>(payload),
+        "embed" => rt::<EmbedResult>(payload),
         "status" => rt::<StatusResult>(payload),
         "error" => rt::<ErrorEvent>(payload),
         other => Err(format!("unknown response {other:?}")),

@@ -206,7 +206,7 @@ pub fn serve<E: SpeechEngine>(force_cpu: bool) -> ExitCode {
                     }
                 }
             },
-            "generate" | "diarize" => error_frame(
+            "generate" | "diarize" | "embed" => error_frame(
                 id,
                 "bad_request",
                 "this engine does not implement that request",

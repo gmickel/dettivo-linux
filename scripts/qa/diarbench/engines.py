@@ -207,6 +207,62 @@ def example(name):
     return _EXAMPLES[name]
 
 
+# Mirrors dettivo_meeting::two_track::MIN_EMBED_MS: a shorter line gets no embedding.
+MIN_EMBED_MS = 1500
+_ENGINE = {}
+
+
+def tree_engine():
+    """Builds the tree's diarization engine, whose CLI embeds spans (`--embed`); returns its path."""
+    if "path" not in _ENGINE:
+        proc = subprocess.run(["cargo", "build", "-q", "-p", "dettivo-engine-diarize",
+                               "--message-format=json-render-diagnostics"], cwd=REPO, capture_output=True, text=True)
+        if proc.returncode:
+            raise SystemExit(f"building dettivo-engine-diarize failed:\n{proc.stderr.strip()}")
+        for line in proc.stdout.splitlines():
+            msg = json.loads(line)
+            if msg.get("reason") == "compiler-artifact" and msg["target"]["name"] == "dettivo-engine-diarize" \
+                    and msg.get("executable"):
+                _ENGINE["path"] = msg["executable"]
+        if "path" not in _ENGINE:
+            raise SystemExit("cargo reported no dettivo-engine-diarize executable")
+    return _ENGINE["path"]
+
+
+def embeddings(cache, model, rec, segments, full):
+    """(key, one embedding or None per segment) for a two-track meeting: each line of at
+    least MIN_EMBED_MS on its own track, through the product's embedding model. A plain
+    run uses the cached vectors only; without them the voice rules see none."""
+    spans = [(s["start_ms"], s["end_ms"]) if s["end_ms"] - s["start_ms"] >= MIN_EMBED_MS else None for s in segments]
+    tracks = {"microphone": rec["mic"], "system": rec["system"]}
+    binary = tree_engine()
+    k = key(cache.file_hash(binary), cache.tree_hash(model), [cache.file_hash(p) for p in tracks.values()],
+            [s["source_type"] for s in segments], spans)
+    hit = cache.get("embed", k)
+    if hit is not None:
+        cache.note("embed", "cached")
+        return k, hit["embeddings"]
+    if not full:
+        cache.note("embed", "missing")
+        return None, []
+    out = [None] * len(segments)
+    for source, wav in tracks.items():
+        mine = [i for i, s in enumerate(segments) if s["source_type"] == source and spans[i]]
+        if not mine:
+            continue
+        with tempfile.NamedTemporaryFile("w", suffix=".json") as f:
+            json.dump({"spans": [{"start_ms": spans[i][0], "end_ms": spans[i][1]} for i in mine]}, f)
+            f.flush()
+            print(f"embedding {len(mine)} {source} lines of {rec['id']}", file=sys.stderr, flush=True)
+            raw, _ = timed([binary, "--wav", str(wav), "--model", str(model), "--embed", f.name, "--threads", "4",
+                            "--provider", "cpu"])
+        for i, vector in zip(mine, json.loads(raw)["embeddings"]):
+            out[i] = vector
+    cache.put("embed", k, {"embeddings": out})
+    cache.note("embed", "computed")
+    return k, out
+
+
 def product_segments(raw):
     """Engine CLI segments as the product's Segment objects (room audio, no speaker)."""
     out = []

@@ -41,3 +41,7 @@ Details are in the vault note "dettivo-linux -- Speaker attribution research (20
 ## Decision Context
 
 Gordon approved recommendation 4 on 2026-09-26.
+
+### R2 decision (2026-09-27)
+
+The single-remote shortcut fires on the engine's single remote speaker alone. No voice check could tell one voice from two: splitting one person's line embeddings gave cosine 0.05 to 0.77 between halves, against 0.04 to 0.52 for tracks with several voices. On the ten retained meetings it fired on two and only filled blank lines (Nemotron blank remote lines 2.40% to 2.23%), since a one-speaker engine result already names the other lines. Gordon chose on 2026-09-27 to keep it. Detecting two remote voices merged into one belongs to the per-line voice check (fn-70).

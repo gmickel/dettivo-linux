@@ -27,18 +27,19 @@ use dettivo_core::config::Loaded;
 use dettivo_core::config::audio_schema::Diarization as DiarizationConfig;
 use dettivo_core::config::polish_schema::Polish;
 use dettivo_meeting::diarize::Rule;
+use dettivo_meeting::two_track::Rules as TwoTrack;
 use dettivo_proto::error::{AppCode, ErrorDetails, JsonRpcError};
 use dettivo_proto::events::{JobProgressPayload, MeetingLiveState, MeetingStatePayload, Topic};
 use dettivo_proto::id::Id;
 use dettivo_proto::methods::speakers::DiarizationStatus;
 use dettivo_proto::runtime::{JobState, JobStatus};
-use dettivo_speech::diarize::{DiarizeEngine, binary_for};
+use dettivo_speech::diarize::DiarizeEngine;
 use dettivo_speech::models::Readiness;
 use dettivo_storage::meetings::{MeetingRow, MeetingStatus};
 use serde_json::{Map, Value, json};
 
 use crate::daemon::Daemon;
-use crate::diarization_choice::{Choice, choose, preference};
+use crate::diarization_choice::{Choice, Voice, choose, find, open, present, voice};
 use crate::events::EventBus;
 use crate::history::History;
 use crate::meeting_jobs::{Job, MeetingJobs};
@@ -61,9 +62,16 @@ pub(crate) struct Pass {
     pub(crate) engine: DiarizeEngine,
     /// The catalogue id of the model set that runs.
     pub(crate) model_id: String,
+    /// The engine that embeds the user's voice, or why this pass skips
+    /// the voiceprint (ADR 0075).
+    pub(crate) voice: Result<Voice, String>,
     /// Why that set runs instead of the configured one.
     pub(crate) fallback_reason: Option<String>,
     pub(crate) rule: Rule,
+    /// The two-track rules around it (ADR 0075).
+    pub(crate) two_track: TwoTrack,
+    /// Where the user's voiceprint lives.
+    pub(crate) data_dir: std::path::PathBuf,
     /// The global Polish transforms, for the parts a split leaves.
     pub(crate) polish: Polish,
     pub(crate) speakers: Option<u32>,
@@ -256,11 +264,13 @@ impl Diarization {
         if let Some(why) = &choice.fallback_reason {
             tracing::info!(reason = %why, "diarization falls back");
         }
+        let voice = voice(daemon, &loaded, &choice.model);
         let pass = Pass {
             job_id: job_id.clone(),
             row: row.clone(),
             audio_dir,
             engine,
+            voice,
             model_id: choice.model,
             fallback_reason: choice.fallback_reason,
             rule: Rule {
@@ -268,6 +278,14 @@ impl Diarization {
                 nearest_turn_ms: d.nearest_turn_ms,
                 min_speaker_share: d.min_speaker_share,
             },
+            two_track: TwoTrack {
+                bleed_min_voiced: d.bleed_min_voiced,
+                single_remote: d.single_remote,
+                shared_mic: d.shared_mic,
+                voiceprint: d.voiceprint,
+                voice_match: d.voice_match,
+            },
+            data_dir: loaded.data_dir(&daemon.paths),
             polish: loaded.config.polish.clone(),
             speakers: expected,
             clustering_threshold: d.clustering_threshold,
@@ -318,48 +336,21 @@ impl Diarization {
         expected: Option<u32>,
     ) -> Result<(DiarizeEngine, Choice), JsonRpcError> {
         let configured = &loaded.config.meetings.diarization.model;
-        let store = daemon.models().store();
-        let find = |id: &str| {
-            store
-                .catalogue()
-                .find("diarize", id)
-                .map(|entry| (store.readiness(entry), store.load_path(entry)))
-        };
-        // A quarantined set is on disk as far as the choice goes: it is
-        // refused below with the verification error, never replaced by
-        // the fallback. Only a set that is missing or still arriving is.
-        let present = |id: &str| {
-            matches!(
-                find(id),
-                Some((
-                    Readiness::Ready | Readiness::Unverified | Readiness::Quarantined,
-                    _
-                ))
-            )
-        };
-        let choice = choose(configured, expected, present);
+        let choice = choose(configured, expected, |id| present(daemon, id));
         let model = &choice.model;
-        let missing = if present(configured) {
+        let missing = if present(daemon, configured) {
             model
         } else {
             configured
         };
-        match find(model) {
+        match find(daemon, model) {
             Some((Readiness::Ready | Readiness::Unverified | Readiness::Quarantined, dir)) => {
                 // Verified, or hashed now; a set that fails, or failed
                 // before, is quarantined and refused rather than opened.
                 daemon.models().verifier().ensure(&dir).map_err(|why| {
                     JsonRpcError::new(AppCode::NotFound, why, ErrorDetails::empty())
                 })?;
-                let binary = binary_for(model);
-                let engine = DiarizeEngine::new(
-                    daemon.engines().supervisor(),
-                    binary,
-                    dir.to_string_lossy().into_owned(),
-                    Some(loaded.config.engines.diarize.threads),
-                )
-                .with_backend(preference(loaded.config.engines.diarize.backend, binary));
-                Ok((engine, choice))
+                Ok((open(daemon, loaded, model, &dir), choice))
             }
             _ => Err(model_missing(missing)),
         }

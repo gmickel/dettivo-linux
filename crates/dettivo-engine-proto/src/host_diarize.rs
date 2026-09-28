@@ -4,7 +4,8 @@
 //! the background and its result is dropped), a `status` meanwhile says
 //! `busy`, and any other request waits its turn. Progress arrives from the
 //! pass as chunk counts and goes out as `progress` events with
-//! `completed` and `total` beside the fraction.
+//! `completed` and `total` beside the fraction. An `embed` (one voice
+//! embedding per span) is short and is answered on the loop thread.
 
 use std::collections::VecDeque;
 use std::io::{self, BufWriter, Write};
@@ -18,8 +19,8 @@ use serde_json::{Value, json};
 use crate::frame::{Attachment, Frame, FrameError, bytes_to_pcm, read_frame, write_frame};
 use crate::host::EngineError;
 use crate::messages::{
-    BackendPreference, CancelParams, DiarizeParams, DiarizeResult, Empty, ErrorEvent,
-    FRAME_PROBABILITIES_KIND, LoadParams, LoadedResult, ProgressEvent, StatusResult,
+    BackendPreference, CancelParams, DiarizeParams, DiarizeResult, EmbedParams, EmbedResult, Empty,
+    ErrorEvent, FRAME_PROBABILITIES_KIND, LoadParams, LoadedResult, ProgressEvent, StatusResult,
 };
 
 /// What a diarization binary implements; the host loop does the rest.
@@ -36,6 +37,8 @@ pub trait DiarizeEngine: Sized + Send + Sync + 'static {
         params: &DiarizeParams,
         progress: &mut dyn FnMut(u32, u32),
     ) -> Result<DiarizeResult, EngineError>;
+    /// One embedding per span of 16 kHz mono samples.
+    fn embed(&self, pcm: &[i16], params: &EmbedParams) -> Result<EmbedResult, EngineError>;
 }
 
 /// How often at most a progress event goes out.
@@ -191,6 +194,27 @@ impl<E: DiarizeEngine, W: Write> Host<E, W> {
                     "diarize needs exactly one pcm16k attachment",
                 ),
                 Ok(p) => return self.diarize(id, p, bytes_to_pcm(&attachments[0]), rx),
+            },
+            "embed" => match serde_json::from_value::<EmbedParams>(frame.payload.clone()) {
+                Err(e) => error_frame(id, "bad_request", &e.to_string()),
+                Ok(p) => match (&self.engine, attachments.as_slice()) {
+                    (None, _) => {
+                        error_frame(id, "bad_request", "no model is loaded; send load first")
+                    }
+                    (Some(engine), [pcm]) => match engine.embed(&bytes_to_pcm(pcm), &p) {
+                        Ok(r) => Frame::response(
+                            id,
+                            "embed",
+                            serde_json::to_value(&r).unwrap_or(Value::Null),
+                        ),
+                        Err(EngineError { code, message }) => error_frame(id, code, &message),
+                    },
+                    (Some(_), _) => error_frame(
+                        id,
+                        "bad_request",
+                        "embed needs exactly one pcm16k attachment",
+                    ),
+                },
             },
             "recognize" | "generate" => error_frame(
                 id,
@@ -393,6 +417,26 @@ pub fn run_cli<E: DiarizeEngine>(
     let json = serde_json::to_string_pretty(&value)
         .map_err(|e| EngineError::new("internal", e.to_string()))?;
     Ok((json, result))
+}
+
+/// CLI mode: loads the model set, embeds each span of the samples and
+/// returns the protocol's `embed` payload with the vector length (`dim`,
+/// 0 when no span gave a vector) and the backend beside it.
+pub fn run_cli_embed<E: DiarizeEngine>(
+    pcm: &[i16],
+    load: &LoadParams,
+    params: &EmbedParams,
+    force_cpu: bool,
+) -> Result<String, EngineError> {
+    let engine = E::load(load, force_cpu)?;
+    let result = engine.embed(pcm, params)?;
+    let dim = result.embeddings.iter().flatten().map(Vec::len).next();
+    let value = json!({
+        "embeddings": result.embeddings,
+        "dim": dim.unwrap_or(0),
+        "backend": engine.loaded().backend,
+    });
+    serde_json::to_string_pretty(&value).map_err(|e| EngineError::new("internal", e.to_string()))
 }
 
 #[cfg(test)]

@@ -3,7 +3,9 @@
 //! time over 16 kHz samples, with the recorder post-processing fn-64
 //! measured turning the probabilities into turns. The model tracks at
 //! most eight speakers; a larger expected count is refused so the daemon
-//! can run the sherpa-onnx engine instead.
+//! can run the sherpa-onnx engine instead. It has no speaker-embedding
+//! model, so an `embed` is refused; the daemon asks the sherpa-onnx set
+//! for the voiceprint's embeddings (ADR 0075).
 
 use std::path::{Path, PathBuf};
 
@@ -11,8 +13,8 @@ use crate::backend::{self, Selection};
 use crate::model::{self, Model};
 use crate::turns;
 use dettivo_engine_proto::{
-    Backend, DiarizeEngine, DiarizeParams, DiarizeResult, EngineError, FrameProbabilities,
-    LoadParams, LoadedResult,
+    Backend, DiarizeEngine, DiarizeParams, DiarizeResult, EmbedParams, EmbedResult, EngineError,
+    FrameProbabilities, LoadParams, LoadedResult,
 };
 
 /// The model file inside its catalogue directory.
@@ -141,6 +143,19 @@ impl DiarizeEngine for Nemotron {
             probabilities: probs.iter().flat_map(|p| p.to_le_bytes()).collect(),
         })
     }
+
+    fn embed(&self, _pcm: &[i16], _params: &EmbedParams) -> Result<EmbedResult, EngineError> {
+        Err(embed_refused())
+    }
+}
+
+/// The refusal of an `embed`: the model has no speaker-embedding model.
+fn embed_refused() -> EngineError {
+    EngineError::new(
+        "bad_request",
+        "Nemotron 3 Diarization has no speaker-embedding model; \
+         embeddings come from the sherpa-onnx diarization-en set",
+    )
 }
 
 #[cfg(test)]
@@ -157,5 +172,12 @@ mod tests {
         std::fs::write(&file, b"x").unwrap();
         assert_eq!(model_file(&file).unwrap(), file);
         assert_eq!(to_f32(&[0, 16_384, -32_768]), [0.0, 0.5, -1.0]);
+    }
+
+    #[test]
+    fn embed_is_refused_as_a_bad_request() {
+        let err = embed_refused();
+        assert_eq!(err.code, "bad_request");
+        assert!(err.message.contains("no speaker-embedding model"), "{err}");
     }
 }

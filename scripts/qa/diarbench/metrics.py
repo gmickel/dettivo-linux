@@ -62,6 +62,13 @@ METRICS = [
     Metric("labelled_wrong", "Labelled lines, wrong speaker", ("lines_wrong",), ("lines_right", "lines_wrong")),
     Metric("remote_unlabelled", "Remote lines unlabelled", ("remote_unlabelled",), ("remote_lines",)),
     Metric("mix_side_confusion", "Local/remote proxy (mix)", ("mix_confused",), ("mix_single",)),
+    Metric("you_on_remote", "You lines on remote-only speech", ("you_remote_frames",),
+           ("you_remote_frames", "you_local_frames")),
+    Metric("local_outside_you", "Local speech outside You lines", ("local_unheld_frames",), ("local_frames",)),
+    Metric("bleed_dropped", "Microphone lines dropped as bleed", ("bleed_dropped",), ("mic_lines",)),
+    Metric("you_relabelled", "Remote lines relabelled You", ("you_relabelled",), ("remote_lines",)),
+    Metric("single_remote", "Meetings under the single-remote rule", ("single_remote",), ("two_track",)),
+    Metric("shared_mic", "Meetings switched to the shared mic", ("shared_mic",), ("two_track",)),
     Metric("realtime_factor", "Engine speed (x realtime)", ("audio_s",), ("engine_wall_s",), percent=False),
 ]
 BY_NAME = {m.name: m for m in METRICS}

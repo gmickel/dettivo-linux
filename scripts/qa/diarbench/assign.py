@@ -42,20 +42,22 @@ class Assigner:
             os.replace(tmp, self.binary)
         self.pending = {}
 
-    def job_key(self, segments_key, engine_key, room_audio, track_ms, window):
-        return key(self.program, self.variant, self.params, segments_key, engine_key, room_audio, track_ms, window)
+    def job_key(self, segments_key, engine_key, room_audio, track_ms, window, evidence_key=None):
+        """`evidence_key` covers what the two-track rules read: both tracks and the embeddings."""
+        return key(self.program, self.variant, self.params, segments_key, engine_key, room_audio, track_ms, window,
+                   evidence_key)
 
     def request(self, k, job):
-        """Queues a job unless its lines are cached; returns the cached lines or None."""
+        """Queues a job unless it is cached; returns the cached {"lines", "report"} or None."""
         hit = self.cache.get("assign", k)
-        if hit is not None:
+        if hit is not None and "report" in hit:
             self.cache.note("assign", "cached")
-            return hit["lines"]
+            return hit
         self.pending[k] = job
         return None
 
     def run(self):
-        """Runs every queued job in one process; returns {key: lines}."""
+        """Runs every queued job in one process; returns {key: {"lines", "report"}}."""
         if not self.pending:
             return {}
         jobs = [dict(job, id=k) for k, job in self.pending.items()]
@@ -66,8 +68,8 @@ class Assigner:
             raise SystemExit(f"assigner: {proc.stderr.strip()}")
         out = {}
         for result in json.loads(proc.stdout)["results"]:
-            out[result["id"]] = result["lines"]
-            self.cache.put("assign", result["id"], {"lines": result["lines"]})
+            out[result["id"]] = {"lines": result["lines"], "report": result["report"]}
+            self.cache.put("assign", result["id"], out[result["id"]])
             self.cache.note("assign", "computed")
         self.pending = {}
         return out

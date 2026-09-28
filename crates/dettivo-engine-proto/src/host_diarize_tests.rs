@@ -1,7 +1,8 @@
 //! The diarize host loop under test: a fake engine that reports one turn
 //! per second of audio, a pass that answers its turns after chunk
 //! progress, and a cancel that lands mid-pass and is answered at once
-//! while a status meanwhile says busy.
+//! while a status meanwhile says busy. The fake embeds a span as its
+//! length and gives none for a span under half a second.
 
 use super::*;
 use crate::messages::{Backend, SpeakerTurn};
@@ -63,6 +64,19 @@ impl DiarizeEngine for Fake {
             turns,
             ..Default::default()
         })
+    }
+
+    fn embed(&self, pcm: &[i16], params: &EmbedParams) -> Result<EmbedResult, EngineError> {
+        let audio_ms = pcm.len() as u64 / 16;
+        let embeddings = params
+            .spans
+            .iter()
+            .map(|s| {
+                let ms = s.end_ms.min(audio_ms).saturating_sub(s.start_ms);
+                (ms >= 500).then(|| vec![ms as f32, 1.0])
+            })
+            .collect();
+        Ok(EmbedResult { embeddings })
     }
 }
 
@@ -208,4 +222,65 @@ fn a_cancel_mid_pass_is_answered_at_once_and_status_says_busy() {
     ));
     let out = frames(&host.out);
     assert_eq!(out.last().unwrap().payload["loaded"], false);
+}
+
+#[test]
+fn embed_answers_one_vector_per_span_after_a_load() {
+    let (mut host, _tx, rx) = rig();
+    let spans = json!({"spans": [
+        {"start_ms": 0, "end_ms": 1000},
+        {"start_ms": 1000, "end_ms": 1100},
+        {"start_ms": 2500, "end_ms": 9000},
+    ]});
+    assert!(host.handle(Frame::request(1, "embed", spans.clone()), pcm(3), true, &rx));
+    assert!(host.handle(
+        Frame::request(2, "load", json!({"model": "m"})),
+        Vec::new(),
+        true,
+        &rx
+    ));
+    assert!(host.handle(
+        Frame::request(3, "embed", spans.clone()),
+        Vec::new(),
+        true,
+        &rx
+    ));
+    assert!(host.handle(
+        Frame::request(4, "embed", json!({"spans": [], "extra": 1})),
+        pcm(1),
+        true,
+        &rx
+    ));
+    assert!(host.handle(Frame::request(5, "embed", spans), pcm(3), true, &rx));
+    let out = frames(&host.out);
+    let by_id = |id: u64| out.iter().find(|f| f.id == id).unwrap();
+    assert_eq!(by_id(1).payload["code"], "bad_request", "before load");
+    assert!(
+        by_id(1).payload["message"]
+            .as_str()
+            .unwrap()
+            .contains("load")
+    );
+    assert_eq!(by_id(3).payload["code"], "bad_request", "no attachment");
+    assert_eq!(by_id(4).payload["code"], "bad_request", "unknown field");
+    let answer = by_id(5);
+    assert_eq!(answer.name, "embed");
+    let typed: EmbedResult = serde_json::from_value(answer.payload.clone()).unwrap();
+    assert_eq!(
+        typed.embeddings,
+        [Some(vec![1000.0, 1.0]), None, Some(vec![500.0, 1.0])]
+    );
+    let load: LoadParams = serde_json::from_value(json!({"model": "m"})).unwrap();
+    let params = EmbedParams {
+        spans: vec![crate::messages::Span {
+            start_ms: 0,
+            end_ms: 600,
+        }],
+    };
+    let cli: Value =
+        serde_json::from_str(&run_cli_embed::<Fake>(&[0; 16_000], &load, &params, true).unwrap())
+            .unwrap();
+    assert_eq!(cli["dim"], 2);
+    assert_eq!(cli["backend"], "cpu");
+    assert_eq!(cli["embeddings"][0][0], 600.0);
 }

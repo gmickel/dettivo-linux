@@ -94,6 +94,8 @@ fn semantic(config: &Config) -> Option<(&'static str, String)> {
             "meetings.diarization.min_speaker_share",
             d.min_speaker_share,
         ),
+        ("meetings.diarization.bleed_min_voiced", d.bleed_min_voiced),
+        ("meetings.diarization.voice_match", d.voice_match),
     ];
     for (key, value) in unit {
         if !(0.0..=1.0).contains(&value) {
@@ -215,6 +217,14 @@ mod tests {
             (
                 "[meetings.diarization]\nmin_speaker_share = nan\n",
                 "meetings.diarization.min_speaker_share",
+            ),
+            (
+                "[meetings.diarization]\nbleed_min_voiced = -0.1\n",
+                "meetings.diarization.bleed_min_voiced",
+            ),
+            (
+                "[meetings.diarization]\nvoice_match = 2.0\n",
+                "meetings.diarization.voice_match",
             ),
             (
                 "[meetings.diarization]\nclustering_threshold = inf\n",
