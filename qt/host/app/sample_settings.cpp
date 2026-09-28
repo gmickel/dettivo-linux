@@ -147,6 +147,7 @@ QJsonArray settingsEntries()
         entry("meetings.diarization.shared_mic", true, "default"),
         entry("meetings.diarization.voiceprint", true, "default"),
         entry("meetings.diarization.voice_match", 0.6, "default"),
+        entry("meetings.diarization.voice_check", true, "default"),
         entry("meetings.delete_artifact_policy", QStringLiteral("all"), "default"),
         entry("meetings.analysis.auto", true, "default"),
         entry("meetings.analysis.timeout_ms", 60000, "default"),

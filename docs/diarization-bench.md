@@ -17,7 +17,7 @@ A change to the assignment code reruns only the assignment and scoring stages. T
 
 ## Adding a variant
 
-A variant is one arm of `label` in `crates/dettivo-meeting/examples/diar_assign.rs` plus its name in `VARIANTS`. It receives each recording's product `Segment`s, the engine's turns, the room-audio flag, the track length and, for Nemotron, the path of its per-10 ms speaker probabilities (`.npy`, frames by eight speakers). A two-track meeting also brings its directory, from which the product reads both tracks' levels, and one voice embedding per line. It returns the segments it labelled, and it may split, merge or drop them. Select it with `just diar-bench --variant <name>` and pass parameters with `--set <key> <value>`. The product variant takes `pause_ms`, `nearest_turn_ms` and `min_speaker_share`, and the two-track rules' `bleed_min_voiced`, `single_remote`, `shared_mic`, `voiceprint` and `voice_match` ([ADR 0075](adr/0075-two-track-meetings-use-both-tracks-to-name-speakers.md)). So `just diar-bench --set min_speaker_share 0.6` tries a share floor without writing code, and `--set bleed_min_voiced 0` scores the meetings without the bleed gate. The variant and its parameters are part of every assignment cache key.
+A variant is one arm of `label` in `crates/dettivo-meeting/examples/diar_assign.rs` plus its name in `VARIANTS`. It receives each recording's product `Segment`s, the engine's turns, the room-audio flag, the track length and, for Nemotron, the path of its per-10 ms speaker probabilities (`.npy`, frames by eight speakers). A two-track meeting also brings its directory, from which the product reads both tracks' levels, and one voice embedding per line. It returns the segments it labelled, and it may split, merge or drop them. Select it with `just diar-bench --variant <name>` and pass parameters with `--set <key> <value>`. The product variant takes `pause_ms`, `nearest_turn_ms` and `min_speaker_share`, the two-track rules' `bleed_min_voiced`, `single_remote`, `shared_mic`, `voiceprint` and `voice_match` ([ADR 0075](adr/0075-two-track-meetings-use-both-tracks-to-name-speakers.md)), and the voice check's `voice_check`, `voice_agree`, `voice_overrule` and `voice_evidence` (`voice`, or `probs` for an engine's frame probabilities, [ADR 0076](adr/0076-each-sentence-is-checked-against-the-speakers-voices.md)). So `just diar-bench --set min_speaker_share 0.6` tries a share floor without writing code, and `--set bleed_min_voiced 0` scores the meetings without the bleed gate. The variant and its parameters are part of every assignment cache key.
 
 ## The metrics
 
@@ -37,9 +37,12 @@ A variant is one arm of `label` in `crates/dettivo-meeting/examples/diar_assign.
 | You lines on remote-only speech | For two-track meetings, the same proxy frames under the transcript's "You" lines: the share of their single-side frames that are remote-only. That is remote speech heard through the microphone, or words Whisper heard in silence. |
 | Local speech outside You lines | The local-only frames no "You" line holds, over all local-only frames: the user's speech a gate dropped or Whisper missed. |
 | Microphone lines dropped as bleed | The microphone lines the bleed gate removed, over the microphone lines the meeting stored. |
+| Words the voice check fixed, broke | Reference words whose line was wrong without the voice check and right with it, and the reverse, over all words. The assignment stage labels each recording twice, with the check and without it, and each labelling gets its own best map of speakers. |
+| Units the voice check moved | The units the check moved to another speaker, over the units it scored. |
 | Remote lines relabelled You | Remote lines the voiceprint named You, over the remote lines. |
 | Meetings under the single-remote rule, switched to the shared mic | How many two-track meetings each rule fired on. The bench holds only the system track's turns, so a meeting the product would switch reports the switch and keeps its system-track labels. |
 | Engine speed | Audio seconds over the engine's wall time, model load included, from the cached run records. |
+| Voice check embedding speed | Audio seconds over the wall time of the voice check's embedding call, from the cached run records. |
 
 Intervals are 95% percentile bootstraps over files (1,000 resamples, fixed seed). A split of four files has wide intervals, and the width is the honest answer to how much a small set can tell.
 
@@ -58,7 +61,9 @@ AMI has no product transcript. Whisper large-v3-turbo through the product's engi
 
 ## Voice embeddings
 
-The voiceprint rule reads one embedding per line of at least 1.5 seconds, each on its own track. The bench builds the tree's `dettivo-engine-diarize`, runs its `--embed` mode with the product's diarization model over each two-track meeting, and caches the vectors under `cache/embed/`, keyed by the engine binary, the model, both tracks and the spans. `--full` computes the missing ones. A plain run without them scores the meeting as if the engine had no `embed` request.
+The voiceprint rule reads one embedding per line of at least 1.5 seconds, each on its own track. The bench builds the tree's `dettivo-engine-diarize`, runs its `--embed` mode with the product's diarization model over each two-track meeting, and caches the vectors under `cache/embed/`, keyed by the engine binary, the model, both tracks, the spans, the provider and the thread count. `--full` computes the missing ones. A plain run without them scores the meeting as if the engine had no `embed` request.
+
+The voice check ([ADR 0076](adr/0076-each-sentence-is-checked-against-the-speakers-voices.md)) embeds each sentence unit on the diarized track, and the units depend on the rule. The bench first asks the assignment stage for every job's unit spans (`mode: spans`), then embeds them with the tree's engine on the recording's diarized track, caches the vectors under `cache/embed/` keyed by the engine binary, the model, the track, the spans, the provider and the thread count, and sends them back with the job (`unit_embeddings`). `--full` computes the missing ones, and a plain run without them scores the check as if no voice came back. `--set voice_check false` needs no embeddings, and neither does `--set voice_evidence probs`. Both embedding paths use the `current` engine's model, threads and provider even when its binary is not installed; without that model the run says so, notes `embed: no model` in the stage ledger and scores both as if no voice came back.
 
 ## Word timing
 
@@ -94,6 +99,8 @@ Nothing confidential enters git. The scoreboards hold per-file counts keyed by a
 6. When fn-64's working directory (`~/.local/share/dettivo-eval/fn64`) exists, it seeds the cache with that evaluation's engine outputs, probabilities and Whisper segments, provided the binaries and models still hash to what the fn-64 receipt recorded.
 
 ## Results
+
+[ADR 0076](adr/0076-each-sentence-is-checked-against-the-speakers-voices.md) added the voice check, measured in the [voice-check report](reports/benchmarks/diarization-bench-2026-09-28-voice-check.md). AMI dev attribution error fell from 21.07% to 18.61% with the current engine and from 12.49% to 11.98% with Nemotron, and the held-out AMI test from 14.11% to 11.81% and from 11.96% to 11.54%. The check fixed 3.89% of AMI dev words and broke 1.41% with the current engine, and fixed 1.57% and broke 1.06% with Nemotron.
 
 [ADR 0075](adr/0075-two-track-meetings-use-both-tracks-to-name-speakers.md) added the two-track rules, measured in the [two-track report](reports/benchmarks/diarization-bench-2026-09-27-two-track.md). The bleed gate cut the share of "You" line time on remote-only speech from 37.86% to 22.00% on the retained meetings, at a cost of 0.32 points of local speech. The single-remote rule fired on 2 of the 10 meetings. The voiceprint relabelled no remote line, and no meeting switched to the shared microphone. AMI is room audio, and none of its figures moved.
 

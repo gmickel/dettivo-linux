@@ -5,13 +5,15 @@
 //! pause separates two different diarized speakers. Each unit takes the
 //! speaker holding most of its time; a unit no turn overlaps takes the
 //! nearest turn within `nearest_turn_ms` and otherwise stays unlabelled.
-//! A segment whose pieces took different speakers becomes one stored
-//! segment per speaker run.
+//! The voice check (`voice_check.rs`, ADR 0076) may then move a unit to
+//! another speaker. A segment whose pieces took different speakers
+//! becomes one stored segment per speaker run.
 
 use dettivo_engine_proto::SpeakerTurn;
 use dettivo_proto::methods::meetings::Segment;
 
 use crate::diarize::Rule;
+use crate::voice_check::{self, Evidence, Unit};
 
 /// A speaker and the winner's share of the unit's diarized speech (0
 /// when the unit took the nearest turn).
@@ -202,30 +204,81 @@ fn units(all: &[Piece], turns: &[SpeakerTurn], rule: &Rule) -> Vec<Vec<usize>> {
     runs
 }
 
+/// Units as the voice check sees them: the span, the vote and each
+/// speaker's time inside.
+fn checked(
+    all: &[Piece],
+    runs: &[Vec<usize>],
+    votes: &[Label],
+    turns: &[SpeakerTurn],
+) -> Vec<Unit> {
+    runs.iter()
+        .zip(votes)
+        .map(|(run, vote)| Unit {
+            span: (
+                run.iter().map(|&k| all[k].span.0).min().unwrap_or(0),
+                run.iter().map(|&k| all[k].span.1).max().unwrap_or(0),
+            ),
+            speaker: vote.as_ref().map(|(s, _)| s.clone()),
+            tally: tally(run.iter().map(|&k| all[k].span), turns)
+                .into_iter()
+                .map(|(s, ms)| (s.to_string(), ms))
+                .collect(),
+        })
+        .collect()
+}
+
 /// Labels the segments at `assigned` positions under the rule and
 /// returns every segment with its label, split where a segment's pieces
-/// took different speakers, plus how many segments were split. Segments
-/// outside `assigned` keep the label `fixed` gives them.
+/// took different speakers, plus how many segments were split and what
+/// the voice check did with `evidence`. Segments outside `assigned` keep
+/// the label `fixed` gives them.
 pub(crate) fn label(
     segments: Vec<Segment>,
     assigned: &[bool],
     turns: &[SpeakerTurn],
     rule: &Rule,
     fixed: impl Fn(&Segment) -> Label,
-) -> (Vec<(Segment, Label)>, usize) {
+    evidence: Option<&mut dyn Evidence>,
+) -> (Vec<(Segment, Label)>, usize, voice_check::Report) {
     let mut order: Vec<usize> = (0..segments.len()).filter(|&i| assigned[i]).collect();
     order.sort_by_key(|&i| (segments[i].start_ms, segments[i].end_ms, i));
     let all: Vec<Piece> = order
         .iter()
         .flat_map(|&i| pieces(&segments[i], i, rule))
         .collect();
+    let runs = units(&all, turns, rule);
+    let mut votes: Vec<Label> = runs
+        .iter()
+        .map(|unit| {
+            vote(
+                &unit.iter().map(|&k| &all[k]).collect::<Vec<_>>(),
+                turns,
+                rule,
+            )
+        })
+        .collect();
+    let mut report = voice_check::Report::default();
+    if let Some(evidence) = evidence {
+        let view = checked(&all, &runs, &votes, turns);
+        let (moves, done) = voice_check::check(&view, evidence, &rule.voice_check);
+        report = done;
+        for ((vote, to), unit) in votes.iter_mut().zip(moves).zip(&view) {
+            if let Some(to) = to {
+                // A moved unit's confidence is the share its new speaker's
+                // turns hold, 0 when the voice alone moved it.
+                let total: u64 = unit.tally.iter().map(|(_, ms)| ms).sum();
+                let held = unit
+                    .tally
+                    .iter()
+                    .find(|(s, _)| *s == to)
+                    .map_or(0, |(_, ms)| *ms);
+                *vote = Some((to, held as f64 / total.max(1) as f64));
+            }
+        }
+    }
     let mut labels: Vec<Label> = vec![None; all.len()];
-    for unit in units(&all, turns, rule) {
-        let label = vote(
-            &unit.iter().map(|&k| &all[k]).collect::<Vec<_>>(),
-            turns,
-            rule,
-        );
+    for (unit, label) in runs.into_iter().zip(votes) {
         for k in unit {
             labels[k] = label.clone();
         }
@@ -248,7 +301,7 @@ pub(crate) fn label(
         }
         out.extend(split_segment(s, &runs));
     }
-    (out, split)
+    (out, split, report)
 }
 
 /// Consecutive pieces with the same speaker, as `(first, last, label)`;

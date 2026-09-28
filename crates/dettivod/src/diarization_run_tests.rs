@@ -61,6 +61,7 @@ fn label(voice: Result<(&str, &Embed<'_>), &str>) -> (usize, Option<Voiceprint>)
         rules: &TwoTrack::default(),
         levels: None,
         tracks: &tracks,
+        track: Track::System,
         data_dir: data.path(),
     };
     let mut row = meeting();

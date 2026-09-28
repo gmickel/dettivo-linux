@@ -17,6 +17,7 @@ use dettivo_engine_proto::SpeakerTurn;
 use dettivo_proto::methods::meetings::{Segment, SegmentSource};
 use dettivo_proto::methods::speakers::{Speaker, default_label};
 
+use crate::voice_check::{self, Evidence};
 use crate::{Track, sentences};
 
 /// The speaker id of the microphone.
@@ -33,6 +34,8 @@ pub struct Rule {
     /// The least share of a unit's diarized speech its winner must hold;
     /// below it the unit stays unlabelled.
     pub min_speaker_share: f64,
+    /// The voice check on each unit (ADR 0076).
+    pub voice_check: voice_check::Settings,
 }
 
 impl Default for Rule {
@@ -41,6 +44,7 @@ impl Default for Rule {
             pause_ms: 500,
             nearest_turn_ms: 10_000,
             min_speaker_share: 0.0,
+            voice_check: voice_check::Settings::default(),
         }
     }
 }
@@ -57,6 +61,8 @@ pub struct Outcome {
     /// For each labelled segment, the position of the input segment it
     /// came from (a split segment's parts share one).
     pub origins: Vec<usize>,
+    /// What the voice check did.
+    pub voice: voice_check::Report,
 }
 
 /// The track a meeting diarizes: the system track when one recorded, the
@@ -200,13 +206,15 @@ fn covered(span: (u64, u64), turns: &[SpeakerTurn]) -> u64 {
 /// text until the caller polishes it). Every segment is assigned from the
 /// turns in a room-audio meeting; otherwise the microphone segments are
 /// `you` and the system segments are assigned. `track_ms` is the length
-/// of the diarized track, for the coverage figure.
+/// of the diarized track, for the coverage figure. `voice`, when given,
+/// scores each unit for the voice check (ADR 0076).
 pub fn assign(
     segments: &mut Vec<Segment>,
     turns: &[SpeakerTurn],
     room_audio: bool,
     track_ms: u64,
     rule: &Rule,
+    voice: Option<&mut dyn Evidence>,
 ) -> Outcome {
     let turns = &renumbered(turns);
     let mut speakers: Vec<Speaker> = Vec::new();
@@ -245,10 +253,14 @@ pub fn assign(
         s.index = position as u32;
     }
     let mut origins = Vec::with_capacity(segments.len());
-    let (labelled, split) =
-        sentences::label(std::mem::take(segments), &assigned, turns, rule, |_| {
-            Some((YOU.to_string(), 1.0))
-        });
+    let (labelled, split, voice) = sentences::label(
+        std::mem::take(segments),
+        &assigned,
+        turns,
+        rule,
+        |_| Some((YOU.to_string(), 1.0)),
+        voice,
+    );
     for (index, (mut s, label)) in labelled.into_iter().enumerate() {
         origins.push(s.index as usize);
         s.index = index as u32;
@@ -279,6 +291,7 @@ pub fn assign(
         coverage: (coverage * 1000.0).round() / 1000.0,
         split,
         origins,
+        voice,
     }
 }
 
@@ -357,7 +370,7 @@ mod tests {
         for s in &mut segments {
             s.text.push('.');
         }
-        let out = assign(&mut segments, &turns, false, 20_000, &Rule::default());
+        let out = assign(&mut segments, &turns, false, 20_000, &Rule::default(), None);
         let ids: Vec<&str> = out.speakers.iter().map(|s| s.speaker_id.as_str()).collect();
         assert_eq!(
             ids,
@@ -392,7 +405,7 @@ mod tests {
             seg(0, 0, 4000, SegmentSource::Microphone),
             seg(1, 5500, 8500, SegmentSource::Microphone),
         ];
-        let mut out = assign(&mut segments, &turns, true, 9000, &Rule::default());
+        let mut out = assign(&mut segments, &turns, true, 9000, &Rule::default(), None);
         assert_eq!(out.speakers.len(), 2);
         assert_eq!(out.speakers[0].speaker_id, "speaker_00");
         assert_eq!(segments[0].speaker_id.as_deref(), Some("speaker_00"));

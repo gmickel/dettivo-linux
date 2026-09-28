@@ -38,6 +38,16 @@ class MetricTests(unittest.TestCase):
         self.assertEqual(counts["words_uncovered"], 1)
         self.assertAlmostEqual(metrics.BY_NAME["attribution_error"].value(counts), 100 * 2 / 6)
 
+    def test_the_voice_check_counts_the_words_it_fixed_and_broke(self):
+        units = [unit(0, 900, "A", words=3), unit(1000, 1900, "B", words=2), unit(2000, 2900, "A", words=4),
+                 unit(3000, 3900, "B", words=1), unit(9000, 9100, "A")]
+        before = [line(0, 1000, "s0"), line(1000, 2000, "s0"), line(2000, 3000, "s0"), line(3000, 4000, "s1")]
+        # The check moved the B line to s1 (fixed, 2 words) and the last A line to s1 (broken, 4 words);
+        # the uncovered unit counts neither way.
+        after = [line(0, 1000, "s0"), line(1000, 2000, "s1"), line(2000, 3000, "s1"), line(3000, 4000, "s1")]
+        counts = metrics.fixed_broken(before, after, units)
+        self.assertEqual((counts["voice_fixed"], counts["voice_broken"]), (2, 4))
+
     def test_short_turns_are_runs_of_three_words_or_fewer(self):
         units = [unit(i * 100, i * 100 + 50, s) for i, s in enumerate("AAAABBBAAAAAB")]
         short = metrics.short_units(units)
@@ -153,6 +163,50 @@ class EngineIdentityTests(unittest.TestCase):
             plain = {**engine, "probs": False}
             cache.put("engine", "plain", {"turns": [], "run": {}, "probs": None}, index=slot)
             self.assertEqual(engines.engine_result(cache, "nemotron", plain, wav, False, None)[0], "plain")
+
+
+class VoiceEmbeddingTests(unittest.TestCase):
+    def test_the_embedding_model_does_not_depend_on_the_current_engine_binary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            model = Path(tmp) / "model"
+            current = {"kind": "diarize", "binary": str(Path(tmp) / "absent"), "model": str(model),
+                       "threads": 4, "provider": "cpu"}
+            nemotron = {"kind": "nemotron-onnx", "model": str(model), "threads": 4, "provider": "cpu"}
+            # Only Nemotron configured, or the model missing: the voice path is off, no KeyError.
+            self.assertIsNone(engines.embedder({"engines": {"nemotron": nemotron}}))
+            self.assertIsNone(engines.embedder({"engines": {"current": current, "nemotron": nemotron}}))
+            model.mkdir()
+            self.assertIs(engines.embedder({"engines": {"current": current}}), current)
+
+    def test_the_thread_count_and_provider_are_part_of_the_embedding_keys(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            binary, model, wav = Path(tmp) / "engine", Path(tmp) / "model", Path(tmp) / "a.wav"
+            binary.write_bytes(b"engine")
+            wav.write_bytes(b"audio")
+            model.mkdir()
+            (model / "weights.onnx").write_bytes(b"weights")
+            cache = Cache(tmp)
+            saved = engines.tree_engine, engines.timed
+            engines.tree_engine = lambda: str(binary)
+            engines.timed = lambda cmd: (json.dumps({"embeddings": [[1.0]]}), {"wall_seconds": 1})
+            try:
+                k4 = engines.unit_embeddings(cache, model, wav, [(0, 1000)], True, 4)[0]
+                self.assertEqual(engines.unit_embeddings(cache, model, wav, [(0, 1000)], False, 4)[0], k4)
+                # Vectors embedded under four threads never answer a run that asks for eight.
+                self.assertEqual(engines.unit_embeddings(cache, model, wav, [(0, 1000)], False, 8)[:2], (None, []))
+                # The per-line voiceprint vectors of a two-track meeting, likewise, and they run
+                # under the configured settings.
+                calls = []
+                engines.timed = lambda cmd: (calls.append(cmd), (json.dumps({"embeddings": [[1.0]]}), {}))[1]
+                rec = {"id": "m", "mic": wav, "system": wav}
+                segments = [{"start_ms": 0, "end_ms": 5000, "source_type": "microphone"}]
+                k8 = engines.embeddings(cache, model, rec, segments, True, 8, "cuda")[0]
+                self.assertEqual(calls[0][calls[0].index("--threads") + 1:][:3], ["8", "--provider", "cuda"])
+                self.assertEqual(engines.embeddings(cache, model, rec, segments, False, 8, "cuda")[0], k8)
+                self.assertEqual(engines.embeddings(cache, model, rec, segments, False, 4, "cuda"), (None, []))
+                self.assertEqual(engines.embeddings(cache, model, rec, segments, False, 8, "cpu"), (None, []))
+            finally:
+                engines.tree_engine, engines.timed = saved
 
 
 class ParityVerdictTests(unittest.TestCase):

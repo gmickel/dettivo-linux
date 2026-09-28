@@ -277,6 +277,10 @@ impl Diarization {
                 pause_ms: d.pause_ms,
                 nearest_turn_ms: d.nearest_turn_ms,
                 min_speaker_share: d.min_speaker_share,
+                voice_check: dettivo_meeting::voice_check::Settings {
+                    on: d.voice_check,
+                    ..Default::default()
+                },
             },
             two_track: TwoTrack {
                 bleed_min_voiced: d.bleed_min_voiced,

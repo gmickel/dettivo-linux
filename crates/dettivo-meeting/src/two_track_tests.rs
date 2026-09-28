@@ -79,6 +79,7 @@ fn the_bleed_gate_drops_microphone_lines_the_user_did_not_voice() {
             &Rule::default(),
             rules,
             evidence,
+            None,
         );
         (segments, report)
     };
@@ -124,7 +125,7 @@ fn a_single_remote_speaker_labels_every_remote_line() {
     let rule = Rule::default();
     let one = [turn(0, 3000, "A")];
     let mut plain = lines();
-    diarize::assign(&mut plain, &one, false, 43_000, &rule);
+    diarize::assign(&mut plain, &one, false, 43_000, &rule, None);
     assert_eq!(
         plain[1].speaker_id, None,
         "the sentence rule leaves it blank"
@@ -139,6 +140,7 @@ fn a_single_remote_speaker_labels_every_remote_line() {
         &rule,
         &Rules::default(),
         &Evidence::default(),
+        None,
     );
     assert!(report.single_remote);
     assert_eq!(
@@ -159,6 +161,7 @@ fn a_single_remote_speaker_labels_every_remote_line() {
         &rule,
         &Rules::default(),
         &Evidence::default(),
+        None,
     );
     assert!(!report.single_remote);
     assert_eq!(out.speakers.len(), 3);
@@ -176,6 +179,7 @@ fn a_single_remote_speaker_labels_every_remote_line() {
         &rule,
         &off,
         &Evidence::default(),
+        None,
     );
     assert!(!report.single_remote);
     assert_eq!(segments[1].speaker_id, None);
@@ -241,6 +245,7 @@ fn a_silent_system_track_switches_to_the_shared_microphone() {
         &Rule::default(),
         &rules,
         &Evidence::default(),
+        None,
     );
     assert_eq!(ids(&segments), [Some("speaker_00"), Some("speaker_01")]);
     assert!(out.speakers.iter().all(|s| s.speaker_id != YOU));
@@ -317,6 +322,7 @@ fn one_off_meeting_enrolment_cannot_outvote_a_long_stored_print() {
             &Rule::default(),
             &rules,
             &evidence,
+            None,
         );
         segments[3..]
             .iter()
@@ -371,6 +377,7 @@ fn the_users_voice_on_the_system_track_is_relabelled_you() {
         &Rule::default(),
         &rules,
         &evidence,
+        None,
     );
     assert_eq!(report.you_relabelled, 1);
     assert_eq!(report.enrolment.as_deref(), Some([1.0, 0.0].as_slice()));
@@ -393,6 +400,7 @@ fn the_users_voice_on_the_system_track_is_relabelled_you() {
         &Rule::default(),
         &rules,
         &few,
+        None,
     );
     assert_eq!((report.you_relabelled, report.enrolment), (0, None));
     let stored = print(1);
@@ -409,6 +417,7 @@ fn the_users_voice_on_the_system_track_is_relabelled_you() {
         &Rule::default(),
         &rules,
         &with_print,
+        None,
     );
     assert_eq!(report.you_relabelled, 1);
     let off = Rules {
@@ -424,6 +433,7 @@ fn the_users_voice_on_the_system_track_is_relabelled_you() {
         &Rule::default(),
         &off,
         &evidence,
+        None,
     );
     assert_eq!((report.you_relabelled, report.enrolment), (0, None));
     assert_eq!(

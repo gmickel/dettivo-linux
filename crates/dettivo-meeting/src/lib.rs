@@ -8,7 +8,8 @@
 //! leaves a killed daemon a directory it can promote to a partial meeting
 //! at its next start (`recovery`) and finalise from there. `diarize`
 //! holds the post-meeting speaker pass's track reader and assignment
-//! rule (ADR 0035); `transcript` reads the transcript so far, live until
+//! rule (ADR 0035), `voice_check` its second opinion from each sentence's
+//! voice (ADR 0076); `transcript` reads the transcript so far, live until
 //! the settled row replaces it (ADR 0071).
 
 pub mod checkpoint;
@@ -23,6 +24,7 @@ mod sentences;
 pub mod source;
 pub mod transcript;
 pub mod two_track;
+pub mod voice_check;
 pub mod voiceprint;
 mod worker;
 mod worker_end;

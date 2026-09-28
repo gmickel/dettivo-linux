@@ -128,6 +128,7 @@ constexpr RouteKey kRouteKeys[] = {
     {"meetings", "meetings.diarization.shared_mic"},
     {"meetings", "meetings.diarization.voiceprint"},
     {"meetings", "meetings.diarization.voice_match"},
+    {"meetings", "meetings.diarization.voice_check"},
     {"meetings", "meetings.delete_artifact_policy"},
     {"meetings", "meetings.analysis.auto"},
     {"meetings", "meetings.analysis.timeout_ms"},

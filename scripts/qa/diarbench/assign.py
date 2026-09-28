@@ -56,20 +56,46 @@ class Assigner:
         self.pending[k] = job
         return None
 
+    def spans(self, jobs):
+        """{key: the sentence-unit spans the voice check embeds} for {key: job}, the
+        uncached ones from one process (ADR 0076)."""
+        out, todo = {}, {}
+        for k, job in jobs.items():
+            hit = self.cache.get("spans", k)
+            if hit is None:
+                todo[k] = job
+            else:
+                out[k] = hit["spans"]
+                self.cache.note("spans", "cached")
+        for result in self._call("spans", todo):
+            out[result["id"]] = result["spans"]
+            self.cache.put("spans", result["id"], {"spans": result["spans"]})
+            self.cache.note("spans", "computed")
+        return out
+
     def run(self):
-        """Runs every queued job in one process; returns {key: {"lines", "report"}}."""
-        if not self.pending:
-            return {}
-        jobs = [dict(job, id=k) for k, job in self.pending.items()]
-        body = json.dumps({"variant": self.variant, "params": self.params, "jobs": jobs})
-        proc = subprocess.run([self.binary], input=body, capture_output=True, text=True,
-                              env=dict(os.environ, RUST_LOG="warn"))
-        if proc.returncode:
-            raise SystemExit(f"assigner: {proc.stderr.strip()}")
+        """Runs every queued job in one process; returns {key: {"lines", "before", "report"}}."""
         out = {}
-        for result in json.loads(proc.stdout)["results"]:
-            out[result["id"]] = {"lines": result["lines"], "report": result["report"]}
+        for result in self._call("label", self.pending):
+            out[result["id"]] = {"lines": result["lines"], "before": result["before"], "report": result["report"]}
             self.cache.put("assign", result["id"], out[result["id"]])
             self.cache.note("assign", "computed")
         self.pending = {}
         return out
+
+    def _call(self, mode, pending):
+        if not pending:
+            return []
+        jobs = [dict(job, id=k) for k, job in pending.items()]
+        body = json.dumps({"variant": self.variant, "params": self.params, "mode": mode, "jobs": jobs})
+        proc = subprocess.run([self.binary], input=body, capture_output=True, text=True,
+                              env=dict(os.environ, RUST_LOG="warn"))
+        if proc.returncode:
+            raise SystemExit(f"assigner: {proc.stderr.strip()}")
+        return json.loads(proc.stdout)["results"]
+
+
+def wants_voice(params):
+    """True when the voice check runs on embeddings (the product default), so the units
+    need their voices; `--set voice_check false` or `voice_evidence probs` needs none."""
+    return params.get("voice_check", True) is not False and params.get("voice_evidence", "voice") == "voice"

@@ -307,6 +307,10 @@ voiceprint = true
 # The least cosine similarity (0 to 1) between a remote line's voice and
 # your voiceprint that makes the line yours.
 voice_match = 0.6
+# Check each sentence's voice against the voices of the speakers the pass
+# found, and move a sentence that clearly sounds like another speaker to
+# that speaker. The voices come from the diarization model on this machine.
+voice_check = true
 
 [transfer]
 # The largest upload transfer.chunk accumulates, in bytes (1 GiB).

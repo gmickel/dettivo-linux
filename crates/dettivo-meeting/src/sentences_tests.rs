@@ -58,7 +58,7 @@ fn texts(segments: &[Segment]) -> Vec<&str> {
 }
 
 fn run(segments: &mut Vec<Segment>, turns: &[SpeakerTurn], rule: &Rule) -> usize {
-    assign(segments, turns, false, 20_000, rule).split
+    assign(segments, turns, false, 20_000, rule, None).split
 }
 
 #[test]
@@ -206,7 +206,7 @@ fn room_audio_assigns_the_microphone_and_a_microphone_only_meeting_is_you() {
     // Room audio: the microphone carries every voice and is split like
     // the system track.
     let mut segments = vec![mic(0, 5000, "Hello there. How are you doing today?")];
-    let out = assign(&mut segments, &turns, true, 5000, &Rule::default());
+    let out = assign(&mut segments, &turns, true, 5000, &Rule::default(), None);
     assert_eq!(ids(&segments), [Some("speaker_00"), Some("speaker_01")]);
     assert_eq!(out.speakers.len(), 2, "no `you` in a room");
 
@@ -217,7 +217,7 @@ fn room_audio_assigns_the_microphone_and_a_microphone_only_meeting_is_you() {
             mic(0, 5000, "Hello there. How are you doing today?"),
             mic(6000, 7000, "Fine."),
         ];
-        let out = assign(&mut segments, turns, false, 7000, &Rule::default());
+        let out = assign(&mut segments, turns, false, 7000, &Rule::default(), None);
         assert_eq!(ids(&segments), [Some("you"), Some("you")]);
         assert_eq!(out.split, 0);
         assert_eq!(out.speakers[0].talk_ms, 6000);

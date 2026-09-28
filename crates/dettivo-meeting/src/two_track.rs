@@ -23,6 +23,7 @@ use dettivo_proto::methods::meetings::{Segment, SegmentSource};
 use crate::Track;
 use crate::diarize::{self, Outcome, Rule, YOU};
 use crate::levels::Levels;
+use crate::voice_check::Evidence as VoiceEvidence;
 use crate::voiceprint::{Voiceprint, centroid, cosine};
 
 /// A line shorter than this gets no embedding: too little voice to tell.
@@ -160,9 +161,11 @@ fn enrolment(
         .flatten()
 }
 
-/// Labels a meeting: the bleed gate, the sentence rule, the single-remote
+/// Labels a meeting: the bleed gate, the sentence rule with its voice
+/// check (`voice` scores the diarized track's units), the single-remote
 /// shortcut and the user's voice. A room-audio meeting takes the sentence
-/// rule alone.
+/// rule and the voice check alone.
+#[allow(clippy::too_many_arguments)]
 pub fn label(
     segments: &mut Vec<Segment>,
     turns: &[SpeakerTurn],
@@ -171,11 +174,12 @@ pub fn label(
     rule: &Rule,
     rules: &Rules,
     evidence: &Evidence<'_>,
+    voice: Option<&mut dyn VoiceEvidence>,
 ) -> (Outcome, Report) {
     let mut report = Report::default();
     if room_audio {
         return (
-            diarize::assign(segments, turns, true, track_ms, rule),
+            diarize::assign(segments, turns, true, track_ms, rule, voice),
             report,
         );
     }
@@ -192,7 +196,7 @@ pub fn label(
     if rules.voiceprint {
         report.enrolment = enrolment(segments, &embeddings, evidence.levels);
     }
-    let mut out = diarize::assign(segments, turns, false, track_ms, rule);
+    let mut out = diarize::assign(segments, turns, false, track_ms, rule, voice);
     let embedding_of = |j: usize| {
         out.origins
             .get(j)
