@@ -73,8 +73,8 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0066](0066-visual-checks-are-optional-not-a-gate.md) | Visual checks are optional tools; neither CI nor the release gate runs them | Accepted 2026-09-24 |
 | [0067](0067-the-engines-compile-ggml-for-one-x86-64-baseline.md) | The engines compile ggml for one x86-64 baseline, never for the build machine's CPU | Accepted 2026-09-24 |
 | [0068](0068-parakeet-ultra-is-a-catalogue-option.md) | Parakeet Ultra, Moondream's post-train of v3, is a catalogue option beside v2 and v3 | Accepted 2026-09-24 |
-| [0069](0069-releases-ship-the-pacman-package-until-the-aur-account-exists.md) | Releases ship the pacman package; the AUR job waits for an account (registration closed) | Accepted 2026-09-25 |
-| [0070](0070-a-release-is-local-qa-and-a-tag.md) | A release is local QA and a tag; CI tests, packages, clean-installs and publishes, and the deep checks are optional | Accepted 2026-09-25 |
+| [0069](0069-releases-ship-the-pacman-package-until-the-aur-account-exists.md) | Releases ship the pacman package; the AUR job waits for an account (registration closed) | Accepted 2026-09-25; amended by 0079 |
+| [0070](0070-a-release-is-local-qa-and-a-tag.md) | A release is local QA and a tag; CI tests, packages, clean-installs and publishes, and the deep checks are optional | Accepted 2026-09-25; amended by 0079 |
 | [0071](0071-a-running-meeting-answers-its-transcript-so-far-with-a-cursor.md) | A running meeting answers its transcript so far through `meetings.segments`, with a cursor that holds from the first second to the stored row | Accepted 2026-09-26 |
 | [0072](0072-every-remote-line-takes-the-speaker-of-its-sentence.md) | Every remote line takes the speaker who holds most of its sentence, and a line outside every turn takes the nearest one within ten seconds | Accepted 2026-09-26, amends 0035; amended by 0074, 0075 and 0076 |
 | [0073](0073-nemotron-3-diarization-runs-through-nemo-speech-cpp.md) | Nemotron 3 Diarization runs through a pinned NeMo-Speech.cpp in its own engine process on the CPU, Vulkan or CUDA, falls back to the sherpa-onnx set over eight speakers or when missing, and ships opt-in | Accepted 2026-09-26, amends 0004, 0035 and 0057; default re-decided by 0078 |
@@ -83,6 +83,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0076](0076-each-sentence-is-checked-against-the-speakers-voices.md) | Each sentence is checked against the speakers' voices, and moves when its voice clearly belongs to another speaker | Accepted 2026-09-28, amends 0072 |
 | [0077](0077-a-window-the-gpu-cannot-draw-restarts-once-on-the-software-renderer.md) | A window the GPU cannot draw restarts once on Qt's software renderer, and `[app] renderer` can choose software from the start | Accepted 2026-09-28 |
 | [0078](0078-the-final-bench-keeps-the-sherpa-onnx-set-the-default.md) | The final bench with every labelling rule on keeps the sherpa-onnx set the default and Nemotron opt-in | Accepted 2026-09-28, supersedes 0073's default |
+| [0079](0079-a-release-builds-each-ggml-engine-in-its-own-job.md) | A release builds each ggml engine in its own CI job and assembles the package from them, and NeMo-Speech.cpp links with no undefined symbols | Accepted 2026-09-29, amends 0070 |
 
 ## Writing a record
 

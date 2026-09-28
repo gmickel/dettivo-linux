@@ -369,6 +369,12 @@ lint-release-text:
 package dist="dist":
     {{step}} package "release tree" scripts/package.sh {{dist}}
 
+# One ggml engine (whisper, parakeet, llm or nemotron) on Vulkan into
+# <dist>/engines/, the unit the release builds side by side (ADR 0079);
+# `DETTIVO_PREBUILT_ENGINES=<dir> just package` then takes the four from there.
+package-engine name dist="dist":
+    {{step}} package "engine {{name}}" scripts/package.sh --engine {{name}} {{dist}}
+
 # The dettivo-bin package from the tarball `just package` wrote, with namcap.
 package-bin dist="dist": (package dist)
     {{step}} makepkg "dettivo-bin package" scripts/packaging/build-package.sh bin {{dist}}
