@@ -25,6 +25,7 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 - A recording's take list (`takes.json`) is written through a temporary file and renamed into place, so a crash during the write can no longer leave recovery an empty list.
 - A packaged daemon reports its commit as `build` in `system.version` and `dettivo doctor` instead of `dev`. Reported by @gmickel.
 - The install commands download the release package and its checksum and install the local file. pacman refused the direct URL because it asks for a signature the releases do not publish. Reported by @gmickel.
+- Dettivo opens while a game or another program holds all of the GPU's memory. The app, the recording pill and every other Dettivo window used to abort with no message when the GPU could not draw them; each now logs one warning and restarts once on Qt's software renderer. `[app] renderer = "software"` draws on the CPU from the start, and `dettivo app status` and `dettivo doctor` report the renderer and why ([ADR 0077](docs/adr/0077-a-window-the-gpu-cannot-draw-restarts-once-on-the-software-renderer.md)). Reported by @gmickel.
 
 ## [0.3.0] - 2026-09-26
 

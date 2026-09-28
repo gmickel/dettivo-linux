@@ -2,6 +2,7 @@
 #include "pacing_collector.h"
 #include "qa_environment.h"
 #include "render.h"
+#include "render_fallback.h"
 
 #include <QCoreApplication>
 #include <QGuiApplication>
@@ -59,6 +60,7 @@ int runHost(int argc, char **argv, const HostSpec &spec)
         std::fprintf(stderr, "%s: %s\n", spec.name, qPrintable(qaError));
         return 2;
     }
+    renderer::choose(spec.name, argc, argv);
     QGuiApplication app(argc, argv);
     QGuiApplication::setApplicationName(QString::fromLatin1(spec.name));
     QGuiApplication::setApplicationVersion(QStringLiteral(DETTIVO_VERSION));
@@ -101,6 +103,7 @@ int runHost(int argc, char **argv, const HostSpec &spec)
         return 2;
     }
     auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
+    renderer::guard(window);
     int result = 0;
     if (!render.isEmpty()) {
         if (window == nullptr) {

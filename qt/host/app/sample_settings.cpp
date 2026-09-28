@@ -35,6 +35,7 @@ QJsonArray list(std::initializer_list<const char *> items)
 QJsonArray settingsEntries()
 {
     return {
+        entry("app.renderer", QStringLiteral("auto"), "default"),
         entry("daemon.log_level", QStringLiteral("info"), "default"),
         entry("daemon.shutdown_timeout_ms", 5000, "default"),
         entry("audio.input_device", QStringLiteral(""), "default"),

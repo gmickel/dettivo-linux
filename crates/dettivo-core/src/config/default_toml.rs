@@ -16,6 +16,13 @@ pub const DEFAULT_TOML: &str = r#"# Dettivo configuration. Every key is document
 # through the daemon. Environment overrides: DETTIVO_CONFIG (this file's
 # path), DETTIVO_IPC_SOCKET, DETTIVO_DATA_DIR, DETTIVO_QA.
 
+[app]
+# auto: every Dettivo window draws on the GPU and restarts once on the
+# software renderer when the GPU cannot draw it (a game holding its memory).
+# software: every window draws on the CPU from the start. A set
+# QT_QUICK_BACKEND wins. Applies at each window's next start.
+renderer = "auto"
+
 [daemon]
 # Lowest level written to the journal: error, warn, info, debug, trace.
 # No level ever logs transcript text, audio or prompts.

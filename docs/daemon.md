@@ -98,6 +98,7 @@ Exit codes, from the contract:
 | `models` | The model directory, the catalogue version, the selected model, and readiness per provider (`providers[]`: total, ready, quarantined, selected) |
 | `llm` | The selected provider and the provider order Enhanced walks with each one's availability, the local model's readiness with the download hint, and the engine's process (`llm.engine.status`, with the device memory it holds) |
 | `history`, `osd` | The history database (path, size, item count, last migration); the pill's host and state, reported, never judged |
+| `app` | Whether the app is running, and the renderer its window draws with (`OpenGL`, `Vulkan` or `Software`) with the reason: `default`, the `[app] renderer` setting, `QT_QUICK_BACKEND`, or the GPU error a fallback restarted it after ([ADR 0077](adr/0077-a-window-the-gpu-cannot-draw-restarts-once-on-the-software-renderer.md)) |
 | `rest`, `mcp` | Whether the daemon hosts the REST listener with its bind and port, where the token comes from and whether one is required; the MCP server this CLI carries with the tools and resource templates it would offer |
 | `omarchy` | On Omarchy, whether the shell runs, the plugin is installed and enabled and the panel holds its bus name ([docs/omarchy.md](omarchy.md)) |
 | `environment` | Which `DETTIVO_*` overrides are set |

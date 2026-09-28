@@ -185,6 +185,7 @@ pub fn run(cli: &Cli, client: &Client) -> Result<(), Failure> {
         probe("transcripts.stats").unwrap_or(Value::Null),
     );
     report.insert("osd".into(), crate::osd::doctor_facts(&client.socket));
+    report.insert("app".into(), crate::app::doctor_facts(&client.socket));
     let home = crate::setup::config_home(|k| std::env::var_os(k));
     report.insert("omarchy".into(), crate::omarchy_check::check(&home));
     report.insert(

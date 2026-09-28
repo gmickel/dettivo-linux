@@ -122,6 +122,7 @@ fn the_json_matches_the_golden_by_shape_and_the_human_report_groups_the_rows() {
         "diarize   model diarize/diarization",
         "mcp       dettivo-mcp",
         "rest      ",
+        "app       not running",
     ] {
         assert!(text.contains(row), "{row:?} missing in:\n{text}");
     }

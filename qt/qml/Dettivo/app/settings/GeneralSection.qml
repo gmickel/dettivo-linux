@@ -1,7 +1,7 @@
 import QtQuick
 import Dettivo
 
-// General: the daemon, the microphone, the dictation session, the data
+// General: the daemon, the renderer, the microphone, the dictation session, the data
 // locations and the recording pill, on the settings pattern.
 SettingsPage {
     id: root
@@ -25,6 +25,20 @@ SettingsPage {
             hint: qsTr("milliseconds a graceful stop may take")
             key: "daemon.shutdown_timeout_ms"
             label: qsTr("Shutdown timeout")
+            settings: root.settings
+        }
+    }
+
+    SettingsGroup {
+        title: qsTr("Display")
+
+        SettingRow {
+            choices: ["auto", "software"]
+            choiceLabels: [qsTr("Automatic"), qsTr("Software")]
+            hint: qsTr("Software draws every window on the CPU; applies at the next start")
+            key: "app.renderer"
+            kind: "choice"
+            label: qsTr("Renderer")
             settings: root.settings
         }
     }

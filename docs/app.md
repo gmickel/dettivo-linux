@@ -7,7 +7,7 @@
 ```
 dettivo app                 # launch, or raise the running window
 dettivo app open history    # launch on a route, or route the running window
-dettivo app status          # the running window's route, daemon link, first frame, resident set and theme
+dettivo app status          # the running window's route, daemon link, first frame, resident set, theme and renderer
 dettivo-app --open settings.hotkeys
 ```
 
@@ -159,6 +159,8 @@ The daemon keeps `[daemon]` and `[acknowledgements]` in the same file; each writ
 ## Theme
 
 On Omarchy the palette, the control states, the font and the spacing come from the active theme's `colors.toml` and `shell.toml` under `~/.local/state/omarchy/current/theme` ([qt/qml/Dettivo/README.md](../qt/qml/Dettivo/README.md)). `colors.toml` alone is a theme: a shell token the theme does not name takes the theme's own role (the bar is the background, a pressed control is the accent), the way Omarchy's generated `shell.toml` fills it, so a theme without one still renders as itself. The app watches the files and the `current` directory, so `omarchy theme set`, which replaces the directory, re-skins the window on the next frame; `DETTIVO_OMARCHY_THEME_DIR` points it at another directory. Off Omarchy the built-in dark and light palettes follow the portal's `color-scheme` setting, and the portal's reduced-motion preference cuts the transitions. A theme file that does not parse falls back to the built-in palette and is reported once. `dettivo app status` prints a `theme` block (`source`, `dir`, `background`, `accent`, `parse_error`), so a window in an unexpected palette says which files it read and why it fell back.
+
+The app opens even when the GPU cannot draw it, for example while a game holds all of the GPU's memory. The window's process logs one warning naming Qt's error and restarts once on Qt's software renderer, which draws on the CPU; a second failure exits 1 with the error instead of restarting again. The recording pill and every other Dettivo window behave the same way. `[app] renderer = "software"` in `config.toml` (Settings / General / Display) skips the GPU from the start, and a `QT_QUICK_BACKEND` set in the environment wins over the setting. `dettivo app status` reports `environment.renderer` and `environment.renderer_reason` (`default`, `config: [app] renderer = software`, `environment: QT_QUICK_BACKEND=<value>` or `fallback: <Qt's error>`), and `dettivo doctor` prints both on its `app` row ([ADR 0077](adr/0077-a-window-the-gpu-cannot-draw-restarts-once-on-the-software-renderer.md)).
 
 The window chrome is the compositor's: on Hyprland and the other wlroots compositors the xdg-decoration negotiation gives server-side decoration, so the window has none of its own and the compositor rounds and borders it like every other window; fractional scaling follows the compositor's `wp_fractional_scale_v1` with the scale factor passed through unrounded.
 

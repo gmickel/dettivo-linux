@@ -15,6 +15,7 @@ struct RouteKey {
 // lines between the markers; keep one key per line.
 // routes:start
 constexpr RouteKey kRouteKeys[] = {
+    {"general", "app.renderer"},
     {"general", "daemon.log_level"},
     {"general", "daemon.shutdown_timeout_ms"},
     {"general", "audio.input_device"},

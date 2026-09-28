@@ -29,7 +29,7 @@ runs:
           libxkbcommon layer-shell-qt wayland ttf-cascadia-mono-nerd \
           vulkan-headers vulkan-icd-loader shaderc spirv-headers \
           tomlplusplus pipewire clang dbus \
-          just zstd python jq
+          just zstd python jq xorg-server-xvfb
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
     - name: Identify the installed toolchain and build configuration

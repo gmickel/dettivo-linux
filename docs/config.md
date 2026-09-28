@@ -52,6 +52,14 @@ Runtime state that is not configuration (window geometry, acknowledgements, firs
 
 ## Keys
 
+### `[app]`
+
+How the Dettivo windows draw: the app, the recording pill and every other Dettivo Qt window read the section at start ([ADR 0077](adr/0077-a-window-the-gpu-cannot-draw-restarts-once-on-the-software-renderer.md)).
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `renderer` | `auto` \| `software` | `"auto"` | `auto` draws on the GPU. When the GPU cannot draw a window, for example while a game holds all of its memory, the window's process logs one warning and restarts once on Qt's software renderer. `software` draws every window on the CPU from the start. A `QT_QUICK_BACKEND` set in the environment wins over this key. Applies at each window's next start. `dettivo app status` and `dettivo doctor` report the renderer in use and why. |
+
 ### `[daemon]`
 
 | Key | Type | Default | Meaning |
@@ -331,7 +339,7 @@ Every key above has an editor on one of the app's settings routes ([docs/app.md]
 
 | Route | Keys |
 |---|---|
-| `settings.general` (Settings / General) | `daemon.log_level`, `daemon.shutdown_timeout_ms`, `audio.input_device`, `audio.level_interval_ms`, `dictation.language`, `dictation.max_duration_seconds`, `dictation.silence_peak_threshold`, `paths.data_dir`, `paths.models_dir`, `osd.enabled`, `osd.host`, `osd.position`, `osd.margin`, `osd.monitor`, `osd.hide_after_ms`, `osd.error_hide_after_ms`, `osd.show_level`, `osd.motion`, `omarchy.glyph`, `omarchy.level_meter`, `omarchy.osd`, `omarchy.open_shortcut`, `omarchy.history_items` |
+| `settings.general` (Settings / General) | `app.renderer`, `daemon.log_level`, `daemon.shutdown_timeout_ms`, `audio.input_device`, `audio.level_interval_ms`, `dictation.language`, `dictation.max_duration_seconds`, `dictation.silence_peak_threshold`, `paths.data_dir`, `paths.models_dir`, `osd.enabled`, `osd.host`, `osd.position`, `osd.margin`, `osd.monitor`, `osd.hide_after_ms`, `osd.error_hide_after_ms`, `osd.show_level`, `osd.motion`, `omarchy.glyph`, `omarchy.level_meter`, `omarchy.osd`, `omarchy.open_shortcut`, `omarchy.history_items` |
 | `settings.vocabulary` (Settings / Vocabulary) | `dictation.vocabulary` |
 | `settings.hotkeys` (Settings / Hotkeys) | `hotkeys.hold`, `hotkeys.toggle`, `hotkeys.cancel`, `hotkeys.reinsert`, `hotkeys.backend`, `hotkeys.pause_media`, `hotkeys.sounds`, `hotkeys.evdev_devices` |
 | `settings.models` (Settings / Models) | `speech.provider`, `speech.model`, `speech.meeting_model`, `speech.parakeet_model_id`, `llm.model`, `engines.stt_idle_seconds`, `engines.llm_idle_seconds`, `engines.directory`, `engines.whisper.backend`, `engines.parakeet.backend`, `engines.llm.backend`, `engines.llm.context_length`, `engines.llm.max_tokens`, `engines.diarize.backend`, `engines.diarize.threads`, `models.max_concurrent_downloads`, `models.verify_on_start`, `models.catalogue_file` |

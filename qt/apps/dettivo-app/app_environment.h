@@ -1,5 +1,8 @@
-// Observed platform, renderer and window metadata for the app's QA evidence.
+// Observed platform, renderer (and why, ADR 0077) and window metadata for
+// the app's status and QA evidence.
 #pragma once
+
+#include "render_fallback.h"
 
 #include <QGuiApplication>
 #include <QJsonObject>
@@ -28,6 +31,7 @@ inline QJsonObject appEnvironment(const QQuickWindow *window)
             {QStringLiteral("qt_build"), build},
             {QStringLiteral("platform"), QGuiApplication::platformName()},
             {QStringLiteral("renderer"), renderer},
+            {QStringLiteral("renderer_reason"), renderer::reason()},
             {QStringLiteral("graphics_api"), int(api)},
             {QStringLiteral("window_width"), window != nullptr ? window->width() : 0},
             {QStringLiteral("window_height"), window != nullptr ? window->height() : 0},

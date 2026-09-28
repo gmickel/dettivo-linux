@@ -381,10 +381,7 @@ mod tests {
     #[test]
     fn keys_cover_every_section_in_order() {
         let names: Vec<String> = keys().into_iter().map(|(k, _)| k).collect();
-        assert_eq!(
-            names[0], "audio.input_device",
-            "sections sort alphabetically"
-        );
+        assert_eq!(names[0], "app.renderer", "sections sort alphabetically");
         assert!(names.contains(&"qa.mode".to_string()));
         assert!(names.contains(&"engines.whisper.backend".to_string()));
         assert!(names.contains(&"engines.llm.context_length".to_string()));

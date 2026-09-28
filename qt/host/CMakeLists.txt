@@ -2,7 +2,8 @@
 # QGuiApplication + QQmlApplicationEngine setup, import paths, smoke mode,
 # `--render <png>` with the negative style check, the frame pacing
 # collector (qt/host/pacing) that DETTIVO_QA_PACING switches on, the QA
-# environment and a clean exit on SIGTERM.
+# environment, a clean exit on SIGTERM and the software-renderer fallback
+# (ADR 0077).
 add_subdirectory(pacing)
 
 add_library(dettivo-host STATIC
@@ -12,6 +13,8 @@ add_library(dettivo-host STATIC
     qa_environment.h
     render.cpp
     render.h
+    render_fallback.cpp
+    render_fallback.h
     style_check.cpp
     style_check.h
     unix_signals.cpp
@@ -34,7 +37,10 @@ target_link_libraries(dettivo-host
         Qt6::QuickControls2
         Dettivo
         DettivoStyle
-        dettivo-pacing)
+        dettivo-pacing
+        dettivo-daemon-client
+    PRIVATE
+        tomlplusplus::tomlplusplus)
 
 # The daemon connection and path resolver every Qt client shares.
 add_subdirectory(daemon)
@@ -97,7 +103,8 @@ endfunction()
 # dettivo_add_render_test(<target> [extra-env])
 # `--render` writes the window headlessly and the negative style check
 # passes on the host's own tree (fn-20 R5); every surface in
-# qa/visual/manifest.toml registers it.
+# qa/visual/manifest.toml registers it. `<target>-render-fallback` renders
+# again with no OpenGL and needs Xvfb.
 function(dettivo_add_render_test target)
     set(extra_env "")
     if(ARGC GREATER 1)
@@ -107,6 +114,14 @@ function(dettivo_add_render_test target)
     set_tests_properties(${target}-render PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen;DETTIVO_OMARCHY_THEME_DIR=/nonexistent;DETTIVO_REDUCED_MOTION=1${extra_env}"
         TIMEOUT 120)
+    # The same render on a private Xvfb with no OpenGL (ADR 0077): the
+    # scene-graph error restarts the host once on the software renderer.
+    add_test(NAME ${target}-render-fallback
+        COMMAND "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/render_fallback_test.sh" $<TARGET_FILE:${target}>
+                "${CMAKE_BINARY_DIR}/${target}-render-fallback")
+    set_tests_properties(${target}-render-fallback PROPERTIES
+        ENVIRONMENT "DETTIVO_OMARCHY_THEME_DIR=/nonexistent;DETTIVO_REDUCED_MOTION=1${extra_env}"
+        TIMEOUT 300)
 endfunction()
 
 # The negative style check (fn-20 R5): a planted Basic-style control and a

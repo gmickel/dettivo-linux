@@ -1,4 +1,10 @@
 {
+  "app": {
+    "renderer": null,
+    "renderer_reason": null,
+    "running": false,
+    "socket": "/home/user/run/dettivo/app.sock"
+  },
   "audio": {
     "default_sink": null,
     "default_source": null,
