@@ -238,7 +238,7 @@ impl Supervisor {
                         && loaded.backend == dettivo_engine_proto::Backend::Cpu
                     {
                         loaded.reason = format!(
-                            "CPU fallback after the engine failed on the GPU; {}",
+                            "CPU fallback after the automatic backend failed; {}",
                             loaded.reason
                         );
                     }
@@ -463,7 +463,7 @@ fn record_crash(s: &mut Slot, binary: &str, tail: &str) -> EngineTransition {
         tracing::error!(
             engine = binary,
             crashes = s.crashes,
-            stderr = tail,
+            stderr = %crate::process::diagnostic_lines(tail),
             "engine degraded after repeated crashes"
         );
         EngineTransition {
@@ -478,7 +478,7 @@ fn record_crash(s: &mut Slot, binary: &str, tail: &str) -> EngineTransition {
             engine = binary,
             crashes = s.crashes,
             backoff_seconds = backoff.as_secs(),
-            stderr = tail,
+            stderr = %crate::process::diagnostic_lines(tail),
             "engine crashed"
         );
         EngineTransition {

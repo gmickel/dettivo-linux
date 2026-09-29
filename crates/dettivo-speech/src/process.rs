@@ -29,6 +29,8 @@ pub struct EngineProcess {
     writer: Option<BufWriter<std::process::ChildStdin>>,
     frames: Receiver<Framed>,
     stderr_tail: Arc<Mutex<VecDeque<String>>>,
+    /// The thread filling `stderr_tail`; it finishes at the stream's end.
+    stderr_reader: std::thread::JoinHandle<()>,
     next_id: u64,
     /// Path the process was started from.
     pub binary: PathBuf,
@@ -99,7 +101,7 @@ impl EngineProcess {
         let stderr = child.stderr.take().expect("piped stderr");
         let tail: Arc<Mutex<VecDeque<String>>> = Arc::new(Mutex::new(VecDeque::new()));
         let sink = tail.clone();
-        std::thread::Builder::new()
+        let stderr_reader = std::thread::Builder::new()
             .name("dettivo-engine-stderr".into())
             .spawn(move || {
                 for line in BufReader::new(stderr).lines().map_while(Result::ok) {
@@ -138,6 +140,7 @@ impl EngineProcess {
             writer: Some(BufWriter::new(stdin)),
             frames: rx,
             stderr_tail: tail,
+            stderr_reader,
             next_id: 1,
             binary: binary.to_path_buf(),
             last_used: Instant::now(),
@@ -288,6 +291,12 @@ impl EngineProcess {
             }
             std::thread::sleep(Duration::from_millis(10));
         }
+        // The exit closes stderr, but the reader may not have taken the
+        // last lines yet, and the last line is the one that says why.
+        let drained = Instant::now() + Duration::from_millis(500);
+        while !self.stderr_reader.is_finished() && Instant::now() < drained {
+            std::thread::sleep(Duration::from_millis(5));
+        }
         EngineError::Crashed(format!("{detail}; last stderr:\n{}", self.stderr_tail()))
     }
 
@@ -323,6 +332,29 @@ pub fn resident_bytes(pid: u32) -> Option<u64> {
     let line = status.lines().find(|l| l.starts_with("VmRSS:"))?;
     let kb: u64 = line.split_whitespace().nth(1)?.parse().ok()?;
     Some(kb * 1024)
+}
+
+/// The known diagnostics among an engine's redacted stderr lines, for a
+/// log: ggml and whisper.cpp asserts, GPU failures, panics, warnings and
+/// errors. Anything else could carry text a short line lets through.
+pub fn diagnostic_lines(tail: &str) -> String {
+    const MARKERS: [&str; 11] = [
+        "engine stream closed",
+        "GGML_ASSERT",
+        "WHISPER_ASSERT",
+        "ggml",
+        "vk::",
+        "ErrorOutOfDeviceMemory",
+        "CUDA",
+        "out of memory",
+        "panicked",
+        " WARN ",
+        " ERROR ",
+    ];
+    tail.lines()
+        .filter(|line| MARKERS.iter().any(|m| line.contains(m)))
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 /// Keeps a log line's shape while dropping anything that looks like
@@ -366,6 +398,31 @@ pub fn redact(line: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A crash log keeps what says why and drops what could be speech.
+    #[test]
+    fn a_crash_log_keeps_diagnostics_and_drops_everything_else() {
+        let tail = [
+            "engine stream closed; last stderr:",
+            "2026-09-29T12:55:59.987535Z  INFO engine ready",
+            "segment: confidential launch plans",
+            "ggml_vulkan: <redacted 50 chars>",
+            "/__w/x/ggml/src/ggml-backend.cpp: <redacted 30 chars>",
+            "2026-09-29T12:56:00.1Z ERROR load failed",
+            "we should ship on friday",
+        ]
+        .join("\n");
+        assert_eq!(
+            diagnostic_lines(&tail),
+            [
+                "engine stream closed; last stderr:",
+                "ggml_vulkan: <redacted 50 chars>",
+                "/__w/x/ggml/src/ggml-backend.cpp: <redacted 30 chars>",
+                "2026-09-29T12:56:00.1Z ERROR load failed",
+            ]
+            .join("\n")
+        );
+    }
 
     #[test]
     fn missing_binaries_name_the_directories_searched() {
