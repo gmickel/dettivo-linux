@@ -276,16 +276,15 @@ impl Supervisor {
         }
         let loaded = s.loaded.clone().expect("loaded above");
         let process = s.process.as_mut().expect("spawned above");
+        // ggml aborts, or answers out of memory, when the GPU is full (a
+        // game holding it); the retry and later requests then run on the CPU.
+        let on_gpu = s
+            .params
+            .clone()
+            .filter(|p| p.backend_preference == BackendPreference::Auto)
+            .filter(|_| loaded.backend != Backend::Cpu && !settings.force_cpu);
         match f(process, &loaded) {
             Err(EngineError::Crashed(tail)) => {
-                // ggml aborts when the GPU runs out of memory, for instance
-                // while a game holds it; the caller's retry and the requests
-                // after it run on the CPU instead of crashing again.
-                let on_gpu = s
-                    .params
-                    .clone()
-                    .filter(|p| p.backend_preference == BackendPreference::Auto)
-                    .filter(|_| loaded.backend != Backend::Cpu && !settings.force_cpu);
                 let transition = record_crash(s, binary, &tail);
                 self.transition(s, transition);
                 if let Some(params) = on_gpu {
@@ -296,6 +295,13 @@ impl Supervisor {
                     s.cpu_fallback = Some(params);
                 }
                 Err(EngineError::Crashed(tail))
+            }
+            Err(e @ EngineError::Engine { .. })
+                if on_gpu.is_some() && e.to_string().contains("OutOfDeviceMemory") =>
+            {
+                self.discard_uncertain(s, binary, &e);
+                s.cpu_fallback = on_gpu;
+                Err(e)
             }
             Err(e @ EngineError::Transport(_)) => {
                 self.discard_uncertain(s, binary, &e);

@@ -11,7 +11,8 @@
 //! are the span's start and end and the audio's length, all in ms, as the
 //! engine received them. With a `gpu-oom-on-request` file beside it, a load that is not on the
 //! CPU reports `vulkan` and every `recognize` then aborts, as ggml does
-//! when the GPU has no memory left.
+//! when the GPU has no memory left; with `gpu-oom-error-on-request` it
+//! answers that as an `internal` error instead, as parakeet.cpp does.
 //! `diarize` answers one turn per second of audio, alternating two
 //! speakers, after one `progress` event. Speaks the protocol on
 //! stdin/stdout exactly like a real engine.
@@ -77,7 +78,8 @@ fn main() {
                 }
                 let m = frame.payload["model"].as_str().unwrap_or("").to_string();
                 model = Some(m.clone());
-                on_gpu = dir.join("gpu-oom-on-request").exists()
+                on_gpu = (dir.join("gpu-oom-on-request").exists()
+                    || dir.join("gpu-oom-error-on-request").exists())
                     && preference != "cpu"
                     && std::env::var("DETTIVO_FORCE_CPU").as_deref() != Ok("1");
                 let backend = if on_gpu { "vulkan" } else { "cpu" };
@@ -175,6 +177,18 @@ fn main() {
                     std::process::exit(4);
                 }
                 if on_gpu {
+                    let oom = "inference: vk::Device::allocateMemory: ErrorOutOfDeviceMemory";
+                    let dir = std::env::current_exe()
+                        .unwrap()
+                        .parent()
+                        .unwrap()
+                        .to_path_buf();
+                    if dir.join("gpu-oom-error-on-request").exists() {
+                        let payload = json!({"request_id": id, "code": "internal", "message": oom});
+                        let _ = write_frame(&mut out, &Frame::response(id, "error", payload), &[]);
+                        let _ = out.flush();
+                        continue;
+                    }
                     eprintln!("ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory");
                     std::process::abort();
                 }

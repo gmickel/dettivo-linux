@@ -167,3 +167,35 @@ fn a_noted_backend_change_reaches_the_status() {
     assert_eq!(reason.matches("the GPU had no room").count(), 1, "{reason}");
     supervisor.shutdown();
 }
+
+/// An engine that answers GPU out of memory instead of crashing (parakeet
+/// while a game holds the GPU) is not kept warm on the GPU: the next
+/// request runs on the CPU.
+#[test]
+fn a_gpu_out_of_memory_error_moves_the_engine_to_the_cpu() {
+    let binary = dettivo_speech::supervisor::PARAKEET_BINARY;
+    let dir = fake_engine_dir(binary);
+    std::fs::write(dir.path().join("gpu-oom-error-on-request"), "").unwrap();
+    std::fs::write(dir.path().join("record-loads"), "").unwrap();
+    let supervisor = Supervisor::new(Settings {
+        force_cpu: false,
+        ..settings(dir.path(), Duration::from_secs(60))
+    });
+    let err = recognize(&supervisor, binary, "en").unwrap_err();
+    assert!(err.to_string().contains("OutOfDeviceMemory"), "{err}");
+    assert!(
+        recognize(&supervisor, binary, "en")
+            .unwrap()
+            .starts_with("fake en")
+    );
+    assert!(
+        recognize(&supervisor, binary, "en")
+            .unwrap()
+            .starts_with("fake en")
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("loads.log")).unwrap(),
+        "auto\ncpu\n"
+    );
+    supervisor.shutdown();
+}

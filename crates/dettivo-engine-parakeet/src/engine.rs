@@ -7,6 +7,7 @@
 /// The smallest confidence a word reports; the contract's range is (0, 1].
 pub const MIN_CONFIDENCE: f64 = 0.001;
 
+use std::cell::{Cell, RefCell};
 use std::path::Path;
 
 use dettivo_engine_proto::{
@@ -23,13 +24,17 @@ pub const VULKAN_BUILT_IN: bool = cfg!(feature = "vulkan");
 
 /// A loaded model.
 pub struct Engine {
-    model: Model,
+    /// `None` only while a GPU model moves to the CPU.
+    model: RefCell<Option<Model>>,
     /// The model path.
     pub path: String,
-    /// The backend that loaded it.
-    pub backend: Backend,
+    /// The backend that runs it.
+    backend: Cell<Backend>,
     /// Why that backend.
-    pub reason: String,
+    reason: RefCell<String>,
+    /// Loaded on the GPU by the `auto` preference, so a GPU that cannot
+    /// run an inference may move it to the CPU.
+    gpu_fallback: Cell<bool>,
     /// The languages the model accepts, when known.
     languages: Option<&'static [&'static str]>,
 }
@@ -115,12 +120,34 @@ impl Engine {
             "model loaded"
         );
         Ok(Self {
-            model,
+            model: RefCell::new(Some(model)),
             path: path.to_string(),
-            backend: backend_used,
-            reason,
+            backend: Cell::new(backend_used),
+            reason: RefCell::new(reason),
+            gpu_fallback: Cell::new(
+                backend_used == Backend::Vulkan && preference == BackendPreference::Auto,
+            ),
             languages,
         })
+    }
+
+    /// Reloads the model on the CPU for good: a GPU another program holds
+    /// (a game) has no room for an inference's buffers, and the engine
+    /// would otherwise fail every request.
+    fn move_to_cpu(&self, why: &str) -> Result<(), EngineError> {
+        // Dropping the model frees the GPU backend its weights live in.
+        self.model.replace(None);
+        let (model, _) = attempt(&self.path, true)
+            .map_err(|e| EngineError::new("load_failed", format!("CPU reload failed: {e}")))?;
+        self.model.replace(Some(model));
+        self.backend.set(Backend::Cpu);
+        self.gpu_fallback.set(false);
+        let reason = format!(
+            "{}; the GPU could not run it ({why}), CPU fallback",
+            self.reason.borrow()
+        );
+        self.reason.replace(reason);
+        Ok(())
     }
 }
 
@@ -149,13 +176,33 @@ impl SpeechEngine for Engine {
     fn loaded(&self) -> LoadedResult {
         LoadedResult {
             model: self.path.clone(),
-            backend: self.backend,
-            reason: self.reason.clone(),
+            backend: self.backend.get(),
+            reason: self.reason.borrow().clone(),
             fallback_reason: None,
         }
     }
 
+    /// An inference the GPU fails (out of memory while another program
+    /// holds it) reloads the model on the CPU under `auto` and runs again.
     fn recognize(
+        &self,
+        pcm: &[i16],
+        params: &RecognizeParams,
+        progress: &mut dyn FnMut(f64),
+    ) -> Result<RecognizeResult, EngineError> {
+        match self.recognize_once(pcm, params, progress) {
+            Err(e) if self.gpu_fallback.get() && e.message.starts_with("inference:") => {
+                tracing::warn!(error = %e.message, "inference failed on the GPU; moving the model to the CPU");
+                self.move_to_cpu(&e.message)?;
+                self.recognize_once(pcm, params, progress)
+            }
+            other => other,
+        }
+    }
+}
+
+impl Engine {
+    fn recognize_once(
         &self,
         pcm: &[i16],
         params: &RecognizeParams,
@@ -177,7 +224,7 @@ impl SpeechEngine for Engine {
                 language,
                 segments: Vec::new(),
                 duration_ms: 0,
-                backend: self.backend,
+                backend: self.backend.get(),
             });
         }
         let audio: Vec<f32> = pcm.iter().map(|s| f32::from(*s) / 32_768.0).collect();
@@ -192,6 +239,9 @@ impl SpeechEngine for Engine {
             };
             let raw = self
                 .model
+                .borrow()
+                .as_ref()
+                .ok_or_else(|| EngineError::new("internal", "the model is not loaded"))?
                 .transcribe(&audio[*start..*end], lang)
                 .map_err(|e| EngineError::new("internal", format!("inference: {e}")))?;
             let offset_ms = (*start as u64 * 1000) / 16_000;
@@ -234,7 +284,7 @@ impl SpeechEngine for Engine {
             language,
             segments,
             duration_ms,
-            backend: self.backend,
+            backend: self.backend.get(),
         })
     }
 }
