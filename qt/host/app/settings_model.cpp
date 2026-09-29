@@ -6,6 +6,7 @@
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QGuiApplication>
+#include <QJSValue>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QProcessEnvironment>
@@ -151,7 +152,10 @@ QString SettingsModel::error(const QString &key) const
 void SettingsModel::set(const QString &key, const QVariant &value)
 {
     if (key == QStringLiteral("dictation.vocabulary") || key == QStringLiteral("polish.transforms")) {
-        writeList(key, {{QStringLiteral("key"), key}, {QStringLiteral("value"), QJsonValue::fromVariant(value)}},
+        // QML passes a JavaScript array as a QJSValue, which fromVariant
+        // would turn into null.
+        const QVariant plain = value.metaType() == QMetaType::fromType<QJSValue>() ? value.value<QJSValue>().toVariant() : value;
+        writeList(key, {{QStringLiteral("key"), key}, {QStringLiteral("value"), QJsonValue::fromVariant(plain)}},
                   QStringLiteral("config.set"));
         return;
     }

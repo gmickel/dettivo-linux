@@ -4,6 +4,10 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Fixed
+
+- Settings saves vocabulary terms and polish transforms again. Adding a term in Settings / Vocabulary, or switching a transform in Settings / Polish, sent no list at all, and the page answered `dictation.vocabulary: expected a list of strings, got null`. Reported by @gmickel.
+
 ## [0.4.0] - 2026-09-28
 
 ### Added

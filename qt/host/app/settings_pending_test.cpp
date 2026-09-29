@@ -2,6 +2,8 @@
 #include "fake_link.h"
 #include "settings_model.h"
 
+#include <QJSEngine>
+#include <QJsonArray>
 #include <QTest>
 
 using namespace dettivo;
@@ -10,6 +12,21 @@ using dettivo::test::FakeLink;
 class SettingsPendingTest : public QObject {
     Q_OBJECT
 private slots:
+    // QML hands a JavaScript array to set() as a QJSValue, which
+    // QJsonValue::fromVariant turns into null; the first term of an empty
+    // list must still reach config.set as a list.
+    void sendsAJavaScriptListAsAList()
+    {
+        FakeLink link;
+        ConfigBinding config(&link);
+        SettingsModel model(&link, &config);
+        link.answers.insert("config.set", {});
+        link.defer = true;
+        QJSEngine engine;
+        model.set(QStringLiteral("dictation.vocabulary"), QVariant::fromValue(engine.evaluate("[].concat(['SapienXT'])")));
+        QCOMPARE(link.lastParams.value("config.set").value("value").toArray(), (QJsonArray{"SapienXT"}));
+    }
+
     void waitsForOwnRefreshAndRecovers_data()
     {
         QTest::addColumn<QString>("key");
