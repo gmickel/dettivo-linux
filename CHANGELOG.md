@@ -4,6 +4,8 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-09-30
+
 ### Fixed
 
 - Dictation works while a game holds the GPU. A Parakeet engine that started with too little GPU memory left failed every dictation with `vk::Device::allocateMemory: ErrorOutOfDeviceMemory` until it was restarted; it now moves to the CPU and finishes the dictation, and any engine that reports the GPU out of memory is restarted on the CPU instead of kept warm ([ADR 0080](docs/adr/0080-whisper-cpp-carries-a-dtw-median-filter-guard.md)). Reported by @gmickel.
