@@ -1,6 +1,6 @@
 # Evidence map
 
-Every requirement of every spec under `.flow/specs/` mapped to a verification route that exists (NFR-10): 489 of 489 R-IDs over 63 specs, coverage 1.000, 955 routes (15 of them walked by a person), at commit `7c0dd7f51dfe`. This is the inventory of routes, not their results: a route that resolves exists, the release gate is what runs it, and a `human` route is the receipt a person files rather than proof that they walked it. `dettivo-qa evidence-map --write` regenerates this file from `qa/evidence-map.toml`.
+Every requirement of every spec under `.flow/specs/` mapped to a verification route that exists (NFR-10): 489 of 489 R-IDs over 76 specs, coverage 1.000, 955 routes (15 of them walked by a person), at commit `21143ac72318`. This is the inventory of routes, not their results: a route that resolves exists, the release gate is what runs it, and a `human` route is the receipt a person files rather than proof that they walked it. `dettivo-qa evidence-map --write` regenerates this file from `qa/evidence-map.toml`.
 
 | Kind | Routes |
 |---|---|
@@ -86,6 +86,19 @@ None: every R-ID has a route and every reference resolves.
 | `fn-61-select-whisper-meeting-models` | 0 | 0 | 1.000 | - |
 | `fn-62-fix-meeting-timer-stuck-at-0000-in` | 0 | 0 | 1.000 | - |
 | `fn-63-fix-meeting-ui-timer-and-long-meeting` | 0 | 0 | 1.000 | - |
+| `fn-64-evaluate-nemotron-3-diarization-against` | 0 | 0 | 1.000 | - |
+| `fn-65-dictate-while-a-meeting-records` | 0 | 0 | 1.000 | - |
+| `fn-66-drive-native-wayland-surfaces-in-qa` | 0 | 0 | 1.000 | - |
+| `fn-67-one-command-diarization-bench-for-hill` | 0 | 0 | 1.000 | - |
+| `fn-68-label-every-remote-line-with-sentence` | 0 | 0 | 1.000 | - |
+| `fn-69-nemotron-3-diarization-engine-through` | 0 | 0 | 1.000 | - |
+| `fn-70-voice-check-for-each-transcript-unit` | 0 | 0 | 1.000 | - |
+| `fn-71-two-track-speaker-rules` | 0 | 0 | 1.000 | - |
+| `fn-72-labelling-kit-for-a-small-english-and` | 0 | 0 | 1.000 | - |
+| `fn-73-read-a-running-meetings-transcript-so` | 0 | 0 | 1.000 | - |
+| `fn-74-word-timings-from-whisper-for-speaker` | 0 | 0 | 1.000 | - |
+| `fn-75-open-the-app-even-when-the-gpu-cannot` | 0 | 0 | 1.000 | - |
+| `fn-76-re-run-a-failed-meeting-from-the-app` | 0 | 0 | 1.000 | - |
 
 ### `fn-1-repository-bootstrap-workspace-cmake`
 
@@ -722,7 +735,7 @@ Meetings: dual-source capture, the session journal and recovery
 | R4 | `unit` | `dettivod::the_gates_refuse_in_order_and_the_disclosure_fixtures_answer` | fn the_gates_refuse_in_order_and_the_disclosure_fixtures_answer in crates/dettivod/tests/meetings.rs | disclosureRequired, the acknowledgement with timestamp, engineWithoutTimestamps and sessionActive in order |
 | R4 | `contract` | `crates/dettivo-proto/fixtures/meetings/start.error-conflict-disclosure-required.json` | file crates/dettivo-proto/fixtures/meetings/start.error-conflict-disclosure-required.json | the disclosure gate fixture |
 | R4 | `contract` | `crates/dettivo-proto/fixtures/meetings/start.error-conflict-engine-without-timestamps.json` | file crates/dettivo-proto/fixtures/meetings/start.error-conflict-engine-without-timestamps.json | the non-timestamp engine gate fixture |
-| R5 | `contract` | `crates/dettivo-proto/fixtures/meetings` | directory crates/dettivo-proto/fixtures/meetings (34 entries) | every meetings.* fixture replays against the live daemon |
+| R5 | `contract` | `crates/dettivo-proto/fixtures/meetings` | directory crates/dettivo-proto/fixtures/meetings (37 entries) | every meetings.* fixture replays against the live daemon |
 | R5 | `pack` | `release/contract_strict` | pack step release/contract_strict | the strict contract replay with the MEETING_PENDING list gone |
 | R5 | `unit` | `dettivod::an_audio_import_into_the_meeting_kind_transcribes_into_a_meeting_row` | fn an_audio_import_into_the_meeting_kind_transcribes_into_a_meeting_row in crates/dettivod/tests/meetings_import.rs | the meeting-kind transcripts.* fixtures against the live daemon |
 | R5 | `unit` | `dettivo-storage::the_timeline_interleaves_both_kinds_and_pages_through_a_tie` | fn the_timeline_interleaves_both_kinds_and_pages_through_a_tie in crates/dettivo-storage/src/timeline.rs | the migration's meetings table and the timeline listing both kinds |
@@ -738,7 +751,7 @@ REST shim: loopback server, bearer token, streaming import and export, the VS Co
 | R-IDs | Kind | Ref | Resolves | Proves |
 |---|---|---|---|---|
 | R1, R2, R3, R4 | `unit` | `dettivo-rest::the_daemon_hosts_the_shim_and_every_fixture_passes` | fn the_daemon_hosts_the_shim_and_every_fixture_passes in crates/dettivo-rest/tests/harness.rs | the daemon-hosted shim replays every route, auth, error and stream fixture against a live seeded daemon |
-| R1 | `contract` | `crates/dettivo-rest/fixtures/routes` | directory crates/dettivo-rest/fixtures/routes (24 entries) | GET query and POST body-overlay route fixtures per implemented namespace |
+| R1 | `contract` | `crates/dettivo-rest/fixtures/routes` | directory crates/dettivo-rest/fixtures/routes (25 entries) | GET query and POST body-overlay route fixtures per implemented namespace |
 | R1 | `contract` | `crates/dettivo-rest/fixtures/errors` | directory crates/dettivo-rest/fixtures/errors (10 entries) | 404 unknown route, 501 reserved shape and the app_code to status map fixtures |
 | R1 | `unit` | `dettivo-rest::the_status_map_is_the_contracts` | fn the_status_map_is_the_contracts in crates/dettivo-rest/src/status.rs | the app_code to HTTP status map matches the contract |
 | R2 | `contract` | `crates/dettivo-rest/fixtures/auth` | directory crates/dettivo-rest/fixtures/auth (5 entries) | missing, wrong, bearer, X-Dettivo-Token and non-loopback host fixtures |
@@ -918,8 +931,8 @@ Diarization: the sherpa-onnx engine process, the post-meeting speaker pass and s
 | R1 | `unit` | `dettivo-engine-diarize::the_fixture_diarizes_into_the_expected_turns` | fn the_fixture_diarizes_into_the_expected_turns in crates/dettivo-engine-diarize/tests/cli.rs | CLI mode diarizes the fixture |
 | R1 | `unit` | `dettivo-engine-diarize::a_pass_reports_chunk_progress_and_a_cancel_is_answered_at_once` | fn a_pass_reports_chunk_progress_and_a_cancel_is_answered_at_once in crates/dettivo-engine-diarize/tests/protocol.rs | load, diarize with progress, cancel, status and unload through the protocol |
 | R1 | `unit` | `dettivo-engine-diarize::a_missing_model_names_its_path_and_a_bad_wav_is_refused` | fn a_missing_model_names_its_path_and_a_bad_wav_is_refused in crates/dettivo-engine-diarize/tests/cli.rs | model_missing names the path and a bad attachment is bad_request |
-| R2 | `unit` | `dettivod::a_two_track_meeting_learns_its_speakers_and_a_rerun_replaces_them` | fn a_two_track_meeting_learns_its_speakers_and_a_rerun_replaces_them in crates/dettivod/tests/meetings_diarize.rs | the auto post-pass labels remote segments under the coverage and share rule, microphone segments are You, talk_ms and diarizing progress |
-| R2 | `unit` | `dettivo-meeting::the_rule_labels_covered_segments_and_leaves_straddling_ones_alone` | fn the_rule_labels_covered_segments_and_leaves_straddling_ones_alone in crates/dettivo-meeting/src/diarize.rs | the 0.25 coverage and 0.60 share rule leaves the straddling segment unlabeled |
+| R2 | `unit` | `dettivod::a_two_track_meeting_learns_its_speakers_and_a_rerun_replaces_them` | fn a_two_track_meeting_learns_its_speakers_and_a_rerun_replaces_them in crates/dettivod/tests/meetings_diarize.rs | the auto post-pass labels every remote segment under the sentence rule (ADR 0072), microphone segments are You, talk_ms and diarizing progress |
+| R2 | `unit` | `dettivo-meeting::every_remote_segment_gets_a_speaker_and_the_microphone_is_you` | fn every_remote_segment_gets_a_speaker_and_the_microphone_is_you in crates/dettivo-meeting/src/diarize.rs | ADR 0072 replaced the coverage and share rule: every remote segment takes its sentence's majority speaker or the nearest turn |
 | R2 | `unit` | `dettivod::a_room_audio_import_diarizes_the_whole_track_and_renames_reach_everything` | fn a_room_audio_import_diarizes_the_whole_track_and_renames_reach_everything in crates/dettivod/tests/meetings_diarize.rs | a microphone-only meeting diarizes the whole track |
 | R2 | `unit` | `dettivod::a_missing_model_set_leaves_the_meeting_completed_and_unavailable` | fn a_missing_model_set_leaves_the_meeting_completed_and_unavailable in crates/dettivod/tests/meetings_diarize.rs | model absent leaves diarization.status = unavailable with the command and the transcript intact |
 | R2 | `contract` | `crates/dettivo-proto/fixtures/meetings/diarize.error-not-found-model-missing.json` | file crates/dettivo-proto/fixtures/meetings/diarize.error-not-found-model-missing.json | the model-missing shape |
@@ -957,7 +970,7 @@ Meeting notes, analysis, search, export, delete and the disclosure
 | R4 | `unit` | `dettivod::transcript_and_audio_removes_the_takes_and_sidecars_and_keeps_the_facts_and_notes` | fn transcript_and_audio_removes_the_takes_and_sidecars_and_keeps_the_facts_and_notes in crates/dettivod/tests/meetings_delete.rs | transcript_and_audio removes the WAVs and sidecars and keeps the facts and notes |
 | R4 | `unit` | `dettivod::all_removes_the_row_and_the_directory_and_a_missing_directory_is_fine` | fn all_removes_the_row_and_the_directory_and_a_missing_directory_is_fine in crates/dettivod/tests/meetings_delete.rs | all removes the row and the meeting directory |
 | R4 | `unit` | `dettivod::the_active_meeting_is_a_conflict` | fn the_active_meeting_is_a_conflict in crates/dettivod/tests/meetings_delete.rs | deleting the active meeting is CONFLICT |
-| R5 | `contract` | `crates/dettivo-proto/fixtures/meetings` | directory crates/dettivo-proto/fixtures/meetings (34 entries) | every meetings.* fixture (notes, analyze, analysis.get, the seed-backed list and search) replays against the live daemon |
+| R5 | `contract` | `crates/dettivo-proto/fixtures/meetings` | directory crates/dettivo-proto/fixtures/meetings (37 entries) | every meetings.* fixture (notes, analyze, analysis.get, the seed-backed list and search) replays against the live daemon |
 | R5 | `unit` | `dettivod::implemented_fixtures_pass_against_the_live_socket` | fn implemented_fixtures_pass_against_the_live_socket in crates/dettivod/tests/contract.rs | the daemon contract test replays every implemented fixture and reports no pending meeting method |
 | R5 | `unit` | `dettivo-cli::notes_analysis_export_delete_and_the_disclosure_copy_work_end_to_end` | fn notes_analysis_export_delete_and_the_disclosure_copy_work_end_to_end in crates/dettivo-cli/tests/meetings.rs | the CLI --json snapshots for the new verbs and disclosure --copy landing the macOS text in the mock sink |
 | R5 | `unit` | `dettivod::the_disclosure_variable_seeds_or_clears_the_acknowledgement` | fn the_disclosure_variable_seeds_or_clears_the_acknowledgement in crates/dettivod/tests/meetings_notes.rs | DETTIVO_E2E_DISCLOSURE=acknowledged\|pending seeds or clears the acknowledgement |
@@ -977,7 +990,7 @@ Meetings GUI: the list, the live meeting, the detail, speakers and notes
 | R1 | `pack` | `meetings/meetings_seeded` | pack step meetings/meetings_seeded | the same drive on both drivers inside the meetings pack |
 | R2 | `drive` | `meetings_live_gui` | scenario meetings_live_gui: the disclosure dialog on a fresh profile, Acknowledge and start, both meters, provisional then final segments, Stop into the detail | disclosure dialog on a fresh profile, Not now, Acknowledge and start, both meters, provisional then final rows, Stop through Stopping and Transcribing into the detail |
 | R2 | `pack` | `meetings/meetings_live_gui` | pack step meetings/meetings_live_gui | the live drive in the pack with the mock fixtures on the CI path |
-| R3 | `drive` | `meetings_import_gui` | scenario meetings_import_gui: the import dialog rejects invalid audio and transcribes the jfk clip; row Cancel and Recover preserve the imported meeting's ID, audio and notes | the refused non-audio file names the daemon's reason, then the jfk clip imports through transcripts.import and opens the row |
+| R3 | `drive` | `meetings_import_gui` | scenario meetings_import_gui: the import dialog rejects invalid audio and transcribes the jfk clip; row Cancel and the detail's Re-run preserve the imported meeting's ID, audio and notes | the refused non-audio file names the daemon's reason, then the jfk clip imports through transcripts.import and opens the row |
 | R3 | `pack` | `meetings/meetings_import_gui` | pack step meetings/meetings_import_gui | the import drive on both drivers inside the meetings pack |
 | R4 | `visual` | `meetings` | surface meetings in qa/visual/manifest.toml | the list column and the rail against the meetings-list artboard crops on five palettes at 1x and 2x |
 | R4 | `visual` | `meetings-empty` | surface meetings-empty in qa/visual/manifest.toml | the list without rows against its approved renders |
@@ -1479,6 +1492,97 @@ Fix meeting timer stuck at 00:00
 ### `fn-63-fix-meeting-ui-timer-and-long-meeting`
 
 Fix meeting live fragments and stop progress feedback
+
+| R-IDs | Kind | Ref | Resolves | Proves |
+|---|---|---|---|---|
+
+### `fn-64-evaluate-nemotron-3-diarization-against`
+
+Evaluate Nemotron 3 Diarization against current speaker pass
+
+| R-IDs | Kind | Ref | Resolves | Proves |
+|---|---|---|---|---|
+
+### `fn-65-dictate-while-a-meeting-records`
+
+Dictate while a meeting records
+
+| R-IDs | Kind | Ref | Resolves | Proves |
+|---|---|---|---|---|
+
+### `fn-66-drive-native-wayland-surfaces-in-qa`
+
+Drive native Wayland surfaces in QA with the Omarchy Cua Driver
+
+| R-IDs | Kind | Ref | Resolves | Proves |
+|---|---|---|---|---|
+
+### `fn-67-one-command-diarization-bench-for-hill`
+
+One-command diarization bench for hill-climbing speaker accuracy
+
+| R-IDs | Kind | Ref | Resolves | Proves |
+|---|---|---|---|---|
+
+### `fn-68-label-every-remote-line-with-sentence`
+
+Label every remote line with sentence-unit speaker voting
+
+| R-IDs | Kind | Ref | Resolves | Proves |
+|---|---|---|---|---|
+
+### `fn-69-nemotron-3-diarization-engine-through`
+
+Nemotron 3 Diarization engine through NeMo-Speech.cpp
+
+| R-IDs | Kind | Ref | Resolves | Proves |
+|---|---|---|---|---|
+
+### `fn-70-voice-check-for-each-transcript-unit`
+
+Voice check for each transcript unit
+
+| R-IDs | Kind | Ref | Resolves | Proves |
+|---|---|---|---|---|
+
+### `fn-71-two-track-speaker-rules`
+
+Two-track speaker rules: bleed, single remote, shared mic, your own voice
+
+| R-IDs | Kind | Ref | Resolves | Proves |
+|---|---|---|---|---|
+
+### `fn-72-labelling-kit-for-a-small-english-and`
+
+Labelling kit for a small English and German meeting set
+
+| R-IDs | Kind | Ref | Resolves | Proves |
+|---|---|---|---|---|
+
+### `fn-73-read-a-running-meetings-transcript-so`
+
+Read a running meeting's transcript so far
+
+| R-IDs | Kind | Ref | Resolves | Proves |
+|---|---|---|---|---|
+
+### `fn-74-word-timings-from-whisper-for-speaker`
+
+Word timings from Whisper for speaker labelling
+
+| R-IDs | Kind | Ref | Resolves | Proves |
+|---|---|---|---|---|
+
+### `fn-75-open-the-app-even-when-the-gpu-cannot`
+
+Open the app even when the GPU cannot give it a window
+
+| R-IDs | Kind | Ref | Resolves | Proves |
+|---|---|---|---|---|
+
+### `fn-76-re-run-a-failed-meeting-from-the-app`
+
+Re-run a failed meeting from the app
 
 | R-IDs | Kind | Ref | Resolves | Proves |
 |---|---|---|---|---|
