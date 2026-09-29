@@ -4,6 +4,11 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Fixed
+
+- Re-run on a meeting whose transcription failed, was cancelled, stopped or cut short transcribes it again from its retained audio, the same as `dettivo meetings recover <id>`, and the meeting view follows the new run. It was always disabled. When the audio is gone, or the meeting is still recording or being transcribed, Re-run stays disabled and its tooltip says why. Reported by @gmickel.
+- The progress bar under a running meeting stage stays inside the processing strip. While it swept, it drew a line from the window's left edge across the sidebar. Reported by @gmickel.
+
 ## [0.4.1] - 2026-09-29
 
 ### Fixed

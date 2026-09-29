@@ -123,6 +123,7 @@ void MeetingDetailModel::clear()
     m_unassignedSegments = 0;
     m_loaded = m_loading = m_partial = m_hasPolished = false;
     m_systemAudio = m_audioKept = false;
+    m_recoverable = m_recoveryChecked = m_finalizing = false;
     emit changed();
     emit notesChanged();
     emit progressChanged();
@@ -177,6 +178,7 @@ void MeetingDetailModel::apply(const QString &id, const QJsonObject &result)
     }
     if (m_jobId.isEmpty() && (m_diarizationStatus == QStringLiteral("running") || m_diarizationStatus == QStringLiteral("queued")))
         bindPassJob();
+    checkRecovery();
     emit changed();
     emit notesChanged();
 }

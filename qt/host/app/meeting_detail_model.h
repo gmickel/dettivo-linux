@@ -9,7 +9,9 @@
 // The post-processing stages (ADR 0061) read the same facts as one list
 // the strip draws: the transcript, the speakers and the analysis, each
 // `pending`, `queued`, `running`, `done`, `failed` or `skipped`
-// (`meeting_detail_stages.cpp`).
+// (`meeting_detail_stages.cpp`). Re-run on a failed, partial, cancelled
+// or stopped meeting is `meetings.recover`, offered while
+// `meetings.status.recoverable` lists it (`meeting_detail_recovery.cpp`).
 #pragma once
 
 #include "daemon_link.h"
@@ -59,6 +61,8 @@ class MeetingDetailModel : public QObject {
     Q_PROPERTY(QVariantList stages READ stages NOTIFY stagesChanged)
     Q_PROPERTY(QString processingState READ processingState NOTIFY stagesChanged)
     Q_PROPERTY(QString processingLine READ processingLine NOTIFY stagesChanged)
+    Q_PROPERTY(bool canRecover READ canRecover NOTIFY changed)
+    Q_PROPERTY(QString rerunReason READ rerunReason NOTIFY changed)
 
 public:
     explicit MeetingDetailModel(DaemonLink *link, QObject *parent = nullptr);
@@ -138,6 +142,11 @@ public:
     QString processingState() const;
     /// The sentence over the strip: what is ready and what runs next.
     QString processingLine() const;
+    /// A retryable meeting the daemon lists under
+    /// `meetings.status.recoverable`: Re-run calls `meetings.recover`.
+    bool canRecover() const { return m_recoverable; }
+    /// What Re-run does, or why it is disabled.
+    QString rerunReason() const;
 
 public slots:
     void handleNotification(const QString &topic, const QJsonObject &payload);
@@ -165,6 +174,9 @@ private:
     /// Reads `meetings.status` for the job of this meeting's running
     /// speaker pass, so its `job.progress` is followed and no other's.
     void bindPassJob();
+    /// Asks `meetings.status` whether a retryable meeting still has the
+    /// audio `meetings.recover` needs.
+    void checkRecovery();
 
     DaemonLink *m_link;
     NotesSaver *m_saver;
@@ -186,6 +198,8 @@ private:
     quint64 m_generation = 0;
     bool m_loaded = false, m_loading = false, m_partial = false, m_hasPolished = false;
     bool m_systemAudio = false, m_audioKept = false;
+    /// `m_recoveryChecked` once `meetings.status` answered for this row.
+    bool m_recoverable = false, m_recoveryChecked = false, m_finalizing = false;
 };
 
 }  // namespace dettivo

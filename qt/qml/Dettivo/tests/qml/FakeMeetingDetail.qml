@@ -10,6 +10,9 @@ QtObject {
     property string title: "Dettivo Linux kickoff"
     property string factsLine: "Wed 3 Sep · 11:05 to 11:46 · 41 min"
     property string status: "completed"
+    property bool canRecover: false
+    property string rerunReason: "A meeting re-run is reserved in the contract; import the audio again to transcribe it with another engine."
+    property int reloads: 0
     property bool partial: false
     property string partialLine: ""
     property bool hasPolished: true
@@ -122,5 +125,9 @@ QtObject {
     }
 
     function load(id) {
+    }
+
+    function reload() {
+        reloads++;
     }
 }

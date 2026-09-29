@@ -179,7 +179,7 @@ The daemon's next start settles what a killed one left. Rows still recording or 
 - `meetings.recover { meeting_id }` validates the retained capture takes or imported audio, keeps the ID and notes, and starts finalization again. Its answer is `transcribing`; the row settles at `completed` only after the result is durable. Missing or damaged input is `CONFLICT` with `kind = audioNotRetained` and remains on disk.
 - `meetings.discard { meeting_id }` removes the row and the directory.
 
-`meetings.recover` refuses other states with `CONFLICT`, `kind = meetingNotPartial`; `meetings.discard` remains partial-only. The GUI exposes Recover from the server's recoverable list and Cancel transcription on a running row. `meetings.cancel` cancels captured finalization and imported jobs, including retries; notes edited during a retry remain on the row. The CLI exposes retry through `dettivo meetings recover <id>`. The recovery drives exercise restart, cancellation, retry and discard, and daemon tests cover both layouts and damaged input.
+`meetings.recover` refuses other states with `CONFLICT`, `kind = meetingNotPartial`; `meetings.discard` remains partial-only. The GUI exposes Recover on a row and Re-run on the meeting's detail from the server's recoverable list, and Cancel transcription on a running row. `meetings.cancel` cancels captured finalization and imported jobs, including retries; notes edited during a retry remain on the row. The CLI exposes retry through `dettivo meetings recover <id>`. The recovery drives exercise restart, cancellation, retry and discard, and daemon tests cover both layouts and damaged input.
 
 ## In the history
 

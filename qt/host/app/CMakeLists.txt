@@ -41,6 +41,7 @@ add_library(dettivo-app-host STATIC
     live_segments_model.h
     meeting_detail_model.cpp
     meeting_detail_model.h
+    meeting_detail_recovery.cpp
     meeting_detail_stages.cpp
     meeting_format.cpp
     meeting_format.h

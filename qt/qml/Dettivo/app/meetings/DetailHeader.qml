@@ -3,13 +3,16 @@ import QtQuick.Controls
 import Dettivo
 
 // The head of the meeting detail (meeting-detail.png): the title with
-// Re-run (disabled: a meeting re-run stays reserved in the contract, the
-// reason is its description) and Export on the right, the facts line
-// under it, and the outcome of the last action where it belongs. The
+// Re-run and Export on the right, the facts line under it, and the
+// outcome of the last action where it belongs. The
 // title is the rename control (ADR 0061): a click, Return or `t` opens
 // it as a field with the current title selected, Return saves through
 // `meetings.rename`, Escape restores the saved name, and a refusal reads
-// under the field with the edit kept.
+// under the field with the edit kept. Re-run retries a failed, partial,
+// cancelled or stopped meeting through `meetings.recover` while the
+// daemon still has its audio (fn-76); otherwise it stays disabled and
+// its tooltip and description say why (a completed meeting's re-run is
+// reserved in the contract).
 Item {
     id: root
 
@@ -167,11 +170,28 @@ Item {
         anchors.verticalCenter: title.verticalCenter
         spacing: Theme.space2
 
-        Button {
-            enabled: false
-            icon.name: "rerun"
-            text: qsTr("Re-run")
-            Accessible.description: qsTr("A meeting re-run is reserved in the contract; import the audio again to transcribe it with another engine.")
+        // A disabled button takes no pointer, so the reason's tooltip
+        // follows the hover on the slot around it.
+        Item {
+            implicitHeight: rerun.implicitHeight
+            implicitWidth: rerun.implicitWidth
+
+            HoverHandler {
+                id: hover
+            }
+
+            Button {
+                id: rerun
+                readonly property string reason: root.detail && root.detail.rerunReason !== undefined ? root.detail.rerunReason : ""
+                anchors.fill: parent
+                enabled: root.detail !== null && root.detail.canRecover === true && root.meetingsActions !== null && !root.meetingsActions.busy
+                icon.name: "rerun"
+                text: qsTr("Re-run")
+                ToolTip.text: rerun.reason
+                ToolTip.visible: rerun.reason.length > 0 && hover.hovered
+                onClicked: root.meetingsActions.recover(root.meetingId)
+                Accessible.description: rerun.reason
+            }
         }
 
         Button {
