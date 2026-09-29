@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtTest
 import Dettivo
 
@@ -194,5 +195,76 @@ TestCase {
             compare(actions.discarded[0], "m1");
         }
         compare(opened, 0);
+    }
+
+    Component {
+        id: headerC
+        DetailHeader {
+            width: 1000
+            meetingId: "m1"
+        }
+    }
+    Component {
+        id: detailC
+        FakeMeetingDetail {}
+    }
+
+    // fn-76: Re-run on the meeting detail retries a meeting the daemon can
+    // recover through `meetings.recover`; otherwise it stays disabled and
+    // its description carries the reason the tooltip shows.
+    function test_detail_rerun_recovers_a_retryable_meeting_data() {
+        return [
+            {
+                tag: "failed-with-audio",
+                status: "failed",
+                canRecover: true,
+                reason: "Transcribe the meeting again from its retained audio."
+            },
+            {
+                tag: "failed-audio-gone",
+                status: "failed",
+                canRecover: false,
+                reason: "The meeting's audio is gone, so it cannot be transcribed again."
+            },
+            {
+                tag: "recording",
+                status: "recording",
+                canRecover: false,
+                reason: "The meeting is still recording."
+            },
+            {
+                tag: "completed",
+                status: "completed",
+                canRecover: false,
+                reason: "A meeting re-run is reserved in the contract; import the audio again to transcribe it with another engine."
+            }
+        ];
+    }
+
+    function test_detail_rerun_recovers_a_retryable_meeting(data) {
+        const detail = createTemporaryObject(detailC, root, {
+            status: data.status,
+            canRecover: data.canRecover,
+            rerunReason: data.reason
+        });
+        const actions = createTemporaryObject(actionsC, root);
+        const header = createTemporaryObject(headerC, root, {
+            detail: detail,
+            meetingsActions: actions
+        });
+        waitForRendering(header);
+        const rerun = named(header, "Re-run");
+        verify(rerun);
+        compare(rerun.enabled, data.canRecover);
+        compare(rerun.Accessible.description, data.reason);
+        compare(rerun.ToolTip.text, data.reason);
+        mouseMove(rerun);
+        tryVerify(() => rerun.ToolTip.visible, 1000, "the reason shows on hover, enabled or not");
+        mouseClick(rerun);
+        compare(actions.recovered.length, data.canRecover ? 1 : 0);
+        if (data.canRecover)
+            compare(actions.recovered[0], "m1");
+        actions.busy = true;
+        compare(rerun.enabled, false);
     }
 }

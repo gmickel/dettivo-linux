@@ -1,6 +1,8 @@
 // Dettivo style — ProgressBar (R3). Indeterminate mode uses a looping
 // sweep driven by Motion's shimmer duration/easing rather than a literal
-// animation timing.
+// animation timing. The sweep enters from the left of the track and
+// leaves past its right, so the content clips it to the bar (fn-76):
+// unclipped it drew across whatever sat beside the bar.
 import QtQuick
 import QtQuick.Templates as T
 import Dettivo
@@ -22,6 +24,7 @@ T.ProgressBar {
     }
 
     contentItem: Item {
+        clip: true
         implicitWidth: Theme.controlHeight * 5
         implicitHeight: Theme.spacingSm
 

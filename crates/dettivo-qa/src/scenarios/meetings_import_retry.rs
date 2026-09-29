@@ -109,6 +109,42 @@ fn wait_state(
     }
 }
 
+/// Opens the cancelled meeting's detail and presses Re-run once the
+/// daemon's recoverable list has enabled it.
+fn rerun_from_detail(
+    driver: &mut dyn Driver,
+    app: &App,
+    title: &str,
+    timeout: Duration,
+) -> Result<(), String> {
+    let row = driver
+        .snapshot(app)
+        .map_err(|e| e.to_string())?
+        .into_iter()
+        .find(|e| e.role == "list item" && e.name.contains(title))
+        .ok_or_else(|| format!("no meeting row {title}"))?;
+    driver
+        .click(app, &row)
+        .map_err(|e| format!("open {title}: {e}"))?;
+    let deadline = Instant::now() + timeout;
+    loop {
+        let tree = driver.snapshot(app).map_err(|e| e.to_string())?;
+        if let Some(rerun) = tree.iter().find(|e| e.name == "Re-run" && e.enabled) {
+            return driver.click(app, rerun).map_err(|e| format!("Re-run: {e}"));
+        }
+        if Instant::now() >= deadline {
+            let state = tree
+                .iter()
+                .find(|e| e.name == "Re-run")
+                .map(|e| (e.enabled, e.value.clone()));
+            return Err(format!(
+                "the detail's Re-run never enabled for a cancelled meeting: {state:?}"
+            ));
+        }
+        std::thread::sleep(Duration::from_millis(100));
+    }
+}
+
 fn click_row_action(
     driver: &mut dyn Driver,
     app: &App,
@@ -236,7 +272,9 @@ pub(super) fn drive(
             notice.value
         ));
     }
-    click_row_action(driver, app, TITLE, "Recover", ctx.timeout)?;
+    // fn-76: the detail's Re-run recovers the cancelled meeting, as the
+    // row's Recover does.
+    rerun_from_detail(driver, app, TITLE, ctx.timeout)?;
     let completed = wait_state(daemon, &id, "completed", Duration::from_secs(180))?;
     let got = daemon.call("meetings.get", json!({"meeting_id":id}))?;
     if got["ref"]["id"] != id

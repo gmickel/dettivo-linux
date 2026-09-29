@@ -1,6 +1,7 @@
 #include "fake_link.h"
 #include "history_actions.h"
 #include "history_player.h"
+#include "meeting_detail_model.h"
 #include "meeting_live_model.h"
 #include "meeting_format.h"
 #include "meetings_actions.h"
@@ -257,6 +258,54 @@ private slots:
         QCOMPARE(model.data(model.index(0), MeetingsModel::RecoverableRole).toBool(), recoverable);
         QVERIFY(model.data(model.index(0), MeetingsModel::NotesRole).toBool());
         QCOMPARE(model.idAt(0), QStringLiteral("import"));
+    }
+    // fn-76: Re-run on the detail is `meetings.recover` for a retryable
+    // meeting the daemon lists as recoverable, and names its reason
+    // otherwise; a completed meeting keeps the reserved re-run.
+    void detailOffersRecoveryWhileTheDaemonCanRetry_data()
+    {
+        QTest::addColumn<QString>("status");
+        QTest::addColumn<bool>("listed");
+        QTest::addColumn<bool>("finalizing");
+        QTest::addColumn<bool>("enabled");
+        QTest::addColumn<QString>("reason");
+        QTest::newRow("failed-with-audio") << QStringLiteral("failed") << true << false << true << QStringLiteral("retained audio");
+        QTest::newRow("partial-with-audio") << QStringLiteral("partial") << true << false << true << QStringLiteral("retained audio");
+        QTest::newRow("cancelled-with-audio") << QStringLiteral("cancelled") << true << false << true << QStringLiteral("retained audio");
+        QTest::newRow("stopped-with-audio") << QStringLiteral("stopped") << true << false << true << QStringLiteral("retained audio");
+        QTest::newRow("failed-audio-gone") << QStringLiteral("failed") << false << false << false << QStringLiteral("audio is gone");
+        QTest::newRow("stopped-finalizing") << QStringLiteral("stopped") << true << true << false << QStringLiteral("being transcribed");
+        QTest::newRow("recording") << QStringLiteral("recording") << false << false << false << QStringLiteral("still recording");
+        QTest::newRow("transcribing") << QStringLiteral("transcribing") << false << false << false << QStringLiteral("being transcribed");
+        QTest::newRow("completed") << QStringLiteral("completed") << true << false << false << QStringLiteral("reserved in the contract");
+    }
+    void detailOffersRecoveryWhileTheDaemonCanRetry()
+    {
+        QFETCH(QString, status);
+        QFETCH(bool, listed);
+        QFETCH(bool, finalizing);
+        QFETCH(bool, enabled);
+        QFETCH(QString, reason);
+        FakeLink link;
+        link.answers.insert("meetings.get", {{"title", "Weekly sync"}, {"status", status}, {"audio_dir", "/m1"}});
+        const QJsonObject row{{"ref", QJsonObject{{"id", "m1"}, {"kind", "meeting"}}}, {"reason", "engine crashed"}};
+        const QJsonObject other{{"ref", QJsonObject{{"id", "m2"}, {"kind", "meeting"}}}};
+        link.answers.insert("meetings.status", {{"is_finalizing", finalizing}, {"recoverable", listed ? QJsonArray{other, row} : QJsonArray{other}}});
+        link.defer = true;
+        MeetingDetailModel detail(&link);
+        detail.load("m1");
+        link.answerPending();
+        const bool retryable = status == "failed" || status == "partial" || status == "cancelled" || status == "stopped";
+        QCOMPARE(link.calls.contains("meetings.status"), retryable);
+        if (retryable) {
+            QVERIFY(!detail.canRecover());
+            QVERIFY(detail.rerunReason().contains("Checking"));
+            link.answerPending();
+        }
+        QCOMPARE(detail.canRecover(), enabled);
+        QVERIFY2(detail.rerunReason().contains(reason), qPrintable(detail.rerunReason()));
+        QCOMPARE(link.lastParams.value("meetings.status").value("meeting_id").toString(), retryable ? QStringLiteral("m1") : QString());
+        QVERIFY(!link.calls.contains("transcripts.rerun"));
     }
     void recoverableTerminalChipsNameTheActualState_data()
     {

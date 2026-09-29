@@ -54,7 +54,7 @@ impl Scenario for MeetingsImportGui {
     }
 
     fn summary(&self) -> &'static str {
-        "the import dialog rejects invalid audio and transcribes the jfk clip; row Cancel and Recover preserve the imported meeting's ID, audio and notes"
+        "the import dialog rejects invalid audio and transcribes the jfk clip; row Cancel and the detail's Re-run preserve the imported meeting's ID, audio and notes"
     }
 
     fn preconditions(&self, ctx: &Context<'_>) -> Result<(), String> {

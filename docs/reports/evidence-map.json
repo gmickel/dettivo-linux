@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "git_sha": "7c0dd7f51dfe6a14498b45ca20a9b4309fd169d0",
-  "generated_unix": 1790327383,
+  "git_sha": "21143ac7231894311a05dc39814951789b9352bb",
+  "generated_unix": 1790717622,
   "specs": [
     {
       "id": "fn-1-repository-bootstrap-workspace-cmake",
@@ -5363,7 +5363,7 @@
           "ref": "crates/dettivo-proto/fixtures/meetings",
           "note": "every meetings.* fixture replays against the live daemon",
           "resolved": true,
-          "detail": "directory crates/dettivo-proto/fixtures/meetings (34 entries)"
+          "detail": "directory crates/dettivo-proto/fixtures/meetings (37 entries)"
         },
         {
           "rids": [
@@ -5482,7 +5482,7 @@
           "ref": "crates/dettivo-rest/fixtures/routes",
           "note": "GET query and POST body-overlay route fixtures per implemented namespace",
           "resolved": true,
-          "detail": "directory crates/dettivo-rest/fixtures/routes (24 entries)"
+          "detail": "directory crates/dettivo-rest/fixtures/routes (25 entries)"
         },
         {
           "rids": [
@@ -6979,7 +6979,7 @@
           ],
           "kind": "unit",
           "ref": "dettivod::a_two_track_meeting_learns_its_speakers_and_a_rerun_replaces_them",
-          "note": "the auto post-pass labels remote segments under the coverage and share rule, microphone segments are You, talk_ms and diarizing progress",
+          "note": "the auto post-pass labels every remote segment under the sentence rule (ADR 0072), microphone segments are You, talk_ms and diarizing progress",
           "resolved": true,
           "detail": "fn a_two_track_meeting_learns_its_speakers_and_a_rerun_replaces_them in crates/dettivod/tests/meetings_diarize.rs"
         },
@@ -6988,10 +6988,10 @@
             "R2"
           ],
           "kind": "unit",
-          "ref": "dettivo-meeting::the_rule_labels_covered_segments_and_leaves_straddling_ones_alone",
-          "note": "the 0.25 coverage and 0.60 share rule leaves the straddling segment unlabeled",
+          "ref": "dettivo-meeting::every_remote_segment_gets_a_speaker_and_the_microphone_is_you",
+          "note": "ADR 0072 replaced the coverage and share rule: every remote segment takes its sentence's majority speaker or the nearest turn",
           "resolved": true,
-          "detail": "fn the_rule_labels_covered_segments_and_leaves_straddling_ones_alone in crates/dettivo-meeting/src/diarize.rs"
+          "detail": "fn every_remote_segment_gets_a_speaker_and_the_microphone_is_you in crates/dettivo-meeting/src/diarize.rs"
         },
         {
           "rids": [
@@ -7327,7 +7327,7 @@
           "ref": "crates/dettivo-proto/fixtures/meetings",
           "note": "every meetings.* fixture (notes, analyze, analysis.get, the seed-backed list and search) replays against the live daemon",
           "resolved": true,
-          "detail": "directory crates/dettivo-proto/fixtures/meetings (34 entries)"
+          "detail": "directory crates/dettivo-proto/fixtures/meetings (37 entries)"
         },
         {
           "rids": [
@@ -7483,7 +7483,7 @@
           "ref": "meetings_import_gui",
           "note": "the refused non-audio file names the daemon's reason, then the jfk clip imports through transcripts.import and opens the row",
           "resolved": true,
-          "detail": "scenario meetings_import_gui: the import dialog rejects invalid audio and transcribes the jfk clip; row Cancel and Recover preserve the imported meeting's ID, audio and notes"
+          "detail": "scenario meetings_import_gui: the import dialog rejects invalid audio and transcribes the jfk clip; row Cancel and the detail's Re-run preserve the imported meeting's ID, audio and notes"
         },
         {
           "rids": [
@@ -11645,10 +11645,153 @@
       "human_only": [],
       "coverage": 1.0,
       "routes": []
+    },
+    {
+      "id": "fn-64-evaluate-nemotron-3-diarization-against",
+      "title": "Evaluate Nemotron 3 Diarization against current speaker pass",
+      "rids": [],
+      "mapped": [],
+      "unmapped": [],
+      "unknown": [],
+      "human_only": [],
+      "coverage": 1.0,
+      "routes": []
+    },
+    {
+      "id": "fn-65-dictate-while-a-meeting-records",
+      "title": "Dictate while a meeting records",
+      "rids": [],
+      "mapped": [],
+      "unmapped": [],
+      "unknown": [],
+      "human_only": [],
+      "coverage": 1.0,
+      "routes": []
+    },
+    {
+      "id": "fn-66-drive-native-wayland-surfaces-in-qa",
+      "title": "Drive native Wayland surfaces in QA with the Omarchy Cua Driver",
+      "rids": [],
+      "mapped": [],
+      "unmapped": [],
+      "unknown": [],
+      "human_only": [],
+      "coverage": 1.0,
+      "routes": []
+    },
+    {
+      "id": "fn-67-one-command-diarization-bench-for-hill",
+      "title": "One-command diarization bench for hill-climbing speaker accuracy",
+      "rids": [],
+      "mapped": [],
+      "unmapped": [],
+      "unknown": [],
+      "human_only": [],
+      "coverage": 1.0,
+      "routes": []
+    },
+    {
+      "id": "fn-68-label-every-remote-line-with-sentence",
+      "title": "Label every remote line with sentence-unit speaker voting",
+      "rids": [],
+      "mapped": [],
+      "unmapped": [],
+      "unknown": [],
+      "human_only": [],
+      "coverage": 1.0,
+      "routes": []
+    },
+    {
+      "id": "fn-69-nemotron-3-diarization-engine-through",
+      "title": "Nemotron 3 Diarization engine through NeMo-Speech.cpp",
+      "rids": [],
+      "mapped": [],
+      "unmapped": [],
+      "unknown": [],
+      "human_only": [],
+      "coverage": 1.0,
+      "routes": []
+    },
+    {
+      "id": "fn-70-voice-check-for-each-transcript-unit",
+      "title": "Voice check for each transcript unit",
+      "rids": [],
+      "mapped": [],
+      "unmapped": [],
+      "unknown": [],
+      "human_only": [],
+      "coverage": 1.0,
+      "routes": []
+    },
+    {
+      "id": "fn-71-two-track-speaker-rules",
+      "title": "Two-track speaker rules: bleed, single remote, shared mic, your own voice",
+      "rids": [],
+      "mapped": [],
+      "unmapped": [],
+      "unknown": [],
+      "human_only": [],
+      "coverage": 1.0,
+      "routes": []
+    },
+    {
+      "id": "fn-72-labelling-kit-for-a-small-english-and",
+      "title": "Labelling kit for a small English and German meeting set",
+      "rids": [],
+      "mapped": [],
+      "unmapped": [],
+      "unknown": [],
+      "human_only": [],
+      "coverage": 1.0,
+      "routes": []
+    },
+    {
+      "id": "fn-73-read-a-running-meetings-transcript-so",
+      "title": "Read a running meeting's transcript so far",
+      "rids": [],
+      "mapped": [],
+      "unmapped": [],
+      "unknown": [],
+      "human_only": [],
+      "coverage": 1.0,
+      "routes": []
+    },
+    {
+      "id": "fn-74-word-timings-from-whisper-for-speaker",
+      "title": "Word timings from Whisper for speaker labelling",
+      "rids": [],
+      "mapped": [],
+      "unmapped": [],
+      "unknown": [],
+      "human_only": [],
+      "coverage": 1.0,
+      "routes": []
+    },
+    {
+      "id": "fn-75-open-the-app-even-when-the-gpu-cannot",
+      "title": "Open the app even when the GPU cannot give it a window",
+      "rids": [],
+      "mapped": [],
+      "unmapped": [],
+      "unknown": [],
+      "human_only": [],
+      "coverage": 1.0,
+      "routes": []
+    },
+    {
+      "id": "fn-76-re-run-a-failed-meeting-from-the-app",
+      "title": "Re-run a failed meeting from the app",
+      "rids": [],
+      "mapped": [],
+      "unmapped": [],
+      "unknown": [],
+      "human_only": [],
+      "coverage": 1.0,
+      "routes": []
     }
   ],
   "totals": {
-    "specs": 63,
+    "specs": 76,
     "rids": 489,
     "mapped": 489,
     "coverage": 1.0,

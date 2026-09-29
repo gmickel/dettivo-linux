@@ -222,6 +222,47 @@ TestCase {
         }
     }
 
+    // fn-76: the sweep under a running stage stays inside the strip for a
+    // whole cycle; unclipped, it drew from the window's left edge.
+    function test_processing_sweep_stays_inside_the_strip() {
+        const detail = createTemporaryObject(detailC, root, {
+            "processingState": "running",
+            "stages": [
+                {
+                    "key": "transcript",
+                    "label": "Transcript",
+                    "state": "done",
+                    "detail": "1477 segments",
+                    "progress": -1
+                },
+                {
+                    "key": "speakers",
+                    "label": "Speakers",
+                    "state": "running",
+                    "detail": "identifying who spoke",
+                    "progress": -1
+                }
+            ]
+        });
+        const strip = createTemporaryObject(stripC, root, {
+            "x": 300,
+            "y": 40,
+            "width": 600,
+            "detail": detail
+        });
+        waitForRendering(strip);
+        const bar = findByName(strip, "Processing progress");
+        verify(bar && bar.visible && bar.indeterminate);
+        const row = Math.round(bar.mapToItem(root, 0, bar.height / 2).y);
+        verify(bar.mapToItem(strip, 0, 0).x >= 0 && bar.mapToItem(strip, bar.width, 0).x <= strip.width);
+        for (let frame = 0; frame < 16; ++frame) {
+            const image = grabImage(root);
+            for (let x = 0; x < 290; x += 8)
+                verify(Qt.colorEqual(image.pixel(x, row), image.pixel(x, row + 120)), "sweep drawn at x " + x + " left of the strip");
+            wait(Motion.durationShimmer / 16);
+        }
+    }
+
     Component {
         id: stripC
         ProcessingStrip {}
