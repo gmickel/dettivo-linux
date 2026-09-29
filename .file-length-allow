@@ -6,3 +6,6 @@
 #
 # Example:
 # crates/dettivo-proto/src/generated/**/*.rs
+
+# Third-party sources vendored with a patch (third_party/*/README.md); not hand-written here.
+third_party/**

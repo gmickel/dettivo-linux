@@ -28,6 +28,8 @@ members = [
     "crates/dettivo-qa",
     "tools/xtask",
 ]
+# A patched copy of a registry crate, used through [patch.crates-io] below.
+exclude = ["third_party/whisper-rs-sys"]
 
 [workspace.package]
 version = "0.4.1"
@@ -103,3 +105,8 @@ missing_docs = "warn"
 
 [workspace.lints.clippy]
 all = "warn"
+
+# whisper.cpp with the DTW median-filter guard (ADR 0080,
+# third_party/whisper-rs-sys/README.md).
+[patch.crates-io]
+whisper-rs-sys = { path = "third_party/whisper-rs-sys" }

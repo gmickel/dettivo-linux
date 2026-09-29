@@ -89,14 +89,19 @@ const DTW_FRAME_CS: i64 = 2;
 /// DTW: a word starts at its first token's DTW time and ends one frame
 /// after its last token's, never past the next word's start. The words
 /// are not held to whisper's segment timestamps, which drift by seconds
-/// in long audio (ADR 0074). Plain: a word runs from its first token's
-/// start to its last token's end, inside its segment.
+/// in long audio (ADR 0074). A word whose tokens have no DTW time
+/// (whisper.cpp skips DTW for a window too short to filter, ADR 0080)
+/// takes its segment's span instead. Plain: a word runs from its first
+/// token's start to its last token's end, inside its segment.
 pub fn timed(segments: &[Spoken], timing: Timing, audio_cs: i64) -> Vec<((i64, i64), Vec<Word>)> {
     let runs: Vec<Vec<Run>> = segments.iter().map(|s| runs(&s.tokens)).collect();
     let starts: Vec<i64> = segments
         .iter()
         .zip(&runs)
-        .flat_map(|(s, r)| r.iter().map(|w| s.tokens[w.first].dtw))
+        .flat_map(|(s, r)| {
+            r.iter()
+                .map(move |w| dtw_or(s.tokens[w.first].dtw, s.span.0))
+        })
         .collect();
     let mut index = 0;
     let mut floor = 0;
@@ -114,9 +119,14 @@ pub fn timed(segments: &[Spoken], timing: Timing, audio_cs: i64) -> Vec<((i64, i
                     (start, last.t1.clamp(start, hi))
                 }
                 Timing::Dtw => {
-                    let start = first.dtw.clamp(floor, audio_cs);
+                    let start = dtw_or(first.dtw, lo).clamp(floor, audio_cs);
                     let following = starts.get(index).copied().unwrap_or(audio_cs);
-                    let end = (last.dtw + DTW_FRAME_CS).min(following).min(audio_cs);
+                    let own_end = if last.dtw < 0 {
+                        hi
+                    } else {
+                        last.dtw + DTW_FRAME_CS
+                    };
+                    let end = own_end.min(following).min(audio_cs);
                     (start, end.max(start))
                 }
             };
@@ -172,6 +182,11 @@ fn runs(tokens: &[Token]) -> Vec<Run> {
         }
     }
     out
+}
+
+/// A token's DTW time, or `fallback` when whisper.cpp left it without one.
+fn dtw_or(dtw: i64, fallback: i64) -> i64 {
+    if dtw < 0 { fallback } else { dtw }
 }
 
 #[cfg(test)]
@@ -254,6 +269,22 @@ mod tests {
             (60, 70),
             "a segment without words keeps its span"
         );
+    }
+
+    /// Tokens whisper.cpp left without a DTW time (ADR 0080) take their
+    /// segment's span, still in order and never past the next word.
+    #[test]
+    fn dtw_words_without_a_dtw_time_take_their_segment_span() {
+        let segments = [
+            spoken((0, 40), &[(" one", 0, 0, 10, 1.0)]),
+            spoken(
+                (40, 52),
+                &[(" two", -1, -1, -1, 1.0), (" three", -1, -1, -1, 1.0)],
+            ),
+        ];
+        let dtw = timed(&segments, Timing::Dtw, 52);
+        assert_eq!(spelled(&dtw[0].1), [("one", 100, 120)]);
+        assert_eq!(spelled(&dtw[1].1), [("two", 400, 400), ("three", 400, 520)]);
     }
 
     fn header(fields: [i32; 11]) -> tempfile::NamedTempFile {

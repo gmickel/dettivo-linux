@@ -156,7 +156,10 @@ fn metadata(root: &std::path::Path) -> Result<BTreeMap<(String, String), String>
         .unwrap_or_default();
     let mut out = BTreeMap::new();
     for pkg in doc["packages"].as_array().into_iter().flatten() {
-        if members.contains(&pkg["id"].as_str().unwrap_or_default()) {
+        // Workspace members and path crates (a vendored copy under
+        // third_party/, named in the component table) carry no source,
+        // exactly as `external_crates` reads the lock.
+        if members.contains(&pkg["id"].as_str().unwrap_or_default()) || pkg["source"].is_null() {
             continue;
         }
         let name = pkg["name"].as_str().unwrap_or_default().to_string();

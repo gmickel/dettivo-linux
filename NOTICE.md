@@ -6,7 +6,7 @@ Dettivo for Linux is licensed under the GNU General Public License, version 3 or
 
 | Component | Where | License |
 |---|---|---|
-| whisper.cpp and its ggml | `dettivo-engine-whisper`, through the `whisper-rs` and `whisper-rs-sys` crates (built from the pinned source at build time) | MIT, Georgi Gerganov and the ggml authors |
+| whisper.cpp and its ggml | `dettivo-engine-whisper`, through the `whisper-rs` crate and `whisper-rs-sys` 0.15.0 vendored with a DTW guard under `third_party/whisper-rs-sys` (built from that source at build time) | MIT, Georgi Gerganov and the ggml authors; `whisper-rs-sys` is Unlicense |
 | llama.cpp and its ggml | `dettivo-engine-llm`, through the `llama-cpp-2` and `llama-cpp-sys-2` crates (built from the pinned source at build time) | MIT, Georgi Gerganov and the ggml authors |
 | parakeet.cpp 0.5.0 and its ggml 0.13.0 | `dettivo-engine-parakeet`, through the in-repo `parakeet-cpp-sys` crate (the pinned archives are fetched, verified and built at build time) | MIT, the parakeet.cpp authors; ggml MIT |
 | The ggml Vulkan shaders | compiled into the three engines above and the Nemotron engine with `glslc` from shaderc | MIT (ggml); the compiled SPIR-V carries no separate licence |
@@ -345,7 +345,6 @@ Every crate below is linked into one or more of the installed binaries as `Cargo
 | `web-time` | 1.1.0 | MIT OR Apache-2.0 |
 | `webpki-roots` | 1.0.9 | CDLA-Permissive-2.0 |
 | `whisper-rs` | 0.16.0 | Unlicense |
-| `whisper-rs-sys` | 0.15.0 | Unlicense |
 | `winapi-util` | 0.1.11 | Unlicense OR MIT |
 | `windowfunctions` | 0.1.1 | MIT |
 | `windows-link` | 0.2.1 | MIT OR Apache-2.0 |
