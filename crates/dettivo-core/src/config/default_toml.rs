@@ -257,8 +257,9 @@ delete_artifact_policy = "all"
 # `dettivo meetings analyze <id>`.
 auto = true
 # The whole analysis must finish within this; then it is failed with
-# provider_unavailable and can be run again.
-timeout_ms = 60000
+# provider_unavailable and can be run again. 30 minutes covers about two
+# hours of meeting when the model runs on the CPU.
+timeout_ms = 1800000
 # Characters of transcript per model call; a longer transcript is analysed
 # in parts and the parts are merged in one final call.
 chunk_chars = 12000

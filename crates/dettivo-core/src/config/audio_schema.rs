@@ -108,7 +108,7 @@ impl Default for MeetingAnalysis {
     fn default() -> Self {
         Self {
             auto: true,
-            timeout_ms: 60_000,
+            timeout_ms: 1_800_000,
             chunk_chars: 12_000,
             provider: String::new(),
         }

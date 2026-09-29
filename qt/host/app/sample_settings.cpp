@@ -151,7 +151,7 @@ QJsonArray settingsEntries()
         entry("meetings.diarization.voice_check", true, "default"),
         entry("meetings.delete_artifact_policy", QStringLiteral("all"), "default"),
         entry("meetings.analysis.auto", true, "default"),
-        entry("meetings.analysis.timeout_ms", 60000, "default"),
+        entry("meetings.analysis.timeout_ms", 1800000, "default"),
         entry("meetings.analysis.chunk_chars", 12000, "default"),
         entry("meetings.analysis.provider", QStringLiteral(""), "default"),
         entry("transfer.max_upload_bytes", 1073741824, "default"),
