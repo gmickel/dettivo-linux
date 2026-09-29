@@ -141,3 +141,29 @@ fn a_crash_on_the_gpu_moves_the_engine_to_the_cpu() {
     );
     supervisor.shutdown();
 }
+
+/// The language model engine moves itself to the CPU mid-life (ADR 0080);
+/// the supervisor's record follows, so status stops naming the GPU.
+#[test]
+fn a_noted_backend_change_reaches_the_status() {
+    let dir = fake_engine_dir(dettivo_speech::supervisor::LLM_BINARY);
+    std::fs::write(dir.path().join("gpu-oom-on-request"), "").unwrap();
+    let supervisor = Supervisor::new(Settings {
+        force_cpu: false,
+        ..settings(dir.path(), Duration::from_secs(60))
+    });
+    let binary = dettivo_speech::supervisor::LLM_BINARY;
+    let loaded = supervisor
+        .with_engine(binary, "/models/fake.gguf", None, |_, loaded| {
+            Ok(loaded.backend)
+        })
+        .unwrap();
+    assert_eq!(loaded, Backend::Vulkan);
+    supervisor.note_backend(binary, Backend::Cpu, "the GPU had no room");
+    supervisor.note_backend(binary, Backend::Cpu, "the GPU had no room");
+    let status = &supervisor.status(&[binary])[0];
+    assert_eq!(status.backend, Some(Backend::Cpu));
+    let reason = status.reason.as_deref().unwrap();
+    assert_eq!(reason.matches("the GPU had no room").count(), 1, "{reason}");
+    supervisor.shutdown();
+}

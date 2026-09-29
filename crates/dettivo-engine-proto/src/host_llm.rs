@@ -191,7 +191,11 @@ impl<E: LanguageEngine, W: Write> Host<E, W> {
         let ok = Cell::new(true);
         let emit = |frame: &Frame| {
             if ok.get() {
-                ok.set(write_frame(&mut **out.borrow_mut(), frame, &[]).is_ok());
+                ok.set(
+                    write_frame(&mut **out.borrow_mut(), frame, &[])
+                        .inspect_err(|e| tracing::error!(error = %e, "could not send a frame; the engine stops"))
+                        .is_ok(),
+                );
             }
         };
         let mut cancelled = false;

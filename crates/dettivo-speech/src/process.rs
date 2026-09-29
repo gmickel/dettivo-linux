@@ -16,6 +16,10 @@ use serde_json::{Value, json};
 
 use crate::EngineError;
 
+#[path = "process_diagnostics.rs"]
+mod diagnostics;
+pub use diagnostics::diagnostic_lines;
+
 /// How many stderr lines are kept for a crash report.
 pub const STDERR_TAIL: usize = 20;
 
@@ -334,29 +338,6 @@ pub fn resident_bytes(pid: u32) -> Option<u64> {
     Some(kb * 1024)
 }
 
-/// The known diagnostics among an engine's redacted stderr lines, for a
-/// log: ggml and whisper.cpp asserts, GPU failures, panics, warnings and
-/// errors. Anything else could carry text a short line lets through.
-pub fn diagnostic_lines(tail: &str) -> String {
-    const MARKERS: [&str; 11] = [
-        "engine stream closed",
-        "GGML_ASSERT",
-        "WHISPER_ASSERT",
-        "ggml",
-        "vk::",
-        "ErrorOutOfDeviceMemory",
-        "CUDA",
-        "out of memory",
-        "panicked",
-        " WARN ",
-        " ERROR ",
-    ];
-    tail.lines()
-        .filter(|line| MARKERS.iter().any(|m| line.contains(m)))
-        .collect::<Vec<_>>()
-        .join("\n")
-}
-
 /// Keeps a log line's shape while dropping anything that looks like
 /// content. Engine logs are timings, states and identifiers; a transcript
 /// or a prompt never belongs in one, and this makes sure a crash report
@@ -398,31 +379,6 @@ pub fn redact(line: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    /// A crash log keeps what says why and drops what could be speech.
-    #[test]
-    fn a_crash_log_keeps_diagnostics_and_drops_everything_else() {
-        let tail = [
-            "engine stream closed; last stderr:",
-            "2026-09-29T12:55:59.987535Z  INFO engine ready",
-            "segment: confidential launch plans",
-            "ggml_vulkan: <redacted 50 chars>",
-            "/__w/x/ggml/src/ggml-backend.cpp: <redacted 30 chars>",
-            "2026-09-29T12:56:00.1Z ERROR load failed",
-            "we should ship on friday",
-        ]
-        .join("\n");
-        assert_eq!(
-            diagnostic_lines(&tail),
-            [
-                "engine stream closed; last stderr:",
-                "ggml_vulkan: <redacted 50 chars>",
-                "/__w/x/ggml/src/ggml-backend.cpp: <redacted 30 chars>",
-                "2026-09-29T12:56:00.1Z ERROR load failed",
-            ]
-            .join("\n")
-        );
-    }
 
     #[test]
     fn missing_binaries_name_the_directories_searched() {
