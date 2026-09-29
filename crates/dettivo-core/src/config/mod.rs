@@ -6,6 +6,7 @@ pub mod app_schema;
 pub mod audio_schema;
 pub mod default_toml;
 pub mod edit;
+pub mod file_syntax;
 pub mod import_schema;
 pub mod keys;
 pub mod llm_schema;

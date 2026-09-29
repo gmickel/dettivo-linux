@@ -136,6 +136,15 @@ pub fn coerce(key: &str, value: &Value) -> Result<toml_edit::Value, ValidationEr
         line: None,
         message: format!("{key}: expected {want}, got {value}"),
     };
+    if let (Kind::List | Kind::Table, Value::String(s)) = (kind, value) {
+        if super::file_syntax::is_file_syntax(s) {
+            return match super::file_syntax::parse(s) {
+                Some(parsed) => coerce(key, &parsed),
+                None if kind == Kind::List => Err(mismatch("a list of strings")),
+                None => Err(mismatch("a table of strings")),
+            };
+        }
+    }
     Ok(match (kind, value) {
         (Kind::Text, Value::String(s)) => toml_edit::Value::from(s.as_str()),
         (Kind::Boolean, Value::Bool(b)) => toml_edit::Value::from(*b),
