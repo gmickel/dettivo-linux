@@ -8,6 +8,9 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ### Fixed
 
+- Meetings, imports and re-runs transcribed with Whisper no longer fail on a stretch of audio that crashed the engine. 0.4.0's word timing aborted whisper.cpp when the last part of a chunk lasted about a tenth of a second, which failed a whole meeting at one chunk; the bundled whisper.cpp now skips word timing for such a sliver instead ([ADR 0080](docs/adr/0080-whisper-cpp-carries-a-dtw-median-filter-guard.md)). A meeting that failed this way transcribes when you re-run it.
+- A chunk the engine crashes on twice becomes the line `[Not transcribed: speech recognition failed on this part]` and the rest of the transcript is kept, up to three such lines per transcript.
+- An engine that crashes on the GPU, for instance when a game holds all of the GPU's memory, carries on on the CPU instead of crashing again, and every engine crash logs the engine's last error output.
 - Settings saves vocabulary terms and polish transforms again. Adding a term in Settings / Vocabulary, or switching a transform in Settings / Polish, sent no list at all, and the page answered `dictation.vocabulary: expected a list of strings, got null`. Reported by @gmickel.
 - `dettivo config set` takes a list or table typed as it appears in the file, such as `dettivo config set dictation.vocabulary '["SapienXT", "Dettivo"]'`. It used to store the brackets inside one entry; the comma form (`SapienXT, Dettivo`) still works. Reported by @gmickel.
 
