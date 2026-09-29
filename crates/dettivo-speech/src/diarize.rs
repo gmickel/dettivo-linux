@@ -28,6 +28,9 @@ pub const NEMOTRON_BINARY: &str = "dettivo-engine-nemotron";
 pub const NEMOTRON_MODEL: &str = "nemotron-3-diarization";
 /// The most speakers Nemotron 3 Diarization tracks.
 pub const NEMOTRON_MAX_SPEAKERS: u32 = 8;
+/// Spans per `embed` request: at 192 values each, a batch answers in a few
+/// hundred kilobytes, far under the 1 MiB frame header.
+const EMBED_BATCH: usize = 128;
 /// The sherpa-onnx model set a Nemotron pass falls back to.
 pub const FALLBACK_MODEL: &str = "diarization-en";
 
@@ -148,7 +151,10 @@ impl DiarizeEngine {
             })
     }
 
-    /// One embedding per span of `pcm` (16 kHz mono), within `timeout`.
+    /// One embedding per span of `pcm` (16 kHz mono), within `timeout`
+    /// per request. The spans go in batches, each with only the audio it
+    /// covers: one reply for a long meeting's spans outgrew the protocol's
+    /// header limit (`MAX_HEADER_BYTES`), and the engine could not send it.
     pub fn embed(
         &self,
         pcm: &[i16],
@@ -161,13 +167,37 @@ impl DiarizeEngine {
                 message: e.to_string(),
             }
         })?;
+        let mut out = Vec::with_capacity(spans.len());
+        for batch in spans.chunks(EMBED_BATCH) {
+            out.extend(self.embed_batch(pcm, batch, timeout)?);
+        }
+        Ok(out)
+    }
+
+    fn embed_batch(
+        &self,
+        pcm: &[i16],
+        spans: &[(u64, u64)],
+        timeout: Duration,
+    ) -> Result<Vec<Option<Vec<f32>>>, EngineError> {
+        let from_ms = spans.iter().map(|s| s.0).min().unwrap_or(0);
+        let to_ms = spans.iter().map(|s| s.1).max().unwrap_or(0);
+        let from = usize::try_from(from_ms * 16)
+            .unwrap_or(usize::MAX)
+            .min(pcm.len());
+        let to = usize::try_from(to_ms * 16)
+            .unwrap_or(usize::MAX)
+            .clamp(from, pcm.len());
         let params = EmbedParams {
             spans: spans
                 .iter()
-                .map(|&(start_ms, end_ms)| Span { start_ms, end_ms })
+                .map(|&(start_ms, end_ms)| Span {
+                    start_ms: start_ms.saturating_sub(from_ms),
+                    end_ms: end_ms.saturating_sub(from_ms),
+                })
                 .collect(),
         };
-        let bytes = dettivo_engine_proto::pcm_to_bytes(pcm);
+        let bytes = dettivo_engine_proto::pcm_to_bytes(&pcm[from..to]);
         self.supervisor
             .with_engine_load(self.binary, self.load_params(), |process, _| {
                 let value = process.call(

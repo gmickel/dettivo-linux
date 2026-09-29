@@ -16,6 +16,10 @@ use serde_json::{Value, json};
 
 use crate::EngineError;
 
+#[path = "process_diagnostics.rs"]
+mod diagnostics;
+pub use diagnostics::diagnostic_lines;
+
 /// How many stderr lines are kept for a crash report.
 pub const STDERR_TAIL: usize = 20;
 
@@ -29,6 +33,8 @@ pub struct EngineProcess {
     writer: Option<BufWriter<std::process::ChildStdin>>,
     frames: Receiver<Framed>,
     stderr_tail: Arc<Mutex<VecDeque<String>>>,
+    /// The thread filling `stderr_tail`; it finishes at the stream's end.
+    stderr_reader: std::thread::JoinHandle<()>,
     next_id: u64,
     /// Path the process was started from.
     pub binary: PathBuf,
@@ -99,7 +105,7 @@ impl EngineProcess {
         let stderr = child.stderr.take().expect("piped stderr");
         let tail: Arc<Mutex<VecDeque<String>>> = Arc::new(Mutex::new(VecDeque::new()));
         let sink = tail.clone();
-        std::thread::Builder::new()
+        let stderr_reader = std::thread::Builder::new()
             .name("dettivo-engine-stderr".into())
             .spawn(move || {
                 for line in BufReader::new(stderr).lines().map_while(Result::ok) {
@@ -138,6 +144,7 @@ impl EngineProcess {
             writer: Some(BufWriter::new(stdin)),
             frames: rx,
             stderr_tail: tail,
+            stderr_reader,
             next_id: 1,
             binary: binary.to_path_buf(),
             last_used: Instant::now(),
@@ -287,6 +294,12 @@ impl EngineProcess {
                 return EngineError::Transport(detail);
             }
             std::thread::sleep(Duration::from_millis(10));
+        }
+        // The exit closes stderr, but the reader may not have taken the
+        // last lines yet, and the last line is the one that says why.
+        let drained = Instant::now() + Duration::from_millis(500);
+        while !self.stderr_reader.is_finished() && Instant::now() < drained {
+            std::thread::sleep(Duration::from_millis(5));
         }
         EngineError::Crashed(format!("{detail}; last stderr:\n{}", self.stderr_tail()))
     }

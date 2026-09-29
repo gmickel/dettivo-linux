@@ -7,6 +7,11 @@
 //! `crash-on-load` file next to the binary, or a `recognize` whose language
 //! is `crash`, or a `generate` whose user text is `__CRASH__`, or a
 //! `diarize` while a `crash-on-diarize` file sits next to the binary).
+//! `embed` answers one 192-value vector per span whose first three values
+//! are the span's start and end and the audio's length, all in ms, as the
+//! engine received them. With a `gpu-oom-on-request` file beside it, a load that is not on the
+//! CPU reports `vulkan` and every `recognize` then aborts, as ggml does
+//! when the GPU has no memory left.
 //! `diarize` answers one turn per second of audio, alternating two
 //! speakers, after one `progress` event. Speaks the protocol on
 //! stdin/stdout exactly like a real engine.
@@ -22,6 +27,7 @@ fn main() {
     let mut reader = BufReader::new(stdin.lock());
     let mut out = BufWriter::new(stdout.lock());
     let mut model: Option<String> = None;
+    let mut on_gpu = false;
     eprintln!("fake-engine: ready pid={}", std::process::id());
     loop {
         let (frame, attachments) = match read_frame(&mut reader) {
@@ -71,7 +77,11 @@ fn main() {
                 }
                 let m = frame.payload["model"].as_str().unwrap_or("").to_string();
                 model = Some(m.clone());
-                let loaded = json!({"model": m, "backend": "cpu", "reason": "fake engine"});
+                on_gpu = dir.join("gpu-oom-on-request").exists()
+                    && preference != "cpu"
+                    && std::env::var("DETTIVO_FORCE_CPU").as_deref() != Ok("1");
+                let backend = if on_gpu { "vulkan" } else { "cpu" };
+                let loaded = json!({"model": m, "backend": backend, "reason": "fake engine"});
                 let _ = write_frame(&mut out, &Frame::event(0, "loaded", loaded.clone()), &[]);
                 Frame::response(id, "load", loaded)
             }
@@ -114,6 +124,22 @@ fn main() {
                     }),
                 )
             }
+            "embed" => {
+                let audio_ms = attachments.first().map(|a| a.len() / 32).unwrap_or(0) as f64;
+                let vectors: Vec<serde_json::Value> = frame.payload["spans"]
+                    .as_array()
+                    .into_iter()
+                    .flatten()
+                    .map(|span| {
+                        let mut v = vec![0.0f64; 192];
+                        v[0] = span["start_ms"].as_f64().unwrap_or(-1.0);
+                        v[1] = span["end_ms"].as_f64().unwrap_or(-1.0);
+                        v[2] = audio_ms;
+                        json!(v)
+                    })
+                    .collect();
+                Frame::response(id, "embed", json!({"embeddings": vectors}))
+            }
             "diarize" => {
                 let marker = std::env::current_exe()
                     .ok()
@@ -147,6 +173,10 @@ fn main() {
                 if language == "crash" {
                     eprintln!("fake-engine: crashing on request");
                     std::process::exit(4);
+                }
+                if on_gpu {
+                    eprintln!("ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory");
+                    std::process::abort();
                 }
                 if language == "stall" {
                     eprintln!("fake-engine: stalling on request");

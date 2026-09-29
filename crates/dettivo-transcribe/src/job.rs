@@ -157,6 +157,33 @@ fn finish(results: &[ChunkResult], language: &str, silent: bool, duration_ms: u6
     }
 }
 
+/// The chunks a job may leave as gaps before an engine counts as broken.
+const MAX_GAPS: usize = 3;
+
+/// The line that stands in for a chunk the engine could not transcribe.
+pub const GAP_TEXT: &str = "[Not transcribed: speech recognition failed on this part]";
+
+/// A gap over a chunk, in the chunk's own time as the engine's segments
+/// are, carried as one word: it starts after the overlap it shares with
+/// the chunk before and before the one it shares with the chunk after, so
+/// the merger keeps it whole at both seams.
+fn gap(duration_ms: u64, overlap_ms: u64) -> Segment {
+    let start_ms = overlap_ms.min(duration_ms / 2);
+    let end_ms = duration_ms.saturating_sub(overlap_ms).max(start_ms);
+    let word = dettivo_engine_proto::Word {
+        start_ms,
+        end_ms,
+        text: GAP_TEXT.to_string(),
+        confidence: 1.0,
+    };
+    Segment {
+        start_ms,
+        end_ms,
+        text: GAP_TEXT.to_string(),
+        words: vec![word],
+    }
+}
+
 fn recognize_with_retry(
     engine: &dyn SttEngine,
     request: &Request,
@@ -197,6 +224,7 @@ pub fn run(
     let mut results: Vec<ChunkResult> = Vec::with_capacity(chunks.len());
     let mut language = request.language.clone();
     let mut all_silent = true;
+    let mut gaps = 0;
     progress(Progress {
         stage: Stage::Transcribing,
         chunks_done: 0,
@@ -220,14 +248,38 @@ pub fn run(
             result.start_ms = chunk.start_ms() + speech.start as u64 * 1000 / SAMPLE_RATE;
             result.end_ms = chunk.start_ms() + speech.end as u64 * 1000 / SAMPLE_RATE;
             all_silent = false;
-            let recognized = recognize_with_retry(engine, request, &pcm[speech]).map_err(|e| {
-                JobError::Chunk {
-                    index: chunk.index,
-                    total,
-                    message: redact(&e),
-                    partial: Box::new(finish(&results, &language, false, duration_ms)),
+            let recognized = match recognize_with_retry(engine, request, &pcm[speech]) {
+                Ok(recognized) => recognized,
+                // An engine that dies on the same audio twice would fail the
+                // whole transcript; the chunk becomes a marked gap instead,
+                // up to a few per job (ADR 0080).
+                Err(EngineError::Crashed(_)) if gaps < MAX_GAPS => {
+                    gaps += 1;
+                    tracing::warn!(
+                        chunk = chunk.index,
+                        "engine crashed twice on a chunk; marking it not transcribed"
+                    );
+                    result.segments = vec![gap(
+                        result.end_ms - result.start_ms,
+                        settings.overlap_seconds * 1000,
+                    )];
+                    results.push(result);
+                    progress(Progress {
+                        stage: Stage::Transcribing,
+                        chunks_done: chunk.index + 1,
+                        chunks_total: total,
+                    });
+                    continue;
                 }
-            })?;
+                Err(e) => {
+                    return Err(JobError::Chunk {
+                        index: chunk.index,
+                        total,
+                        message: redact(&e),
+                        partial: Box::new(finish(&results, &language, false, duration_ms)),
+                    });
+                }
+            };
             if !recognized.text.trim().is_empty() && recognized.segments.is_empty() {
                 return Err(JobError::NoTimestamps {
                     provider: engine.provider().to_string(),

@@ -518,8 +518,8 @@
           "section": "meetings.analysis"
         },
         {
-          "default": 60000,
-          "doc": "The whole analysis must finish within this; then it is failed with provider_unavailable and can be run again.",
+          "default": 1800000,
+          "doc": "The whole analysis must finish within this; then it is failed with provider_unavailable and can be run again. 30 minutes covers about two hours of meeting when the model runs on the CPU.",
           "key": "meetings.analysis.timeout_ms",
           "kind": "integer",
           "section": "meetings.analysis"

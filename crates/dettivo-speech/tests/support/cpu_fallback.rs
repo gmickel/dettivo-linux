@@ -72,3 +72,98 @@ fn a_failed_cpu_retry_is_bounded_and_cannot_loop_back_to_gpu() {
     );
     supervisor.shutdown();
 }
+
+/// A GPU engine that aborts mid-request, as ggml does when a game holds
+/// the GPU's memory, answers the retry and every later request on the CPU,
+/// for any engine; an explicit GPU choice is never moved.
+#[test]
+fn a_crash_on_the_gpu_moves_the_engine_to_the_cpu() {
+    for binary in [WHISPER_BINARY, dettivo_speech::supervisor::PARAKEET_BINARY] {
+        let dir = fake_engine_dir(binary);
+        std::fs::write(dir.path().join("gpu-oom-on-request"), "").unwrap();
+        std::fs::write(dir.path().join("record-loads"), "").unwrap();
+        let supervisor = Supervisor::new(Settings {
+            force_cpu: false,
+            ..settings(dir.path(), Duration::from_secs(60))
+        });
+        assert!(matches!(
+            recognize(&supervisor, binary, "en"),
+            Err(EngineError::Crashed(_))
+        ));
+        assert!(
+            recognize(&supervisor, binary, "en")
+                .unwrap()
+                .starts_with("fake en")
+        );
+        assert!(
+            recognize(&supervisor, binary, "en")
+                .unwrap()
+                .starts_with("fake en")
+        );
+        assert_eq!(
+            std::fs::read_to_string(dir.path().join("loads.log")).unwrap(),
+            "auto\ncpu\n"
+        );
+        let status = supervisor.status(&[binary]);
+        assert!(status[0].reason.as_ref().unwrap().contains("CPU fallback"));
+        supervisor.shutdown();
+    }
+    let dir = fake_engine_dir(WHISPER_BINARY);
+    std::fs::write(dir.path().join("gpu-oom-on-request"), "").unwrap();
+    std::fs::write(dir.path().join("record-loads"), "").unwrap();
+    let supervisor = Supervisor::new(Settings {
+        force_cpu: false,
+        ..settings(dir.path(), Duration::from_secs(60))
+    });
+    let on_vulkan = |s: &Supervisor| {
+        s.with_engine_on(
+            WHISPER_BINARY,
+            "/models/fake.bin",
+            None,
+            BackendPreference::Vulkan,
+            dettivo_speech::supervisor::LlmLoad::default(),
+            |process, _| {
+                process.call(
+                    "recognize",
+                    json!({"language": "en"}),
+                    &[&[0u8; 3200]],
+                    Duration::from_secs(10),
+                    |_| {},
+                )
+            },
+        )
+    };
+    assert!(on_vulkan(&supervisor).is_err());
+    assert!(on_vulkan(&supervisor).is_err());
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("loads.log")).unwrap(),
+        "vulkan\nvulkan\n"
+    );
+    supervisor.shutdown();
+}
+
+/// The language model engine moves itself to the CPU mid-life (ADR 0080);
+/// the supervisor's record follows, so status stops naming the GPU.
+#[test]
+fn a_noted_backend_change_reaches_the_status() {
+    let dir = fake_engine_dir(dettivo_speech::supervisor::LLM_BINARY);
+    std::fs::write(dir.path().join("gpu-oom-on-request"), "").unwrap();
+    let supervisor = Supervisor::new(Settings {
+        force_cpu: false,
+        ..settings(dir.path(), Duration::from_secs(60))
+    });
+    let binary = dettivo_speech::supervisor::LLM_BINARY;
+    let loaded = supervisor
+        .with_engine(binary, "/models/fake.gguf", None, |_, loaded| {
+            Ok(loaded.backend)
+        })
+        .unwrap();
+    assert_eq!(loaded, Backend::Vulkan);
+    supervisor.note_backend(binary, Backend::Cpu, "the GPU had no room");
+    supervisor.note_backend(binary, Backend::Cpu, "the GPU had no room");
+    let status = &supervisor.status(&[binary])[0];
+    assert_eq!(status.backend, Some(Backend::Cpu));
+    let reason = status.reason.as_deref().unwrap();
+    assert_eq!(reason.matches("the GPU had no room").count(), 1, "{reason}");
+    supervisor.shutdown();
+}

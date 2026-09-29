@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use dettivo_engine_proto::{BackendPreference, LoadParams, LoadedResult};
+use dettivo_engine_proto::{Backend, BackendPreference, LoadParams, LoadedResult};
 use serde_json::{Value, json};
 
 use crate::EngineError;
@@ -26,7 +26,8 @@ struct Slot {
     loaded: Option<LoadedResult>,
     /// The complete `load` the engine holds; any difference reloads.
     params: Option<LoadParams>,
-    /// Automatic Whisper load that must stay on CPU until idle unload or a new selection.
+    /// An automatic load that must stay on CPU until idle unload or a new
+    /// selection: Whisper's GPU load failed, or an engine crashed on the GPU.
     cpu_fallback: Option<LoadParams>,
     crashes: u32,
     next_allowed: Instant,
@@ -237,7 +238,7 @@ impl Supervisor {
                         && loaded.backend == dettivo_engine_proto::Backend::Cpu
                     {
                         loaded.reason = format!(
-                            "CPU fallback after automatic engine load failed; {}",
+                            "CPU fallback after the automatic backend failed; {}",
                             loaded.reason
                         );
                     }
@@ -255,7 +256,7 @@ impl Supervisor {
                     self.transition(s, transition);
                 }
                 Err(EngineError::Crashed(tail)) => {
-                    let transition = record_crash(s, binary);
+                    let transition = record_crash(s, binary, &tail);
                     self.transition(s, transition);
                     return Err(EngineError::Crashed(tail));
                 }
@@ -265,8 +266,8 @@ impl Supervisor {
                     // this one. The process goes, and the next request
                     // loads afresh.
                     self.discard_uncertain(s, binary, &e);
-                    if matches!(e, EngineError::Transport(_)) {
-                        let transition = record_crash(s, binary);
+                    if let EngineError::Transport(why) = &e {
+                        let transition = record_crash(s, binary, why);
                         self.transition(s, transition);
                     }
                     return Err(e);
@@ -277,8 +278,23 @@ impl Supervisor {
         let process = s.process.as_mut().expect("spawned above");
         match f(process, &loaded) {
             Err(EngineError::Crashed(tail)) => {
-                let transition = record_crash(s, binary);
+                // ggml aborts when the GPU runs out of memory, for instance
+                // while a game holds it; the caller's retry and the requests
+                // after it run on the CPU instead of crashing again.
+                let on_gpu = s
+                    .params
+                    .clone()
+                    .filter(|p| p.backend_preference == BackendPreference::Auto)
+                    .filter(|_| loaded.backend != Backend::Cpu && !settings.force_cpu);
+                let transition = record_crash(s, binary, &tail);
                 self.transition(s, transition);
+                if let Some(params) = on_gpu {
+                    tracing::warn!(
+                        engine = binary,
+                        "engine crashed on the GPU; running it on CPU"
+                    );
+                    s.cpu_fallback = Some(params);
+                }
                 Err(EngineError::Crashed(tail))
             }
             Err(e @ EngineError::Transport(_)) => {
@@ -434,7 +450,9 @@ impl Supervisor {
     }
 }
 
-fn record_crash(s: &mut Slot, binary: &str) -> EngineTransition {
+/// Counts a crash; `tail` is the redacted end of the engine's stderr, the
+/// only record of an engine's own abort message (ggml's among them).
+fn record_crash(s: &mut Slot, binary: &str, tail: &str) -> EngineTransition {
     s.crashes += 1;
     s.process = None;
     s.loaded = None;
@@ -445,6 +463,7 @@ fn record_crash(s: &mut Slot, binary: &str) -> EngineTransition {
         tracing::error!(
             engine = binary,
             crashes = s.crashes,
+            stderr = %crate::process::diagnostic_lines(tail),
             "engine degraded after repeated crashes"
         );
         EngineTransition {
@@ -459,6 +478,7 @@ fn record_crash(s: &mut Slot, binary: &str) -> EngineTransition {
             engine = binary,
             crashes = s.crashes,
             backoff_seconds = backoff.as_secs(),
+            stderr = %crate::process::diagnostic_lines(tail),
             "engine crashed"
         );
         EngineTransition {

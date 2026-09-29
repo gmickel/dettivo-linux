@@ -1,8 +1,8 @@
 //! R2 and R3 through the job: a scripted engine records the chunks it is
 //! given, the silent chunk never reaches it, fillers are dropped, the
 //! merged result matches the three-chunk golden, a crash is retried once
-//! and a second one fails the job with the chunk named while the earlier
-//! chunks are kept, a cancel between chunks leaves the finished chunks,
+//! and a second one leaves the chunk as a marked gap (a fourth gap fails
+//! the job with the chunk named while the earlier chunks are kept), a cancel between chunks leaves the finished chunks,
 //! and an engine without timestamps is refused naming its capability.
 
 use std::path::Path;
@@ -225,7 +225,7 @@ fn a_brief_utterance_in_a_long_silence_reaches_the_engine() {
 }
 
 #[test]
-fn a_crash_is_retried_once_and_a_second_one_fails_the_chunk_by_index_keeping_earlier_text() {
+fn a_crash_is_retried_once_and_a_second_one_leaves_the_chunk_as_a_marked_gap() {
     let mut pcm = loud(25);
     let engine = Scripted::new(vec![
         Ok(result(vec![seg(500, 2_000, "kept")])),
@@ -233,6 +233,42 @@ fn a_crash_is_retried_once_and_a_second_one_fails_the_chunk_by_index_keeping_ear
         Ok(result(vec![seg(2_500, 4_000, "after retry")])),
         Err(EngineError::Crashed("secret".into())),
         Err(EngineError::Crashed("secret".into())),
+    ]);
+    let transcript = run(
+        &mut pcm,
+        &engine,
+        &request(),
+        &settings(),
+        &AtomicBool::new(false),
+        &mut |_| {},
+    )
+    .unwrap();
+    assert_eq!(engine.calls.lock().unwrap().len(), 5);
+    assert_eq!(
+        transcript.text,
+        format!("kept after retry {}", dettivo_transcribe::job::GAP_TEXT)
+    );
+    let gap = transcript.segments.last().unwrap();
+    assert_eq!(gap.text, dettivo_transcribe::job::GAP_TEXT);
+    assert!(gap.start_ms >= 16_000 && gap.end_ms <= 25_000, "{gap:?}");
+}
+
+/// More gaps than a job allows mean a broken engine, not bad audio: the
+/// job fails naming the chunk and keeps what it has.
+#[test]
+fn a_fourth_gap_fails_the_job_by_chunk_index() {
+    let mut pcm = loud(45);
+    let crash = || Err(EngineError::Crashed("secret".into()));
+    let engine = Scripted::new(vec![
+        Ok(result(vec![seg(500, 2_000, "kept")])),
+        crash(),
+        crash(),
+        crash(),
+        crash(),
+        crash(),
+        crash(),
+        crash(),
+        crash(),
     ]);
     let err = run(
         &mut pcm,
@@ -246,17 +282,16 @@ fn a_crash_is_retried_once_and_a_second_one_fails_the_chunk_by_index_keeping_ear
     match err {
         JobError::Chunk {
             index,
-            total,
             message,
             partial,
+            ..
         } => {
-            assert_eq!((index, total), (2, 3));
+            assert_eq!(index, 4);
             assert_eq!(message, "engine crashed");
-            assert_eq!(partial.text, "kept after retry");
+            assert!(partial.text.starts_with("kept"), "{}", partial.text);
         }
         other => panic!("{other:?}"),
     }
-    assert_eq!(engine.calls.lock().unwrap().len(), 5);
 }
 
 #[test]

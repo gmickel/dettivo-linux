@@ -134,7 +134,7 @@ impl LlmEngine {
             temperature: request.temperature,
             stop: request.stop.clone(),
         };
-        self.supervisor.with_engine_on(
+        let result: GenerateResult = self.supervisor.with_engine_on(
             LLM_BINARY,
             &self.model,
             None,
@@ -175,7 +175,15 @@ impl LlmEngine {
                     Err(e) => Err(e),
                 }
             },
-        )
+        )?;
+        // The engine moves itself to the CPU when the GPU has no room for a
+        // generation (ADR 0080); the supervisor's record follows it.
+        self.supervisor.note_backend(
+            LLM_BINARY,
+            result.backend,
+            "the GPU had no room for a generation, CPU fallback",
+        );
+        Ok(result)
     }
 
     /// The backend of the loaded model, when loaded.

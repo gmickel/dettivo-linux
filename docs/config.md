@@ -197,7 +197,7 @@ The summary, decisions and action items a meeting gets once it finalised (ADR 00
 | Key | Type | Default | Meaning |
 |---|---|---|---|
 | `auto` | boolean | `true` | Run the analysis after every finalisation (and after an import into a meeting); off leaves it to `dettivo meetings analyze <id>`. `meetings.start` and `transcripts.import` take `analyze` to decide per meeting. |
-| `timeout_ms` | integer | `60000` | The whole analysis, every part and the merge, must finish within this; then it is `failed` with `provider_unavailable` and `meetings.analyze` runs it again. |
+| `timeout_ms` | integer | `1800000` | The whole analysis, every part and the merge, must finish within this; then it is `failed` with `provider_unavailable` and `meetings.analyze` runs it again. 30 minutes covers about two hours of meeting when the model runs on the CPU, for instance while a game holds the GPU; on the GPU an hour's analysis takes about a minute. |
 | `chunk_chars` | integer | `12000` | Characters of transcript per model call. A longer transcript is cut on segment boundaries and each part analysed on its own; a part whose answer the model cut off is halved and analysed in two (up to four levels), the parts' decisions and action items are joined in code, and the model combines their summaries in calls of at most this many characters, retried on smaller groups when a call does not fit (ADR 0062). On the local engine's 4096-token context a part of 12000 characters can overflow; a smaller value avoids the wasted call. |
 | `provider` | string | `""` | The provider the analysis asks: `local`, `ollama`, `openai_compatible` or `auto`; empty follows `[llm] provider`. `[llm] analysis_model` names the local model. |
 

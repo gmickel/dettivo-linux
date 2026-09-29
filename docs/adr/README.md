@@ -78,12 +78,13 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0071](0071-a-running-meeting-answers-its-transcript-so-far-with-a-cursor.md) | A running meeting answers its transcript so far through `meetings.segments`, with a cursor that holds from the first second to the stored row | Accepted 2026-09-26 |
 | [0072](0072-every-remote-line-takes-the-speaker-of-its-sentence.md) | Every remote line takes the speaker who holds most of its sentence, and a line outside every turn takes the nearest one within ten seconds | Accepted 2026-09-26, amends 0035; amended by 0074, 0075 and 0076 |
 | [0073](0073-nemotron-3-diarization-runs-through-nemo-speech-cpp.md) | Nemotron 3 Diarization runs through a pinned NeMo-Speech.cpp in its own engine process on the CPU, Vulkan or CUDA, falls back to the sherpa-onnx set over eight speakers or when missing, and ships opt-in | Accepted 2026-09-26, amends 0004, 0035 and 0057; default re-decided by 0078 |
-| [0074](0074-whisper-times-every-word-by-dtw-for-speaker-labelling.md) | Whisper times every word by DTW, and a segment's span follows its words | Accepted 2026-09-27, amends 0072 |
+| [0074](0074-whisper-times-every-word-by-dtw-for-speaker-labelling.md) | Whisper times every word by DTW, and a segment's span follows its words | Accepted 2026-09-27, amends 0072; amended by 0080 |
 | [0075](0075-two-track-meetings-use-both-tracks-to-name-speakers.md) | A two-track meeting drops the microphone lines you did not voice, gives one remote voice every remote line, diarizes a shared microphone, and names your voice You from a voiceprint kept on this machine | Accepted 2026-09-27, amends 0035 and 0072 |
 | [0076](0076-each-sentence-is-checked-against-the-speakers-voices.md) | Each sentence is checked against the speakers' voices, and moves when its voice clearly belongs to another speaker | Accepted 2026-09-28, amends 0072 |
 | [0077](0077-a-window-the-gpu-cannot-draw-restarts-once-on-the-software-renderer.md) | A window the GPU cannot draw restarts once on Qt's software renderer, and `[app] renderer` can choose software from the start | Accepted 2026-09-28 |
 | [0078](0078-the-final-bench-keeps-the-sherpa-onnx-set-the-default.md) | The final bench with every labelling rule on keeps the sherpa-onnx set the default and Nemotron opt-in | Accepted 2026-09-28, supersedes 0073's default |
 | [0079](0079-a-release-builds-each-ggml-engine-in-its-own-job.md) | A release builds each ggml engine in its own CI job and assembles the package from them, and NeMo-Speech.cpp links with no undefined symbols | Accepted 2026-09-29, amends 0070 |
+| [0080](0080-whisper-cpp-carries-a-dtw-median-filter-guard.md) | whisper.cpp carries a DTW median-filter guard, a chunk the engine dies on twice becomes a marked gap, and an engine that crashes on the GPU moves to the CPU | Accepted 2026-09-29, amends 0074 |
 
 ## Writing a record
 

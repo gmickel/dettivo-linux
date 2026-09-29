@@ -1,6 +1,6 @@
 # 0074. Whisper times every word by DTW, and a segment's span follows its words
 
-Status: Accepted 2026-09-27, amends [0072](0072-every-remote-line-takes-the-speaker-of-its-sentence.md) (its note on word timings)
+Status: Accepted 2026-09-27, amends [0072](0072-every-remote-line-takes-the-speaker-of-its-sentence.md) (its note on word timings); amended by [0080](0080-whisper-cpp-carries-a-dtw-median-filter-guard.md)
 
 ## What this gives you
 
