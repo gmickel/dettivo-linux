@@ -104,7 +104,11 @@ struct Host<E, W: Write> {
 
 impl<E: DiarizeEngine, W: Write> Host<E, W> {
     fn send(&mut self, frame: &Frame) -> bool {
-        write_frame(&mut self.out, frame, &[]).is_ok()
+        write_frame(&mut self.out, frame, &[])
+            .inspect_err(
+                |e| tracing::error!(error = %e, "could not send a frame; the engine stops"),
+            )
+            .is_ok()
     }
 
     /// The `diarize` response, with the frame probabilities as its one
@@ -122,7 +126,11 @@ impl<E: DiarizeEngine, W: Write> Host<E, W> {
             kind: FRAME_PROBABILITIES_KIND.into(),
             bytes: result.probabilities.len() as u64,
         });
-        write_frame(&mut self.out, &frame, &[&result.probabilities]).is_ok()
+        write_frame(&mut self.out, &frame, &[&result.probabilities])
+            .inspect_err(
+                |e| tracing::error!(error = %e, "could not send a frame; the engine stops"),
+            )
+            .is_ok()
     }
 
     fn status(&self, id: u64, busy: bool) -> Frame {

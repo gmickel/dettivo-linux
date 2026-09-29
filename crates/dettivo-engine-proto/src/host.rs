@@ -73,7 +73,9 @@ fn error_frame(id: u64, code: &str, message: &str) -> Frame {
 }
 
 fn send<W: Write>(out: &mut W, frame: &Frame) -> bool {
-    write_frame(out, frame, &[]).is_ok()
+    write_frame(out, frame, &[])
+        .inspect_err(|e| tracing::error!(error = %e, "could not send a frame; the engine stops"))
+        .is_ok()
 }
 
 /// Runs the protocol on stdin/stdout until stdin closes.

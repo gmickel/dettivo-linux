@@ -7,7 +7,9 @@
 //! `crash-on-load` file next to the binary, or a `recognize` whose language
 //! is `crash`, or a `generate` whose user text is `__CRASH__`, or a
 //! `diarize` while a `crash-on-diarize` file sits next to the binary).
-//! With a `gpu-oom-on-request` file beside it, a load that is not on the
+//! `embed` answers one 192-value vector per span whose first three values
+//! are the span's start and end and the audio's length, all in ms, as the
+//! engine received them. With a `gpu-oom-on-request` file beside it, a load that is not on the
 //! CPU reports `vulkan` and every `recognize` then aborts, as ggml does
 //! when the GPU has no memory left.
 //! `diarize` answers one turn per second of audio, alternating two
@@ -121,6 +123,22 @@ fn main() {
                         "backend": "cpu"
                     }),
                 )
+            }
+            "embed" => {
+                let audio_ms = attachments.first().map(|a| a.len() / 32).unwrap_or(0) as f64;
+                let vectors: Vec<serde_json::Value> = frame.payload["spans"]
+                    .as_array()
+                    .into_iter()
+                    .flatten()
+                    .map(|span| {
+                        let mut v = vec![0.0f64; 192];
+                        v[0] = span["start_ms"].as_f64().unwrap_or(-1.0);
+                        v[1] = span["end_ms"].as_f64().unwrap_or(-1.0);
+                        v[2] = audio_ms;
+                        json!(v)
+                    })
+                    .collect();
+                Frame::response(id, "embed", json!({"embeddings": vectors}))
             }
             "diarize" => {
                 let marker = std::env::current_exe()

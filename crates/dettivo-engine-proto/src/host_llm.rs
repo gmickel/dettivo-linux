@@ -93,7 +93,11 @@ struct Host<E, W: Write> {
 
 impl<E: LanguageEngine, W: Write> Host<E, W> {
     fn send(&mut self, frame: &Frame) -> bool {
-        write_frame(&mut self.out, frame, &[]).is_ok()
+        write_frame(&mut self.out, frame, &[])
+            .inspect_err(
+                |e| tracing::error!(error = %e, "could not send a frame; the engine stops"),
+            )
+            .is_ok()
     }
 
     fn status(&self, busy: bool) -> Frame {

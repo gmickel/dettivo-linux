@@ -467,3 +467,6 @@ fn the_parakeet_engine_recognizes_the_fixture_over_the_protocol_with_words() {
 
 #[path = "support/cpu_fallback.rs"]
 mod cpu_fallback;
+
+#[path = "support/embed_batches.rs"]
+mod embed_batches;
