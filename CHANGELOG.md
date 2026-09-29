@@ -7,6 +7,7 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 ### Fixed
 
 - Settings saves vocabulary terms and polish transforms again. Adding a term in Settings / Vocabulary, or switching a transform in Settings / Polish, sent no list at all, and the page answered `dictation.vocabulary: expected a list of strings, got null`. Reported by @gmickel.
+- `dettivo config set` takes a list or table typed as it appears in the file, such as `dettivo config set dictation.vocabulary '["SapienXT", "Dettivo"]'`. It used to store the brackets inside one entry; the comma form (`SapienXT, Dettivo`) still works. Reported by @gmickel.
 
 ## [0.4.0] - 2026-09-28
 
