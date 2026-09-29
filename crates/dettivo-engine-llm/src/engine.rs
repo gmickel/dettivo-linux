@@ -92,6 +92,9 @@ pub fn last_device_usage() -> Option<u64> {
     }
 }
 
+#[path = "engine_cpu_fallback.rs"]
+mod cpu_fallback;
+
 /// A loaded model, with the LoRA adapter `load` named applied over it in
 /// every context (ADR 0032).
 pub struct Engine {
@@ -101,6 +104,11 @@ pub struct Engine {
     device: Option<usize>,
     n_ctx: u32,
     threads: i32,
+    path: String,
+    lora_path: Option<String>,
+    /// Loaded on the GPU by the `auto` preference, so a GPU that cannot
+    /// run a generation may move it to the CPU.
+    gpu_fallback: bool,
 }
 
 /// The weight a sideloaded adapter is applied with: the fine-tune as
@@ -232,9 +240,12 @@ impl LanguageEngine for Engine {
                 reason,
                 fallback_reason: None,
             },
+            gpu_fallback: device.is_some() && params.backend_preference == BackendPreference::Auto,
             device,
             n_ctx,
             threads: threads(),
+            path: path.to_string(),
+            lora_path: params.lora.clone(),
         })
     }
 
@@ -246,7 +257,36 @@ impl LanguageEngine for Engine {
         device_usage(self.device)
     }
 
+    /// A GPU short of memory (a game holding it) cannot allocate the
+    /// context or run the prompt; under `auto`, and before any text has
+    /// streamed, the model moves to the CPU and the generation runs again.
     fn generate(
+        &mut self,
+        params: &GenerateParams,
+        partial: &mut dyn FnMut(&str),
+        cancelled: &mut dyn FnMut() -> bool,
+    ) -> Result<GenerateResult, EngineError> {
+        let mut streamed = false;
+        let first = {
+            let mut watch = |piece: &str| {
+                streamed = true;
+                partial(piece);
+            };
+            self.generate_once(params, &mut watch, cancelled)
+        };
+        match first {
+            Err(e) if self.gpu_fallback && !streamed && e.code == "internal" => {
+                tracing::warn!(error = %e.message, "generation failed on the GPU; moving the model to the CPU");
+                self.move_to_cpu(&e.message)?;
+                self.generate_once(params, partial, cancelled)
+            }
+            other => other,
+        }
+    }
+}
+
+impl Engine {
+    fn generate_once(
         &mut self,
         params: &GenerateParams,
         partial: &mut dyn FnMut(&str),
@@ -272,7 +312,12 @@ impl LanguageEngine for Engine {
             .with_n_ctx(std::num::NonZeroU32::new(self.n_ctx))
             .with_n_batch(N_BATCH.min(self.n_ctx))
             .with_n_threads(self.threads)
-            .with_n_threads_batch(self.threads);
+            .with_n_threads_batch(self.threads)
+            // A CPU model keeps its context off the GPU: llama.cpp would
+            // otherwise put the KV cache and large operations on a Vulkan
+            // device even with no layers there, and fail when it is full.
+            .with_offload_kqv(self.device.is_some())
+            .with_op_offload(self.device.is_some());
         let mut ctx = self
             .model
             .new_context(backend_init(), ctx_params)
