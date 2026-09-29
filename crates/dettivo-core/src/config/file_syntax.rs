@@ -5,14 +5,16 @@
 use serde_json::{Map, Value};
 use toml_edit::DocumentMut;
 
+/// Whether `text` is written as a TOML array or inline table, `[...]` or
+/// `{...}`, rather than in the comma form.
+pub fn is_file_syntax(text: &str) -> bool {
+    text.trim_start().starts_with(['[', '{'])
+}
+
 /// The JSON form of `text` when it is a TOML array or inline table of
-/// strings; `None` when it is neither or does not parse, so the caller
-/// falls back to the comma form or reports the type it wanted.
+/// strings; `None` when it does not parse or holds anything but strings.
 pub fn parse(text: &str) -> Option<Value> {
     let text = text.trim();
-    if !text.starts_with(['[', '{']) {
-        return None;
-    }
     let doc = format!("v = {text}").parse::<DocumentMut>().ok()?;
     let value = doc.get("v")?.as_value()?;
     if let Some(array) = value.as_array() {
@@ -43,7 +45,7 @@ mod tests {
             parse(r#" { foot = "ctrl+shift+v" } "#),
             Some(json!({"foot": "ctrl+shift+v"}))
         );
-        assert_eq!(parse("SapienXT, Dettivo"), None);
+        assert!(!super::is_file_syntax("SapienXT, Dettivo"));
         assert_eq!(parse("[1, 2]"), None);
         assert_eq!(parse("[\"unclosed\""), None);
     }
@@ -56,5 +58,8 @@ mod tests {
             out.contains(r#"vocabulary = ["SapienXT", "Dettivo"]"#),
             "{out}"
         );
+        let err =
+            crate::config::edit::set("", "dictation.vocabulary", &json!("[1, 2]")).unwrap_err();
+        assert!(err.message.contains("a list of strings"), "{}", err.message);
     }
 }

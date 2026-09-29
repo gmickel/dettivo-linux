@@ -137,8 +137,12 @@ pub fn coerce(key: &str, value: &Value) -> Result<toml_edit::Value, ValidationEr
         message: format!("{key}: expected {want}, got {value}"),
     };
     if let (Kind::List | Kind::Table, Value::String(s)) = (kind, value) {
-        if let Some(parsed) = super::file_syntax::parse(s) {
-            return coerce(key, &parsed);
+        if super::file_syntax::is_file_syntax(s) {
+            return match super::file_syntax::parse(s) {
+                Some(parsed) => coerce(key, &parsed),
+                None if kind == Kind::List => Err(mismatch("a list of strings")),
+                None => Err(mismatch("a table of strings")),
+            };
         }
     }
     Ok(match (kind, value) {
