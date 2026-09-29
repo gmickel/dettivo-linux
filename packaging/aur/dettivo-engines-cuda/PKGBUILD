@@ -1,6 +1,6 @@
 # Maintainer: Gordon Mickel <gordon@mickel.tech>
 pkgname=dettivo-engines-cuda
-pkgver=0.4.0
+pkgver=0.4.1
 pkgrel=1
 pkgdesc="CUDA diarization engine drop-in for Dettivo"
 arch=('x86_64')
