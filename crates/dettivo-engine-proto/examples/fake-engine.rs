@@ -7,6 +7,9 @@
 //! `crash-on-load` file next to the binary, or a `recognize` whose language
 //! is `crash`, or a `generate` whose user text is `__CRASH__`, or a
 //! `diarize` while a `crash-on-diarize` file sits next to the binary).
+//! With a `gpu-oom-on-request` file beside it, a load that is not on the
+//! CPU reports `vulkan` and every `recognize` then aborts, as ggml does
+//! when the GPU has no memory left.
 //! `diarize` answers one turn per second of audio, alternating two
 //! speakers, after one `progress` event. Speaks the protocol on
 //! stdin/stdout exactly like a real engine.
@@ -22,6 +25,7 @@ fn main() {
     let mut reader = BufReader::new(stdin.lock());
     let mut out = BufWriter::new(stdout.lock());
     let mut model: Option<String> = None;
+    let mut on_gpu = false;
     eprintln!("fake-engine: ready pid={}", std::process::id());
     loop {
         let (frame, attachments) = match read_frame(&mut reader) {
@@ -71,7 +75,11 @@ fn main() {
                 }
                 let m = frame.payload["model"].as_str().unwrap_or("").to_string();
                 model = Some(m.clone());
-                let loaded = json!({"model": m, "backend": "cpu", "reason": "fake engine"});
+                on_gpu = dir.join("gpu-oom-on-request").exists()
+                    && preference != "cpu"
+                    && std::env::var("DETTIVO_FORCE_CPU").as_deref() != Ok("1");
+                let backend = if on_gpu { "vulkan" } else { "cpu" };
+                let loaded = json!({"model": m, "backend": backend, "reason": "fake engine"});
                 let _ = write_frame(&mut out, &Frame::event(0, "loaded", loaded.clone()), &[]);
                 Frame::response(id, "load", loaded)
             }
@@ -147,6 +155,10 @@ fn main() {
                 if language == "crash" {
                     eprintln!("fake-engine: crashing on request");
                     std::process::exit(4);
+                }
+                if on_gpu {
+                    eprintln!("ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory");
+                    std::process::abort();
                 }
                 if language == "stall" {
                     eprintln!("fake-engine: stalling on request");
