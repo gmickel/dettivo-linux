@@ -4,6 +4,8 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-09-30
+
 ### Fixed
 
 - Start meeting starts the next meeting while the last one is still being transcribed, analysed or given its speakers. It used to reopen the finishing meeting, so the next meeting could not start until the last one completed, which took half an hour on the CPU. The finishing meeting shows its progress on its own row and in its meeting view, and its completion leaves the new recording alone. Start meeting still returns to a meeting that is recording or stopping. Reported by @gmickel.
