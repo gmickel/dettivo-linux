@@ -62,6 +62,7 @@ fn engine(dir: &Path) -> (std::sync::Arc<Supervisor>, LlmEngine) {
         llm_idle: Duration::from_secs(60),
         force_cpu: true,
         load_timeout: Duration::from_secs(10),
+        ..Settings::default()
     });
     let engine = LlmEngine::new(
         supervisor.clone(),
@@ -270,6 +271,7 @@ fn the_real_engine_is_unloaded_after_the_idle_timeout_and_the_device_memory_drop
         llm_idle: Duration::from_secs(1),
         force_cpu: false,
         load_timeout: Duration::from_secs(120),
+        ..Settings::default()
     });
     let engine = LlmEngine::new(
         supervisor.clone(),

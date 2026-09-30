@@ -8,7 +8,9 @@
 // followed through `stopping` and `transcribing` (the chunk counts from
 // `job.progress`) into `completed`, which the route turns into the
 // detail. A meeting started elsewhere (the bar, the command line) is
-// adopted from its first `recording` event.
+// adopted from its first `recording` event. A meeting that is
+// transcribing is followed until another starts: the new one replaces it
+// here, and the finishing one reports on its own row and detail.
 #pragma once
 
 #include "daemon_link.h"
@@ -31,6 +33,7 @@ class MeetingLiveModel : public QObject {
     Q_PROPERTY(QString state READ state NOTIFY changed)
     Q_PROPERTY(bool active READ active NOTIFY changed)
     Q_PROPERTY(bool recording READ recording NOTIFY changed)
+    Q_PROPERTY(bool capturing READ capturing NOTIFY changed)
     Q_PROPERTY(bool finishing READ finishing NOTIFY changed)
     Q_PROPERTY(bool starting READ starting NOTIFY changed)
     Q_PROPERTY(QString title READ title NOTIFY changed)
@@ -93,6 +96,13 @@ public:
     bool active() const { return !m_id.isEmpty(); }
     /// Capturing, and no stop has been asked for.
     bool recording() const { return m_state == QStringLiteral("recording") && !m_stopRequested; }
+    /// The daemon's recording slot is taken: the meeting records or is
+    /// closing its takes. Once it transcribes, analyses or assigns
+    /// speakers the slot is free and Start begins the next meeting.
+    bool capturing() const
+    {
+        return !m_id.isEmpty() && (m_state == QStringLiteral("recording") || m_state == QStringLiteral("stopping"));
+    }
     /// A stop was asked for, or the daemon is closing the takes or
     /// building the transcript.
     bool finishing() const;

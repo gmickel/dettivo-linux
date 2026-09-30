@@ -85,14 +85,22 @@ TestCase {
         compare(live.starts[1].speakers, 3);
         compare(live.starts[1].analyze, false);
         compare(live.starts[1].diarize, undefined);
+        // A meeting that is transcribing leaves the recording slot free:
+        // Start begins the next meeting instead of reopening the last.
         live.active = true;
+        live.state = "transcribing";
         const router = createTemporaryObject(routerC, root);
         rail.router = router;
+        mouseClick(findByName(rail, "Start meeting"));
+        compare(live.starts.length, 3);
+        compare(router.page, "meetings");
+        live.state = "recording";
+        live.capturing = true;
         const resume = findByName(rail, "Return to meeting");
         verify(resume.enabled);
         mouseClick(resume);
         compare(router.page, "meetings.live");
-        compare(live.starts.length, 2);
+        compare(live.starts.length, 3);
     }
 
     function test_rail_reads_the_analysis_default_from_the_configuration() {

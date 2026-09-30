@@ -18,7 +18,7 @@ use crate::EngineError;
 
 #[path = "process_diagnostics.rs"]
 mod diagnostics;
-pub use diagnostics::diagnostic_lines;
+pub use diagnostics::{diagnostic_lines, is_library_exception};
 
 /// How many stderr lines are kept for a crash report.
 pub const STDERR_TAIL: usize = 20;
@@ -344,7 +344,9 @@ pub fn resident_bytes(pid: u32) -> Option<u64> {
 /// cannot carry it even if an engine misbehaves. Everything after the
 /// first colon is replaced when it runs longer than a short token run or
 /// reads like prose, a line without a colon that reads like prose is
-/// replaced whole, and every line is bounded.
+/// replaced whole, and every line is bounded. The C++ runtime's lines
+/// for an uncaught Vulkan or ggml exception carry only library text and
+/// stay whole.
 pub fn redact(line: &str) -> String {
     const KEEP: usize = 120;
     const VALUE_CHARS: usize = 48;
@@ -354,6 +356,7 @@ pub fn redact(line: &str) -> String {
         words.len() >= PROSE_WORDS && words.iter().all(|w| w.chars().any(char::is_alphabetic))
     };
     let redacted = match line.split_once(':') {
+        _ if is_library_exception(line) => line.to_string(),
         Some((key, value)) => {
             let value = value.trim();
             if value.chars().count() > VALUE_CHARS || looks_like_prose(value) {
@@ -451,5 +454,9 @@ mod tests {
         assert!(redact(bare).starts_with("<redacted"));
         let key_value = "text: MARKER_PROMPT_TEXT_THAT_IS_LONGER_THAN_FORTY_EIGHT_CHARACTERS_1234";
         assert!(!redact(key_value).contains("MARKER"));
+        let what = "  what():  vk::Device::allocateMemory: ErrorOutOfDeviceMemory";
+        assert_eq!(redact(what), what);
+        let speech = "  what():  and so my fellow americans ask not what your country can do";
+        assert!(!redact(speech).contains("americans"));
     }
 }

@@ -72,6 +72,7 @@ fn settings(dir: &Path, idle: Duration) -> Settings {
         llm_idle: idle / 4,
         force_cpu: true,
         load_timeout: Duration::from_secs(10),
+        ..Settings::default()
     }
 }
 
@@ -331,6 +332,7 @@ fn the_whisper_engine_recognizes_the_fixture_over_the_protocol() {
         llm_idle: Duration::from_secs(60),
         force_cpu: true,
         load_timeout: Duration::from_secs(120),
+        ..Settings::default()
     });
     let engine = WhisperEngine::new(
         supervisor.clone(),
@@ -404,6 +406,7 @@ fn the_parakeet_engine_recognizes_the_fixture_over_the_protocol_with_words() {
         llm_idle: Duration::from_secs(60),
         force_cpu: false,
         load_timeout: Duration::from_secs(120),
+        ..Settings::default()
     });
     let engine = ParakeetEngine::new(supervisor.clone(), model.to_string_lossy().into_owned())
         .with_backend(dettivo_engine_proto::BackendPreference::Cpu);
@@ -467,6 +470,9 @@ fn the_parakeet_engine_recognizes_the_fixture_over_the_protocol_with_words() {
 
 #[path = "support/cpu_fallback.rs"]
 mod cpu_fallback;
+
+#[path = "support/gpu_retry.rs"]
+mod gpu_retry;
 
 #[path = "support/embed_batches.rs"]
 mod embed_batches;

@@ -4,6 +4,12 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Fixed
+
+- Start meeting starts the next meeting while the last one is still being transcribed, analysed or given its speakers. It used to reopen the finishing meeting, so the next meeting could not start until the last one completed, which took half an hour on the CPU. The finishing meeting shows its progress on its own row and in its meeting view, and its completion leaves the new recording alone. Start meeting still returns to a meeting that is recording or stopping. Reported by @gmickel.
+- An engine that moved to the CPU because the GPU was full goes back to the GPU once the GPU has room. It used to stay on the CPU until it had been idle for 5 minutes, so back-to-back meetings transcribed on the CPU for hours. The supervisor now tries the GPU again 2 minutes after the fallback, and doubles the wait up to 30 minutes while the GPU stays full ([ADR 0080](docs/adr/0080-whisper-cpp-carries-a-dtw-median-filter-guard.md)). Reported by @gmickel.
+- An engine crash on the GPU logs the Vulkan error that caused it, such as `vk::Device::allocateMemory: ErrorOutOfDeviceMemory`. The crash warning dropped the C++ runtime's `terminate called after throwing an instance of ...` and `what(): ...` lines. Reported by @gmickel.
+
 ## [0.4.2] - 2026-09-30
 
 ### Fixed
