@@ -15,7 +15,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-77-start-a-meeting-while-another-finishes.md",
-  "status": "open",
+  "status": "done",
   "title": "Start a meeting while another finishes, and go back to the GPU once it has room",
   "tracker": {
     "baseHashFlow": null,
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-30T14:56:56.074463Z"
+  "updated_at": "2026-09-30T15:20:39.831049Z"
 }

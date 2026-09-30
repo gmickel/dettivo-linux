@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-77-start-a-meeting-while-another-finishes",
   "spec_path": ".flow/tasks/fn-77-start-a-meeting-while-another-finishes.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Start a meeting while another finishes, and go back to the GPU once it has room",
   "updated_at": "2026-09-30T14:56:56.383298Z"
 }
