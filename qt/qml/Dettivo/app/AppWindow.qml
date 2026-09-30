@@ -78,7 +78,7 @@ Window {
     function startMeetingFromHome() {
         if (!root.router)
             return;
-        if (root.meetingLive && root.meetingLive.active) {
+        if (root.meetingLive && root.meetingLive.capturing) {
             root.router.open("meetings.live");
             return;
         }
@@ -227,7 +227,7 @@ Window {
     Component {
         id: homePage
         HomeRoute {
-            meetingActive: root.meetingLive ? root.meetingLive.active : false
+            meetingActive: root.meetingLive ? root.meetingLive.capturing : false
             config: root.config
             engines: root.engines
             router: root.router

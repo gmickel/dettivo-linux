@@ -52,6 +52,7 @@ private slots:
     void liveSegmentsKeepEveryFragmentOfTheTailAndFinalsInOrder();
     void liveModelGatesOnDisclosureStartsAndStops();
     void liveModelUsesRecordedEngineAndCompletesWithQueuedPasses();
+    void liveModelStartsTheNextMeetingWhileTheLastTranscribes();
 };
 
 void AppMeetingsTest::listGroupsByWeekChipsAndSwatches()
@@ -303,6 +304,44 @@ void AppMeetingsTest::liveModelUsesRecordedEngineAndCompletesWithQueuedPasses()
     link.answers["meetings.get"]["stt_model_id"] = "tiny";
     link.answerPending();
     QCOMPARE(live.engineLabel(), QStringLiteral("whisper small"));
+}
+
+// The daemon frees its recording slot before a meeting transcribes, so
+// Start begins the next meeting then; the finishing meeting's progress,
+// completion and failure never touch the new live meeting (fn-77 R1, R2).
+void AppMeetingsTest::liveModelStartsTheNextMeetingWhileTheLastTranscribes()
+{
+    FakeLink link;
+    link.answers.insert("meetings.disclosure.get", {{"acknowledged", true}});
+    link.answers.insert("meetings.start", {{"ref", QJsonObject{{"id", "m1"}}}, {"job", QJsonObject{{"job_id", "job_1"}}}});
+    link.answers.insert("meetings.stop", {{"job", QJsonObject{{"job_id", "job_1"}}}});
+    MeetingLiveModel live(&link);
+    QSignalSpy completed(&live, &MeetingLiveModel::completed);
+    QSignalSpy failed(&live, &MeetingLiveModel::failed);
+    live.start(QString(), true, QString(), QString(), 0);
+    QVERIFY(live.capturing());
+    live.stop();
+    QCOMPARE(live.state(), QStringLiteral("stopping"));
+    QVERIFY(live.capturing());
+    link.notify("meeting.state", {{"meeting_id", "m1"}, {"state", "transcribing"}});
+    QVERIFY(live.active());
+    QVERIFY(!live.capturing());
+
+    link.answers["meetings.start"] = {{"ref", QJsonObject{{"id", "m2"}}}, {"job", QJsonObject{{"job_id", "job_2"}}}};
+    live.start(QString(), true, QString(), QString(), 0);
+    QCOMPARE(link.calls.count(QStringLiteral("meetings.start")), 2);
+    QCOMPARE(live.meetingId(), QStringLiteral("m2"));
+    QVERIFY(live.recording());
+    link.notify("meeting.state", {{"meeting_id", "m2"}, {"state", "recording"}});
+    link.notify("job.progress", {{"job_id", "job_1"}, {"stage", "transcribing"}, {"chunks_done", 3}, {"chunks_total", 9}});
+    QCOMPARE(live.chunksTotal(), 0);
+    link.notify("meeting.state", {{"meeting_id", "m1"}, {"state", "completed"}, {"previous_state", "transcribing"}});
+    link.notify("meeting.state", {{"meeting_id", "m1"}, {"state", "failed"}, {"reason", "analysis failed"}});
+    QCOMPARE(completed.size(), 0);
+    QCOMPARE(failed.size(), 0);
+    QCOMPARE(live.meetingId(), QStringLiteral("m2"));
+    QVERIFY(live.recording());
+    QVERIFY(live.capturing());
 }
 
 QTEST_GUILESS_MAIN(AppMeetingsTest)

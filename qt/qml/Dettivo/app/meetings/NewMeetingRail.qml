@@ -54,7 +54,9 @@ Item {
         }
         return out;
     }
-    readonly property bool recording: root.live ? root.live.active : false
+    // Start reopens the live view only while the daemon holds the
+    // recording slot; a meeting that is transcribing lets the next start.
+    readonly property bool recording: root.live ? root.live.capturing : false
     readonly property bool acknowledged: root.live ? root.live.disclosureAcknowledged : false
     readonly property string micDevice: root.live && root.live.micDevice.length > 0 ? root.live.micDevice : (root.status && root.status.inputName.length > 0 ? root.status.inputName : qsTr("default source"))
     readonly property string systemDevice: root.live && root.live.systemDevice.length > 0 ? root.live.systemDevice : qsTr("monitor of the default sink")

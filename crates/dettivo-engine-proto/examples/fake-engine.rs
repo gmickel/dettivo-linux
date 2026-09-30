@@ -13,6 +13,9 @@
 //! CPU reports `vulkan` and every `recognize` then aborts, as ggml does
 //! when the GPU has no memory left; with `gpu-oom-error-on-request` it
 //! answers that as an `internal` error instead, as parakeet.cpp does.
+//! Either marker is read again on every `recognize`, so removing it frees
+//! the GPU; a `gpu-has-room` file makes a load report `vulkan` and serve
+//! requests.
 //! `diarize` answers one turn per second of audio, alternating two
 //! speakers, after one `progress` event. Speaks the protocol on
 //! stdin/stdout exactly like a real engine.
@@ -79,7 +82,8 @@ fn main() {
                 let m = frame.payload["model"].as_str().unwrap_or("").to_string();
                 model = Some(m.clone());
                 on_gpu = (dir.join("gpu-oom-on-request").exists()
-                    || dir.join("gpu-oom-error-on-request").exists())
+                    || dir.join("gpu-oom-error-on-request").exists()
+                    || dir.join("gpu-has-room").exists())
                     && preference != "cpu"
                     && std::env::var("DETTIVO_FORCE_CPU").as_deref() != Ok("1");
                 let backend = if on_gpu { "vulkan" } else { "cpu" };
@@ -176,13 +180,15 @@ fn main() {
                     eprintln!("fake-engine: crashing on request");
                     std::process::exit(4);
                 }
-                if on_gpu {
+                let dir = std::env::current_exe()
+                    .unwrap()
+                    .parent()
+                    .unwrap()
+                    .to_path_buf();
+                let full = dir.join("gpu-oom-on-request").exists()
+                    || dir.join("gpu-oom-error-on-request").exists();
+                if on_gpu && full {
                     let oom = "inference: vk::Device::allocateMemory: ErrorOutOfDeviceMemory";
-                    let dir = std::env::current_exe()
-                        .unwrap()
-                        .parent()
-                        .unwrap()
-                        .to_path_buf();
                     if dir.join("gpu-oom-error-on-request").exists() {
                         let payload = json!({"request_id": id, "code": "internal", "message": oom});
                         let _ = write_frame(&mut out, &Frame::response(id, "error", payload), &[]);
@@ -190,6 +196,10 @@ fn main() {
                         continue;
                     }
                     eprintln!("ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory");
+                    eprintln!(
+                        "terminate called after throwing an instance of 'vk::OutOfDeviceMemoryError'"
+                    );
+                    eprintln!("  what():  vk::Device::allocateMemory: ErrorOutOfDeviceMemory");
                     std::process::abort();
                 }
                 if language == "stall" {

@@ -21,14 +21,20 @@ pub use crate::supervisor_types::{EngineStatus, EngineTransition, LlmLoad, Setti
 #[path = "supervisor_status.rs"]
 mod status;
 
+#[path = "supervisor_recovery.rs"]
+mod recovery;
+pub use recovery::GPU_RETRY_CAP;
+use recovery::{Fallback, Route, record_crash};
+
 struct Slot {
     process: Option<EngineProcess>,
     loaded: Option<LoadedResult>,
     /// The complete `load` the engine holds; any difference reloads.
     params: Option<LoadParams>,
-    /// An automatic load that must stay on CPU until idle unload or a new
-    /// selection: Whisper's GPU load failed, or an engine crashed on the GPU.
-    cpu_fallback: Option<LoadParams>,
+    /// An automatic load held on the CPU after the GPU failed it
+    /// (Whisper's GPU load failed, an engine crashed on the GPU or ran out
+    /// of its memory), until the hold passes, an unload or a new selection.
+    fallback: Fallback,
     crashes: u32,
     next_allowed: Instant,
 }
@@ -91,7 +97,7 @@ impl Supervisor {
                     process: None,
                     loaded: None,
                     params: None,
-                    cpu_fallback: None,
+                    fallback: Fallback::default(),
                     crashes: 0,
                     next_allowed: Instant::now(),
                 }))
@@ -157,10 +163,11 @@ impl Supervisor {
         let slot = self.slot(binary);
         let mut s = slot.lock().unwrap_or_else(|p| p.into_inner());
         let mut params = params;
-        if s.cpu_fallback.as_ref() == Some(&params) {
-            params.backend_preference = BackendPreference::Cpu;
-        } else {
-            s.cpu_fallback = None;
+        // Only here, before a request, does an engine change backend.
+        match s.fallback.route(&params) {
+            Route::Cpu => params.backend_preference = BackendPreference::Cpu,
+            Route::RetryGpu => self.retry_gpu(&mut s, binary),
+            Route::Asked => {}
         }
         let result = self.with_locked(binary, params, &settings, &mut s, f);
         self.remember(binary, &mut s);
@@ -225,7 +232,8 @@ impl Supervisor {
                     // ggml may abort instead of returning a load error. The
                     // supervisor survives, so retry in a fresh CPU process.
                     self.discard_uncertain(s, binary, &e);
-                    s.cpu_fallback = Some(params.clone());
+                    s.fallback
+                        .fall_back(params.clone(), settings.gpu_retry_hold);
                     let mut cpu = params;
                     cpu.backend_preference = BackendPreference::Cpu;
                     tracing::warn!(engine = binary, error = %e, "automatic load failed; retrying on CPU");
@@ -234,9 +242,7 @@ impl Supervisor {
                 Ok(v) => {
                     let mut loaded: LoadedResult = serde_json::from_value(v)
                         .map_err(|e| EngineError::Transport(format!("load response: {e}")))?;
-                    if s.cpu_fallback.is_some()
-                        && loaded.backend == dettivo_engine_proto::Backend::Cpu
-                    {
+                    if s.fallback.active() && loaded.backend == dettivo_engine_proto::Backend::Cpu {
                         loaded.reason = format!(
                             "CPU fallback after the automatic backend failed; {}",
                             loaded.reason
@@ -292,7 +298,7 @@ impl Supervisor {
                         engine = binary,
                         "engine crashed on the GPU; running it on CPU"
                     );
-                    s.cpu_fallback = Some(params);
+                    s.fallback.fall_back(params, settings.gpu_retry_hold);
                 }
                 Err(EngineError::Crashed(tail))
             }
@@ -300,15 +306,48 @@ impl Supervisor {
                 if on_gpu.is_some() && e.to_string().contains("OutOfDeviceMemory") =>
             {
                 self.discard_uncertain(s, binary, &e);
-                s.cpu_fallback = on_gpu;
+                if let Some(params) = on_gpu {
+                    s.fallback.fall_back(params, settings.gpu_retry_hold);
+                }
                 Err(e)
             }
             Err(e @ EngineError::Transport(_)) => {
                 self.discard_uncertain(s, binary, &e);
                 Err(e)
             }
+            Ok(v) => {
+                if on_gpu.is_some() {
+                    s.fallback.gpu_worked();
+                }
+                Ok(v)
+            }
             other => other,
         }
+    }
+
+    /// Ends the CPU process of an engine whose fallback hold has passed,
+    /// so this request spawns it afresh and loads it on the GPU.
+    fn retry_gpu(&self, s: &mut Slot, binary: &str) {
+        tracing::info!(
+            engine = binary,
+            "trying the GPU again after the CPU fallback"
+        );
+        let Some(mut p) = s.process.take() else {
+            return;
+        };
+        p.terminate();
+        s.loaded = None;
+        s.params = None;
+        self.transition(
+            s,
+            EngineTransition {
+                binary: binary.to_string(),
+                state: "unloaded",
+                model: None,
+                backend: None,
+                reason: Some("trying the GPU again".into()),
+            },
+        );
     }
 
     /// Terminates an engine whose state is no longer known (a timed-out
@@ -401,7 +440,7 @@ impl Supervisor {
                 }
                 s.loaded = None;
                 s.params = None;
-                s.cpu_fallback = None;
+                s.fallback.clear();
                 stopped += 1;
                 self.transition(
                     &mut s,
@@ -453,46 +492,5 @@ impl Supervisor {
             })
             .collect();
         crate::tier::detect(self.force_cpu(), &loaded)
-    }
-}
-
-/// Counts a crash; `tail` is the redacted end of the engine's stderr, the
-/// only record of an engine's own abort message (ggml's among them).
-fn record_crash(s: &mut Slot, binary: &str, tail: &str) -> EngineTransition {
-    s.crashes += 1;
-    s.process = None;
-    s.loaded = None;
-    s.params = None;
-    let backoff = Duration::from_secs(1 << (s.crashes.min(4) - 1));
-    s.next_allowed = Instant::now() + backoff;
-    if s.crashes >= 3 {
-        tracing::error!(
-            engine = binary,
-            crashes = s.crashes,
-            stderr = %crate::process::diagnostic_lines(tail),
-            "engine degraded after repeated crashes"
-        );
-        EngineTransition {
-            binary: binary.to_string(),
-            state: "degraded",
-            model: None,
-            backend: None,
-            reason: Some(format!("{} crashes in a row", s.crashes)),
-        }
-    } else {
-        tracing::warn!(
-            engine = binary,
-            crashes = s.crashes,
-            backoff_seconds = backoff.as_secs(),
-            stderr = %crate::process::diagnostic_lines(tail),
-            "engine crashed"
-        );
-        EngineTransition {
-            binary: binary.to_string(),
-            state: "crashed",
-            model: None,
-            backend: None,
-            reason: Some(format!("restart in {} s", backoff.as_secs())),
-        }
     }
 }

@@ -114,7 +114,8 @@ TestCase {
     function test_home_start_uses_existing_meeting_flow(data) {
         const router = createTemporaryObject(routerC, root);
         const live = createTemporaryObject(liveC, root, {
-            active: data.active
+            active: data.active,
+            capturing: data.active
         });
         const window = createTemporaryObject(windowC, root, {
             router: router,

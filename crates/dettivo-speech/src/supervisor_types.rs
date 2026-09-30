@@ -23,6 +23,11 @@ pub struct Settings {
     pub force_cpu: bool,
     /// Longest wait for a load.
     pub load_timeout: Duration,
+    /// How long an engine that fell back to the CPU after a GPU failure
+    /// stays there before a request tries the GPU again; it doubles on
+    /// every repeat failure, up to `GPU_RETRY_CAP`. Two minutes; not a
+    /// configuration key.
+    pub gpu_retry_hold: Duration,
 }
 
 impl Default for Settings {
@@ -33,6 +38,7 @@ impl Default for Settings {
             llm_idle: Duration::from_secs(600),
             force_cpu: false,
             load_timeout: Duration::from_secs(120),
+            gpu_retry_hold: Duration::from_secs(120),
         }
     }
 }

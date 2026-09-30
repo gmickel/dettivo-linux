@@ -5,6 +5,7 @@ import QtQuick
 QtObject {
     property bool active: false
     property bool recording: false
+    property bool capturing: false
     property bool finishing: false
     property bool starting: false
     property string state: "idle"
