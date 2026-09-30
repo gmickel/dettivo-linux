@@ -1,11 +1,10 @@
 # Continuous integration for Dettivo for Linux: the fast loop.
 #
-# A pull request is proven twice: once on the machine that made it, where
-# the flow-next receipt records a green `just build test lint` for the
-# head, and once here on a clean container. This workflow re-runs exactly
-# that receipt command in one job (`gate`) and boots the QA rig on a clean
-# headless machine in another (`smoke`), which is the one thing a
-# development desktop cannot prove. Everything slower, the full drive
+# A pull request is proven here, on a clean container: this workflow runs
+# the gate, `just build test lint`, in one job (`gate`), while the machine
+# that made the change ran the checks for what it touched. Another job
+# (`smoke`) boots the QA rig on a clean headless machine, which is the one
+# thing a development desktop cannot prove. Everything slower, the full drive
 # matrix on both drivers, the dictation pack, the visual matrix, the
 # advisory Vulkan builds and the package jobs, lives in rig.yml and runs
 # nightly, on demand and at a release (ADR 0040).
@@ -51,8 +50,8 @@ env:
 # fetched with an anonymous pull token.
 
 jobs:
-  # The receipt, re-proven: `just build test lint` is the local gate and
-  # the command flow-next records for every head. CI runs it without the
+  # The gate: `just build test lint`, the command every change ships on.
+  # CI runs it without the
   # separate `cargo build`: `cargo test --workspace` compiles every test,
   # binary and example the checks need, and `test-qt` builds the Qt tree,
   # so the same checks run for one Rust build fewer. The target cache is
