@@ -32,7 +32,7 @@ members = [
 exclude = ["third_party/whisper-rs-sys"]
 
 [workspace.package]
-version = "0.4.1"
+version = "0.4.2"
 edition = "2024"
 license = "GPL-3.0-or-later"
 repository = "https://github.com/gmickel/dettivo-linux"

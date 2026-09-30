@@ -209,6 +209,12 @@ fn the_analysis_runs_map_then_reduce_from_the_fixture_and_keeps_the_old_one_on_f
     );
     let by_analysis = daemon.result("meetings.search", json!({"query": "rollout", "limit": 10}));
     assert!(!by_analysis["items"].as_array().unwrap().is_empty());
+    // The row is stored before the "ready" line is logged, and the log
+    // arrives through a reader thread, so the line may trail the answer.
+    let logged = Instant::now() + Duration::from_secs(5);
+    while !daemon.log().contains("parts=2") && Instant::now() < logged {
+        std::thread::sleep(Duration::from_millis(20));
+    }
     assert!(
         daemon.log().contains("parts=2"),
         "a transcript over chunk_chars runs map then reduce: {}",

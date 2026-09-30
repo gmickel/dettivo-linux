@@ -86,7 +86,7 @@ impl Shared {
             timestamps: request.timestamps,
         };
         let pcm = dettivo_engine_proto::pcm_to_bytes(&request.pcm);
-        self.supervisor.with_engine_on(
+        let result: RecognizeResult = self.supervisor.with_engine_on(
             self.binary,
             &self.model,
             self.vad_model.as_deref(),
@@ -103,7 +103,15 @@ impl Shared {
                 serde_json::from_value(value)
                     .map_err(|e| EngineError::Transport(format!("recognize response: {e}")))
             },
-        )
+        )?;
+        // An engine moves itself to the CPU when the GPU has no room for an
+        // inference (ADR 0080); the supervisor's record follows it.
+        self.supervisor.note_backend(
+            self.binary,
+            result.backend,
+            "the GPU had no room for an inference, CPU fallback",
+        );
+        Ok(result)
     }
 
     fn backend(&self) -> Option<Backend> {

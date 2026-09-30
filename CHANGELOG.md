@@ -4,8 +4,11 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-09-30
+
 ### Fixed
 
+- Dictation works while a game holds the GPU. A Parakeet engine that started with too little GPU memory left failed every dictation with `vk::Device::allocateMemory: ErrorOutOfDeviceMemory` until it was restarted; it now moves to the CPU and finishes the dictation, and any engine that reports the GPU out of memory is restarted on the CPU instead of kept warm ([ADR 0080](docs/adr/0080-whisper-cpp-carries-a-dtw-median-filter-guard.md)). Reported by @gmickel.
 - Re-run on a meeting whose transcription failed, was cancelled, stopped or cut short transcribes it again from its retained audio, the same as `dettivo meetings recover <id>`, and the meeting view follows the new run. It was always disabled. When the audio is gone, or the meeting is still recording or being transcribed, Re-run stays disabled and its tooltip says why. Reported by @gmickel.
 - The progress bar under a running meeting stage stays inside the processing strip. While it swept, it drew a line from the window's left edge across the sidebar. Reported by @gmickel.
 
