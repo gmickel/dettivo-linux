@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-77-start-a-meeting-while-another-finishes",
+  "created_at": "2026-09-30T13:04:02.379614Z",
+  "depends_on_epics": [],
+  "id": "fn-77-start-a-meeting-while-another-finishes",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-77-start-a-meeting-while-another-finishes.md",
+  "status": "open",
+  "title": "Start a meeting while another finishes, and go back to the GPU once it has room",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-30T13:04:02.384930Z"
+}
