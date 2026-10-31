@@ -367,7 +367,7 @@ impl Jobs {
             } else {
                 item.language.clone()
             },
-            prompt: (!d.vocabulary.is_empty()).then(|| d.vocabulary.join(", ")),
+            prompt: dettivo_speech::vocabulary_prompt(&d.vocabulary),
             replacements: d
                 .replacements
                 .iter()

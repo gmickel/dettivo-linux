@@ -18,7 +18,7 @@ Item {
     readonly property string engine: root.live && root.live.engineLabel.length > 0 ? root.live.engineLabel : qsTr("selected engine")
 
     Item {
-        id: header
+        id: heading
         anchors.left: parent.left
         anchors.leftMargin: Theme.pagePaddingX
         anchors.right: parent.right
@@ -59,7 +59,7 @@ Item {
         anchors.leftMargin: Theme.pagePaddingX
         anchors.right: parent.right
         anchors.rightMargin: Theme.pagePaddingX
-        anchors.top: header.bottom
+        anchors.top: heading.bottom
         clip: true
         model: root.segments
         spacing: Theme.space3
@@ -96,7 +96,7 @@ Item {
         anchors.leftMargin: Theme.pagePaddingX
         anchors.right: parent.right
         anchors.rightMargin: Theme.pagePaddingX
-        anchors.top: header.bottom
+        anchors.top: heading.bottom
         anchors.topMargin: Theme.space5
         reason: qsTr("The first window reaches the engine after a few seconds of speech; a quiet room adds nothing.")
         title: qsTr("Listening.")

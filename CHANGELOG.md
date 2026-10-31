@@ -4,6 +4,10 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Fixed
+
+- English dictation stays English when a vocabulary is set. Whisper received `[dictation] vocabulary` as a comma list with no closing punctuation, and that open list turned some English takes into German or Japanese, even with `language = "en"`. The prompt now ends with a full stop, built the same way for dictation, re-runs, retries, meetings and imports ([docs/engines.md](docs/engines.md)). Reported by @DanielKillenberger in #37.
+
 ## [0.4.3] - 2026-09-30
 
 ### Fixed
