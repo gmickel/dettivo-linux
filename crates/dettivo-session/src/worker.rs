@@ -10,7 +10,7 @@ use std::time::{Duration, Instant};
 
 use dettivo_audio::takes::TakeWriter;
 use dettivo_audio::{EndReason, Event};
-use dettivo_speech::{EngineError, RecognizeRequest, SttEngine};
+use dettivo_speech::{EngineError, RecognizeRequest, SttEngine, vocabulary_prompt};
 
 use dettivo_language::pipeline::{Mode, Settings};
 use dettivo_language::provider::LocalEngine;
@@ -125,8 +125,7 @@ impl Worker {
             let request = RecognizeRequest {
                 pcm: samples,
                 language: self.policy.language.clone(),
-                prompt: (!self.policy.vocabulary.is_empty())
-                    .then(|| self.policy.vocabulary.join(", ")),
+                prompt: vocabulary_prompt(&self.policy.vocabulary),
                 timestamps: true,
             };
             self.engine

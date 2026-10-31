@@ -63,6 +63,21 @@ pub struct RecognizeRequest {
     pub timestamps: bool,
 }
 
+/// The prompt a vocabulary primes the engine with: the words joined by
+/// `", "` and closed with a full stop, or `None` for no words. Whisper reads
+/// an unterminated list as an open sentence, and it pulled some English takes
+/// into German even with the language forced (issue #37).
+pub fn vocabulary_prompt(words: &[String]) -> Option<String> {
+    if words.is_empty() {
+        return None;
+    }
+    let mut prompt = words.join(", ");
+    if !prompt.ends_with(['.', '!', '?']) {
+        prompt.push('.');
+    }
+    Some(prompt)
+}
+
 /// Why an engine call failed.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EngineError {
@@ -160,5 +175,36 @@ mod tests {
     #[test]
     fn upstream_edges_resolve() {
         assert_eq!(super::UPSTREAM, &["dettivo-proto", "dettivo-engine-proto"]);
+    }
+
+    fn prompt(words: &[&str]) -> Option<String> {
+        super::vocabulary_prompt(&words.iter().map(|w| w.to_string()).collect::<Vec<_>>())
+    }
+
+    #[test]
+    fn vocabulary_prompt_is_none_without_words() {
+        assert_eq!(prompt(&[]), None);
+    }
+
+    #[test]
+    fn vocabulary_prompt_ends_in_a_full_stop() {
+        assert_eq!(prompt(&["Dettivo"]).as_deref(), Some("Dettivo."));
+        assert_eq!(
+            prompt(&["Dettivo", "Astra", "Jev", "Clef"]).as_deref(),
+            Some("Dettivo, Astra, Jev, Clef.")
+        );
+    }
+
+    #[test]
+    fn vocabulary_prompt_keeps_a_closing_mark_the_last_word_has() {
+        assert_eq!(prompt(&["Astra", "Clef."]).as_deref(), Some("Astra, Clef."));
+        assert_eq!(
+            prompt(&["Astra", "Yahoo!"]).as_deref(),
+            Some("Astra, Yahoo!")
+        );
+        assert_eq!(
+            prompt(&["Astra", "Jeopardy?"]).as_deref(),
+            Some("Astra, Jeopardy?")
+        );
     }
 }
