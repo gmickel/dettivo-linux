@@ -30,7 +30,7 @@ Item {
     }
 
     SectionHeading {
-        id: header
+        id: sectionHeading
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
@@ -43,7 +43,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.top: header.bottom
+        anchors.top: sectionHeading.bottom
         anchors.topMargin: 0
         clip: true
         currentIndex: -1
@@ -83,7 +83,7 @@ Item {
     StateView {
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.top: header.bottom
+        anchors.top: sectionHeading.bottom
         anchors.topMargin: Theme.space6
         keyHint: root.hold
         reason: qsTr("Hold %1 in any app and it will show up here.").arg(root.hold)

@@ -70,12 +70,20 @@ for file in "${lint_files[@]}"; do
     # style/, theme/) is linted with that module's generated qmldir, so its
     # singletons and sibling types resolve the way they do at runtime rather
     # than as an implicit directory import. The first path segment after
-    # qt/qml/ names the module.
+    # qt/qml/ names the module. The module's resource files go with it, as
+    # in Qt's own generated qmllint target: its qmldir says `prefer
+    # :/qt/qml/<URI>/`, and from Qt 6.12 qmllint reports a singleton as
+    # undeclared unless it can map the file to that resource path.
     module_args=()
     case "${file}" in
         "${repo_root}"/qt/qml/*)
             module="${file#"${repo_root}"/qt/qml/}"; module="${module%%/*}"
-            [[ -f "${import_root}/${module}/qmldir" ]] && module_args=(-i "${import_root}/${module}/qmldir")
+            if [[ -f "${import_root}/${module}/qmldir" ]]; then
+                module_args=(-i "${import_root}/${module}/qmldir")
+                for qrc in "${import_root}/${module}"/.qt/rcc/*.qrc; do
+                    [[ -f "${qrc}" ]] && module_args+=(--resource "${qrc}")
+                done
+            fi
             ;;
     esac
     # --max-warnings 0: qmllint exits 0 on plain warnings by default.
