@@ -15,7 +15,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-78-keep-the-dictated-language-when-a.md",
-  "status": "open",
+  "status": "done",
   "title": "Keep the dictated language when a vocabulary is set",
   "tracker": {
     "baseHashFlow": null,
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-31T09:06:26.325623Z"
+  "updated_at": "2026-10-31T09:07:36.610220Z"
 }

@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-78-keep-the-dictated-language-when-a",
   "spec_path": ".flow/tasks/fn-78-keep-the-dictated-language-when-a.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Keep the dictated language when a vocabulary is set",
   "updated_at": "2026-10-31T08:48:29.508774Z"
 }
