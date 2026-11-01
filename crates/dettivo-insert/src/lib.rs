@@ -6,6 +6,7 @@
 
 pub mod backend;
 pub mod chain;
+pub mod clip;
 mod delivery;
 pub mod guards;
 pub mod keymap;

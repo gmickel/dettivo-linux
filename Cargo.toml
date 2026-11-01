@@ -81,7 +81,6 @@ x11rb = { version = "0.14", features = ["xtest", "image"] }
 wayland-client = "0.31"
 wayland-protocols-misc = { version = "0.3", features = ["client"] }
 xkbcommon = "0.9"
-x11-clipboard = "0.9"
 ashpd = { version = "0.13", default-features = false, features = ["tokio", "remote_desktop", "screencast", "global_shortcuts"] }
 reis = { version = "0.7", features = ["tokio"] }
 futures-util = { version = "0.3", default-features = false }
