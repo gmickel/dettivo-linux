@@ -1,9 +1,10 @@
 //! The run behind `dettivo-qa bench vocabulary`: every clip of the fixture
 //! set through each speech engine's CLI mode, once with the vocabulary off
-//! and once on, scored and written as one report. `--out <dir>` also files
-//! it as `vocabulary-<date>-<host>.json` with a Markdown table beside it.
+//! and once on, scored and written as one report. Each clip reaches the
+//! engine padded as a dictation take is. `--out <dir>` also files it as
+//! `vocabulary-<date>-<host>.json` with a Markdown table beside it.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
@@ -138,11 +139,40 @@ pub struct VocabularyReport {
     pub rows: Vec<Row>,
 }
 
-/// One pass of every clip through `binary`.
+/// `wav` padded for `provider` as dictation pads a take, written into
+/// `dir`; `None` when the padding leaves it as it is.
+fn prepare(wav: &Path, provider: &str, dir: &Path) -> Result<Option<PathBuf>, String> {
+    let fail = |e: hound::Error| format!("{}: {e}", wav.display());
+    let mut reader = hound::WavReader::open(wav).map_err(fail)?;
+    let spec = reader.spec();
+    if u64::from(spec.sample_rate) != dettivo_transcribe::SAMPLE_RATE
+        || spec.channels != 1
+        || spec.bits_per_sample != 16
+    {
+        return Err(format!("{}: not 16 kHz mono 16-bit", wav.display()));
+    }
+    let pcm: Vec<i16> = reader.samples().collect::<Result<_, _>>().map_err(fail)?;
+    let before = pcm.len();
+    let padded = dettivo_transcribe::pad_for_engine(pcm, provider == "parakeet", spec.sample_rate);
+    if padded.len() == before {
+        return Ok(None);
+    }
+    let out = dir.join(wav.file_name().unwrap_or_default());
+    let mut writer = hound::WavWriter::create(&out, spec).map_err(fail)?;
+    for s in padded {
+        writer.write_sample(s).map_err(fail)?;
+    }
+    writer.finalize().map_err(fail)?;
+    Ok(Some(out))
+}
+
+/// One pass of every clip through `binary`, the padded clips kept in
+/// `padded_dir`.
 fn pass(
     opts: &Options,
     set: &Set,
-    binary: &std::path::Path,
+    padded_dir: &Path,
+    binary: &Path,
     model: &host::ModelRef,
     provider: &str,
     on: bool,
@@ -162,14 +192,28 @@ fn pass(
     let model_arg = model.path.to_string_lossy().into_owned();
     let mut row = Row::without(provider, &model.id, on, Status::Measured, String::new());
     row.reason = None;
-    for clip in &set.clips {
-        let wav = dir
-            .join(format!("{}.wav", clip.id))
-            .to_string_lossy()
-            .into_owned();
-        let mut args = vec!["--wav", wav.as_str(), "--model", model_arg.as_str()];
+    let recognize = |wav: &Path| {
+        let wav = wav.to_string_lossy();
+        let mut args = vec!["--wav", wav.as_ref(), "--model", model_arg.as_str()];
         args.extend(prompt.iter().map(String::as_str));
-        match throughput::cli(binary, &args, opts.cpu) {
+        throughput::cli(binary, &args, opts.cpu)
+    };
+    for clip in &set.clips {
+        let wav = dir.join(format!("{}.wav", clip.id));
+        // As in dictation: an empty padded take runs once more as captured.
+        let outcome = prepare(&wav, provider, padded_dir).and_then(|padded| {
+            let mut wall_ms = 0;
+            let mut run = recognize(padded.as_deref().unwrap_or(&wav))?;
+            let empty =
+                |r: &throughput::CliRun| r.result["text"].as_str().unwrap_or("").trim().is_empty();
+            if padded.is_some() && empty(&run) {
+                wall_ms += run.wall_ms;
+                run = recognize(&wav)?;
+            }
+            run.wall_ms += wall_ms;
+            Ok(run)
+        });
+        match outcome {
             Ok(run) => {
                 row.wall_ms += run.wall_ms;
                 row.backend = run.result["backend"].as_str().unwrap_or("").to_string();
@@ -224,7 +268,12 @@ pub fn run(opts: &Options) -> Result<(VocabularyReport, PathBuf), String> {
                     Status::Skipped,
                     format!("{binary_name} is not built"),
                 ),
-                (Ok(model), Some(b)) => pass(opts, &set, &b.path, model, provider, on),
+                (Ok(model), Some(b)) => {
+                    let padded_dir = run_dir.join("padded").join(provider);
+                    std::fs::create_dir_all(&padded_dir)
+                        .map_err(|e| format!("{}: {e}", padded_dir.display()))?;
+                    pass(opts, &set, &padded_dir, &b.path, model, provider, on)
+                }
             };
             eprintln!(
                 "bench vocabulary: {provider} vocabulary={on} {:?}",
@@ -324,6 +373,56 @@ pub fn command(opts: &Options, json: bool) -> u8 {
         Err(e) => {
             eprintln!("bench vocabulary: {e}");
             2
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `ms` milliseconds of a 16 kHz mono ramp, written to `dir/name`.
+    fn clip(dir: &Path, name: &str, ms: usize) -> (PathBuf, Vec<i16>) {
+        let pcm: Vec<i16> = (0..ms * 16).map(|i| (i % 2000) as i16 - 1000).collect();
+        let spec = hound::WavSpec {
+            channels: 1,
+            sample_rate: 16_000,
+            bits_per_sample: 16,
+            sample_format: hound::SampleFormat::Int,
+        };
+        let path = dir.join(name);
+        let mut w = hound::WavWriter::create(&path, spec).unwrap();
+        pcm.iter().for_each(|&s| w.write_sample(s).unwrap());
+        w.finalize().unwrap();
+        (path, pcm)
+    }
+
+    #[test]
+    fn prepared_clip_is_the_dictation_take() {
+        let dir = tempfile::tempdir().unwrap();
+        let out = dir.path().join("padded");
+        std::fs::create_dir(&out).unwrap();
+        // (clip ms, provider, samples the engine hears; None: sent as is)
+        let cases: &[(usize, &str, Option<usize>)] = &[
+            (800, "parakeet", Some(24_000)),
+            (4_000, "parakeet", Some(64_000 + 6_400)),
+            (800, "whisper", Some(24_000)),
+            (4_000, "whisper", None),
+        ];
+        for &(ms, provider, len) in cases {
+            let (wav, pcm) = clip(dir.path(), &format!("{provider}-{ms}.wav"), ms);
+            let prepared = prepare(&wav, provider, &out).unwrap();
+            let heard: Vec<i16> = match &prepared {
+                Some(p) => hound::WavReader::open(p)
+                    .unwrap()
+                    .samples()
+                    .map(Result::unwrap)
+                    .collect(),
+                None => pcm.clone(),
+            };
+            let take = dettivo_transcribe::pad_for_engine(pcm, provider == "parakeet", 16_000);
+            assert_eq!(heard, take, "{provider} {ms} ms");
+            assert_eq!(prepared.map(|_| heard.len()), len, "{provider} {ms} ms");
         }
     }
 }
