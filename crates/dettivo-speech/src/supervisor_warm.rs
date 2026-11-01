@@ -1,8 +1,10 @@
 //! The warm-up after a load (ADR 0084): a freshly loaded speech engine
 //! compiles its GPU kernels on its first inference, so a preload runs one
-//! silent `recognize` before the first real take. It is skipped when the
-//! engine recognised within `WARM_UP_SKIP` or a real request is waiting;
-//! a real request that asked first runs first and warms the engine itself.
+//! silent `recognize` before the first real take. A model on the CPU
+//! backend compiles nothing and is warm once loaded. The warm-up is skipped
+//! when the engine recognised within `WARM_UP_SKIP` or a real request is
+//! waiting; a real request that asked first runs first and warms the
+//! engine itself.
 
 use std::time::{Duration, Instant};
 
@@ -68,7 +70,8 @@ impl Supervisor {
 
     /// Runs `run` (the silent `recognize`) against `binary`'s loaded model
     /// unless it is already warm, recognised within `WARM_UP_SKIP`, has no
-    /// model loaded, or a real request is waiting. Never loads or spawns.
+    /// model loaded, or a real request is waiting. A model loaded on the
+    /// CPU is marked warm without it. Never loads or spawns.
     /// The backend `run` reports the inference ran on is recorded with the
     /// warmth while the slot is still locked, so neither lands on a load
     /// that follows. Returns how long the warm-up took, `None` when skipped.
@@ -84,6 +87,14 @@ impl Supervisor {
             .last_recognized
             .is_some_and(|t| t.elapsed() < WARM_UP_SKIP);
         let alive = s.process.as_mut().is_some_and(EngineProcess::alive);
+        // The CPU compiles nothing on a first inference: its first take
+        // costs what a warm one does, so it is warm without the silent
+        // inference a take would wait behind (ADR 0084).
+        if alive && s.loaded.as_ref().is_some_and(|l| l.backend == Backend::Cpu) {
+            self.mark_warm(&mut s, binary);
+            self.remember(binary, &mut s);
+            return Ok(None);
+        }
         let params = s
             .params
             .clone()

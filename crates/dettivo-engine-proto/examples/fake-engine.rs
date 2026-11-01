@@ -15,9 +15,11 @@
 //! answers that as an `internal` error instead, as parakeet.cpp does.
 //! Either marker is read again on every `recognize`, so removing it frees
 //! the GPU; a `gpu-has-room` file makes a load report `vulkan` and serve
-//! requests. With a `record-loads` file beside it, each `load` appends its
-//! backend preference to `loads.log`; with `record-recognizes`, each
-//! `recognize` appends its sample count to `recognizes.log`.
+//! requests on it, or on the CPU with an `infer-on-cpu` file beside it, as
+//! an engine that moved itself for want of GPU memory reports. With a
+//! `record-loads` file beside it, each `load` appends its backend
+//! preference to `loads.log`; with `record-recognizes`, each `recognize`
+//! appends its sample count to `recognizes.log`.
 //! `diarize` answers one turn per second of audio, alternating two
 //! speakers, after one `progress` event. Speaks the protocol on
 //! stdin/stdout exactly like a real engine.
@@ -226,7 +228,7 @@ fn main() {
                         "language": language,
                         "segments": [{"start_ms": 0, "end_ms": samples * 1000 / 16_000, "text": "fake"}],
                         "duration_ms": samples * 1000 / 16_000,
-                        "backend": "cpu"
+                        "backend": if on_gpu && !dir.join("infer-on-cpu").exists() { "vulkan" } else { "cpu" }
                     }),
                 )
             }

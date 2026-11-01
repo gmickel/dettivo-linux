@@ -51,17 +51,17 @@ fn a_preload_warms_the_engine_before_the_first_take() {
 }
 
 /// R1: an engine that recognised within the last minute skips the
-/// warm-up after a new load, and reads loaded rather than warm.
+/// warm-up after a new GPU load, and reads loaded rather than warm.
 #[test]
 fn a_recent_take_skips_the_warm_up_after_a_reload() {
     let dir = fake_engine_dir(WHISPER_BINARY);
-    let (supervisor, states) = recorded(dir.path());
+    let (supervisor, seen) = on_gpu(dir.path());
     take(&whisper(&supervisor, "/models/a.bin"));
-    states.lock().unwrap().clear();
+    seen.lock().unwrap().clear();
     whisper(&supervisor, "/models/b.bin")
         .preload(PreloadSource::ModelSelection)
         .unwrap();
-    assert_eq!(*states.lock().unwrap(), ["loaded"]);
+    assert_eq!(*seen.lock().unwrap(), [("loaded", Some(Backend::Vulkan))]);
     assert!(!warm(&supervisor));
     supervisor.shutdown();
 }
@@ -71,15 +71,14 @@ fn a_recent_take_skips_the_warm_up_after_a_reload() {
 #[test]
 fn a_take_never_warms_a_reload_of_its_model_on_another_backend() {
     let dir = fake_engine_dir(WHISPER_BINARY);
-    let (supervisor, states) = recorded(dir.path());
-    take(&whisper(&supervisor, "/models/a.bin"));
+    let (supervisor, seen) = on_gpu(dir.path());
+    take(&whisper(&supervisor, "/models/a.bin").with_backend(BackendPreference::Cpu));
     assert!(warm(&supervisor));
-    states.lock().unwrap().clear();
+    seen.lock().unwrap().clear();
     whisper(&supervisor, "/models/a.bin")
-        .with_backend(BackendPreference::Cpu)
         .preload(PreloadSource::ModelSelection)
         .unwrap();
-    assert_eq!(*states.lock().unwrap(), ["loaded"]);
+    assert_eq!(*seen.lock().unwrap(), [("loaded", Some(Backend::Vulkan))]);
     assert!(!warm(&supervisor));
     supervisor.shutdown();
 }
@@ -88,7 +87,7 @@ fn a_take_never_warms_a_reload_of_its_model_on_another_backend() {
 type Seen = Arc<Mutex<Vec<(&'static str, Option<Backend>)>>>;
 
 /// A supervisor that may load on the GPU (`gpu-has-room`), where the
-/// scripted engine's every inference then reports the CPU.
+/// scripted engine serves its inferences.
 fn on_gpu(dir: &Path) -> (Arc<Supervisor>, Seen) {
     std::fs::write(dir.join("gpu-has-room"), "").unwrap();
     let supervisor = Supervisor::new(Settings {
@@ -115,6 +114,7 @@ fn warm_is_published_on_the_backend_the_inference_ran_on() {
         ("warm", Some(Backend::Cpu)),
     ];
     let dir = fake_engine_dir(WHISPER_BINARY);
+    std::fs::write(dir.path().join("infer-on-cpu"), "").unwrap();
     let (supervisor, seen) = on_gpu(dir.path());
     whisper(&supervisor, "/models/fake.bin")
         .preload(PreloadSource::Startup)
@@ -123,6 +123,7 @@ fn warm_is_published_on_the_backend_the_inference_ran_on() {
     supervisor.shutdown();
 
     let dir = fake_engine_dir(WHISPER_BINARY);
+    std::fs::write(dir.path().join("infer-on-cpu"), "").unwrap();
     let (supervisor, seen) = on_gpu(dir.path());
     take(&whisper(&supervisor, "/models/fake.bin"));
     assert_eq!(*seen.lock().unwrap(), expected, "the first take");
@@ -136,14 +137,21 @@ fn warm_is_published_on_the_backend_the_inference_ran_on() {
 #[test]
 fn a_waiting_take_cancels_the_warm_up() {
     let dir = fake_engine_dir(WHISPER_BINARY);
-    let (supervisor, states) = recorded(dir.path());
+    let (supervisor, seen) = on_gpu(dir.path());
+    let states = || {
+        seen.lock()
+            .unwrap()
+            .iter()
+            .map(|(s, _)| *s)
+            .collect::<Vec<_>>()
+    };
     let engine = whisper(&supervisor, "/models/fake.bin");
     let waiting = supervisor.begin_request(WHISPER_BINARY);
     engine.preload(PreloadSource::SessionStart).unwrap();
-    assert_eq!(*states.lock().unwrap(), ["spawned", "loaded"]);
+    assert_eq!(states(), ["spawned", "loaded"]);
     drop(waiting);
     take(&engine);
-    assert_eq!(*states.lock().unwrap(), ["spawned", "loaded", "warm"]);
+    assert_eq!(states(), ["spawned", "loaded", "warm"]);
     assert!(warm(&supervisor), "the take itself warmed the engine");
     supervisor.shutdown();
 }
