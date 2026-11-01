@@ -196,7 +196,7 @@ impl SourceFactory for Feed {
         let stopped = self.stopped.clone();
         Ok(Source::Channel {
             events: rx,
-            on_stop: Box::new(move || {
+            on_stop: Arc::new(move || {
                 if !stopped.swap(true, Ordering::Relaxed) {
                     let _ = tx.send(Event::Ended {
                         reason: dettivo_audio::EndReason::Stopped,

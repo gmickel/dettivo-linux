@@ -124,6 +124,12 @@ impl MockCapture {
     pub fn stop(&self) {
         self.stop.store(true, Ordering::Relaxed);
     }
+
+    /// `stop` for another thread, which never holds the event stream.
+    pub fn stopper(&self) -> impl Fn() + Send + Sync + 'static {
+        let stop = self.stop.clone();
+        move || stop.store(true, Ordering::Relaxed)
+    }
 }
 
 #[cfg(test)]

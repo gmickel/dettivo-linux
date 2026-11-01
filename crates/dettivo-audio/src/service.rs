@@ -170,6 +170,14 @@ impl CaptureHandle {
     pub fn stop(&self) {
         let _ = self.cmds.send(Cmd::Stop(self.id));
     }
+
+    /// `stop` for another thread, which never holds the event stream.
+    pub fn stopper(&self) -> impl Fn() + Send + Sync + 'static {
+        let (cmds, id) = (self.cmds.clone(), self.id);
+        move || {
+            let _ = cmds.send(Cmd::Stop(id));
+        }
+    }
 }
 
 impl Drop for CaptureHandle {

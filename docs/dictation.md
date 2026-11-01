@@ -34,7 +34,7 @@ idle ──start──▶ recording ──stop──▶ transcribing ──▶ i
 
 ## The speech gate
 
-The gate keeps an empty or noisy take from pasting the filler an engine invents for silence ([ADR 0081](adr/0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md)). It judges the audio the source delivered before the session stopped it, so a sound the source sends after the stop never counts as speech, and it never trims a take that passes.
+The gate keeps an empty or noisy take from pasting the filler an engine invents for silence ([ADR 0081](adr/0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md)). The stop ends the capture at once, so a sound after the release is never in the take, and the gate never trims a take that passes.
 
 1. **Level.** The loudest 30 ms window of the take, with its DC offset removed, must reach `[dictation] silence_dbfs` (-50 dBFS). A click or keyboard thump stays under it, and a quiet word at -45 dBFS passes. A take shorter than 30 ms is silence.
 2. **Voice.** When `whisper/silero-vad` is downloaded, the Silero model looks for speech in the take on the CPU (threshold 0.4, at least 160 ms of speech), so a fan, a music bed or breathing is silence while a whisper and a single "Ok" are not. `speech.models.download` fetches it with any speech model, and `dettivo speech download --model silero-vad` fetches it alone. Without it the level decides alone, and `dettivo doctor` names the model and that command on its `voice gate` row.

@@ -52,6 +52,9 @@ pub(crate) struct Active {
     pub(crate) engine: Arc<dyn SttEngine>,
     pub(crate) worker: Option<std::thread::JoinHandle<()>>,
     pub(crate) completion: Arc<Completion>,
+    /// Ends the capture from the stopping thread, so the take holds nothing
+    /// recorded after the release; set once the source is open.
+    pub(crate) stop_source: Option<Arc<dyn Fn() + Send + Sync>>,
 }
 
 /// How a take ended.
@@ -205,6 +208,7 @@ impl Session {
             engine: engine.clone(),
             worker: None,
             completion: completion.clone(),
+            stop_source: None,
         });
         drop(guard);
         let shared = self.shared(completion);
@@ -224,6 +228,18 @@ impl Session {
                 return Err(SessionError::Audio(e));
             }
         };
+        let stop_source = src.stopper();
+        if let Some(a) = self
+            .active
+            .lock()
+            .unwrap_or_else(|p| p.into_inner())
+            .as_mut()
+        {
+            a.stop_source = Some(stop_source.clone());
+        }
+        if stop.load(Ordering::Relaxed) {
+            stop_source();
+        }
         self.publisher.state(&StateChange::plain(
             &job_id,
             State::Recording,
@@ -290,7 +306,7 @@ impl Session {
 
     /// Stops only the named active take when supplied, never a replacement.
     pub fn stop_expected(&self, expected_job_id: Option<&str>) -> Result<Transcript, SessionError> {
-        let (stop, worker, completion) = {
+        let (stop, worker, completion, stop_source) = {
             let mut g = self.active.lock().unwrap_or_else(|p| p.into_inner());
             let Some(a) = g.as_mut() else {
                 return Err(SessionError::NoSession);
@@ -298,9 +314,17 @@ impl Session {
             if expected_job_id.is_some_and(|id| id != a.snapshot.job_id) {
                 return Err(SessionError::NoSession);
             }
-            (a.stop.clone(), a.worker.take(), a.completion.clone())
+            (
+                a.stop.clone(),
+                a.worker.take(),
+                a.completion.clone(),
+                a.stop_source.clone(),
+            )
         };
         stop.store(true, Ordering::Relaxed);
+        if let Some(stop_source) = stop_source {
+            stop_source();
+        }
         Self::await_take(worker, &completion);
         match completion.wait() {
             Outcome::Completed(t) => Ok(*t),

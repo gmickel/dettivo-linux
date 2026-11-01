@@ -27,7 +27,7 @@ impl SourceFactory for StopSource {
         }
         Ok(Source::Channel {
             events,
-            on_stop: Box::new(move || {
+            on_stop: Arc::new(move || {
                 if acknowledge {
                     let tx = tx.clone();
                     std::thread::spawn(move || {
@@ -62,25 +62,55 @@ fn stop_includes_the_last_chunk_delivered_during_source_shutdown() {
     assert_eq!(result.text, "Last words");
 }
 
-/// fn-79 R1: a sound that only arrives after the release (the stop cue,
-/// the key coming up) does not make a silent take speech.
+/// fn-79 R1: the stop request ends the capture on the stopping thread, so
+/// the take holds nothing recorded after the release, and audio a source
+/// sends after its end never joins the take.
 #[test]
-fn speech_after_the_release_never_opens_the_gate() {
+fn the_capture_ends_at_the_stop_request_and_nothing_after_it_counts() {
     let (dir, _, session, engine, _) = rig("never used");
+    let stopped_on = Arc::new(std::sync::Mutex::new(None));
+    let seen = stopped_on.clone();
+    let source = move |_: u64| {
+        let (tx, events) = mpsc::channel();
+        let _ = tx.send(Event::Pcm(vec![0; 1_600]));
+        let seen = seen.clone();
+        Ok(Source::Channel {
+            events,
+            on_stop: Arc::new(move || {
+                seen.lock()
+                    .unwrap()
+                    .get_or_insert(std::thread::current().id());
+                let _ = tx.send(Event::Ended {
+                    reason: EndReason::Stopped,
+                });
+                let _ = tx.send(Event::Pcm(tone(1_600)));
+            }),
+        })
+    };
     session
         .start(
             policy(dir.path(), false),
             engine.clone(),
-            Arc::new(StopSource {
-                acknowledge: true,
-                before: vec![0; 1_600],
-            }),
+            Arc::new(Opener(Box::new(source))),
             None,
         )
         .unwrap();
     std::thread::sleep(Duration::from_millis(50));
     assert_eq!(session.stop().unwrap_err(), SessionError::Cancelled);
+    assert_eq!(
+        *stopped_on.lock().unwrap(),
+        Some(std::thread::current().id())
+    );
     assert_eq!(engine.calls.load(std::sync::atomic::Ordering::Relaxed), 0);
+}
+
+/// A source factory from a closure.
+struct Opener(Box<dyn Fn(u64) -> Result<Source, String> + Send + Sync>);
+
+impl SourceFactory for Opener {
+    fn open(&self, level_interval_ms: u64) -> Result<Source, String> {
+        (self.0)(level_interval_ms)
+    }
 }
 
 #[test]
@@ -128,7 +158,7 @@ fn speech_queued_before_the_stop_opens_the_gate() {
 }
 
 /// fn-79 R1: a stop while the worker waits on an empty source, then a
-/// key-up thump: the thump is after the release and never opens the gate.
+/// key-up thump: the capture already ended, so the thump never opens the gate.
 #[test]
 fn a_sound_that_arrives_after_the_stop_while_the_worker_waits_is_tail() {
     let (dir, _, session, engine, feed) = rig("never used");

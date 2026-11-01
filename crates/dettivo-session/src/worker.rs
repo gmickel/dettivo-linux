@@ -1,14 +1,15 @@
 //! The session's worker thread: drains the source into a take, meters
 //! levels, passes the take through the speech gate, transcribes it through
 //! the frozen engine, guards the engine's text, applies the raw pipeline,
-//! hands the text over and records the outcome. The gate judges what was
-//! captured before the release, never the meter's display windows, and a
-//! take it finds silent ends `cancelled` without reaching the engine.
+//! hands the text over and records the outcome. The gate judges the take's
+//! samples, never the meter's display windows; the capture ends at the stop
+//! request, so nothing after the release is in them. A take the gate finds
+//! silent ends `cancelled` without reaching the engine.
 
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{RecvTimeoutError, TryRecvError};
+use std::sync::mpsc::RecvTimeoutError;
 use std::time::{Duration, Instant};
 
 use dettivo_audio::takes::TakeWriter;
@@ -29,8 +30,6 @@ use crate::{
 struct Recorded {
     samples: Vec<i16>,
     duration_ms: u64,
-    /// How many samples were captured before the release.
-    released_at: usize,
     /// An early exit when the recording itself decided the outcome.
     exit: Option<Exit>,
     /// From the stop being observed to the take being final.
@@ -77,7 +76,6 @@ impl Worker {
         let Recorded {
             samples,
             duration_ms,
-            released_at,
             exit: record_exit,
             capture_ms,
         } = match outcome {
@@ -114,11 +112,7 @@ impl Worker {
             Some("loading engine".into()),
         );
         let transcribe_started = Instant::now();
-        let verdict = gate::judge(
-            &samples[..released_at],
-            self.policy.silence_dbfs,
-            self.vad.as_deref(),
-        );
+        let verdict = gate::judge(&samples, self.policy.silence_dbfs, self.vad.as_deref());
         if let GateVerdict::Silence(stage) = verdict {
             tracing::info!(job = %self.job_id, stage = stage.as_str(), "take is silent; nothing sent to the engine");
             self.cleanup();
@@ -293,10 +287,9 @@ impl Worker {
     }
 
     /// Drains the source until stop, cancel, the maximum duration or the
-    /// source's end. Returns the samples, the duration, how many samples
-    /// came before the release, an early exit when the recording itself
-    /// decided the outcome, and how long the drain and the take's finish
-    /// took after the stop.
+    /// source's end. Returns the samples, the duration, an early exit when
+    /// the recording itself decided the outcome, and how long the drain and
+    /// the take's finish took after the stop.
     fn record(&self, src: &crate::source::Source, shared: &SharedState) -> Result<Recorded, Exit> {
         let mut writer =
             TakeWriter::new(&self.dir).map_err(|e| Exit::Failed(format!("take: {e}")))?;
@@ -307,34 +300,19 @@ impl Worker {
         let started = Instant::now();
         let mut ended: Option<EndReason> = None;
         let mut terminal = false;
-        let mut released_at: Option<usize> = None;
         loop {
             if self.cancel.load(Ordering::Relaxed) {
                 return Ok(Recorded {
-                    released_at: samples.len(),
                     samples,
                     duration_ms: 0,
                     exit: Some(Exit::Cancelled),
                     capture_ms: 0,
                 });
             }
-            // What the source delivered before the stop was captured before
-            // the release, queued or not; a chunk the worker waited for and
-            // that came after the stop opens the post-release tail.
-            let stopping =
-                self.stop.load(Ordering::Relaxed) || started.elapsed() >= self.policy.max_duration;
-            let (next, waited) = match src.events().try_recv() {
-                Ok(event) => (Ok(event), false),
-                Err(TryRecvError::Disconnected) => (Err(RecvTimeoutError::Disconnected), false),
-                Err(TryRecvError::Empty) if stopping => break,
-                Err(TryRecvError::Empty) => {
-                    (src.events().recv_timeout(Duration::from_millis(50)), true)
-                }
-            };
-            if waited && self.stop.load(Ordering::Relaxed) {
-                released_at.get_or_insert(samples.len());
+            if self.stop.load(Ordering::Relaxed) || started.elapsed() >= self.policy.max_duration {
+                break;
             }
-            match next {
+            match src.events().recv_timeout(Duration::from_millis(50)) {
                 Ok(Event::Pcm(chunk)) => {
                     writer
                         .write(&chunk)
@@ -379,7 +357,6 @@ impl Worker {
             }
         }
         let released = Instant::now();
-        let released_at = released_at.unwrap_or(samples.len());
         src.stop();
         let deadline = released + Duration::from_secs(2);
         while !terminal {
@@ -426,7 +403,6 @@ impl Worker {
         Ok(Recorded {
             samples,
             duration_ms,
-            released_at,
             exit,
             capture_ms: elapsed_ms(released),
         })
