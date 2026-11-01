@@ -208,7 +208,7 @@
     "impl:fn-82-hold-to-talk-that-survives-lost.1": 0
   },
   "spec_path": ".flow/specs/fn-82-hold-to-talk-that-survives-lost.md",
-  "status": "open",
+  "status": "done",
   "title": "Hold-to-talk that survives lost releases, with a working portal identity",
   "tracker": {
     "baseHashFlow": null,
@@ -221,5 +221,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T14:08:13.975711Z"
+  "updated_at": "2026-11-01T21:54:48.353995Z"
 }

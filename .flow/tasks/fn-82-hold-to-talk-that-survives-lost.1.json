@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-82-hold-to-talk-that-survives-lost",
   "spec_path": ".flow/tasks/fn-82-hold-to-talk-that-survives-lost.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Hold-to-talk that survives lost releases, with a working portal identity",
   "updated_at": "2026-11-01T12:31:30.453469Z"
 }
