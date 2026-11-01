@@ -137,10 +137,70 @@
       "task": "fn-82-hold-to-talk-that-survives-lost.1",
       "timestamp": "2026-11-01T13:17:00.612894Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "61a3125b59f63688409b6691a3cac792117d1232085bff2e30848de1251421a0",
+      "backend": "codex",
+      "base_sha": "8f885aed65ca486f893ae6355bd45ae2dd294f0c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-57b821aead5366bf34a3d230a386a07d",
+            "classification": "introduced",
+            "findingId": "finding-57b821aead5366bf34a3d230a386a07d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6505a56348161b12da9305a69ee46004",
+            "classification": "introduced",
+            "findingId": "finding-6505a56348161b12da9305a69ee46004",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-eab6d5b12467d1a5e7e83dfba396873a",
+            "classification": "introduced",
+            "findingId": "finding-eab6d5b12467d1a5e7e83dfba396873a",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "026a0bf34f41525566a8472bc3644a241dc35d56",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "3814cd0947964c5b9d62ee571eeaadd2",
+      "round_consumed": true,
+      "scope": "impl:fn-82-hold-to-talk-that-survives-lost.1",
+      "superseded_by": null,
+      "task": "fn-82-hold-to-talk-that-survives-lost.1",
+      "timestamp": "2026-11-01T14:08:13.973253Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-82-hold-to-talk-that-survives-lost.1": 1
+    "impl:fn-82-hold-to-talk-that-survives-lost.1": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -161,5 +221,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T13:24:04.538168Z"
+  "updated_at": "2026-11-01T14:08:13.975711Z"
 }
