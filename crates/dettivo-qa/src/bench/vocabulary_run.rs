@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use super::vocabulary::{Entry, FIXTURE_DIR, Set, VocabularyScore, prompt_args, score};
+use super::vocabulary::{Entry, FIXTURE_DIR, Set, VocabularyScore, prompt_args, rescoring, score};
 use super::{Options, Status, date_of, host, throughput, unix_now};
 
 /// The report's shape version.
@@ -22,6 +22,12 @@ pub struct Transcript {
     pub id: String,
     /// What the engine returned.
     pub text: String,
+    /// Candidate spans Parakeet rescored in the clip.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub candidates: Option<u32>,
+    /// Milliseconds rescoring added to the clip (ADR 0088).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rescore_ms: Option<f64>,
 }
 
 /// One engine and model, with the vocabulary off or on.
@@ -45,6 +51,51 @@ pub struct Row {
     pub transcripts: Vec<Transcript>,
     /// Wall time of the pass, model loads included.
     pub wall_ms: u64,
+    /// What rescoring cost, when the engine rescored.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rescoring: Option<Rescoring>,
+}
+
+/// What rescoring added per clip over one pass.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Rescoring {
+    /// Clips with at least one candidate span.
+    pub clips_with_candidates: u32,
+    /// The median milliseconds added to those clips.
+    pub median_ms_with_candidates: f64,
+    /// The most milliseconds added to a clip without a candidate.
+    pub max_ms_without_candidates: f64,
+}
+
+impl Rescoring {
+    /// The summary of `transcripts`; `None` when none was rescored.
+    fn of(transcripts: &[Transcript]) -> Option<Self> {
+        let mut with: Vec<f64> = Vec::new();
+        let mut without: f64 = 0.0;
+        let mut any = false;
+        for t in transcripts {
+            let (Some(n), Some(ms)) = (t.candidates, t.rescore_ms) else {
+                continue;
+            };
+            any = true;
+            if n > 0 {
+                with.push(ms);
+            } else {
+                without = without.max(ms);
+            }
+        }
+        with.sort_by(f64::total_cmp);
+        let median = match with.len() {
+            0 => 0.0,
+            n if n % 2 == 1 => with[n / 2],
+            n => (with[n / 2 - 1] + with[n / 2]) / 2.0,
+        };
+        any.then_some(Self {
+            clips_with_candidates: with.len() as u32,
+            median_ms_with_candidates: median,
+            max_ms_without_candidates: without,
+        })
+    }
 }
 
 impl Row {
@@ -59,6 +110,7 @@ impl Row {
             score: None,
             transcripts: Vec::new(),
             wall_ms: 0,
+            rescoring: None,
         }
     }
 }
@@ -96,7 +148,7 @@ fn pass(
     on: bool,
 ) -> Row {
     let prompt = if on {
-        match prompt_args(provider, &set.terms()) {
+        match prompt_args(provider, &set.vocabulary) {
             Some(args) => args,
             None => {
                 let why = format!("dettivo-engine-{provider} takes no vocabulary");
@@ -122,9 +174,12 @@ fn pass(
                 row.wall_ms += run.wall_ms;
                 row.backend = run.result["backend"].as_str().unwrap_or("").to_string();
                 let text = run.result["text"].as_str().unwrap_or("").trim().to_string();
+                let rescored = rescoring(&run.stderr);
                 row.transcripts.push(Transcript {
                     id: clip.id.clone(),
                     text,
+                    candidates: rescored.map(|r| r.0),
+                    rescore_ms: rescored.map(|r| r.1),
                 });
             }
             Err(e) => {
@@ -140,6 +195,7 @@ fn pass(
         .map(|t| (t.id.clone(), t.text.clone()))
         .collect();
     row.score = Some(score(set, &heard));
+    row.rescoring = Rescoring::of(&row.transcripts);
     row
 }
 
@@ -208,7 +264,7 @@ pub fn run(opts: &Options) -> Result<(VocabularyReport, PathBuf), String> {
 /// The table a person reads: one line per row.
 pub fn markdown(report: &VocabularyReport) -> String {
     let mut out = format!(
-        "# Vocabulary term recall, {} on {}\n\n`dettivo-qa bench vocabulary` at `{}`{}. Term recall counts target clips whose term came back spelt exactly; false insertions count terms in distractor and guard clips; guard WER is the word error rate over the guard clips.\n\n| Engine | Model | Backend | Vocabulary | Term recall | False insertions | Guard WER |\n|---|---|---|---|---|---|---|\n",
+        "# Vocabulary term recall, {} on {}\n\n`dettivo-qa bench vocabulary` at `{}`{}. Term recall counts target clips whose term came back spelt exactly; false insertions count terms in distractor and guard clips; guard WER is the word error rate over the guard clips; rescoring is the time Parakeet's vocabulary rescoring added, the median over clips with a candidate span and the most on a clip without one.\n\n| Engine | Model | Backend | Vocabulary | Term recall | False insertions | Guard WER | Rescoring |\n|---|---|---|---|---|---|---|---|\n",
         report.date,
         report.hostname,
         report.git_sha.get(..12).unwrap_or(&report.git_sha),
@@ -222,12 +278,24 @@ pub fn markdown(report: &VocabularyReport) -> String {
         let on = if row.vocabulary { "on" } else { "off" };
         let cells = match (&row.score, &row.reason) {
             (Some(s), _) => format!(
-                "{}/{} | {} | {:.3}",
-                s.term_recall.0, s.term_recall.1, s.false_insertions, s.guard_wer
+                "{}/{} | {} | {:.3} | {}",
+                s.term_recall.0,
+                s.term_recall.1,
+                s.false_insertions,
+                s.guard_wer,
+                row.rescoring.as_ref().map_or("-".into(), |r| format!(
+                    "{:.1} ms median on {} clips, {:.1} ms most without",
+                    r.median_ms_with_candidates,
+                    r.clips_with_candidates,
+                    r.max_ms_without_candidates
+                ))
             ),
-            (None, why) => {
-                format!("{:?}: {} | - | -", row.status, why.as_deref().unwrap_or("")).to_lowercase()
-            }
+            (None, why) => format!(
+                "{:?}: {} | - | - | -",
+                row.status,
+                why.as_deref().unwrap_or("")
+            )
+            .to_lowercase(),
         };
         out.push_str(&format!(
             "| {} | {} | {} | {on} | {cells} |\n",

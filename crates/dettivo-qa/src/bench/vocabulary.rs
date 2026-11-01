@@ -70,11 +70,6 @@ impl Set {
             std::fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?;
         serde_json::from_str(&text).map_err(|e| format!("{}: {e}", path.display()))
     }
-
-    /// The vocabulary's terms, in list order.
-    pub fn terms(&self) -> Vec<String> {
-        self.vocabulary.iter().map(|e| e.term.clone()).collect()
-    }
 }
 
 /// One pass's score.
@@ -139,14 +134,47 @@ pub fn score(set: &Set, transcripts: &[(String, String)]) -> VocabularyScore {
     }
 }
 
-/// The prompt the vocabulary primes the engine with when the engine takes
-/// one: the terms joined as `dettivo_speech::vocabulary_prompt` joins
-/// them, never the aliases. `None` for an engine that takes no vocabulary.
-pub fn prompt_args(provider: &str, terms: &[String]) -> Option<Vec<String>> {
+/// How the vocabulary reaches the engine: Whisper's prompt, the terms
+/// joined as `dettivo_speech::vocabulary_prompt` joins them and never the
+/// aliases; Parakeet's terms with their aliases at the default boost
+/// (ADR 0088). `None` for an engine that takes no vocabulary.
+pub fn prompt_args(provider: &str, vocabulary: &[Entry]) -> Option<Vec<String>> {
     match provider {
-        "whisper" => Some(vec!["--prompt".into(), format!("{}.", terms.join(", "))]),
+        "whisper" => {
+            let terms: Vec<&str> = vocabulary.iter().map(|e| e.term.as_str()).collect();
+            Some(vec!["--prompt".into(), format!("{}.", terms.join(", "))])
+        }
+        "parakeet" => {
+            let terms: Vec<serde_json::Value> = vocabulary
+                .iter()
+                .map(|e| serde_json::json!({ "term": e.term, "aliases": e.sounds_like }))
+                .collect();
+            Some(vec![
+                "--vocabulary".into(),
+                serde_json::Value::from(terms).to_string(),
+                "--boost".into(),
+                "normal".into(),
+            ])
+        }
         _ => None,
     }
+}
+
+/// What rescoring did to one clip, from the engine's
+/// `vocabulary rescoring` log line: candidate spans and milliseconds.
+pub fn rescoring(stderr: &str) -> Option<(u32, f64)> {
+    let line = stderr
+        .lines()
+        .find(|l| l.contains("vocabulary rescoring"))?;
+    let field = |name: &str| {
+        line.split_whitespace()
+            .find_map(|f| f.strip_prefix(name))
+            .map(|v| v.trim_matches('"').to_string())
+    };
+    Some((
+        field("candidates=")?.parse().ok()?,
+        field("rescore_ms=")?.parse().ok()?,
+    ))
 }
 
 #[cfg(test)]
@@ -246,13 +274,29 @@ mod tests {
     }
 
     #[test]
-    fn only_an_engine_that_takes_a_prompt_gets_the_terms_and_never_the_aliases() {
-        let terms = set().terms();
+    fn whisper_gets_a_prompt_of_terms_and_parakeet_the_terms_with_aliases() {
+        let vocabulary = set().vocabulary;
         assert_eq!(
-            prompt_args("whisper", &terms),
+            prompt_args("whisper", &vocabulary),
             Some(vec!["--prompt".into(), "Clef, Sapien XT.".into()])
         );
-        assert_eq!(prompt_args("parakeet", &terms), None);
+        assert_eq!(
+            prompt_args("parakeet", &vocabulary),
+            Some(vec![
+                "--vocabulary".into(),
+                r#"[{"aliases":["clay"],"term":"Clef"},{"aliases":[],"term":"Sapien XT"}]"#.into(),
+                "--boost".into(),
+                "normal".into(),
+            ])
+        );
+        assert_eq!(prompt_args("llm", &vocabulary), None);
+    }
+
+    #[test]
+    fn the_rescoring_line_gives_candidates_and_milliseconds() {
+        let log = "INFO model loaded\nINFO vocabulary rescoring candidates=2 replaced=1 rescore_ms=31.4\n";
+        assert_eq!(rescoring(log), Some((2, 31.4)));
+        assert_eq!(rescoring("INFO model loaded"), None);
     }
 
     #[test]

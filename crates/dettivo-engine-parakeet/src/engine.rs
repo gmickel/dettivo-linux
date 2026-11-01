@@ -289,7 +289,7 @@ impl Engine {
             tracing::info!(
                 candidates = rescored.0.candidates,
                 replaced = rescored.0.replaced,
-                rescore_ms = format!("{:.1}", rescored.1),
+                rescore_ms = (rescored.1 * 10.0).round() / 10.0,
                 "vocabulary rescoring"
             );
         }
