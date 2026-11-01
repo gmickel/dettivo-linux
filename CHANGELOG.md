@@ -4,6 +4,11 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Added
+
+- A vocabulary entry can say how its term tends to be misheard: `{ term = "Clef", sounds_like = ["clay", "cleff"] }` sits beside plain terms in `[dictation] vocabulary`, and Settings / Vocabulary edits the spellings per term. The Enhanced prompt names the spellings with the term, so the rewrite can correct `clay` to `Clef` when the sentence means it. Whisper still gets the terms only. A vocabulary holds 500 entries, 64 characters a term and 16 spellings a term, and a term repeated in another case is dropped ([docs/dictation.md](docs/dictation.md#vocabulary)).
+- `dettivo-qa bench vocabulary` measures term recall, false insertions and guard word error rate per engine and model, with the vocabulary off and on, over a synthetic clip set ([docs/qa.md](docs/qa.md#vocabulary-term-recall)).
+
 ### Fixed
 
 - An empty or noisy dictation no longer pastes "Thank you." A take now passes a speech gate before the engine hears it. Its loudest 30 ms window must reach -50 dBFS, so a click or keyboard thump stays out, and the Silero model must hear a voice in it, so a fan or music bed stays out too. A gated take shows "Nothing heard" and pastes nothing. The voice check needs `whisper/silero-vad`, which now downloads with any speech model. Without it the level check runs alone, and `dettivo doctor` names the model and `dettivo speech download --model silero-vad` ([docs/dictation.md](docs/dictation.md)).
