@@ -16,6 +16,8 @@ pub mod meetings;
 pub mod render;
 pub mod report;
 pub mod throughput;
+pub mod vocabulary;
+pub mod vocabulary_run;
 
 pub use report::{
     Comparison, LoadAverage, Report, SCHEMA_VERSION, Spread, Status, Step, date_of, load_average,

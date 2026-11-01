@@ -1,0 +1,40 @@
+{
+  "about": "The term-recall fixture set for `dettivo-qa bench vocabulary` (ADR 0087). Each clip is one sentence synthesised by scripts/qa/make-vocabulary-fixture.py from `say` with a Piper voice; `text` is what was meant. Target clips carry a vocabulary term, distractor clips a sound-alike word that must not become one, guard clips general speech with no term.",
+  "voices": {
+    "amy": "Piper en_US-amy-low (rhasspy/piper-voices, dataset from MycroftAI/mimic3-voices; licence as stated there)",
+    "ryan": "Piper en_US-ryan-low (rhasspy/piper-voices, dataset RyanSpeech; CC BY-NC-SA 4.0)"
+  },
+  "vocabulary": [
+    { "term": "Dettivo", "sounds_like": ["detivo", "debt evo"] },
+    { "term": "Clef", "sounds_like": ["clay", "cleff"] },
+    { "term": "SapienXT", "sounds_like": ["sapient x t", "sapien xt"] },
+    { "term": "Omarchy", "sounds_like": ["oh marky", "omar key"] },
+    { "term": "Hyprland", "sounds_like": ["hyper land", "hyperland"] }
+  ],
+  "clips": [
+    { "id": "target-dettivo-1", "kind": "target", "term": "Dettivo", "voice": "amy", "text": "I dictated this note with Dettivo on my laptop.", "say": "I dictated this note with Dettivo on my laptop." },
+    { "id": "target-dettivo-2", "kind": "target", "term": "Dettivo", "voice": "ryan", "text": "Dettivo puts the text into the focused window.", "say": "Dettivo puts the text into the focused window." },
+    { "id": "target-dettivo-3", "kind": "target", "term": "Dettivo", "voice": "amy", "text": "Open the settings in Dettivo and add a new term.", "say": "Open the settings in Dettivo and add a new term." },
+    { "id": "target-clef-1", "kind": "target", "term": "Clef", "voice": "ryan", "text": "The Clef release ships on Monday.", "say": "The Clef release ships on Monday." },
+    { "id": "target-clef-2", "kind": "target", "term": "Clef", "voice": "amy", "text": "Ask the Clef team to review the change.", "say": "Ask the Clef team to review the change." },
+    { "id": "target-clef-3", "kind": "target", "term": "Clef", "voice": "ryan", "text": "We moved the build server to Clef last week.", "say": "We moved the build server to Clef last week." },
+    { "id": "target-sapienxt-1", "kind": "target", "term": "SapienXT", "voice": "amy", "text": "SapienXT signed the contract this morning.", "say": "Sapien X T signed the contract this morning." },
+    { "id": "target-sapienxt-2", "kind": "target", "term": "SapienXT", "voice": "ryan", "text": "Send the invoice to SapienXT before the end of the month.", "say": "Send the invoice to Sapien X T before the end of the month." },
+    { "id": "target-sapienxt-3", "kind": "target", "term": "SapienXT", "voice": "amy", "text": "The SapienXT dashboard shows three new alerts.", "say": "The Sapien X T dashboard shows three new alerts." },
+    { "id": "target-omarchy-1", "kind": "target", "term": "Omarchy", "voice": "ryan", "text": "I installed Omarchy on the new desktop.", "say": "I installed Oh marky on the new desktop." },
+    { "id": "target-omarchy-2", "kind": "target", "term": "Omarchy", "voice": "amy", "text": "Omarchy ships with a tiling window manager.", "say": "Oh marky ships with a tiling window manager." },
+    { "id": "target-omarchy-3", "kind": "target", "term": "Omarchy", "voice": "ryan", "text": "The theme switcher in Omarchy changed every colour.", "say": "The theme switcher in Oh marky changed every colour." },
+    { "id": "target-hyprland-1", "kind": "target", "term": "Hyprland", "voice": "amy", "text": "Hyprland draws the windows with rounded corners.", "say": "Hyper land draws the windows with rounded corners." },
+    { "id": "target-hyprland-2", "kind": "target", "term": "Hyprland", "voice": "ryan", "text": "I bound the dictation key in Hyprland.", "say": "I bound the dictation key in Hyper land." },
+    { "id": "target-hyprland-3", "kind": "target", "term": "Hyprland", "voice": "amy", "text": "The Hyprland config reloads when you save it.", "say": "The Hyper land config reloads when you save it." },
+    { "id": "distractor-detective", "kind": "distractor", "voice": "ryan", "text": "The detective closed the case before lunch.", "say": "The detective closed the case before lunch." },
+    { "id": "distractor-clay", "kind": "distractor", "voice": "amy", "text": "She shaped the clay into a small bowl.", "say": "She shaped the clay into a small bowl." },
+    { "id": "distractor-sapient", "kind": "distractor", "voice": "ryan", "text": "Every sapient creature needs water and rest.", "say": "Every sapient creature needs water and rest." },
+    { "id": "distractor-omar", "kind": "distractor", "voice": "amy", "text": "Omar keeps the spare keys in his desk.", "say": "Omar keeps the spare keys in his desk." },
+    { "id": "distractor-highland", "kind": "distractor", "voice": "ryan", "text": "We walked across the highland in the rain.", "say": "We walked across the highland in the rain." },
+    { "id": "guard-meeting", "kind": "guard", "voice": "amy", "text": "The meeting moved to Thursday afternoon because of the holiday.", "say": "The meeting moved to Thursday afternoon because of the holiday." },
+    { "id": "guard-numbers", "kind": "guard", "voice": "ryan", "text": "Send the quarterly numbers to the finance team by Friday.", "say": "Send the quarterly numbers to the finance team by Friday." },
+    { "id": "guard-rain", "kind": "guard", "voice": "amy", "text": "Rain is expected over the weekend, so bring an umbrella.", "say": "Rain is expected over the weekend, so bring an umbrella." },
+    { "id": "guard-laptop", "kind": "guard", "voice": "ryan", "text": "The new laptop starts quickly and the battery lasts all day.", "say": "The new laptop starts quickly and the battery lasts all day." }
+  ]
+}

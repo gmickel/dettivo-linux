@@ -327,8 +327,9 @@ pub struct Dictation {
     /// `raw`, `deterministic_polish` (or its contract alias `polish`) or
     /// `enhanced`.
     pub mode: String,
-    /// Words the engine is primed with (names, products).
-    pub vocabulary: Vec<String>,
+    /// Terms the engine is primed with (names, products), each a string
+    /// or a `{ term, sounds_like }` table.
+    pub vocabulary: Vec<super::vocabulary_schema::VocabularyEntry>,
     /// Whole-word replacements applied after recognition (`{ from = "to" }`).
     pub replacements: std::collections::BTreeMap<String, String>,
     /// Spoken punctuation (`comma`, `period`, `new line`) becomes marks.

@@ -286,7 +286,9 @@ impl Meetings {
                 speech_floor_rms: m.speech_floor_rms,
             },
             transcribe: crate::jobs::settings_of(loaded),
-            prompt: dettivo_speech::vocabulary_prompt(&d.vocabulary),
+            prompt: dettivo_speech::vocabulary_prompt(
+                &dettivo_core::config::vocabulary_schema::terms(&d.vocabulary),
+            ),
         }
     }
 

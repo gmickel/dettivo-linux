@@ -88,6 +88,8 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0081](0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md) | A dictation take passes a speech gate before the engine, and its text passes output guards after it | Accepted 2026-11-01, amends 0048; amended by 0082 |
 | [0082](0082-a-take-ends-at-the-stop-within-one-capture-quantum.md) | A dictation take ends at the stop request, within one capture quantum PipeWire may deliver before the stop runs | Accepted 2026-11-01, amends 0081 |
 | [0083](0083-the-hold-key-is-a-daemon-state-machine-and-the-portal-gets-an-app-id.md) | The hold key is a daemon state machine that survives a lost release and locks on a double tap, and the portal gets the app id `dettivo` | Accepted 2026-11-01, amends 0016 |
+| [0086](0086-a-vocabulary-entry-names-how-its-term-is-misheard.md) | A vocabulary entry names how its term is misheard, and only Enhanced reads the aliases | Accepted 2026-11-01 |
+| [0087](0087-the-term-recall-benchmark-scores-a-vocabulary-on-synthetic-clips.md) | The term-recall benchmark scores a vocabulary on synthetic clips, with the vocabulary off and on | Accepted 2026-11-01 |
 
 ## Writing a record
 

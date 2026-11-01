@@ -64,11 +64,15 @@ void ConfigBinding::set(const QString &key, const QVariant &value)
     }
     const QJsonObject params{{QStringLiteral("key"), key},
                              {QStringLiteral("value"), QJsonValue::fromVariant(value)}};
-    m_link->call(QStringLiteral("config.set"), params, [this, key](const QJsonObject &, const QJsonObject &error) {
+    m_link->call(QStringLiteral("config.set"), params, [this, key](const QJsonObject &result, const QJsonObject &error) {
         if (!error.isEmpty()) {
             emit setFailed(key, error.value(QStringLiteral("message")).toString());
             return;
         }
+        // The answer is the key's entry; holding it before config.changed
+        // arrives keeps the settings route from calling this write external.
+        if (result.value(QStringLiteral("key")).toString() == key)
+            applyEntries({result});
         refresh();
     });
 }

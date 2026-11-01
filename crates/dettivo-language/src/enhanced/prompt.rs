@@ -4,6 +4,8 @@
 //! preset sections, the worked examples, the unspoofable markers around
 //! the transcript and the repair prompt a rejected rewrite gets.
 
+use dettivo_core::config::vocabulary_schema::VocabularyEntry;
+
 use crate::policy::{Backend, EffectivePolicy};
 use crate::polish::{Preset, Style, Transform};
 
@@ -56,7 +58,7 @@ fn should_disable_thinking(backend: &Backend) -> bool {
 
 /// True when the compact prompt is enough: the generic preset, as
 /// dictated, no custom rules, no vocabulary and a thinking-capable model.
-fn should_use_compact_prompt(policy: &EffectivePolicy, vocabulary: &[String]) -> bool {
+fn should_use_compact_prompt(policy: &EffectivePolicy, vocabulary: &[VocabularyEntry]) -> bool {
     policy.preset == Preset::Generic
         && policy.style == Style::AsDictated
         && policy.custom_rules.trim().is_empty()
@@ -65,7 +67,7 @@ fn should_use_compact_prompt(policy: &EffectivePolicy, vocabulary: &[String]) ->
 }
 
 /// The system prompt for `policy`.
-pub fn system_prompt(policy: &EffectivePolicy, vocabulary: &[String]) -> String {
+pub fn system_prompt(policy: &EffectivePolicy, vocabulary: &[VocabularyEntry]) -> String {
     if should_use_compact_prompt(policy, vocabulary) {
         return compact_prompt(policy);
     }
@@ -100,26 +102,46 @@ pub fn system_prompt(policy: &EffectivePolicy, vocabulary: &[String]) -> String 
     if !policy.custom_rules.is_empty() {
         parts.push(format!("Additional rules: {}", policy.custom_rules));
     }
-    if !vocabulary.is_empty() {
-        let sanitized: Vec<String> = vocabulary
-            .iter()
-            .take(50)
-            .map(|term| {
-                term.chars()
-                    .filter(|c| !c.is_control())
-                    .collect::<String>()
-                    .trim()
-                    .to_string()
-            })
-            .filter(|t| !t.is_empty())
-            .collect();
-        if !sanitized.is_empty()
-            && let Ok(json) = serde_json::to_string(&sanitized)
-        {
-            parts.push(format!("<vocabulary hint=\"spelling\">{json}</vocabulary>"));
-        }
+    if let Some(block) = vocabulary_block(vocabulary) {
+        parts.push(block);
     }
     parts.join("\n\n")
+}
+
+/// The vocabulary line: the first 50 terms, each with the spellings it
+/// may be transcribed as, or `None` when no term is left after cleaning.
+fn vocabulary_block(vocabulary: &[VocabularyEntry]) -> Option<String> {
+    let clean = |text: &str| {
+        let kept: String = text.chars().filter(|c| !c.is_control()).collect();
+        kept.trim().to_string()
+    };
+    let entries: Vec<String> = vocabulary
+        .iter()
+        .take(50)
+        .filter_map(|entry| {
+            let term = clean(entry.term());
+            let aliases: Vec<String> = entry
+                .aliases()
+                .iter()
+                .map(|a| clean(a))
+                .filter(|a| !a.is_empty())
+                .collect();
+            match (term.is_empty(), aliases.is_empty()) {
+                (true, _) => None,
+                (false, true) => Some(term),
+                (false, false) => Some(format!(
+                    "{term} (may be transcribed as {})",
+                    aliases.join(", ")
+                )),
+            }
+        })
+        .collect();
+    (!entries.is_empty()).then(|| {
+        format!(
+            "Vocabulary (spell these exactly when the speaker means them): {}",
+            entries.join("; ")
+        )
+    })
 }
 
 fn compact_prompt(policy: &EffectivePolicy) -> String {
@@ -309,9 +331,34 @@ mod tests {
         assert!(full.contains("PRESET CONSTRAINTS"));
         assert!(full.contains("preserve inline structure"));
         let with_vocab = system_prompt(&policy(Preset::Generic, "qwen3:4b"), &["Dettivo".into()]);
-        assert!(with_vocab.contains("<vocabulary hint=\"spelling\">[\"Dettivo\"]</vocabulary>"));
+        assert!(
+            with_vocab.contains("PRESET CONSTRAINTS"),
+            "a vocabulary needs the full prompt"
+        );
         let other_model = system_prompt(&policy(Preset::Generic, "llama3"), &[]);
         assert!(!other_model.starts_with("/no_think"));
+    }
+
+    #[test]
+    fn the_vocabulary_line_names_each_term_with_its_aliases() {
+        let entry = |term: &str, aliases: &[&str]| VocabularyEntry::Entry {
+            term: term.into(),
+            sounds_like: aliases.iter().map(|a| a.to_string()).collect(),
+        };
+        let vocabulary = [
+            entry("Clef", &["clay", "cleff"]),
+            entry("SapienXT", &["sapient x t", " \u{7} "]),
+            "Dettivo".into(),
+            entry("", &["ghost"]),
+        ];
+        let prompt = system_prompt(&policy(Preset::Generic, "qwen3:4b"), &vocabulary);
+        assert!(
+            prompt.ends_with(
+                "\n\nVocabulary (spell these exactly when the speaker means them): Clef (may be transcribed as clay, cleff); SapienXT (may be transcribed as sapient x t); Dettivo"
+            ),
+            "{prompt}"
+        );
+        assert_eq!(vocabulary_block(&[entry(" ", &["x"])]), None);
     }
 
     #[test]
