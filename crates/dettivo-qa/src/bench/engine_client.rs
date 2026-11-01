@@ -169,3 +169,28 @@ pub fn gpu_used_mib() -> Option<u64> {
         .parse()
         .ok()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// An engine that never answers: `cat` echoes the request back and
+    /// then waits, so a call blocks on a read, and on a write once a frame
+    /// outgrows the pipe.
+    #[test]
+    fn an_engine_that_stops_answering_fails_the_call_instead_of_hanging() {
+        let dir = tempfile::tempdir().unwrap();
+        let (tx, rx) = std::sync::mpsc::channel();
+        let log = dir.path().join("engine.log");
+        std::thread::spawn(move || {
+            let mut engine = EngineClient::spawn(Path::new("cat"), false, &log).unwrap();
+            let load = engine.load(Path::new("/models/none.bin"), None).map(|_| ());
+            let warm_up = engine.warm_up().map(|_| ());
+            let _ = tx.send((load, warm_up));
+        });
+        let (load, warm_up) = rx
+            .recv_timeout(Duration::from_secs(10))
+            .expect("the calls returned rather than hanging");
+        assert!(load.is_err() && warm_up.is_err(), "{load:?} {warm_up:?}");
+    }
+}
