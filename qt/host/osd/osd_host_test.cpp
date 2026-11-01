@@ -294,6 +294,19 @@ void OsdHostTest::overflowResubscribesAndRereadsStatus()
     QCOMPARE(link.subscriptions.size(), 2);
     QCOMPARE(link.calls, QStringList{QStringLiteral("dictation.status")});
     QCOMPARE(model.state(), QStringLiteral("hidden"));
+
+    // A pill that starts, or rereads after an overflow, during a locked
+    // take says how that take ends.
+    const QJsonObject locked{{QStringLiteral("is_active"), true},
+                             {QStringLiteral("locked"), true},
+                             {QStringLiteral("job"), QJsonObject{{QStringLiteral("message"), QStringLiteral("listening")}}}};
+    link.statusAnswer = locked;
+    OsdModel late(&link, OsdSettings());
+    late.start();
+    QCOMPARE(late.state(), QStringLiteral("listening"));
+    QCOMPARE(late.hint(), QStringLiteral("locked · press to finish"));
+    emit link.overflow(3);
+    QCOMPARE(model.hint(), QStringLiteral("locked · press to finish"));
 }
 
 void OsdHostTest::controlCommandsAnswerOneObject()

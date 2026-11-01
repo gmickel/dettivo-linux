@@ -38,6 +38,42 @@ struct Inner {
     job: Option<String>,
 }
 
+/// What the hold key does to the session: the daemon, or a fake in the
+/// tests.
+pub trait Takes {
+    /// The take recording now.
+    fn recording(&self) -> Option<String>;
+    /// Starts a take; its job id.
+    fn start(&self) -> Result<String, JsonRpcError>;
+    /// Drops the take a tap started.
+    fn discard(&self, job: &str);
+    /// Tells the pill `job` is locked, only while it still records; false
+    /// when it ended meanwhile.
+    fn lock(&self, job: &str) -> bool;
+}
+
+impl Takes for Daemon {
+    fn recording(&self) -> Option<String> {
+        self.dictation()
+            .snapshot()
+            .filter(|s| s.state == State::Recording)
+            .map(|s| s.job_id)
+    }
+    fn start(&self) -> Result<String, JsonRpcError> {
+        actions::start(self, None, None, None).map(|s| s.job_id)
+    }
+    fn discard(&self, job: &str) {
+        if let Err(e) = self.dictation().cancel_expected(Some(job)) {
+            tracing::debug!(error = %e, "hold key: the tapped take was already gone");
+        }
+    }
+    fn lock(&self, job: &str) -> bool {
+        self.dictation()
+            .while_recording(job, || publish_locked(self, job))
+            .is_some()
+    }
+}
+
 /// What an edge did, and the take the caller now settles when it
 /// finished one: the settlement runs outside the key's lock, so the next
 /// edge is not held behind the transcription.
@@ -52,48 +88,40 @@ pub struct Outcome {
 #[derive(Default)]
 pub struct HoldKey {
     inner: Mutex<Inner>,
+    /// The take a double tap locked, for `dictation.status`; apart from
+    /// `inner` so a status never waits behind a start.
+    locked: Mutex<Option<String>>,
 }
 
 impl HoldKey {
-    /// Feeds one edge and acts on it. The lock is held through a start
-    /// and a discard, so a release that arrives meanwhile sees the take.
-    pub fn on(&self, daemon: &Daemon, edge: Edge) -> Result<Outcome, JsonRpcError> {
+    /// Feeds one edge that arrived `at` and acts on it. Edges are
+    /// serialized: the lock is held through a start and a discard, so a
+    /// release that arrives meanwhile sees the take. Every edge counts
+    /// from its arrival, so one that waited behind a slow start or
+    /// discard (a cold engine, `pause_media`) is timed as the person
+    /// pressed it.
+    pub fn on(&self, takes: &impl Takes, edge: Edge, at: Instant) -> Result<Outcome, JsonRpcError> {
         let mut g = self.inner.lock().unwrap_or_else(|p| p.into_inner());
         // The take is still the key's only while it records: a take that
         // was stopped, cancelled or replaced elsewhere frees the key.
-        let recording = daemon
-            .dictation()
-            .snapshot()
-            .filter(|s| s.state == State::Recording)
-            .map(|s| s.job_id);
-        if g.state.records() && (g.job.is_none() || g.job != recording) {
+        if g.state.records() && (g.job.is_none() || g.job != takes.recording()) {
             tracing::debug!(
                 hold = g.state.as_str(),
                 "hold key: its take ended elsewhere"
             );
             *g = Inner::default();
         }
-        let now = Instant::now();
-        let (mut next, action) = match edge {
-            Edge::Press => on_press(g.state, now),
-            Edge::Release => on_release(g.state, now),
+        let (mut next, mut action) = match edge {
+            Edge::Press => on_press(g.state, at),
+            Edge::Release => on_release(g.state, at),
         };
         let mut job_id = g.job.clone();
         let mut stop = None;
         match action {
-            HoldAction::Start => match actions::start(daemon, None, None, None) {
-                Ok(snapshot) => {
-                    job_id = Some(snapshot.job_id.clone());
+            HoldAction::Start => match takes.start() {
+                Ok(job) => {
+                    job_id = Some(job);
                     g.job = job_id.clone();
-                    // The hold counts from when recording began: a start
-                    // that loaded the engine must not turn the key's
-                    // repeat, queued behind it, into a lost release.
-                    if let HoldState::Held { second_tap, .. } = next {
-                        next = HoldState::Held {
-                            since: Instant::now(),
-                            second_tap,
-                        };
-                    }
                 }
                 Err(e) => {
                     *g = Inner::default();
@@ -102,17 +130,18 @@ impl HoldKey {
             },
             HoldAction::Stop => stop = g.job.take(),
             HoldAction::DiscardTap => {
-                let gone = g
-                    .job
-                    .take()
-                    .map(|job| daemon.dictation().cancel_expected(Some(&job)));
-                if let Some(Err(e)) = gone {
-                    tracing::debug!(error = %e, "hold key: the tapped take was already gone");
+                if let Some(job) = g.job.take() {
+                    takes.discard(&job);
                 }
             }
             HoldAction::Lock => {
-                if let Some(job) = &g.job {
-                    publish_locked(daemon, job);
+                // Noted first, so a status read beside the notice agrees.
+                let job = g.job.clone().unwrap_or_default();
+                *self.locked.lock().unwrap_or_else(|p| p.into_inner()) = Some(job.clone());
+                if !takes.lock(&job) {
+                    // The take ended between the release and the notice.
+                    (next, action, job_id) = (HoldState::Idle, HoldAction::None, None);
+                    g.job = None;
                 }
             }
             HoldAction::None => {
@@ -126,6 +155,9 @@ impl HoldKey {
             }
         }
         g.state = next;
+        if next != HoldState::Locked {
+            self.locked.lock().unwrap_or_else(|p| p.into_inner()).take();
+        }
         Ok(Outcome {
             result: HoldResult {
                 action: action.as_str().to_string(),
@@ -134,6 +166,15 @@ impl HoldKey {
             },
             stop,
         })
+    }
+
+    /// Whether a double tap locked the take `job`.
+    pub fn locked(&self, job: &str) -> bool {
+        self.locked
+            .lock()
+            .unwrap_or_else(|p| p.into_inner())
+            .as_deref()
+            == Some(job)
     }
 }
 
@@ -157,3 +198,7 @@ fn publish_locked(daemon: &Daemon, job: &str) {
         }),
     );
 }
+
+#[cfg(test)]
+#[path = "hold_tests.rs"]
+mod tests;

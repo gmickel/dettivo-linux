@@ -139,6 +139,10 @@ pub struct StatusResult {
     /// Linux addition: the window captured when the session started.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub target: Option<SessionTarget>,
+    /// Linux addition (ADR 0083): a double tap of the hold key locked the
+    /// take, so its release no longer ends it; absent otherwise.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub locked: bool,
 }
 
 /// `dictation.reinsert_last` result (Linux addition): the last transcript

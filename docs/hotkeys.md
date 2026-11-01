@@ -51,13 +51,13 @@ The hold chord goes through one state machine in the daemon, whichever path deli
 | The key is | A press | A release |
 |---|---|---|
 | idle | starts a take; the key is held | nothing |
-| held, less than 1 s since recording began | nothing: the key is repeating | under 300 ms, a tap: the take is dropped and the key waits 300 ms for a second tap; otherwise the take is finished |
+| held, less than 1 s since the press | nothing: the key is repeating | under 300 ms, a tap: the take is dropped and the key waits 300 ms for a second tap; otherwise the take is finished |
 | held, 1 s or more | finishes the take: its release was lost | finishes the take |
 | held after a second tap | as held | locks: the take keeps recording |
 | locked | finishes the take | nothing |
 | tapped, within 300 ms | starts the take the next release locks | nothing |
 
-So a release the compositor drops costs one more press, never the 300 s `[dictation] max_duration_seconds` limit, and double-tapping the hold key records hands-free until the next press. While a take is locked the pill shows `locked · press to finish`. The hold counts from when recording began, so a first start that loads the engine does not turn the key's repeat into a lost release. A take that ended another way (cancel, toggle, the maximum duration) returns the key to idle, so the next press starts a new one.
+So a release the compositor drops costs one more press, never the 300 s `[dictation] max_duration_seconds` limit, and double-tapping the hold key records hands-free until the next press. While a take is locked the pill shows `locked · press to finish`. Every press and release counts from when it reached the daemon, so one that waited behind a first start loading the engine, or behind `pause_media`, is timed as you pressed it: the wait never turns a repeat into a lost release or a hold into a tap. A take that ended another way (cancel, toggle, the maximum duration) returns the key to idle, so the next press starts a new one.
 
 The toggle chord starts when idle and stops when a session runs; cancel and re-insert map one to one. A hold press while another session runs is ignored with one line in the journal (`hotkey press ignored: a session is active`), never a second session, so a portal binding and a compositor snippet that are both active do not double start.
 

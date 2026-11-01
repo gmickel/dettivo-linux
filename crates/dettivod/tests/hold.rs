@@ -47,13 +47,25 @@ fn the_hold_verbs_survive_a_lost_release_and_lock_on_a_double_tap() {
     // Idempotent: a release with nothing held does nothing.
     assert_eq!(edge(&daemon, "dictation.release"), pair("none", "idle"));
 
-    // A press starts; the key repeating is ignored; a press after a second
-    // finishes the take whose release never came, and its release is a no-op.
-    let started = daemon.result("dictation.press", json!({}));
+    // A press starts; the key repeating is ignored, counted from when it
+    // arrived, also while the first start loads the engine (a second or
+    // more here); a press after a second finishes the take whose release
+    // never came, and its release is a no-op.
+    let (started, repeat) = std::thread::scope(|s| {
+        let first = s.spawn(|| daemon.result("dictation.press", json!({})));
+        std::thread::sleep(Duration::from_millis(100));
+        let repeat = edge(&daemon, "dictation.press");
+        (first.join().unwrap(), repeat)
+    });
     assert_eq!(started["action"], "started");
     assert_eq!(started["job_id"], "job_dict_1");
-    assert_eq!(edge(&daemon, "dictation.press"), pair("none", "held"));
+    assert_eq!(repeat, pair("none", "held"));
     assert!(active(&daemon));
+    let status = daemon.result("dictation.status", json!({}));
+    assert!(
+        status.get("locked").is_none(),
+        "a held take is not locked: {status}"
+    );
     std::thread::sleep(Duration::from_millis(1500));
     assert_eq!(edge(&daemon, "dictation.press"), pair("stopped", "idle"));
     assert!(!active(&daemon), "the take is settled before the answer");
@@ -73,6 +85,9 @@ fn the_hold_verbs_survive_a_lost_release_and_lock_on_a_double_tap() {
     assert_eq!(locked["action"], "locked");
     assert_eq!(locked["hold"], "locked");
     assert!(active(&daemon), "releasing does not stop a locked take");
+    // A pill that starts now learns the lock from the status.
+    let status = daemon.result("dictation.status", json!({}));
+    assert_eq!(status["locked"], true, "{status}");
     assert!(
         daemon.log().contains("dictation locked"),
         "{}",

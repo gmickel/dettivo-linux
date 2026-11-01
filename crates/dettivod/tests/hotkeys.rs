@@ -94,15 +94,18 @@ fn portal_presses_drive_sessions_with_the_target_media_pause_and_cues() {
             .contains(&json!("portal"))
     );
 
-    // Press: a session with the target captured at press time.
+    // Press: a session with the target captured at press time. The key
+    // repeating inside a second is ignored, never a second session, also
+    // while the first start still loads the engine: it counts from when
+    // the repeat arrived.
+    portal.press(HOLD).unwrap();
+    std::thread::sleep(Duration::from_millis(100));
     portal.press(HOLD).unwrap();
     assert!(
         wait_for(Duration::from_secs(15), || active(&daemon)),
         "{}",
         daemon.log()
     );
-    // The key repeating inside a second is ignored, never a second session.
-    portal.press(HOLD).unwrap();
     assert!(wait_for(Duration::from_secs(5), || {
         daemon.log().contains("hotkey press ignored")
     }));

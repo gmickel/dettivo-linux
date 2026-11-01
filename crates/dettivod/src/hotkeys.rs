@@ -7,6 +7,7 @@
 //! releases of the hold chord go through.
 
 use std::sync::{Arc, Mutex, Weak};
+use std::time::Instant;
 
 use dettivo_core::config::Loaded;
 use dettivo_core::config::schema::Hotkeys as Section;
@@ -131,13 +132,15 @@ impl Hotkeys {
         // queues, so key repeat or a noisy device never fans out into threads.
         // The worker ends when the backend drops its handler.
         let weak = Arc::downgrade(daemon);
-        let (tx, rx) = std::sync::mpsc::channel::<HotkeyEvent>();
+        // Each event carries when it arrived, so the hold key times an edge
+        // that queued behind a slow start as the person pressed it.
+        let (tx, rx) = std::sync::mpsc::channel::<(HotkeyEvent, Instant)>();
         let spawned = std::thread::Builder::new()
             .name("hotkey-actions".into())
             .spawn(move || {
-                for event in rx {
+                for (event, at) in rx {
                     match weak.upgrade() {
-                        Some(d) => crate::actions::on_hotkey(&d, event),
+                        Some(d) => crate::actions::on_hotkey(&d, event, at),
                         None => break,
                     }
                 }
@@ -148,7 +151,7 @@ impl Hotkeys {
             return;
         }
         let handler: dettivo_hotkeys::Handler = Arc::new(move |event: HotkeyEvent| {
-            if tx.send(event).is_err() {
+            if tx.send((event, Instant::now())).is_err() {
                 tracing::debug!("hotkeys: action worker gone; event dropped");
             }
         });

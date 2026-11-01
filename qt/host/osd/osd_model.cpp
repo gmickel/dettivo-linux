@@ -365,8 +365,11 @@ void OsdModel::refreshFromStatus()
         const QString engine = message.section(QStringLiteral(" with "), 1, 1).replace(QLatin1Char('/'), QLatin1Char(' '));
         if (!engine.isEmpty())
             m_engineLabel = engine;
+        // A take a double tap locked ends on the next press, not the release.
+        const bool locked = result.value(QStringLiteral("locked")).toBool(false);
         if (phase == QStringLiteral("listening"))
-            show(QStringLiteral("listening"), Texts{{}, tr("release to insert"), {}, {}, {}, {}, {}, {}});
+            show(QStringLiteral("listening"),
+                 Texts{{}, locked ? tr("locked · press to finish") : tr("release to insert"), {}, {}, {}, {}, {}, {}});
         else if (phase == QStringLiteral("transcribing") || phase == QStringLiteral("inserting"))
             show(QStringLiteral("transcribing"), Texts{{}, {}, m_engineLabel, m_elapsed, {}, {}, {}, {}});
     });
