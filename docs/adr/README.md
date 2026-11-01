@@ -21,7 +21,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0013](0013-qt-floor-and-packaging.md) | Qt 6.8 floor; AUR packages with engine binaries as separate files | Accepted 2026-09-03 |
 | [0014](0014-sqlite-history-store.md) | One SQLite file with FTS5 is the history store; artifacts sit beside it under a policy | Accepted 2026-09-04 |
 | [0015](0015-osd-pill-hosting.md) | One pill component, hosted on a layer-shell overlay with a window fallback; the completion event carries the outcome; frame pacing is measured, not claimed | Accepted 2026-09-04 |
-| [0016](0016-hotkeys-compositor-bindings-portal-evdev.md) | Compositor bindings drive the CLI; the portal and evdev backends live in the daemon; every start captures the focused window | Accepted 2026-09-04; amended 2026-11-01 by 0081 (the hold key's press and release verbs, the portal app id, shortcut ids with the chord) |
+| [0016](0016-hotkeys-compositor-bindings-portal-evdev.md) | Compositor bindings drive the CLI; the portal and evdev backends live in the daemon; every start captures the focused window | Accepted 2026-09-04; amended 2026-11-01 by 0083 (the hold key's press and release verbs, the portal app id, shortcut ids with the chord) |
 | [0017](0017-qa-packs-and-the-dictation-report.md) | Packs compose scenarios into one release-shaped report; the completion event carries the timing split | Accepted 2026-09-04 |
 | [0018](0018-parakeet-engine-dictation-only.md) | Parakeet runs on parakeet.cpp through an in-repo binding; its timestamps keep it dictation-only for now | Accepted 2026-09-04 |
 | [0019](0019-mcp-hand-rolled-protocol-and-tool-mapping.md) | The MCP server is a hand-rolled JSON-RPC layer over stdio that maps the macOS tools one to one onto daemon methods | Accepted 2026-09-04 |
@@ -85,7 +85,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0078](0078-the-final-bench-keeps-the-sherpa-onnx-set-the-default.md) | The final bench with every labelling rule on keeps the sherpa-onnx set the default and Nemotron opt-in | Accepted 2026-09-28, supersedes 0073's default |
 | [0079](0079-a-release-builds-each-ggml-engine-in-its-own-job.md) | A release builds each ggml engine in its own CI job and assembles the package from them, and NeMo-Speech.cpp links with no undefined symbols | Accepted 2026-09-29, amends 0070 |
 | [0080](0080-whisper-cpp-carries-a-dtw-median-filter-guard.md) | whisper.cpp carries a DTW median-filter guard, a chunk the engine dies on twice becomes a marked gap, and an engine that crashes on the GPU moves to the CPU | Accepted 2026-09-29, amends 0074; amended 2026-09-30 (the GPU is tried again after a hold, crash warnings keep Vulkan exception lines) |
-| [0081](0081-the-hold-key-is-a-daemon-state-machine-and-the-portal-gets-an-app-id.md) | The hold key is a daemon state machine that survives a lost release and locks on a double tap, and the portal gets the app id `dettivo` | Accepted 2026-11-01, amends 0016 |
+| [0083](0083-the-hold-key-is-a-daemon-state-machine-and-the-portal-gets-an-app-id.md) | The hold key is a daemon state machine that survives a lost release and locks on a double tap, and the portal gets the app id `dettivo` | Accepted 2026-11-01, amends 0016 |
 
 ## Writing a record
 

@@ -1,5 +1,5 @@
 //! The portal backend (FR-H3): `org.freedesktop.portal.GlobalShortcuts`
-//! through `ashpd`. The connection registers the app id first (ADR 0081),
+//! through `ashpd`. The connection registers the app id first (ADR 0083),
 //! then one session binds the four actions under ids that carry their
 //! chords, with the chords as preferred triggers; `Activated` maps to a
 //! press and `Deactivated` to a release. A desktop without the interface,

@@ -182,7 +182,7 @@ pub enum ToggleResult {
 }
 
 /// `dictation.press` and `dictation.release` result (Linux addition,
-/// ADR 0081): what the hold key did and where it is now. Both verbs are
+/// ADR 0083): what the hold key did and where it is now. Both verbs are
 /// idempotent: an event the key's state makes meaningless answers `none`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

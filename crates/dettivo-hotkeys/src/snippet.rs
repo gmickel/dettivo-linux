@@ -2,7 +2,7 @@
 //! release bindings for Hyprland (classic `.conf` and the Lua config that
 //! Hyprland 0.56 and Omarchy use) and Sway, which run `dettivo dictation
 //! press` and `release` so the daemon's hold-key machine sees both
-//! (ADR 0081), and toggle-only for Niri, which has no release bindings. Every snippet drives the `dettivo` command,
+//! (ADR 0083), and toggle-only for Niri, which has no release bindings. Every snippet drives the `dettivo` command,
 //! so the compositor needs no daemon-side backend.
 
 use std::fmt;

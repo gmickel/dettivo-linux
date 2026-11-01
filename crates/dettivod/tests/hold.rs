@@ -1,4 +1,4 @@
-//! The hold verbs against the live daemon (ADR 0081): `dictation.press`
+//! The hold verbs against the live daemon (ADR 0083): `dictation.press`
 //! and `dictation.release` are idempotent, a repeated press inside a
 //! second is ignored, a press more than a second into a hold whose release
 //! was lost finishes the take, and a tap followed by a press within 300 ms

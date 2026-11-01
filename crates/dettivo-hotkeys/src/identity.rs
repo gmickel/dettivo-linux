@@ -1,4 +1,4 @@
-//! The daemon's identity at the desktop portal (ADR 0081). A host
+//! The daemon's identity at the desktop portal (ADR 0083). A host
 //! (unsandboxed) process has no app id unless it registers one, and the
 //! GlobalShortcuts portal refuses a session without one (`NotAllowed: An
 //! app id is required`). The app id is `dettivo`, the name of the desktop

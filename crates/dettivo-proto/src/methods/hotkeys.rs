@@ -40,7 +40,7 @@ pub struct StatusResult {
     /// backend (ISO 8601 UTC); absent until one does.
     #[serde(default)]
     pub last_press_at: Option<String>,
-    /// How the portal knows the daemon (ADR 0081): `registered` (the app
+    /// How the portal knows the daemon (ADR 0083): `registered` (the app
     /// id `dettivo` through the host registry) or `unit` (a portal
     /// without the registry takes it from the systemd unit); absent when
     /// no portal session is open.

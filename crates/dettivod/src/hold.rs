@@ -1,4 +1,4 @@
-//! The daemon's hold key (ADR 0081): the state machine from
+//! The daemon's hold key (ADR 0083): the state machine from
 //! `dettivo_hotkeys::hold`, fed by `dictation.press` and
 //! `dictation.release` (the compositor bindings) and by the portal and
 //! evdev backends, acted on against the session. It owns the take it

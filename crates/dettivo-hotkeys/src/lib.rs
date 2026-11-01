@@ -127,7 +127,7 @@ impl Availability {
     }
 }
 
-/// How the desktop portal knows the daemon (ADR 0081).
+/// How the desktop portal knows the daemon (ADR 0083).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Identity {
     /// The daemon registered the app id `dettivo` with the portal's host

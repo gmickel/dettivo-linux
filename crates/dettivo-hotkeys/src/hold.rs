@@ -1,4 +1,4 @@
-//! The hold key's state machine (ADR 0081). Every path that reports a
+//! The hold key's state machine (ADR 0083). Every path that reports a
 //! press and a release of the hold chord feeds it: the compositor
 //! bindings through `dettivo dictation press` and `release`, the portal's
 //! `Activated` and `Deactivated`, and evdev. It survives a release the

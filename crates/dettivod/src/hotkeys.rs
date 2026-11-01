@@ -3,7 +3,7 @@
 //! nothing, since compositor bindings call the CLI), starts it on a thread
 //! of its own so a portal dialog never delays the socket, restarts it when
 //! the section changes, and reports what runs and why the rest does not.
-//! It also holds the hold key (ADR 0081), which every path's presses and
+//! It also holds the hold key (ADR 0083), which every path's presses and
 //! releases of the hold chord go through.
 
 use std::sync::{Arc, Mutex, Weak};

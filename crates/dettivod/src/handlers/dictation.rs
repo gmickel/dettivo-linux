@@ -99,7 +99,7 @@ pub fn toggle(daemon: &Daemon) -> Result<Value, JsonRpcError> {
     }
 }
 
-/// `dictation.press` and `dictation.release` (Linux additions, ADR 0081):
+/// `dictation.press` and `dictation.release` (Linux additions, ADR 0083):
 /// one edge of the hold chord through the hold key. A take the edge
 /// finished is settled before the answer, as `dictation.stop` does.
 pub fn hold(daemon: &Daemon, edge: crate::hold::Edge) -> Result<Value, JsonRpcError> {
