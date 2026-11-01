@@ -39,6 +39,7 @@ impl Supervisor {
             lora: slot.params.as_ref().and_then(|p| p.lora.clone()),
             crashes: slot.crashes,
             degraded: slot.crashes >= 3,
+            warm: slot.warm && slot.loaded.is_some(),
             memory_bytes: running
                 .then(|| slot.process.as_ref().and_then(EngineProcess::memory_bytes))
                 .flatten(),
@@ -84,6 +85,7 @@ impl Supervisor {
                     lora: None,
                     crashes: 0,
                     degraded: false,
+                    warm: false,
                     memory_bytes: None,
                 });
                 status.path = path;

@@ -101,8 +101,47 @@ pub struct SpeakerModel {
     pub recommended_action: Option<String>,
 }
 
+/// `speech.providers.list` params. Linux addition: `language` asks for
+/// that language's model ranking (ADR 0085).
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProvidersListParams {
+    /// A language code or locale (`de`, `de_CH.UTF-8`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub language: Option<String>,
+}
+
+/// One speech model in a language's ranking.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RankedModel {
+    /// The provider (`whisper`, `parakeet`).
+    pub provider: String,
+    /// The model id.
+    pub model_id: String,
+    /// The name to show.
+    pub display_name: String,
+    /// 1 for the recommended model.
+    pub rank: u32,
+    /// Word error rate in percent on the recorded FLEURS run.
+    pub wer: f64,
+    /// On disk and ready to use.
+    pub is_downloaded: bool,
+}
+
+/// The catalogue's ranking for one language (Linux addition).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct LanguageRanking {
+    /// The language code the ranking is for.
+    pub language: String,
+    /// The scored models, best rank first; empty for a language the
+    /// recorded run did not cover.
+    pub models: Vec<RankedModel>,
+}
+
 /// `speech.providers.list` result.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProvidersListResult {
     /// Available speech providers.
@@ -113,6 +152,10 @@ pub struct ProvidersListResult {
     pub default_provider_id: String,
     /// The default model id.
     pub default_model_id: String,
+    /// Linux addition: the ranking for the `language` the request named;
+    /// absent without one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub language_ranking: Option<LanguageRanking>,
 }
 
 /// `speech.selection.set` params. Every field is optional and the daemon
@@ -247,6 +290,11 @@ pub struct EngineStatus {
     pub crashes: u32,
     /// Three consecutive crashes; cleared by a successful load.
     pub degraded: bool,
+    /// Linux addition (ADR 0084): the loaded model has run an inference,
+    /// the warm-up or a take, so the next take pays no kernel compile.
+    /// With `running` and `model` it reads cold, loaded or warm.
+    #[serde(default)]
+    pub warm: bool,
     /// Linux addition (S-16): the process's resident set in bytes while it
     /// runs, `null` otherwise.
     pub memory_bytes: Option<u64>,

@@ -10,8 +10,15 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 - A dictation never pastes the vocabulary back when the take was silent, a decoder loop leaves the words before it, and the silence hallucinations and blank markers meetings already dropped (`thanks for watching`, `[BLANK_AUDIO]`) are dropped from dictation too.
 - A long vocabulary keeps its first words. The Whisper prompt stops at 500 characters, at a whole word.
 
+### Added
+
+- First run recommends the speech model that transcribes your language best. The Models step reads `[dictation] language`, or your system locale while that is `auto`, and preselects the model the catalogue ranks first for it, with its word error rate beside it. `dettivo speech providers --language de` lists the ranking. The ranks come from a recorded FLEURS run over eight languages, and an existing selection never changes ([docs/models.md](docs/models.md)).
+- `dettivo speech status` and `dettivo doctor` say whether each speech engine is cold, loaded or warm, so you can tell whether the next take pays for a start.
+
 ### Changed
 
+- The first dictation after the daemon starts costs what the tenth costs. After every preload the daemon runs 30 s of silence through the engine, so the work a first inference used to pay happens while you speak: Whisper's first take measured 148 ms against 137 ms warm, Parakeet's 53 ms against 52 ms. The first run after an install or a graphics driver update still compiles the driver's shaders and can add up to a second. The warm-up is skipped when the engine recognised within the last minute, and a take never waits for more than a warm-up already running ([ADR 0084](docs/adr/0084-a-loaded-engine-is-warmed-before-the-first-take.md)).
+- A speech engine on the GPU runs its CPU side on four threads, down from eight, after a measurement showed eight and sixteen gained 2 ms (1.5%) on Whisper and nothing on Parakeet.
 - `[dictation] silence_dbfs` (default -50) replaces `silence_peak_threshold`, which is retired. A file that still sets the old key loads, and the value is ignored ([docs/config.md](docs/config.md)).
 - Takes shorter than 1.5 s reach the engine padded to 1.5 s, and Parakeet takes carry 400 ms of trailing silence. A padded take that comes back with no text is recognized once more as captured.
 

@@ -476,3 +476,6 @@ mod gpu_retry;
 
 #[path = "support/embed_batches.rs"]
 mod embed_batches;
+
+#[path = "support/warm_up.rs"]
+mod warm_up;

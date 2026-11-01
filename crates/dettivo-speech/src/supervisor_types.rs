@@ -64,6 +64,9 @@ pub struct EngineStatus {
     pub crashes: u32,
     /// Marked degraded (three consecutive crashes).
     pub degraded: bool,
+    /// The loaded model has run an inference since it loaded, so the next
+    /// take pays no kernel compile; `false` while nothing is loaded.
+    pub warm: bool,
     /// The process's resident set in bytes while it runs.
     pub memory_bytes: Option<u64>,
 }
@@ -85,7 +88,7 @@ pub struct LlmLoad {
 pub struct EngineTransition {
     /// The binary.
     pub binary: String,
-    /// `spawned`, `loaded`, `unloaded`, `crashed`, `degraded`.
+    /// `spawned`, `loaded`, `warm`, `unloaded`, `crashed`, `degraded`.
     pub state: &'static str,
     /// The model, when loaded.
     pub model: Option<String>,

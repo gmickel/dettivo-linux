@@ -219,7 +219,7 @@ catalog! {
         "transfer.pull" => (transfer::PullParams, transfer::PullResult);
         "transfer.commit" => (transfer::CommitParams, transfer::CommitResult);
         "transfer.cancel" => (transfer::CancelParams, transfer::CancelResult);
-        "speech.providers.list" => (NoParams, speech::ProvidersListResult), linux: true;
+        "speech.providers.list" => (speech::ProvidersListParams, speech::ProvidersListResult), linux: true;
         "speech.selection.get" => (NoParams, speech::SelectionResult), linux: true;
         "speech.selection.set" => (speech::SelectionSetParams, speech::SelectionResult), linux: true;
         "speech.engines" => (NoParams, speech::EnginesResult), linux: true;

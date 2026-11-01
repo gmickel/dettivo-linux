@@ -2,20 +2,26 @@
 //! fixtures the tests use, through the engines' CLI modes and the
 //! daemon's dictation path, written as one report per host and tier with
 //! every number beside its target. The steps: `first_insert` (NFR-1 or
-//! NFR-2 by tier), `stt_throughput` (NFR-4 or NFR-5), `llm_rewrite`
+//! NFR-2 by tier, with the first take beside the warm ones), `warm_up`
+//! and `gpu_threads` (recorded, ADR 0084 and ADR 0085), `stt_throughput`
+//! (NFR-4 or NFR-5), `language_wer` (the catalogue's per-language ranks,
+//! ADR 0085, with `--languages`), `llm_rewrite`
 //! (recorded), `idle_footprint` (NFR-6), `startup` (NFR-8) and the
 //! `diarization` placeholder. `--cpu` forces the CPU tier, `--quick` runs
 //! three iterations for CI, `--out <dir>` also files the report as
 //! `<date>-<host>-<tier>.json` there and renders the README table.
 
 pub mod daemon;
+pub mod engine_client;
 pub mod first_insert;
 pub mod footprint;
 pub mod host;
+pub mod language_wer;
 pub mod meetings;
 pub mod render;
 pub mod report;
 pub mod throughput;
+pub mod warmth;
 
 pub use report::{
     Comparison, LoadAverage, Report, SCHEMA_VERSION, Spread, Status, Step, date_of, load_average,
@@ -29,10 +35,13 @@ use crate::nfr;
 /// The steps, in run order.
 pub const STEPS: &[&str] = &[
     "first_insert",
+    "warm_up",
+    "gpu_threads",
     "stt_throughput",
     "llm_rewrite",
     "idle_footprint",
     "startup",
+    "language_wer",
 ];
 /// Iterations of a timed step on a full run, and under `--quick`.
 pub const ITERATIONS: usize = 10;
@@ -59,6 +68,9 @@ pub struct Options {
     pub engines_dir: Option<PathBuf>,
     /// The real model directory, when it exists.
     pub models_dir: Option<PathBuf>,
+    /// The prepared FLEURS languages `language_wer` scores
+    /// (`scripts/qa/fetch-fleurs.sh`); the step skips without them.
+    pub languages_dir: Option<PathBuf>,
 }
 
 impl Options {
@@ -157,10 +169,13 @@ pub fn run(opts: &Options) -> Result<(Report, PathBuf), String> {
                 }
                 step
             }
+            "warm_up" => warmth::warm_up(&bench),
+            "gpu_threads" => warmth::gpu_threads(&bench, tier),
             "stt_throughput" => throughput::stt(&bench, tier),
             "llm_rewrite" => throughput::llm(&bench),
             "idle_footprint" => footprint::idle(&bench),
             "startup" => footprint::startup(&bench),
+            "language_wer" => language_wer::run(&bench),
             other => Step::without(other, Status::Failed, "not a bench step".into()),
         };
         step.duration_ms = u64::try_from(at.elapsed().as_millis()).unwrap_or(u64::MAX);
@@ -274,6 +289,7 @@ mod tests {
             evidence_base: PathBuf::new(),
             engines_dir: None,
             models_dir: None,
+            languages_dir: None,
         };
         assert_eq!(opts.iterations(), 3);
         assert_eq!(

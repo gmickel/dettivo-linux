@@ -189,7 +189,8 @@ void FirstRunModels::applyStatus(const QJsonObject &result)
         const bool selected = m.value(QStringLiteral("is_selected")).toBool(false);
         if (m.value(QStringLiteral("kind")).toString() == QStringLiteral("vad"))
             continue;
-        if (recommended.isNull() && !ready && !selected)
+        const QString key = m.value(QStringLiteral("provider")).toString() + QLatin1Char('/') + m.value(QStringLiteral("id")).toString();
+        if (recommended.isNull() && !ready && !selected && key != m_recommendedKey)
             continue;
         if (!m.value(QStringLiteral("available")).toBool(true))
             continue;
@@ -227,8 +228,10 @@ void FirstRunModels::applyStatus(const QJsonObject &result)
             selectedKey = r.provider + QLatin1Char('/') + r.id;
         rows.append(r);
     }
+    m_status = result;
     beginResetModel();
     m_rows = rows;
+    markRecommended();
     endResetModel();
     emit countChanged();
     emit summaryChanged();
@@ -252,6 +255,7 @@ void FirstRunModels::refresh(bool includeSpeech)
             if (error.isEmpty())
                 applyStatus(result);
         });
+        requestRanking();
     }
     m_link->call(QStringLiteral("llm.providers.list"), QJsonObject(), [this](const QJsonObject &result, const QJsonObject &error) {
         if (error.isEmpty())
@@ -322,6 +326,7 @@ void FirstRunModels::select(const QString &provider, const QString &id)
     const int row = rowOf(provider, id);
     if (row < 0)
         return;
+    m_picked = true;
     for (int i = 0; i < m_rows.size(); ++i)
         m_rows[i].selected = i == row;
     emit dataChanged(index(0), index(int(m_rows.size()) - 1));

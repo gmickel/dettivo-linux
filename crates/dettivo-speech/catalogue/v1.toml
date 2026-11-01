@@ -32,6 +32,11 @@ redistribution = "OpenAI Whisper weights converted by whisper.cpp; redistributab
 languages = ["en"]
 english_only = true
 
+[[models.language_wer]]
+language = "en"
+rank = 6
+wer = 10.1
+
 [[models]]
 provider = "whisper"
 id = "base"
@@ -58,6 +63,11 @@ license = "MIT"
 redistribution = "OpenAI Whisper weights converted by whisper.cpp; redistributable under MIT"
 languages = ["en"]
 english_only = true
+
+[[models.language_wer]]
+language = "en"
+rank = 5
+wer = 8.3
 
 [[models]]
 provider = "whisper"
@@ -143,6 +153,60 @@ quantization = "q8_0"
 default = true
 recommended_for = "99 languages · vocabulary prompts · the Mac default"
 
+[[models.language_wer]]
+language = "de"
+rank = 3
+wer = 5.2
+
+[[models.language_wer]]
+language = "en"
+rank = 4
+wer = 4.5
+
+[[models.language_wer]]
+language = "es"
+rank = 3
+wer = 3.1
+
+[[models.language_wer]]
+language = "fr"
+rank = 3
+wer = 5.9
+
+[[models.language_wer]]
+language = "it"
+rank = 3
+wer = 3.1
+
+[[models.language_wer]]
+language = "nl"
+rank = 3
+wer = 6.2
+
+[[models.language_wer]]
+language = "pl"
+rank = 2
+wer = 6.2
+
+[[models.language_wer]]
+language = "pt"
+rank = 3
+wer = 4.4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 [[models]]
 provider = "whisper"
 id = "silero-vad"
@@ -173,6 +237,11 @@ languages = ["en"]
 english_only = true
 quantization = "q8_0"
 
+[[models.language_wer]]
+language = "en"
+rank = 1
+wer = 4.1
+
 [[models]]
 provider = "parakeet"
 id = "parakeet-v3"
@@ -188,6 +257,60 @@ languages = ["multilingual"]
 quantization = "q8_0"
 default = true
 recommended_for = "25 European languages · word timestamps · fastest on GPU"
+
+[[models.language_wer]]
+language = "de"
+rank = 2
+wer = 4.8
+
+[[models.language_wer]]
+language = "en"
+rank = 3
+wer = 5.1
+
+[[models.language_wer]]
+language = "es"
+rank = 2
+wer = 3.3
+
+[[models.language_wer]]
+language = "fr"
+rank = 2
+wer = 5.9
+
+[[models.language_wer]]
+language = "it"
+rank = 2
+wer = 2.9
+
+[[models.language_wer]]
+language = "nl"
+rank = 2
+wer = 7.3
+
+[[models.language_wer]]
+language = "pl"
+rank = 3
+wer = 7.7
+
+[[models.language_wer]]
+language = "pt"
+rank = 2
+wer = 5.0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Moondream's post-train of Parakeet TDT 0.6B v3 (moondream/parakeet-ultra,
 # CC-BY-4.0), converted for parakeet.cpp by trevest/parakeet-ultra-GGUF:
@@ -206,6 +329,60 @@ redistribution = "Moondream post-train of NVIDIA Parakeet TDT 0.6B v3, GGUF from
 languages = ["multilingual"]
 quantization = "q8_0"
 recommended_for = "v3 retrained by Moondream · lower word error on their benchmarks · same size"
+
+[[models.language_wer]]
+language = "de"
+rank = 1
+wer = 4.2
+
+[[models.language_wer]]
+language = "en"
+rank = 2
+wer = 4.5
+
+[[models.language_wer]]
+language = "es"
+rank = 1
+wer = 2.9
+
+[[models.language_wer]]
+language = "fr"
+rank = 1
+wer = 4.8
+
+[[models.language_wer]]
+language = "it"
+rank = 1
+wer = 2.4
+
+[[models.language_wer]]
+language = "nl"
+rank = 1
+wer = 6.9
+
+[[models.language_wer]]
+language = "pl"
+rank = 1
+wer = 6.9
+
+[[models.language_wer]]
+language = "pt"
+rank = 1
+wer = 4.5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # The language models behind Enhanced and meeting analysis (ADR 0005, ADR
 # 0026): the macOS catalogue in GGUF at the 4-bit footprint (Q4_K_M from

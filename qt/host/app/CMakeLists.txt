@@ -24,6 +24,7 @@ add_library(dettivo-app-host STATIC
     first_run_model.cpp
     first_run_model.h
     first_run_models.cpp
+    first_run_ranking.cpp
     first_run_models.h
     history_actions.cpp
     history_actions.h

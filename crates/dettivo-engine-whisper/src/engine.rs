@@ -55,6 +55,8 @@ pub struct Engine {
     pub reason: String,
     vad_model: Option<String>,
     timing: Timing,
+    /// The load's `threads`; `backend::speech_threads` decides when absent.
+    threads: Option<u32>,
 }
 
 impl Engine {
@@ -75,6 +77,7 @@ impl Engine {
                 reason: "voice activity model only, on the CPU".into(),
                 vad_model: Some(vad.to_string()),
                 timing: Timing::Plain,
+                threads: None,
             });
         }
         if !Path::new(model).is_file() {
@@ -174,18 +177,21 @@ impl Engine {
             reason,
             vad_model: vad_model.map(str::to_string),
             timing,
+            threads: None,
         })
     }
 }
 
 impl SpeechEngine for Engine {
     fn load(params: &LoadParams, force_cpu: bool) -> Result<Self, EngineError> {
-        Self::load_with(
+        let mut engine = Self::load_with(
             &params.model,
             params.backend_preference,
             force_cpu,
             params.vad_model.as_deref(),
-        )
+        )?;
+        engine.threads = params.threads;
+        Ok(engine)
     }
 
     fn loaded(&self) -> LoadedResult {
@@ -229,7 +235,7 @@ impl SpeechEngine for Engine {
         full.set_print_realtime(false);
         full.set_print_timestamps(false);
         full.set_suppress_blank(true);
-        full.set_n_threads(available_threads());
+        full.set_n_threads(backend::speech_threads(self.threads, self.backend));
         if language != "auto" {
             full.set_language(Some(language));
         } else {
@@ -408,12 +414,6 @@ fn tokens_of(segment: &WhisperSegment<'_>, eot: i32) -> Vec<Token> {
             }
         })
         .collect()
-}
-
-fn available_threads() -> i32 {
-    std::thread::available_parallelism()
-        .map(|n| n.get().min(8) as i32)
-        .unwrap_or(4)
 }
 
 #[cfg(test)]

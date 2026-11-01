@@ -52,6 +52,14 @@ pub struct EngineRow {
     pub figure: Option<f64>,
     /// Whether the p50 meets the tier's target.
     pub met: Option<bool>,
+    /// The first take after the daemon started over the warm p50, once
+    /// the row qualifies (ADR 0084).
+    #[serde(default)]
+    pub cold_ratio: Option<f64>,
+    /// `cold_ratio` within `warmth::WARM_FACTOR`: the first take is within
+    /// 20% of a warm one.
+    #[serde(default)]
+    pub cold_met: Option<bool>,
 }
 
 /// Qualifies every row against `iterations` warm runs and the target:
@@ -68,6 +76,12 @@ pub fn qualify(rows: &mut [EngineRow], iterations: usize, target: &nfr::Target) 
             .then(|| row.warm.as_ref().map(|w| w.p50 as f64))
             .flatten();
         row.met = row.figure.map(|f| target.met(f));
+        row.cold_ratio = row
+            .figure
+            .filter(|f| *f > 0.0)
+            .zip(row.cold_ms)
+            .map(|(warm, cold)| cold as f64 / warm);
+        row.cold_met = row.cold_ratio.map(|r| r <= super::warmth::WARM_FACTOR);
         if !row.qualified {
             incomplete.push(format!(
                 "{}: {} of {} warm runs completed; {}",
@@ -235,6 +249,8 @@ fn measure(
         qualified: false,
         figure: None,
         met: None,
+        cold_ratio: None,
+        cold_met: None,
     };
     Ok((row, tier))
 }
@@ -285,6 +301,8 @@ mod tests {
             qualified: false,
             figure: None,
             met: None,
+            cold_ratio: None,
+            cold_met: None,
         }
     }
 
@@ -303,6 +321,11 @@ mod tests {
             assert_eq!(row.warm.as_ref().map(|w| w.iterations), Some(ok));
             assert_eq!(row.failures.len(), 10 - ok);
             assert_eq!(row.warm_required, 10);
+            // The first take is held against the warm p50 only with a figure.
+            assert_eq!(row.cold_ratio.is_some(), expect_figure, "{ok} of 10");
+            if expect_figure {
+                assert_eq!(row.cold_met, Some(false), "900 ms against a ~505 ms p50");
+            }
             if !expect_figure {
                 assert!(
                     incomplete[0].starts_with(&format!("whisper: {ok} of 10 warm runs completed;")),

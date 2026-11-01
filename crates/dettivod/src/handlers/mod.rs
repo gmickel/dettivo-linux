@@ -177,8 +177,8 @@ pub fn resolve(method: &str) -> Option<Handler> {
             audio::devices(daemon)
         },
         "speech.providers.list" => |daemon, _ctx, value| {
-            let _: dettivo_proto::catalog::NoParams = params(value)?;
-            speech::providers_list(daemon)
+            let p: dettivo_proto::methods::speech::ProvidersListParams = params(value)?;
+            speech::providers_list(daemon, p.language.as_deref())
         },
         "speech.selection.get" => |daemon, _ctx, value| {
             let _: dettivo_proto::catalog::NoParams = params(value)?;
