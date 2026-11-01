@@ -303,10 +303,13 @@ fn ensure_desktop_entry() {
         }
     };
     match identity::ensure_desktop_entry(&home, &dirs, &exec) {
-        Ok(Some(path)) => {
+        Ok(identity::EntryChange::Written(path)) => {
             tracing::info!(path = %path.display(), "hotkeys: wrote the desktop entry the portal identifies the daemon by")
         }
-        Ok(None) => {}
+        Ok(identity::EntryChange::Retired(path)) => {
+            tracing::info!(path = %path.display(), "hotkeys: removed the generated desktop entry; the installed package's entry replaces it")
+        }
+        Ok(identity::EntryChange::Unchanged) => {}
         Err(e) => tracing::warn!(error = %e, "hotkeys: no desktop entry for the portal identity"),
     }
 }

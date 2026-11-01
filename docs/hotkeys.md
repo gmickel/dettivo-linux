@@ -75,7 +75,7 @@ evdev     unavailable: cannot open 12 input device(s): reading /dev/input/event*
 bound     push_to_talk, toggle, cancel, reinsert_last
 ```
 
-The portal backend first gives the daemon an identity. A host process has no app id unless it registers one, and `xdg-desktop-portal` refuses it a session (`NotAllowed: An app id is required`), which is what a systemd service used to get. The daemon makes sure the desktop entry `dettivo.desktop` exists (the package ships it in `/usr/share/applications`; a source build gets a minimal one under `~/.local/share/applications`), then registers the app id `dettivo` through `org.freedesktop.host.portal.Registry` on the connection that opens the session. A portal older than the registry takes the id from the systemd unit instead. `dettivo hotkeys status` and `dettivo doctor` say which:
+The portal backend first gives the daemon an identity. A host process has no app id unless it registers one, and `xdg-desktop-portal` refuses it a session (`NotAllowed: An app id is required`), which is what a systemd service used to get. The daemon makes sure the desktop entry `dettivo.desktop` exists (the package ships it in `/usr/share/applications`; a source build gets a minimal one under `~/.local/share/applications`, which the daemon removes once the package's entry is installed so it never hides it; an entry you wrote yourself stays), then registers the app id `dettivo` through `org.freedesktop.host.portal.Registry` on the connection that opens the session. A portal older than the registry takes the id from the systemd unit instead. `dettivo hotkeys status` and `dettivo doctor` say which:
 
 ```
 identity  app id dettivo, registered with the portal
