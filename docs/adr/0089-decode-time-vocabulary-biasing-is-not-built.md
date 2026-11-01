@@ -10,7 +10,7 @@ You know where Parakeet's vocabulary support stands and what would move it: resc
 
 fn-84 staged the work. Stage 1 rescores the greedy transcript (ADR 0088). Stage 2, decode-time biasing, was to be built only if stage 1 missed the recall target at `normal`: at least two thirds of the terms Parakeet misses recovered, with no false insertion and no rise in guard word error rate. Stage 2 carries shadow hypotheses beside the greedy path that spell a term through a token trie wherever its first piece is plausible at a word start, gives each piece the full boost when the greedy words sound like the term and 0.6 x the boost otherwise, and lets the term replace the greedy span at the word boundary only if it scores higher.
 
-The benchmark ([vocabulary-2026-11-01-thor-rescoring](../reports/benchmarks/vocabulary-2026-11-01-thor-rescoring.md), Parakeet v3 on Vulkan at `199eb1d`, the GPU shared with other benchmark runs) measured stage 1:
+The benchmark ([vocabulary-2026-11-01-thor-rescoring](../reports/benchmarks/vocabulary-2026-11-01-thor-rescoring.md), Parakeet v3 on Vulkan at `2e1f0f4`, the GPU shared with other benchmark runs) measured stage 1:
 
 | Level | Boost (nats per piece) | Term recall | Missed terms recovered | False insertions | Guard WER |
 |---|---|---|---|---|---|
@@ -30,5 +30,5 @@ The benchmark ([vocabulary-2026-11-01-thor-rescoring](../reports/benchmarks/voca
 
 - Whether `normal` should add more than 2.5 nats per piece, or whether the default level should be `strong`, is a product call left open. The distractor margins (24 nats or more at `strong`) leave room, but the set holds five distractors and four guard sentences from two synthetic voices, so a larger margin of safety has not been measured.
 - Scoring the term in other casings and summing over every segmentation of it moved no clip, so neither was kept (ADR 0088).
-- Rescoring added a median of 17.4 ms to the 15 clips with a candidate and at most 0.2 ms to a clip without one, on the release build with Vulkan; the bound of 150 ms holds with room for a vocabulary of many terms.
+- Rescoring added a median of 15.0 ms to the 15 clips with a candidate and at most 1.4 ms to a clip without one, preparing the vocabulary included,, on the release build with Vulkan; the bound of 150 ms holds with room for a vocabulary of many terms.
 - A future change that does move recall at the same boost would have to change the scores themselves, for example by a model fine-tuned on the user's terms. Revisit this record if such a model or a parakeet.cpp contextual-biasing API appears.
