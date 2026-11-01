@@ -1,6 +1,6 @@
 # Vocabulary boost levels as dictation hears them, 2026-11-01 on thor
 
-This run measures Parakeet's vocabulary boosts on clips padded the way dictation pads a take. Padded, `normal` (4.0 nats per piece) recovers 7 of the 12 terms Parakeet misses, one short of the two-thirds target in R2. It writes no term where none was said. The three Hyprland clips need 4.2 to 4.4 nats per piece, and at 4.5 to 6.0 all three come back with no false insertion. This report replaces the recall figures in [vocabulary-2026-11-01-thor-boosts](vocabulary-2026-11-01-thor-boosts.md), which were measured on unpadded clips. The boost levels themselves are unchanged until Gordon decides.
+This run measures Parakeet's vocabulary boosts on clips padded the way dictation pads a take. Padded, `normal` (4.0 nats per piece) recovers 7 of the 12 terms Parakeet misses, one short of the two-thirds target in R2. It writes no term where none was said. The three Hyprland clips need 4.2 to 4.4 nats per piece, and at 4.5 to 6.0 all three come back with no false insertion. This report replaces the recall figures in [vocabulary-2026-11-01-thor-boosts](vocabulary-2026-11-01-thor-boosts.md), which were measured on unpadded clips. Gordon set the levels from it on 2026-11-02: `light` 4.0, `normal` 5.0, `strong` 6.0 nats per piece. A run of the shipped `normal`, below, confirms the 5.0 row.
 
 ## What changed in the bench
 
@@ -54,3 +54,16 @@ The other 13 distractors with a candidate cross at 9.98 or above, and the seven 
 - `DeDivo` for Dettivo needs 7.03, past "hyper landing", so no boost recovers all 12 without a false insertion on this set.
 
 The set comes from two synthetic voices. A real speaker's near-misses will spread wider than these crossings, so the headroom below "hyper landing" matters as much as the recall.
+
+## The shipped levels
+
+The levels are `light` 4.0, `normal` 5.0 (default) and `strong` 6.0 nats per piece (`ec31f13`). One run of the bench measured the shipped `normal` from an engine built as it ships, with no level remapped: the same release Vulkan build, the same padded clips and set (`1f7c1acafdde`), at `ec31f13`. It is filed as `vocabulary-2026-11-01-thor-padded-normal.json`. The bench always runs its `on` pass at `normal`, so the `light` and `strong` rows are the 4.0 and 6.0 rows above.
+
+| Level | Boost (nats per piece) | Term recall | Missed terms recovered | False insertions | Guard WER | Rescoring added |
+|---|---|---|---|---|---|---|
+| off | 0 | 3/15 | 0 of 12 | 0 | 0.000 | - |
+| `light` | 4.0 | 10/15 | 7 of 12 | 0 | 0.000 | 14.5 ms median on 29 clips, 1.3 ms most without (row above) |
+| `normal`, shipped build | 5.0 | 13/15 | 10 of 12 | 0 | 0.000 | 14.3 ms median on 29 clips, 1.3 ms most without |
+| `strong` | 6.0 | 13/15 | 10 of 12 | 0 | 0.000 | 14.8 ms median on 29 clips, 1.1 ms most without (row above) |
+
+The shipped run matches the remapped 5.0 build clip for clip. The two terms it misses are `Itivo` and `DeDivo` for Dettivo, and "The kids were hyper landing after the long flight" stays as said. `normal` sits 0.57 nats per piece above the last Hyprland clip and 1.41 below "hyper landing"; `strong` sits 0.41 below it. The run also measured Whisper `large-v3-turbo` on the CPU, which an engine directory without a Whisper build skips; those rows are not part of this comparison. Other agents were using the GPU (20 % to 40 % busy).
