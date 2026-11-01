@@ -94,6 +94,9 @@ fn a_rebind_registers_the_new_chord_under_a_new_id_and_drops_the_old() {
     let _ = start(&first);
     assert!(portal.bound().contains(&"dictation-hold-F9".to_string()));
     first.stop();
+    // Stop joins the thread after the session's Close returned, so the
+    // old ids are gone before the second backend binds.
+    assert_eq!(portal.bound(), Vec::<String>::new());
     let keys = Keys::parse(
         "F10",
         Keys::DEFAULT_TOGGLE,

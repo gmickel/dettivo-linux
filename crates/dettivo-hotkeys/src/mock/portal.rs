@@ -42,8 +42,10 @@ impl Default for MockOptions {
 
 #[derive(Default)]
 struct PortalState {
+    /// Live sessions, oldest first.
     sessions: Vec<OwnedObjectPath>,
-    bound: Vec<String>,
+    /// The ids each session's last bind registered.
+    bound: Vec<(OwnedObjectPath, Vec<String>)>,
     bind_calls: usize,
     options: Option<MockOptions>,
     /// Senders with their registered app id.
@@ -55,6 +57,14 @@ struct PortalState {
 impl PortalState {
     fn options(&self) -> MockOptions {
         self.options.unwrap_or_default()
+    }
+
+    fn bound_to(&self, session: &str) -> Vec<String> {
+        self.bound
+            .iter()
+            .find(|(s, _)| s.as_str() == session)
+            .map(|(_, ids)| ids.clone())
+            .unwrap_or_default()
     }
 }
 
@@ -162,7 +172,11 @@ impl RegistryIface {
     }
 }
 
-struct SessionIface;
+/// A session; closing it drops its shortcuts, as the stock portal does.
+struct SessionIface {
+    state: Arc<Mutex<PortalState>>,
+    path: OwnedObjectPath,
+}
 
 #[interface(name = "org.freedesktop.portal.Session")]
 impl SessionIface {
@@ -171,7 +185,11 @@ impl SessionIface {
         1
     }
 
-    async fn close(&self) {}
+    async fn close(&self) {
+        let mut s = self.state.lock().unwrap_or_else(|p| p.into_inner());
+        s.sessions.retain(|p| *p != self.path);
+        s.bound.retain(|(p, _)| *p != self.path);
+    }
 }
 
 #[interface(name = "org.freedesktop.portal.GlobalShortcuts")]
@@ -206,7 +224,13 @@ impl PortalIface {
         );
         let session_path = object_path(session.clone())?;
         conn.object_server()
-            .at(session_path.clone(), SessionIface)
+            .at(
+                session_path.clone(),
+                SessionIface {
+                    state: self.state.clone(),
+                    path: session_path.clone(),
+                },
+            )
             .await?;
         self.state
             .lock()
@@ -229,7 +253,7 @@ impl PortalIface {
         &self,
         #[zbus(header)] header: Header<'_>,
         #[zbus(connection)] conn: &Connection,
-        _session_handle: ObjectPath<'_>,
+        session_handle: ObjectPath<'_>,
         shortcuts: Vec<(String, HashMap<String, OwnedValue>)>,
         _parent_window: String,
         options: HashMap<String, OwnedValue>,
@@ -272,8 +296,13 @@ impl PortalIface {
                 )
             })
             .collect();
-        self.state.lock().unwrap_or_else(|p| p.into_inner()).bound =
-            bound.iter().map(|(id, _)| id.clone()).collect();
+        {
+            let mut s = self.state.lock().unwrap_or_else(|p| p.into_inner());
+            let session: OwnedObjectPath = session_handle.into();
+            s.bound.retain(|(p, _)| *p != session);
+            s.bound
+                .push((session, bound.iter().map(|(id, _)| id.clone()).collect()));
+        }
         respond(conn, &request, 0, BindResults { shortcuts: bound }).await?;
         object_path(request)
     }
@@ -282,7 +311,7 @@ impl PortalIface {
         &self,
         #[zbus(header)] header: Header<'_>,
         #[zbus(connection)] conn: &Connection,
-        _session_handle: ObjectPath<'_>,
+        session_handle: ObjectPath<'_>,
         options: HashMap<String, OwnedValue>,
     ) -> zbus::fdo::Result<OwnedObjectPath> {
         let request = format!(
@@ -294,13 +323,13 @@ impl PortalIface {
             .state
             .lock()
             .unwrap_or_else(|p| p.into_inner())
-            .bound
-            .iter()
+            .bound_to(session_handle.as_str())
+            .into_iter()
             .map(|id| {
                 (
                     id.clone(),
                     ShortcutInfo {
-                        description: id.clone(),
+                        description: id,
                         trigger_description: String::new(),
                     },
                 )
@@ -370,13 +399,16 @@ impl MockPortal {
             .collect()
     }
 
-    /// The ids the last bind registered.
+    /// The ids bound across the live sessions; a closed session's ids
+    /// are gone.
     pub fn bound(&self) -> Vec<String> {
         self.state
             .lock()
             .unwrap_or_else(|p| p.into_inner())
             .bound
-            .clone()
+            .iter()
+            .flat_map(|(_, ids)| ids.iter().cloned())
+            .collect()
     }
 
     /// How many bind requests arrived.
