@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-79-clean-dictation-takes-a-real-speech",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-01T13:57:44.047632Z",
   "created_at": "2026-11-01T09:58:04.400372Z",
   "default_impl": null,
   "default_review": null,
@@ -337,10 +337,102 @@
       "task": "fn-79-clean-dictation-takes-a-real-speech.1",
       "timestamp": "2026-11-01T13:30:59.293731Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "16fccf88ae25fc10ce850a2368d7bf333e61df5f845eda151796388a187c2a5d",
+      "backend": "codex",
+      "base_sha": "fd69c6ab8c6de3b4a1e0b9d58d38bcd1434b56cc",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "classification": "introduced",
+            "findingId": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "classification": "introduced",
+            "findingId": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-13bd8287a3cbfcf79cbaf2cde80ed833",
+            "classification": "introduced",
+            "findingId": "finding-13bd8287a3cbfcf79cbaf2cde80ed833",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-065c59ea25be271aa92b9c0dc8ad2075",
+            "classification": "introduced",
+            "findingId": "finding-065c59ea25be271aa92b9c0dc8ad2075",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c99697bc44dc395ef0e267234816f87a",
+            "classification": "introduced",
+            "findingId": "finding-c99697bc44dc395ef0e267234816f87a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-9e546fe212589f8a8847d244794dcac9",
+            "classification": "introduced",
+            "findingId": "finding-9e546fe212589f8a8847d244794dcac9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "classification": "introduced",
+            "findingId": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "b827fc4c414775dfda0870a3a557915e88d4b9d5",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1091,
+      "output_sha256": "2f6b58fed657980fff80ec8585fca5785c1d4e746a1f29ed5ca56c62d5f97680",
+      "reservation_id": "f316eb553d2044b29ed6d1fbf5ff17c3",
+      "round_consumed": true,
+      "scope": "impl:fn-79-clean-dictation-takes-a-real-speech.1",
+      "superseded_by": null,
+      "task": "fn-79-clean-dictation-takes-a-real-speech.1",
+      "timestamp": "2026-11-01T13:57:07.823948Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-79-clean-dictation-takes-a-real-speech.1": 1
+    "impl:fn-79-clean-dictation-takes-a-real-speech.1": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -361,5 +453,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T13:52:54.812523Z"
+  "updated_at": "2026-11-01T13:57:44.047639Z"
 }
