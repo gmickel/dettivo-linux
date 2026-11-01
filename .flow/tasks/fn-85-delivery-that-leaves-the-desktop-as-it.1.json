@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-85-delivery-that-leaves-the-desktop-as-it",
   "spec_path": ".flow/tasks/fn-85-delivery-that-leaves-the-desktop-as-it.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Delivery that leaves the desktop as it found it",
   "updated_at": "2026-11-01T14:09:58.223682Z"
 }

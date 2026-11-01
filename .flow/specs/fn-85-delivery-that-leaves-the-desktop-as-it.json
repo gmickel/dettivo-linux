@@ -456,7 +456,7 @@
     "impl:fn-85-delivery-that-leaves-the-desktop-as-it.1": 0
   },
   "spec_path": ".flow/specs/fn-85-delivery-that-leaves-the-desktop-as-it.md",
-  "status": "open",
+  "status": "done",
   "title": "Delivery that leaves the desktop as it found it",
   "tracker": {
     "baseHashFlow": null,
@@ -469,5 +469,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T22:55:55.442926Z"
+  "updated_at": "2026-11-01T23:04:34.416109Z"
 }
