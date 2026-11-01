@@ -30,7 +30,7 @@ dettivo setup sway               # ~/.config/sway/dettivo, add: include ~/.confi
 dettivo setup niri               # ~/.config/niri/dettivo.kdl, add: include "dettivo.kdl"
 ```
 
-Sway gets `bindsym` and `bindsym --release` pairs. Niri has no release bindings, so its snippet carries toggle, cancel and re-insert and says so in a comment; the toggle chord is the hold there, and the hold chord still works through the portal backend on a desktop that has one.
+Sway gets `bindsym --no-repeat` and `bindsym --release` pairs; `--no-repeat` keeps a held key from repeating the press, which the hold key would read as a lost release a second in. Niri has no release bindings, so its snippet carries toggle, cancel and re-insert and says so in a comment; the toggle chord is the hold there, and the hold chord still works through the portal backend on a desktop that has one.
 
 ## The chord notation
 

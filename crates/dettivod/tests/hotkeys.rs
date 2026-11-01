@@ -347,7 +347,7 @@ fn snippet_and_setup_match_the_cli_and_write_idempotently() {
         detected["text"]
             .as_str()
             .unwrap()
-            .contains("bindsym F9 exec")
+            .contains("bindsym --no-repeat F9 exec")
     );
 
     let check = daemon.result(

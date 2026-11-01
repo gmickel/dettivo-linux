@@ -295,7 +295,14 @@ impl Hotkeys {
 /// a source build has none until the daemon writes it.
 fn ensure_desktop_entry() {
     let (home, dirs) = identity::data_dirs(|k| std::env::var_os(k));
-    match identity::ensure_desktop_entry(&home, &dirs) {
+    let exec = match std::env::current_exe() {
+        Ok(path) => path,
+        Err(e) => {
+            tracing::warn!(error = %e, "hotkeys: no path to this daemon for the desktop entry");
+            return;
+        }
+    };
+    match identity::ensure_desktop_entry(&home, &dirs, &exec) {
         Ok(Some(path)) => {
             tracing::info!(path = %path.display(), "hotkeys: wrote the desktop entry the portal identifies the daemon by")
         }

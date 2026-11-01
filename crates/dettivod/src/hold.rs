@@ -13,6 +13,7 @@ use dettivo_hotkeys::hold::{HoldAction, HoldState, on_press, on_release};
 use dettivo_proto::error::JsonRpcError;
 use dettivo_proto::events::{DictationStatePayload, Topic};
 use dettivo_proto::methods::dictation::HoldResult;
+use dettivo_session::State;
 use serde_json::json;
 
 use crate::actions;
@@ -58,8 +59,14 @@ impl HoldKey {
     /// and a discard, so a release that arrives meanwhile sees the take.
     pub fn on(&self, daemon: &Daemon, edge: Edge) -> Result<Outcome, JsonRpcError> {
         let mut g = self.inner.lock().unwrap_or_else(|p| p.into_inner());
-        let active = daemon.dictation().snapshot().map(|s| s.job_id);
-        if g.state.records() && (g.job.is_none() || g.job != active) {
+        // The take is still the key's only while it records: a take that
+        // was stopped, cancelled or replaced elsewhere frees the key.
+        let recording = daemon
+            .dictation()
+            .snapshot()
+            .filter(|s| s.state == State::Recording)
+            .map(|s| s.job_id);
+        if g.state.records() && (g.job.is_none() || g.job != recording) {
             tracing::debug!(
                 hold = g.state.as_str(),
                 "hold key: its take ended elsewhere"

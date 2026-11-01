@@ -19,7 +19,34 @@ pub const APP_ID: &str = "dettivo";
 pub const FIX: &str = "restart the portal once ~/.local/share/applications/dettivo.desktop or /usr/share/applications/dettivo.desktop exists (systemctl --user restart xdg-desktop-portal), and start the daemon directly rather than through a setgid wrapper such as newgrp, which hides its /proc entry from the portal";
 
 /// The entry a source build gets, so the portal can resolve the app id.
-pub const MINIMAL_ENTRY: &str = "[Desktop Entry]\nType=Application\nName=Dettivo\nComment=Dictation hotkeys through the desktop portal\nExec=dettivo-app\nNoDisplay=true\n";
+/// GLib refuses an entry whose `Exec` program it cannot find, and the
+/// portal refuses an app id without a valid entry, so `exec` is the
+/// absolute path of a program that exists (the running daemon).
+pub fn minimal_entry(exec: &Path) -> String {
+    format!(
+        "[Desktop Entry]\nType=Application\nName=Dettivo\nComment=Dictation hotkeys through the desktop portal\nExec={}\nNoDisplay=true\n",
+        exec_arg(&exec.to_string_lossy())
+    )
+}
+
+/// One `Exec` argument: quoted when it holds a reserved character, with
+/// the quoting backslashes doubled for the string value (Desktop Entry
+/// Specification, "The Exec key").
+fn exec_arg(arg: &str) -> String {
+    const RESERVED: &str = " \t\n\"'\\><~|&;$*?#()`";
+    if !arg.chars().any(|c| RESERVED.contains(c)) {
+        return arg.to_string();
+    }
+    let mut quoted = String::from("\"");
+    for c in arg.chars() {
+        if matches!(c, '"' | '`' | '$' | '\\') {
+            quoted.push_str("\\\\");
+        }
+        quoted.push(c);
+    }
+    quoted.push('"');
+    quoted
+}
 
 /// `$XDG_DATA_HOME` (or `~/.local/share`) and `$XDG_DATA_DIRS` (or
 /// `/usr/local/share:/usr/share`).
@@ -40,11 +67,13 @@ pub fn data_dirs(env: impl Fn(&str) -> Option<std::ffi::OsString>) -> (PathBuf, 
     (home, dirs)
 }
 
-/// Writes the minimal entry under `data_home` unless `dettivo.desktop`
-/// exists there or under one of `data_dirs`; returns the path written.
+/// Writes the minimal entry, running `exec`, under `data_home` unless
+/// `dettivo.desktop` exists there or under one of `data_dirs`; returns
+/// the path written.
 pub fn ensure_desktop_entry(
     data_home: &Path,
     data_dirs: &[PathBuf],
+    exec: &Path,
 ) -> Result<Option<PathBuf>, String> {
     let name = format!("applications/{APP_ID}.desktop");
     if std::iter::once(data_home)
@@ -58,7 +87,7 @@ pub fn ensure_desktop_entry(
         std::fs::create_dir_all(parent)
             .map_err(|e| format!("cannot create {}: {e}", parent.display()))?;
     }
-    std::fs::write(&path, MINIMAL_ENTRY)
+    std::fs::write(&path, minimal_entry(exec))
         .map_err(|e| format!("cannot write {}: {e}", path.display()))?;
     Ok(Some(path))
 }
@@ -108,12 +137,17 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let home = dir.path().join("home");
         let system = dir.path().join("system");
-        let written = ensure_desktop_entry(&home, std::slice::from_ref(&system)).unwrap();
+        let exec = Path::new("/opt/dettivo/bin/dettivod");
+        let written = ensure_desktop_entry(&home, std::slice::from_ref(&system), exec).unwrap();
         let path = home.join("applications/dettivo.desktop");
         assert_eq!(written.as_deref(), Some(path.as_path()));
-        assert_eq!(std::fs::read_to_string(&path).unwrap(), MINIMAL_ENTRY);
+        let text = std::fs::read_to_string(&path).unwrap();
+        assert!(
+            text.contains("\nExec=/opt/dettivo/bin/dettivod\n"),
+            "{text}"
+        );
         assert_eq!(
-            ensure_desktop_entry(&home, std::slice::from_ref(&system)).unwrap(),
+            ensure_desktop_entry(&home, std::slice::from_ref(&system), exec).unwrap(),
             None
         );
 
@@ -121,8 +155,15 @@ mod tests {
         let fresh = dir.path().join("fresh");
         std::fs::create_dir_all(system.join("applications")).unwrap();
         std::fs::write(system.join("applications/dettivo.desktop"), "x").unwrap();
-        assert_eq!(ensure_desktop_entry(&fresh, &[system]).unwrap(), None);
+        assert_eq!(ensure_desktop_entry(&fresh, &[system], exec).unwrap(), None);
         assert!(!fresh.join("applications/dettivo.desktop").exists());
+    }
+
+    #[test]
+    fn exec_paths_with_reserved_characters_are_quoted() {
+        assert_eq!(exec_arg("/usr/bin/dettivod"), "/usr/bin/dettivod");
+        assert_eq!(exec_arg("/home/a b/dettivod"), "\"/home/a b/dettivod\"");
+        assert_eq!(exec_arg("/x/$y"), "\"/x/\\\\$y\"");
     }
 
     #[test]

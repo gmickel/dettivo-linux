@@ -219,7 +219,7 @@ pub fn render(compositor: Compositor, keys: &Keys) -> Snippet {
              # keys in ~/.config/dettivo/config.toml ([hotkeys]) and run it again.\n\
              # Load it from ~/.config/sway/config: {include}\n\
              # Hold to talk: press starts, release stops.\n\
-             bindsym {hold} exec {start}\n\
+             bindsym --no-repeat {hold} exec {start}\n\
              bindsym --release {hold} exec {stop}\n\
              # Toggle: one press starts, the next stops.\n\
              bindsym {toggle} exec {toggle_cmd}\n\
@@ -415,7 +415,7 @@ mod tests {
         assert!(lua.contains("hl.bind(\"F9\", hl.dsp.exec_cmd(\"dettivo --quiet dictation release\"), { description = \"Dettivo: hold to talk (release)\", release = true })"));
         assert!(lua.contains("hl.unbind(\"SUPER + CTRL + X\")"));
         let sway = render(Compositor::Sway, &keys).text;
-        assert!(sway.contains("bindsym F9 exec dettivo --quiet dictation press\n"));
+        assert!(sway.contains("bindsym --no-repeat F9 exec dettivo --quiet dictation press\n"));
         assert!(sway.contains("bindsym --release F9 exec dettivo --quiet dictation release\n"));
         let niri = render(Compositor::Niri, &keys);
         assert!(

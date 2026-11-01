@@ -2,7 +2,7 @@
 # keys in ~/.config/dettivo/config.toml ([hotkeys]) and run it again.
 # Load it from ~/.config/sway/config: include ~/.config/sway/dettivo
 # Hold to talk: press starts, release stops.
-bindsym Mod4+Alt+space exec dettivo --quiet dictation press
+bindsym --no-repeat Mod4+Alt+space exec dettivo --quiet dictation press
 bindsym --release Mod4+Alt+space exec dettivo --quiet dictation release
 # Toggle: one press starts, the next stops.
 bindsym Mod4+Alt+d exec dettivo --quiet dictation toggle
