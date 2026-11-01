@@ -1,0 +1,237 @@
+{
+  "branch": "fn-83-vocabulary-entries-with-spoken-aliases",
+  "findings": {
+    "backend": "receipt",
+    "headSha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+    "items": [
+      {
+        "body": "`dettivo config set dictation.vocabulary` with a JSON object entry is refused with the stale message 'expected a list of strings' (exit 4, twice); the file-syntax table form and the JSON form over `config.set` work. Evidence .flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a2-config/run.log (surface: crates/dettivo-core/src/config/edit.rs)",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "id": "finding-44c0f6acc4bdf9ff585d1c49ceaf2cb4",
+        "lastSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-1"
+      },
+      {
+        "body": "config set rewrites a multi-line vocabulary array as one inline line and drops per-entry comments (the comment above the key and each entry's form survive). Evidence .flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/s1-initial.toml vs s2a-after-file-syntax.toml (surface: crates/dettivo-core/src/config/edit.rs)",
+        "classification": "pre_existing",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "id": "finding-ae1f66ef18428d8700dfb1dabbadafab",
+        "lastSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-2"
+      },
+      {
+        "body": "Settings / Vocabulary shows 'The file changed on disk; 1 value(s) refreshed.' after its own save (aliases edit and the old plain Add term path alike). Evidence .flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui-preexisting/tree-r3-after-add.json (surface: qt/qml/Dettivo/app/settings)",
+        "classification": "pre_existing",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "id": "finding-c32fd035689d156e7793dbba6dfb67ae",
+        "lastSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-3"
+      },
+      {
+        "body": "A refused vocabulary save's error ('\"Omarchy\" has 17 sounds_like spellings') stays after a hand edit removes Omarchy and the page refreshes (twice). Evidence .flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui-repro/tree-r2-after-hand-edit.json (surface: qt/qml/Dettivo/app/settings/VocabularySection.qml)",
+        "classification": "pre_existing",
+        "confidence": 50,
+        "firstSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "id": "finding-56838bc69b82541c32850eb79917da06",
+        "lastSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "ordinal": 4,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-4"
+      },
+      {
+        "body": "`dettivo config keys` still describes dictation.vocabulary as 'Words the engine is primed with' with no table form or limits. Evidence .flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/config-keys.log (surface: crates/dettivo-core/src/config (key descriptions))",
+        "classification": "introduced",
+        "confidence": 50,
+        "firstSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "id": "finding-6d8bd82b23bb460d7b9d5b1e38513dce",
+        "lastSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "ordinal": 5,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-5"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42"
+  },
+  "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+  "id": "fn-83-vocabulary-entries-with-spoken-aliases",
+  "mode": "receipt",
+  "open_p0p1": [],
+  "qa_outcome": "SHIP",
+  "rid_coverage": {
+    "covered": 7,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "live",
+        "id": "R2"
+      },
+      {
+        "coverage": "live",
+        "id": "R3"
+      },
+      {
+        "coverage": "live",
+        "id": "R4"
+      },
+      {
+        "coverage": "live",
+        "id": "R5"
+      },
+      {
+        "coverage": "live",
+        "id": "R6"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R7"
+      }
+    ],
+    "total": 7
+  },
+  "scenarios": [
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/s1-initial.toml",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/s1b-legacy.toml"
+      ],
+      "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+      "id": "S1-file-forms-load",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a2-config/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a2-config/after-json-api.toml"
+      ],
+      "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+      "id": "S2-config-set-both-forms-comments",
+      "outcome": "PASS",
+      "rids": [
+        "R1",
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a2-config/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/s3d-hand-edit.toml"
+      ],
+      "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+      "id": "S3-limits-refused-naming-entry",
+      "outcome": "PASS",
+      "rids": [
+        "R2"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/s4b-hand-dup.toml"
+      ],
+      "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+      "id": "S4-case-duplicates-first-spelling",
+      "outcome": "PASS",
+      "rids": [
+        "R2"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/b-dictation/clef1-on/engine-request.txt",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/b-dictation/omarchy2-off/inserted.txt",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/b-dictation/omarchy2-on/inserted.txt",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/b-dictation/omarchy2-on/engine-request.txt"
+      ],
+      "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+      "id": "S5-whisper-prompt-terms-only-mock-mic",
+      "outcome": "PASS",
+      "rids": [
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/b-dictation/clef1-enhanced/llm-requests.jsonl",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/b-dictation/clef1-enhanced/inserted.txt"
+      ],
+      "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+      "id": "S6-enhanced-system-prompt-aliases",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui/screenshot-7a-shown.png",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui/screenshot-7b-dettivo-aliases.png",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui/screenshot-7d-hyprland-added.png",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui/screenshot-7e-case-duplicate.png",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui/screenshot-7f-too-many-aliases.png",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui/run.log"
+      ],
+      "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+      "id": "S7-settings-vocabulary-sounds-like",
+      "outcome": "PASS",
+      "rids": [
+        "R2",
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/bench-vocabulary.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/bench-evidence/run-1793551233-458347/bench-vocabulary/vocabulary-report.json"
+      ],
+      "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+      "id": "S8-bench-vocabulary-reproduces-baseline",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    }
+  ],
+  "timestamp": "2026-11-01T16:55:12Z",
+  "type": "qa_verdict",
+  "verdict": "SHIP"
+}

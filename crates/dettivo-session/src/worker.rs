@@ -17,6 +17,7 @@ use dettivo_audio::{EndReason, Event};
 use dettivo_speech::gate::{self, GateVerdict, VoiceDetector};
 use dettivo_speech::{EngineError, RecognizeRequest, SttEngine, prompt_terms, vocabulary_prompt};
 
+use dettivo_core::config::vocabulary_schema;
 use dettivo_language::pipeline::{Mode, Settings};
 use dettivo_language::provider::LocalEngine;
 
@@ -139,9 +140,10 @@ impl Worker {
             );
             return;
         }
+        let terms = vocabulary_schema::terms(&self.policy.vocabulary);
         // An echo of the prompt is only possible from an engine that took one.
         let echo_terms = if self.engine.capabilities().supports_custom_vocabulary {
-            prompt_terms(&self.policy.vocabulary)
+            prompt_terms(&terms)
         } else {
             &[]
         };
@@ -149,7 +151,7 @@ impl Worker {
         let request = |pcm| RecognizeRequest {
             pcm,
             language: self.policy.language.clone(),
-            prompt: vocabulary_prompt(&self.policy.vocabulary),
+            prompt: vocabulary_prompt(&terms),
             timestamps: true,
         };
         let padded = gate::pad_for_engine(samples.clone(), parakeet, gate::SAMPLE_RATE);

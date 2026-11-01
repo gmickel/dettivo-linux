@@ -4,11 +4,18 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Added
+
+- A vocabulary entry can say how its term tends to be misheard: `{ term = "Clef", sounds_like = ["clay", "cleff"] }` sits beside plain terms in `[dictation] vocabulary`, and Settings / Vocabulary edits the spellings per term. The Enhanced prompt names the spellings with the term, so the rewrite can correct `clay` to `Clef` when the sentence means it. Whisper still gets the terms only. A vocabulary holds 500 entries, 64 characters a term and 16 spellings a term, and a term repeated in another case is dropped ([docs/dictation.md](docs/dictation.md#vocabulary)).
+- `dettivo-qa bench vocabulary` measures term recall, false insertions and guard word error rate per engine and model, with the vocabulary off and on, over a synthetic clip set ([docs/qa.md](docs/qa.md#vocabulary-term-recall)).
+
 ### Fixed
 
 - An empty or noisy dictation no longer pastes "Thank you." A take now passes a speech gate before the engine hears it. Its loudest 30 ms window must reach -50 dBFS, so a click or keyboard thump stays out, and the Silero model must hear a voice in it, so a fan or music bed stays out too. A gated take shows "Nothing heard" and pastes nothing. The voice check needs `whisper/silero-vad`, which now downloads with any speech model. Without it the level check runs alone, and `dettivo doctor` names the model and `dettivo speech download --model silero-vad` ([docs/dictation.md](docs/dictation.md)).
 - A dictation never pastes the vocabulary back when the take was silent, a decoder loop leaves the words before it, and the silence hallucinations and blank markers meetings already dropped (`thanks for watching`, `[BLANK_AUDIO]`) are dropped from dictation too.
 - A long vocabulary keeps its first words. The Whisper prompt stops at 500 characters, at a whole word.
+- A list you wrote over several lines in `config.toml` keeps its lines when `dettivo config set` or Settings changes it. An entry that stays keeps the comments above and beside it, and a new entry gets its own line.
+- Settings no longer says "The file changed on disk" after its own save. A refusal it showed for a key goes away once the file changes that key.
 
 ### Changed
 

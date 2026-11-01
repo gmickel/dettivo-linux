@@ -35,7 +35,7 @@ fn take(
 ) -> Result<dettivo_session::Transcript, SessionError> {
     let dir = tempfile::tempdir().unwrap();
     let mut p = policy(dir.path(), false);
-    p.vocabulary = vocabulary.iter().map(|w| w.to_string()).collect();
+    p.vocabulary = vocabulary.iter().map(|w| (*w).into()).collect();
     session.start(p, engine, feed.clone(), None).unwrap();
     feed.speak(400);
     std::thread::sleep(Duration::from_millis(50));
@@ -219,5 +219,59 @@ fn a_prompt_echo_never_pastes_the_vocabulary() {
         t.insertion.unwrap().outcome,
         InsertionOutcome::Inserted,
         "the one listed term pastes"
+    );
+}
+
+/// The scripted engine, keeping the prompt it was primed with.
+struct Prompted(Arc<FakeEngine>, std::sync::Mutex<Option<String>>);
+
+impl SttEngine for Prompted {
+    fn provider(&self) -> &str {
+        self.0.provider()
+    }
+    fn capabilities(&self) -> Capabilities {
+        self.0.capabilities()
+    }
+    fn preload(&self, source: PreloadSource) -> Result<(), EngineError> {
+        self.0.preload(source)
+    }
+    fn recognize(
+        &self,
+        request: RecognizeRequest,
+        timeout: Duration,
+    ) -> Result<dettivo_engine_proto::RecognizeResult, EngineError> {
+        *self.1.lock().unwrap() = request.prompt.clone();
+        self.0.recognize(request, timeout)
+    }
+    fn cancel(&self) {
+        self.0.cancel();
+    }
+    fn backend(&self) -> Option<dettivo_engine_proto::Backend> {
+        self.0.backend()
+    }
+}
+
+/// fn-83 R4: the engine is primed with the terms, never their aliases.
+#[test]
+fn the_engine_prompt_carries_terms_and_never_aliases() {
+    let (dir, _rec, session, engine, feed) = rig("Ship the Clef build.");
+    let prompted = Arc::new(Prompted(engine, std::sync::Mutex::new(None)));
+    let mut p = policy(dir.path(), false);
+    p.vocabulary = vec![
+        dettivo_core::config::vocabulary_schema::VocabularyEntry::Entry {
+            term: "Clef".into(),
+            sounds_like: vec!["clay".into(), "cleff".into()],
+        },
+        "Dettivo".into(),
+    ];
+    session
+        .start(p, prompted.clone(), feed.clone(), None)
+        .unwrap();
+    feed.speak(400);
+    std::thread::sleep(Duration::from_millis(50));
+    assert_eq!(session.stop().unwrap().text, "Ship the Clef build.");
+    assert_eq!(
+        prompted.1.lock().unwrap().as_deref(),
+        Some("Clef, Dettivo.")
     );
 }
