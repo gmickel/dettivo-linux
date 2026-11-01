@@ -91,17 +91,27 @@ impl Shared {
             timestamps: false,
         };
         let pcm = dettivo_engine_proto::pcm_to_bytes(&[0; WARM_UP_SAMPLES]);
+        let mut backend = None;
         let warmed = self.supervisor.warm_up(self.binary, |process| {
-            process
-                .call(
-                    "recognize",
-                    serde_json::to_value(&params).unwrap_or(Value::Null),
-                    &[&pcm],
-                    WARM_UP_TIMEOUT,
-                    |_| {},
-                )
-                .map(|_| ())
+            let value = process.call(
+                "recognize",
+                serde_json::to_value(&params).unwrap_or(Value::Null),
+                &[&pcm],
+                WARM_UP_TIMEOUT,
+                |_| {},
+            )?;
+            // The text is discarded; the backend is kept, since the engine
+            // may have moved to the CPU for want of GPU memory (ADR 0080).
+            backend = serde_json::from_value::<Backend>(value["backend"].clone()).ok();
+            Ok(())
         })?;
+        if let Some(backend) = backend {
+            self.supervisor.note_backend(
+                self.binary,
+                backend,
+                "the GPU had no room for an inference, CPU fallback",
+            );
+        }
         if let Some(took) = warmed {
             tracing::info!(
                 engine = self.binary,
@@ -142,7 +152,7 @@ impl Shared {
                     .map_err(|e| EngineError::Transport(format!("recognize response: {e}")))
             },
         )?;
-        self.supervisor.note_recognized(self.binary);
+        self.supervisor.note_recognized(self.binary, &self.model);
         // An engine moves itself to the CPU when the GPU has no room for an
         // inference (ADR 0080); the supervisor's record follows it.
         self.supervisor.note_backend(

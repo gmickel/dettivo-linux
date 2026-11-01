@@ -62,6 +62,11 @@ fn a_recent_take_skips_the_warm_up_after_a_reload() {
         .unwrap();
     assert_eq!(*states.lock().unwrap(), ["loaded"]);
     assert!(!warm(&supervisor));
+    // A take on the previous model that finishes after the reload never
+    // marks the new model warm.
+    supervisor.note_recognized(WHISPER_BINARY, "/models/a.bin");
+    assert_eq!(*states.lock().unwrap(), ["loaded"]);
+    assert!(!warm(&supervisor));
     supervisor.shutdown();
 }
 

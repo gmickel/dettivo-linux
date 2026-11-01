@@ -60,6 +60,10 @@ pub struct EngineRow {
     /// 20% of a warm one.
     #[serde(default)]
     pub cold_met: Option<bool>,
+    /// How long after the daemon answered its ping the start-up preload
+    /// reported the engine warm; the first take starts then.
+    #[serde(default)]
+    pub warm_wait_ms: Option<u64>,
 }
 
 /// Qualifies every row against `iterations` warm runs and the target:
@@ -202,6 +206,7 @@ fn measure(
     let target = daemon.call("insert.target", json!({}))?;
     let pid = u32::try_from(target["target"]["pid"].as_u64().unwrap_or(0)).unwrap_or(0);
     let tap = EventTap::subscribe(&daemon.handle.socket)?;
+    let warm_wait_ms = wait_warm(&daemon, provider)?;
     let mut runs = Vec::new();
     let mut failures = Vec::new();
     for i in 0..=bench.iterations() {
@@ -251,9 +256,35 @@ fn measure(
         met: None,
         cold_ratio: None,
         cold_met: None,
+        warm_wait_ms: Some(warm_wait_ms),
     };
     Ok((row, tier))
 }
+
+/// Waits until the start-up preload reports `provider`'s engine warm
+/// (`speech.engines`), the state a first dictation after daemon start
+/// meets once the daemon has had its moment; at most `WARM_WAIT`.
+fn wait_warm(daemon: &BenchDaemon, provider: &str) -> Result<u64, String> {
+    let binary = format!("dettivo-engine-{provider}");
+    let started = std::time::Instant::now();
+    while started.elapsed() < WARM_WAIT {
+        let warm = daemon
+            .engines()?
+            .iter()
+            .any(|e| e["binary"] == json!(binary) && e["warm"] == json!(true));
+        if warm {
+            return Ok(u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX));
+        }
+        std::thread::sleep(std::time::Duration::from_millis(200));
+    }
+    Err(format!(
+        "{binary} was not warm {} s after start",
+        WARM_WAIT.as_secs()
+    ))
+}
+
+/// The longest the first take waits for the start-up preload.
+const WARM_WAIT: std::time::Duration = std::time::Duration::from_secs(120);
 
 #[cfg(test)]
 mod tests {
@@ -303,6 +334,7 @@ mod tests {
             met: None,
             cold_ratio: None,
             cold_met: None,
+            warm_wait_ms: None,
         }
     }
 

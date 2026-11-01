@@ -380,19 +380,16 @@ void FirstRunTest::firstRunPreselectsTheModelRankedFirstForTheLanguage()
     QCOMPARE(FirstRunModels::languageFor(QStringLiteral("auto"), QStringLiteral("de_CH")), QStringLiteral("de"));
     QCOMPARE(FirstRunModels::languageFor(QStringLiteral("fr"), QStringLiteral("de_CH")), QStringLiteral("fr"));
     QCOMPARE(FirstRunModels::languageFor(QString(), QStringLiteral("en-GB.UTF-8")), QStringLiteral("en"));
-
+    const auto ranking = [](const char *provider, const char *id, double wer) {
+        const QJsonObject best{{QStringLiteral("provider"), QLatin1String(provider)}, {QStringLiteral("model_id"), QLatin1String(id)}, {QStringLiteral("rank"), 1}, {QStringLiteral("wer"), wer}};
+        return QJsonObject{{QStringLiteral("language_ranking"), QJsonObject{{QStringLiteral("language"), QStringLiteral("en")}, {QStringLiteral("models"), QJsonArray{best}}}}};
+    };
     FakeLink link;
     link.answers.insert(QStringLiteral("config.get"),
                         {{QStringLiteral("entries"), QJsonArray{QJsonObject{{QStringLiteral("key"), QStringLiteral("dictation.language")}, {QStringLiteral("value"), QStringLiteral("en")}}}}});
     // English ranks parakeet-v2 first: a model with no shortlist line, so
     // the ranking itself brings its row in.
-    link.answers.insert(QStringLiteral("speech.providers.list"),
-                        {{QStringLiteral("language_ranking"),
-                          QJsonObject{{QStringLiteral("language"), QStringLiteral("en")},
-                                      {QStringLiteral("models"), QJsonArray{QJsonObject{{QStringLiteral("provider"), QStringLiteral("parakeet")},
-                                                                                        {QStringLiteral("model_id"), QStringLiteral("parakeet-v2")},
-                                                                                        {QStringLiteral("rank"), 1},
-                                                                                        {QStringLiteral("wer"), 5.2}}}}}}});
+    link.answers.insert(QStringLiteral("speech.providers.list"), ranking("parakeet", "parakeet-v2", 5.2));
     const auto status = [](const char *v3Readiness) {
         return QJsonObject{{QStringLiteral("models_dir"), QStringLiteral("/x")},
                            {QStringLiteral("models"), QJsonArray{modelRow("parakeet", "parakeet-v2", "missing", false, nullptr, 900e6),
@@ -404,23 +401,29 @@ void FirstRunTest::firstRunPreselectsTheModelRankedFirstForTheLanguage()
     models.refresh();
     QCOMPARE(link.lastParams.value(QStringLiteral("speech.providers.list")).value(QStringLiteral("language")).toString(), QStringLiteral("en"));
     QCOMPARE(models.selectedKey(), QStringLiteral("parakeet/parakeet-v2"));
-    QVERIFY(models.rows().first().recommended);
+    QVERIFY(models.rows().first().recommended && !models.rows().at(1).recommended);
     QCOMPARE(models.rows().first().detail, QStringLiteral("Recommended for English · word error 5.2 %"));
-    QVERIFY(!models.rows().at(1).recommended);
     QVERIFY(!link.lastParams.contains(QStringLiteral("speech.selection.set")));
-
     // A ready model keeps the selection the configuration names.
     link.answers.insert(QStringLiteral("speech.models.status"), status("ready"));
     models.refresh();
     QCOMPARE(models.selectedKey(), QStringLiteral("parakeet/parakeet-v3"));
     QVERIFY(models.rows().first().recommended);
-
     // A pick is the person's: the recommendation stops preselecting.
     link.answers.insert(QStringLiteral("speech.models.status"), status("missing"));
     models.refresh();
     models.select(QStringLiteral("whisper"), QStringLiteral("small.en"));
     models.refresh();
     QVERIFY(!models.rows().first().selected);
+    // Automatic onboarding (FirstRunModel::start reuses the eligibility
+    // answer for the rows) asks for the ranking too.
+    FakeLink fresh;
+    answerFresh(fresh, false, false, false);
+    fresh.answers.insert(QStringLiteral("speech.providers.list"), ranking("whisper", "small.en", 6.0));
+    FirstRunModel firstRun(&fresh, nullptr);
+    firstRun.start();
+    QVERIFY(fresh.lastParams.contains(QStringLiteral("speech.providers.list")));
+    QCOMPARE(qobject_cast<FirstRunModels *>(firstRun.models())->selectedKey(), QStringLiteral("whisper/small.en"));
 }
 
 void FirstRunTest::firstRunTryItArmsTheAllowanceAndReadsTheResult()

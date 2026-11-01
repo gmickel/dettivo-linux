@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "generated_unix": 1793551385,
+  "generated_unix": 1793554771,
   "date": "2026-11-01",
-  "git_sha": "c4ca60940821f05ce758a016eaee31a5cc6cdc1a",
+  "git_sha": "27a966695060a280a7bdfebbad5bb37d3360570a",
   "quick": false,
   "iterations": 10,
   "tier": "gpu",
@@ -26,14 +26,14 @@
   },
   "load_average": {
     "start": [
-      8.51,
-      5.31,
-      6.59
+      6.06,
+      3.65,
+      4.03
     ],
     "end": [
-      0.89,
-      2.93,
-      5.33
+      3.33,
+      3.35,
+      3.56
     ]
   },
   "engines": [
@@ -79,7 +79,7 @@
     },
     {
       "name": "long.wav",
-      "path": "qa-evidence/run-1793551385-465549/bench/long.wav",
+      "path": "qa-evidence/run-1793554771-957294/bench/long.wav",
       "sha256": "089b2e3c57963d986f894df4dadb17a2bd67a08996ce9fe1980ef4505d62d21f",
       "bytes": 9856044
     },
@@ -102,17 +102,17 @@
         "target": 1000.0,
         "initial": 1000.0,
         "direction": "at_most",
-        "value": 522.0,
+        "value": 296.0,
         "met": true
       },
       "results": [
         {
           "backend": "vulkan",
-          "cold_met": false,
-          "cold_ms": 1066,
-          "cold_ratio": 2.0421455938697317,
+          "cold_met": true,
+          "cold_ms": 330,
+          "cold_ratio": 1.114864864864865,
           "failures": [],
-          "figure": 522.0,
+          "figure": 296.0,
           "insert_leg": "mock",
           "met": true,
           "model": "large-v3-turbo",
@@ -127,8 +127,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_1",
               "outcome": "inserted",
-              "total_ms": 1066,
-              "transcribe_ms": 1045
+              "total_ms": 330,
+              "transcribe_ms": 309
             },
             {
               "backend": "mock",
@@ -137,8 +137,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_2",
               "outcome": "inserted",
-              "total_ms": 394,
-              "transcribe_ms": 373
+              "total_ms": 296,
+              "transcribe_ms": 275
             },
             {
               "backend": "mock",
@@ -147,8 +147,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_3",
               "outcome": "inserted",
-              "total_ms": 379,
-              "transcribe_ms": 358
+              "total_ms": 290,
+              "transcribe_ms": 269
             },
             {
               "backend": "mock",
@@ -157,8 +157,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_4",
               "outcome": "inserted",
-              "total_ms": 556,
-              "transcribe_ms": 535
+              "total_ms": 263,
+              "transcribe_ms": 242
             },
             {
               "backend": "mock",
@@ -167,8 +167,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_5",
               "outcome": "inserted",
-              "total_ms": 364,
-              "transcribe_ms": 343
+              "total_ms": 251,
+              "transcribe_ms": 230
             },
             {
               "backend": "mock",
@@ -177,8 +177,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_6",
               "outcome": "inserted",
-              "total_ms": 557,
-              "transcribe_ms": 536
+              "total_ms": 402,
+              "transcribe_ms": 380
             },
             {
               "backend": "mock",
@@ -187,8 +187,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_7",
               "outcome": "inserted",
-              "total_ms": 357,
-              "transcribe_ms": 336
+              "total_ms": 337,
+              "transcribe_ms": 316
             },
             {
               "backend": "mock",
@@ -197,8 +197,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_8",
               "outcome": "inserted",
-              "total_ms": 598,
-              "transcribe_ms": 576
+              "total_ms": 297,
+              "transcribe_ms": 275
             },
             {
               "backend": "mock",
@@ -207,8 +207,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_9",
               "outcome": "inserted",
-              "total_ms": 522,
-              "transcribe_ms": 501
+              "total_ms": 281,
+              "transcribe_ms": 260
             },
             {
               "backend": "mock",
@@ -217,8 +217,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_10",
               "outcome": "inserted",
-              "total_ms": 544,
-              "transcribe_ms": 522
+              "total_ms": 312,
+              "transcribe_ms": 291
             },
             {
               "backend": "mock",
@@ -227,44 +227,45 @@
               "insert_ms": 0,
               "job_id": "job_dict_11",
               "outcome": "inserted",
-              "total_ms": 534,
-              "transcribe_ms": 512
+              "total_ms": 308,
+              "transcribe_ms": 286
             }
           ],
           "split_p50": {
             "capture_ms": 0,
             "insert_ms": 0,
-            "transcribe_ms": 501
+            "transcribe_ms": 275
           },
           "warm": {
             "iterations": 10,
-            "max": 598,
-            "min": 357,
-            "p50": 522,
-            "p95": 598,
+            "max": 402,
+            "min": 251,
+            "p50": 296,
+            "p95": 402,
             "samples": [
-              394,
-              379,
-              556,
-              364,
-              557,
-              357,
-              598,
-              522,
-              544,
-              534
+              296,
+              290,
+              263,
+              251,
+              402,
+              337,
+              297,
+              281,
+              312,
+              308
             ]
           },
           "warm_completed": 10,
-          "warm_required": 10
+          "warm_required": 10,
+          "warm_wait_ms": 2210
         },
         {
           "backend": "vulkan",
-          "cold_met": false,
-          "cold_ms": 795,
-          "cold_ratio": 2.988721804511278,
+          "cold_met": true,
+          "cold_ms": 149,
+          "cold_ratio": 0.8054054054054054,
           "failures": [],
-          "figure": 266.0,
+          "figure": 185.0,
           "insert_leg": "mock",
           "met": true,
           "model": "parakeet-v3",
@@ -279,8 +280,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_1",
               "outcome": "inserted",
-              "total_ms": 795,
-              "transcribe_ms": 774
+              "total_ms": 149,
+              "transcribe_ms": 128
             },
             {
               "backend": "mock",
@@ -289,8 +290,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_2",
               "outcome": "inserted",
-              "total_ms": 266,
-              "transcribe_ms": 245
+              "total_ms": 181,
+              "transcribe_ms": 160
             },
             {
               "backend": "mock",
@@ -299,8 +300,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_3",
               "outcome": "inserted",
-              "total_ms": 259,
-              "transcribe_ms": 238
+              "total_ms": 185,
+              "transcribe_ms": 164
             },
             {
               "backend": "mock",
@@ -309,8 +310,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_4",
               "outcome": "inserted",
-              "total_ms": 271,
-              "transcribe_ms": 249
+              "total_ms": 195,
+              "transcribe_ms": 174
             },
             {
               "backend": "mock",
@@ -319,8 +320,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_5",
               "outcome": "inserted",
-              "total_ms": 300,
-              "transcribe_ms": 278
+              "total_ms": 194,
+              "transcribe_ms": 173
             },
             {
               "backend": "mock",
@@ -329,8 +330,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_6",
               "outcome": "inserted",
-              "total_ms": 250,
-              "transcribe_ms": 229
+              "total_ms": 197,
+              "transcribe_ms": 176
             },
             {
               "backend": "mock",
@@ -339,8 +340,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_7",
               "outcome": "inserted",
-              "total_ms": 272,
-              "transcribe_ms": 251
+              "total_ms": 139,
+              "transcribe_ms": 118
             },
             {
               "backend": "mock",
@@ -349,8 +350,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_8",
               "outcome": "inserted",
-              "total_ms": 246,
-              "transcribe_ms": 225
+              "total_ms": 172,
+              "transcribe_ms": 151
             },
             {
               "backend": "mock",
@@ -359,8 +360,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_9",
               "outcome": "inserted",
-              "total_ms": 268,
-              "transcribe_ms": 247
+              "total_ms": 182,
+              "transcribe_ms": 161
             },
             {
               "backend": "mock",
@@ -369,8 +370,8 @@
               "insert_ms": 0,
               "job_id": "job_dict_10",
               "outcome": "inserted",
-              "total_ms": 248,
-              "transcribe_ms": 227
+              "total_ms": 193,
+              "transcribe_ms": 172
             },
             {
               "backend": "mock",
@@ -379,39 +380,40 @@
               "insert_ms": 0,
               "job_id": "job_dict_11",
               "outcome": "inserted",
-              "total_ms": 273,
-              "transcribe_ms": 252
+              "total_ms": 191,
+              "transcribe_ms": 170
             }
           ],
           "split_p50": {
             "capture_ms": 0,
             "insert_ms": 0,
-            "transcribe_ms": 245
+            "transcribe_ms": 164
           },
           "warm": {
             "iterations": 10,
-            "max": 300,
-            "min": 246,
-            "p50": 266,
-            "p95": 300,
+            "max": 197,
+            "min": 139,
+            "p50": 185,
+            "p95": 197,
             "samples": [
-              266,
-              259,
-              271,
-              300,
-              250,
-              272,
-              246,
-              268,
-              248,
-              273
+              181,
+              185,
+              195,
+              194,
+              197,
+              139,
+              172,
+              182,
+              193,
+              191
             ]
           },
           "warm_completed": 10,
-          "warm_required": 10
+          "warm_required": 10,
+          "warm_wait_ms": 2405
         }
       ],
-      "duration_ms": 230800
+      "duration_ms": 231414
     },
     {
       "name": "warm_up",
@@ -421,70 +423,70 @@
       "results": [
         {
           "backend": "vulkan",
-          "cold_take_ms": 468,
+          "cold_take_ms": 574,
           "idle_vram_mib": 865,
-          "load_ms": 307,
-          "loaded_take_ms": 161,
+          "load_ms": 366,
+          "loaded_take_ms": 208,
           "model": "large-v3-turbo",
           "provider": "whisper",
           "warm": {
             "iterations": 10,
-            "max": 139,
-            "min": 136,
-            "p50": 137,
-            "p95": 139,
+            "max": 180,
+            "min": 175,
+            "p50": 178,
+            "p95": 180,
             "samples": [
-              139,
-              137,
-              137,
-              136,
-              138,
-              139,
-              137,
-              138,
-              137,
-              138
+              178,
+              175,
+              176,
+              178,
+              180,
+              178,
+              178,
+              176,
+              179,
+              177
             ]
           },
-          "warm_up_ms": 173,
+          "warm_up_ms": 204,
           "warmed_met": true,
-          "warmed_ratio": 1.0802919708029197,
-          "warmed_take_ms": 148
+          "warmed_ratio": 1.0337078651685394,
+          "warmed_take_ms": 184
         },
         {
           "backend": "vulkan",
-          "cold_take_ms": 652,
+          "cold_take_ms": 757,
           "idle_vram_mib": 954,
-          "load_ms": 581,
-          "loaded_take_ms": 71,
+          "load_ms": 664,
+          "loaded_take_ms": 93,
           "model": "parakeet-v3",
           "provider": "parakeet",
           "warm": {
             "iterations": 10,
-            "max": 55,
-            "min": 51,
-            "p50": 52,
-            "p95": 55,
+            "max": 72,
+            "min": 66,
+            "p50": 68,
+            "p95": 72,
             "samples": [
-              52,
-              55,
-              55,
-              52,
-              53,
-              51,
-              51,
-              55,
-              53,
-              51
+              71,
+              71,
+              71,
+              68,
+              68,
+              66,
+              69,
+              72,
+              68,
+              68
             ]
           },
-          "warm_up_ms": 118,
+          "warm_up_ms": 142,
           "warmed_met": true,
-          "warmed_ratio": 1.0192307692307692,
-          "warmed_take_ms": 53
+          "warmed_ratio": 1.0147058823529411,
+          "warmed_take_ms": 69
         }
       ],
-      "duration_ms": 8703
+      "duration_ms": 9759
     },
     {
       "name": "gpu_threads",
@@ -499,21 +501,21 @@
               "threads": 1,
               "warm": {
                 "iterations": 10,
-                "max": 164,
-                "min": 157,
-                "p50": 160,
-                "p95": 164,
+                "max": 205,
+                "min": 195,
+                "p50": 197,
+                "p95": 205,
                 "samples": [
-                  164,
-                  160,
-                  157,
-                  160,
-                  158,
-                  160,
-                  161,
-                  161,
-                  160,
-                  161
+                  205,
+                  197,
+                  195,
+                  197,
+                  196,
+                  198,
+                  200,
+                  196,
+                  198,
+                  199
                 ]
               }
             },
@@ -521,21 +523,21 @@
               "threads": 2,
               "warm": {
                 "iterations": 10,
-                "max": 153,
-                "min": 147,
-                "p50": 148,
-                "p95": 153,
+                "max": 192,
+                "min": 181,
+                "p50": 184,
+                "p95": 192,
                 "samples": [
-                  153,
-                  151,
-                  148,
-                  148,
-                  148,
-                  147,
-                  150,
-                  147,
-                  148,
-                  147
+                  192,
+                  186,
+                  181,
+                  183,
+                  184,
+                  183,
+                  188,
+                  184,
+                  184,
+                  183
                 ]
               }
             },
@@ -543,21 +545,21 @@
               "threads": 4,
               "warm": {
                 "iterations": 10,
-                "max": 147,
-                "min": 139,
-                "p50": 140,
-                "p95": 147,
+                "max": 183,
+                "min": 176,
+                "p50": 178,
+                "p95": 183,
                 "samples": [
-                  147,
-                  143,
-                  141,
-                  139,
-                  140,
-                  140,
-                  142,
-                  140,
-                  140,
-                  140
+                  183,
+                  178,
+                  177,
+                  176,
+                  180,
+                  178,
+                  182,
+                  180,
+                  177,
+                  177
                 ]
               }
             },
@@ -565,21 +567,21 @@
               "threads": 8,
               "warm": {
                 "iterations": 10,
-                "max": 145,
-                "min": 137,
-                "p50": 138,
-                "p95": 145,
+                "max": 182,
+                "min": 172,
+                "p50": 175,
+                "p95": 182,
                 "samples": [
-                  145,
-                  140,
-                  138,
-                  137,
-                  138,
-                  138,
-                  140,
-                  137,
-                  138,
-                  139
+                  182,
+                  177,
+                  175,
+                  172,
+                  172,
+                  175,
+                  177,
+                  174,
+                  174,
+                  176
                 ]
               }
             },
@@ -587,26 +589,26 @@
               "threads": 16,
               "warm": {
                 "iterations": 10,
-                "max": 144,
-                "min": 137,
-                "p50": 139,
-                "p95": 144,
+                "max": 179,
+                "min": 173,
+                "p50": 174,
+                "p95": 179,
                 "samples": [
-                  144,
-                  139,
-                  137,
-                  140,
-                  138,
-                  138,
-                  141,
-                  139,
-                  138,
-                  139
+                  179,
+                  176,
+                  175,
+                  173,
+                  173,
+                  173,
+                  175,
+                  175,
+                  173,
+                  174
                 ]
               }
             }
           ],
-          "fastest": 8,
+          "fastest": 16,
           "model": "large-v3-turbo",
           "provider": "whisper"
         },
@@ -617,21 +619,21 @@
               "threads": 1,
               "warm": {
                 "iterations": 10,
-                "max": 59,
-                "min": 52,
-                "p50": 55,
-                "p95": 59,
+                "max": 73,
+                "min": 67,
+                "p50": 68,
+                "p95": 73,
                 "samples": [
-                  56,
-                  53,
-                  56,
-                  55,
-                  55,
-                  54,
-                  53,
-                  55,
-                  59,
-                  52
+                  68,
+                  67,
+                  72,
+                  70,
+                  67,
+                  68,
+                  70,
+                  67,
+                  70,
+                  73
                 ]
               }
             },
@@ -639,21 +641,21 @@
               "threads": 2,
               "warm": {
                 "iterations": 10,
-                "max": 59,
-                "min": 53,
-                "p50": 55,
-                "p95": 59,
+                "max": 73,
+                "min": 67,
+                "p50": 69,
+                "p95": 73,
                 "samples": [
-                  55,
-                  54,
-                  58,
-                  56,
-                  53,
-                  55,
-                  54,
-                  55,
-                  59,
-                  54
+                  71,
+                  69,
+                  72,
+                  69,
+                  67,
+                  69,
+                  67,
+                  70,
+                  73,
+                  68
                 ]
               }
             },
@@ -661,21 +663,21 @@
               "threads": 4,
               "warm": {
                 "iterations": 10,
-                "max": 58,
-                "min": 54,
-                "p50": 55,
-                "p95": 58,
+                "max": 72,
+                "min": 66,
+                "p50": 68,
+                "p95": 72,
                 "samples": [
-                  58,
-                  54,
-                  58,
-                  56,
-                  56,
-                  55,
-                  55,
-                  56,
-                  55,
-                  54
+                  67,
+                  68,
+                  69,
+                  71,
+                  67,
+                  68,
+                  66,
+                  70,
+                  72,
+                  68
                 ]
               }
             },
@@ -683,21 +685,21 @@
               "threads": 8,
               "warm": {
                 "iterations": 10,
-                "max": 60,
-                "min": 54,
-                "p50": 56,
-                "p95": 60,
+                "max": 72,
+                "min": 67,
+                "p50": 69,
+                "p95": 72,
                 "samples": [
-                  58,
-                  55,
-                  59,
-                  56,
-                  56,
-                  56,
-                  56,
-                  55,
-                  60,
-                  54
+                  69,
+                  68,
+                  72,
+                  68,
+                  67,
+                  68,
+                  70,
+                  70,
+                  69,
+                  69
                 ]
               }
             },
@@ -705,21 +707,21 @@
               "threads": 16,
               "warm": {
                 "iterations": 10,
-                "max": 62,
-                "min": 52,
-                "p50": 55,
-                "p95": 62,
+                "max": 73,
+                "min": 67,
+                "p50": 68,
+                "p95": 73,
                 "samples": [
-                  58,
-                  54,
-                  57,
-                  54,
-                  55,
-                  62,
-                  57,
-                  54,
-                  55,
-                  52
+                  67,
+                  67,
+                  73,
+                  69,
+                  67,
+                  68,
+                  71,
+                  70,
+                  73,
+                  67
                 ]
               }
             }
@@ -729,7 +731,7 @@
           "provider": "parakeet"
         }
       ],
-      "duration_ms": 16980
+      "duration_ms": 20150
     },
     {
       "name": "stt_throughput",
@@ -742,38 +744,38 @@
         "target": 20.0,
         "initial": 10.0,
         "direction": "at_least",
-        "value": 82.4,
+        "value": 64.75,
         "met": true
       },
       "results": [
         {
           "audio_ms": 308000,
           "backend": "vulkan",
-          "clip_wall_ms": 583,
-          "figure": 82.4,
+          "clip_wall_ms": 725,
+          "figure": 64.75,
           "iterations": 1,
           "met": true,
           "model": "large-v3-turbo",
           "provider": "whisper",
-          "realtime_factor": 82.4,
+          "realtime_factor": 64.75,
           "reason": "backend=Vulkan reason=Vulkan backend built in and a device is installed; ggml enumerates 2 Vulkan device(s) timing=Dtw",
-          "wall_ms": 3738
+          "wall_ms": 4757
         },
         {
           "audio_ms": 308000,
           "backend": "vulkan",
-          "clip_wall_ms": 718,
-          "figure": 141.54,
+          "clip_wall_ms": 817,
+          "figure": 121.59,
           "iterations": 1,
           "met": true,
           "model": "parakeet-v3",
           "provider": "parakeet",
-          "realtime_factor": 141.54,
+          "realtime_factor": 121.59,
           "reason": "backend=Vulkan reason=Vulkan backend built in and a device is installed (Vulkan0) model_name=\"nvidia/parakeet-tdt-0.6b-v3\"",
-          "wall_ms": 2176
+          "wall_ms": 2533
         }
       ],
-      "duration_ms": 7374
+      "duration_ms": 8998
     },
     {
       "name": "llm_rewrite",
@@ -785,32 +787,32 @@
           "backend": "vulkan",
           "latency": {
             "iterations": 18,
-            "max": 1169,
-            "min": 929,
-            "p50": 966,
-            "p95": 1169,
+            "max": 1433,
+            "min": 1015,
+            "p50": 1055,
+            "p95": 1433,
             "samples": [
-              1011,
-              930,
-              1030,
-              988,
-              930,
-              1169,
-              938,
-              978,
-              961,
-              965,
-              1008,
+              1228,
+              1015,
+              1293,
+              1115,
+              1173,
+              1433,
+              1022,
+              1025,
+              1032,
               1041,
-              929,
-              996,
-              975,
-              955,
-              947,
-              966
+              1105,
+              1049,
+              1048,
+              1095,
+              1107,
+              1042,
+              1055,
+              1198
             ]
           },
-          "load_ms": 862,
+          "load_ms": 990,
           "model": "qwen3-4b-instruct-2507",
           "provider": "llm",
           "rewrites": [
@@ -818,134 +820,134 @@
               "case": "applies_basic_rewrite_for_command_like_input",
               "finish_reason": "stop",
               "tokens": 31,
-              "tokens_per_second": 208.1,
-              "wall_ms": 1011
+              "tokens_per_second": 130.3,
+              "wall_ms": 1228
             },
             {
               "case": "removes_common_fillers_when_enabled",
               "finish_reason": "stop",
               "tokens": 6,
-              "tokens_per_second": 88.2,
-              "wall_ms": 930
+              "tokens_per_second": 240.0,
+              "wall_ms": 1015
             },
             {
               "case": "leaves_sentence_punctuation_untouched_when_smart_punctuation_disabled",
               "finish_reason": "stop",
               "tokens": 43,
-              "tokens_per_second": 256.0,
-              "wall_ms": 1030
+              "tokens_per_second": 141.9,
+              "wall_ms": 1293
             },
             {
               "case": "applies_post_processors_when_provided",
               "finish_reason": "stop",
               "tokens": 31,
-              "tokens_per_second": 246.0,
-              "wall_ms": 988
+              "tokens_per_second": 248.0,
+              "wall_ms": 1115
             },
             {
               "case": "applies_common_grammar_fixes_when_enabled",
               "finish_reason": "stop",
               "tokens": 16,
-              "tokens_per_second": 235.3,
-              "wall_ms": 930
+              "tokens_per_second": 87.4,
+              "wall_ms": 1173
             },
             {
               "case": "uses_question_mark_for_question_like_input",
               "finish_reason": "stop",
               "tokens": 68,
-              "tokens_per_second": 221.5,
-              "wall_ms": 1169
+              "tokens_per_second": 153.5,
+              "wall_ms": 1433
             },
             {
               "case": "uses_question_mark_for_conversational_question_lead",
               "finish_reason": "stop",
               "tokens": 9,
-              "tokens_per_second": 118.4,
-              "wall_ms": 938
+              "tokens_per_second": 281.3,
+              "wall_ms": 1022
             },
             {
               "case": "uses_question_mark_for_german_question_lead",
               "finish_reason": "stop",
               "tokens": 14,
-              "tokens_per_second": 120.7,
-              "wall_ms": 978
+              "tokens_per_second": 400.0,
+              "wall_ms": 1025
             },
             {
               "case": "uses_question_mark_for_arabic_question_lead",
               "finish_reason": "stop",
               "tokens": 9,
-              "tokens_per_second": 90.9,
-              "wall_ms": 961
+              "tokens_per_second": 214.3,
+              "wall_ms": 1032
             },
             {
               "case": "uses_question_mark_for_japanese_question_suffix",
               "finish_reason": "stop",
               "tokens": 9,
-              "tokens_per_second": 87.4,
-              "wall_ms": 965
+              "tokens_per_second": 176.5,
+              "wall_ms": 1041
             },
             {
               "case": "eval_english_cleanup",
               "finish_reason": "stop",
               "tokens": 11,
-              "tokens_per_second": 75.3,
-              "wall_ms": 1008
+              "tokens_per_second": 95.7,
+              "wall_ms": 1105
             },
             {
               "case": "eval_code_command",
               "finish_reason": "stop",
               "tokens": 28,
-              "tokens_per_second": 156.4,
-              "wall_ms": 1041
+              "tokens_per_second": 474.6,
+              "wall_ms": 1049
             },
             {
               "case": "eval_chat_question",
               "finish_reason": "stop",
               "tokens": 9,
-              "tokens_per_second": 134.3,
-              "wall_ms": 929
+              "tokens_per_second": 155.2,
+              "wall_ms": 1048
             },
             {
               "case": "eval_spanish_cleanup",
               "finish_reason": "stop",
               "tokens": 12,
-              "tokens_per_second": 89.6,
-              "wall_ms": 996
+              "tokens_per_second": 114.3,
+              "wall_ms": 1095
             },
             {
               "case": "eval_german_question",
               "finish_reason": "stop",
               "tokens": 17,
-              "tokens_per_second": 150.4,
-              "wall_ms": 975
+              "tokens_per_second": 145.3,
+              "wall_ms": 1107
             },
             {
               "case": "eval_arabic_question",
               "finish_reason": "stop",
               "tokens": 9,
-              "tokens_per_second": 96.8,
-              "wall_ms": 955
+              "tokens_per_second": 173.1,
+              "wall_ms": 1042
             },
             {
               "case": "eval_mixed_language",
               "finish_reason": "stop",
               "tokens": 12,
-              "tokens_per_second": 141.2,
-              "wall_ms": 947
+              "tokens_per_second": 184.6,
+              "wall_ms": 1055
             },
             {
               "case": "eval_mention_path_preserved",
               "finish_reason": "stop",
               "tokens": 13,
-              "tokens_per_second": 125.0,
-              "wall_ms": 966
+              "tokens_per_second": 62.5,
+              "wall_ms": 1198
             }
           ],
           "system_prompt_sha256": "6c14d0bb449bf5e12000a0cd9afb3ae57b996cf5f0d7712a8e15a331cdf7a76c",
-          "tokens_per_second_p50": 125.0
+          "tokens_per_second_p50": 155.2
         }
       ],
-      "duration_ms": 19527
+      "duration_ms": 22109
     },
     {
       "name": "idle_footprint",
@@ -958,7 +960,7 @@
         "target": 62914560.0,
         "initial": 62914560.0,
         "direction": "at_most",
-        "value": 51560448.0,
+        "value": 55590912.0,
         "met": true
       },
       "results": [
@@ -967,16 +969,16 @@
             {
               "backend": "vulkan",
               "binary": "dettivo-engine-whisper",
-              "loaded_memory_bytes": 336330752,
+              "loaded_memory_bytes": 195608576,
               "unloaded": true,
-              "unloaded_after_ms": 12006
+              "unloaded_after_ms": 20009
             },
             {
               "backend": "vulkan",
               "binary": "dettivo-engine-llm",
-              "loaded_memory_bytes": 591659008,
+              "loaded_memory_bytes": 514342912,
               "unloaded": true,
-              "unloaded_after_ms": 12006
+              "unloaded_after_ms": 20009
             }
           ],
           "idle_seconds": 10,
@@ -986,49 +988,48 @@
           "model": "large-v3-turbo",
           "provider": "whisper",
           "rss": {
-            "iterations": 29,
-            "max": 51560448,
-            "min": 51560448,
-            "p50": 51560448,
-            "p95": 51560448,
+            "iterations": 28,
+            "max": 55590912,
+            "min": 55586816,
+            "p50": 55590912,
+            "p95": 55590912,
             "samples": [
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448,
-              51560448
+              55586816,
+              55586816,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912
             ]
           },
-          "rss_idle_bytes": 51560448,
-          "rss_loaded_bytes": 51580928,
+          "rss_idle_bytes": 55590912,
+          "rss_loaded_bytes": 55689216,
           "still_alive": []
         }
       ],
-      "duration_ms": 318511
+      "duration_ms": 311581
     },
     {
       "name": "startup",
@@ -1052,26 +1053,26 @@
           "app_rss_kb_after_5s": null,
           "socket_ready": {
             "iterations": 10,
-            "max": 202,
-            "min": 201,
+            "max": 203,
+            "min": 202,
             "p50": 202,
-            "p95": 202,
+            "p95": 203,
             "samples": [
-              201,
+              202,
+              202,
+              203,
               202,
               202,
               202,
+              203,
               202,
               202,
-              201,
-              202,
-              202,
-              202
+              203
             ]
           }
         }
       ],
-      "duration_ms": 2026
+      "duration_ms": 2033
     },
     {
       "name": "language_wer",
@@ -1085,7 +1086,7 @@
           "model": "parakeet-ultra",
           "provider": "parakeet",
           "rank": 1,
-          "realtime_factor": 197.8,
+          "realtime_factor": 162.7,
           "utterances": 100,
           "wer": 4.2
         },
@@ -1095,7 +1096,7 @@
           "model": "parakeet-v3",
           "provider": "parakeet",
           "rank": 2,
-          "realtime_factor": 202.2,
+          "realtime_factor": 159.8,
           "utterances": 100,
           "wer": 4.8
         },
@@ -1105,7 +1106,7 @@
           "model": "large-v3-turbo",
           "provider": "whisper",
           "rank": 3,
-          "realtime_factor": 86.4,
+          "realtime_factor": 70.0,
           "utterances": 100,
           "wer": 5.2
         },
@@ -1115,7 +1116,7 @@
           "model": "parakeet-v2",
           "provider": "parakeet",
           "rank": 1,
-          "realtime_factor": 181.2,
+          "realtime_factor": 139.0,
           "utterances": 100,
           "wer": 4.1
         },
@@ -1125,7 +1126,7 @@
           "model": "parakeet-ultra",
           "provider": "parakeet",
           "rank": 2,
-          "realtime_factor": 167.7,
+          "realtime_factor": 137.1,
           "utterances": 100,
           "wer": 4.5
         },
@@ -1135,7 +1136,7 @@
           "model": "parakeet-v3",
           "provider": "parakeet",
           "rank": 3,
-          "realtime_factor": 165.5,
+          "realtime_factor": 125.9,
           "utterances": 100,
           "wer": 5.1
         },
@@ -1145,7 +1146,7 @@
           "model": "large-v3-turbo",
           "provider": "whisper",
           "rank": 4,
-          "realtime_factor": 70.4,
+          "realtime_factor": 55.8,
           "utterances": 100,
           "wer": 4.5
         },
@@ -1155,7 +1156,7 @@
           "model": "base.en",
           "provider": "whisper",
           "rank": 5,
-          "realtime_factor": 116.9,
+          "realtime_factor": 107.4,
           "utterances": 100,
           "wer": 8.3
         },
@@ -1175,7 +1176,7 @@
           "model": "parakeet-ultra",
           "provider": "parakeet",
           "rank": 1,
-          "realtime_factor": 182.8,
+          "realtime_factor": 147.3,
           "utterances": 100,
           "wer": 2.9
         },
@@ -1185,7 +1186,7 @@
           "model": "parakeet-v3",
           "provider": "parakeet",
           "rank": 2,
-          "realtime_factor": 182.0,
+          "realtime_factor": 144.4,
           "utterances": 100,
           "wer": 3.3
         },
@@ -1195,7 +1196,7 @@
           "model": "large-v3-turbo",
           "provider": "whisper",
           "rank": 3,
-          "realtime_factor": 75.8,
+          "realtime_factor": 60.2,
           "utterances": 100,
           "wer": 3.1
         },
@@ -1205,7 +1206,7 @@
           "model": "parakeet-ultra",
           "provider": "parakeet",
           "rank": 1,
-          "realtime_factor": 165.1,
+          "realtime_factor": 135.6,
           "utterances": 100,
           "wer": 4.8
         },
@@ -1215,7 +1216,7 @@
           "model": "parakeet-v3",
           "provider": "parakeet",
           "rank": 2,
-          "realtime_factor": 164.1,
+          "realtime_factor": 127.3,
           "utterances": 100,
           "wer": 5.9
         },
@@ -1225,7 +1226,7 @@
           "model": "large-v3-turbo",
           "provider": "whisper",
           "rank": 3,
-          "realtime_factor": 67.2,
+          "realtime_factor": 54.2,
           "utterances": 100,
           "wer": 5.9
         },
@@ -1235,7 +1236,7 @@
           "model": "parakeet-ultra",
           "provider": "parakeet",
           "rank": 1,
-          "realtime_factor": 202.1,
+          "realtime_factor": 167.7,
           "utterances": 100,
           "wer": 2.4
         },
@@ -1245,7 +1246,7 @@
           "model": "parakeet-v3",
           "provider": "parakeet",
           "rank": 2,
-          "realtime_factor": 201.5,
+          "realtime_factor": 167.4,
           "utterances": 100,
           "wer": 2.9
         },
@@ -1255,7 +1256,7 @@
           "model": "large-v3-turbo",
           "provider": "whisper",
           "rank": 3,
-          "realtime_factor": 86.2,
+          "realtime_factor": 69.0,
           "utterances": 100,
           "wer": 3.1
         },
@@ -1265,7 +1266,7 @@
           "model": "parakeet-ultra",
           "provider": "parakeet",
           "rank": 1,
-          "realtime_factor": 164.7,
+          "realtime_factor": 128.2,
           "utterances": 100,
           "wer": 6.9
         },
@@ -1275,7 +1276,7 @@
           "model": "parakeet-v3",
           "provider": "parakeet",
           "rank": 2,
-          "realtime_factor": 166.7,
+          "realtime_factor": 128.6,
           "utterances": 100,
           "wer": 7.3
         },
@@ -1285,7 +1286,7 @@
           "model": "large-v3-turbo",
           "provider": "whisper",
           "rank": 3,
-          "realtime_factor": 64.1,
+          "realtime_factor": 49.5,
           "utterances": 100,
           "wer": 6.2
         },
@@ -1295,7 +1296,7 @@
           "model": "parakeet-ultra",
           "provider": "parakeet",
           "rank": 1,
-          "realtime_factor": 155.1,
+          "realtime_factor": 121.0,
           "utterances": 100,
           "wer": 6.9
         },
@@ -1305,7 +1306,7 @@
           "model": "large-v3-turbo",
           "provider": "whisper",
           "rank": 2,
-          "realtime_factor": 60.6,
+          "realtime_factor": 48.1,
           "utterances": 100,
           "wer": 6.2
         },
@@ -1315,7 +1316,7 @@
           "model": "parakeet-v3",
           "provider": "parakeet",
           "rank": 3,
-          "realtime_factor": 158.6,
+          "realtime_factor": 121.8,
           "utterances": 100,
           "wer": 7.7
         },
@@ -1325,7 +1326,7 @@
           "model": "parakeet-ultra",
           "provider": "parakeet",
           "rank": 1,
-          "realtime_factor": 194.5,
+          "realtime_factor": 163.4,
           "utterances": 100,
           "wer": 4.5
         },
@@ -1335,7 +1336,7 @@
           "model": "parakeet-v3",
           "provider": "parakeet",
           "rank": 2,
-          "realtime_factor": 194.7,
+          "realtime_factor": 158.0,
           "utterances": 100,
           "wer": 5.0
         },
@@ -1345,12 +1346,12 @@
           "model": "large-v3-turbo",
           "provider": "whisper",
           "rank": 3,
-          "realtime_factor": 83.1,
+          "realtime_factor": 66.7,
           "utterances": 100,
           "wer": 4.4
         }
       ],
-      "duration_ms": 316145
+      "duration_ms": 381552
     }
   ],
   "targets": [

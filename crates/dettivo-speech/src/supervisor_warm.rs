@@ -99,13 +99,16 @@ impl Supervisor {
         outcome
     }
 
-    /// Records a real recognition on `binary`: the loaded model is warm
-    /// from now on, and no warm-up runs within `WARM_UP_SKIP`.
-    pub fn note_recognized(&self, binary: &str) {
+    /// Records a real recognition of `model` on `binary`: no warm-up runs
+    /// within `WARM_UP_SKIP`, and the loaded model is warm from now on when
+    /// it is still `model` (a selection may have loaded another meanwhile).
+    pub fn note_recognized(&self, binary: &str, model: &str) {
         let slot = self.slot(binary);
         let mut s = slot.lock().unwrap_or_else(|p| p.into_inner());
         s.last_recognized = Some(Instant::now());
-        self.mark_warm(&mut s, binary);
+        if s.params.as_ref().is_some_and(|p| p.model == model) {
+            self.mark_warm(&mut s, binary);
+        }
     }
 
     fn mark_warm(&self, s: &mut Slot, binary: &str) {

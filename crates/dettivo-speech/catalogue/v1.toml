@@ -193,20 +193,6 @@ language = "pt"
 rank = 3
 wer = 4.4
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 [[models]]
 provider = "whisper"
 id = "silero-vad"
@@ -298,20 +284,6 @@ language = "pt"
 rank = 2
 wer = 5.0
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Moondream's post-train of Parakeet TDT 0.6B v3 (moondream/parakeet-ultra,
 # CC-BY-4.0), converted for parakeet.cpp by trevest/parakeet-ultra-GGUF:
 # the same architecture, vocabulary and 25 languages as v3 (ADR 0068).
@@ -369,20 +341,6 @@ wer = 6.9
 language = "pt"
 rank = 1
 wer = 4.5
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # The language models behind Enhanced and meeting analysis (ADR 0005, ADR
 # 0026): the macOS catalogue in GGUF at the 4-bit footprint (Q4_K_M from

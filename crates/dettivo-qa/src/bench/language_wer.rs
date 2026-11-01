@@ -21,8 +21,10 @@ use crate::pack::wer::{wer, words};
 pub const TIE_POINTS: f64 = 1.5;
 
 /// Models at least this share of the fastest model's speed are equally
-/// fast (two builds of one architecture differ by timing noise only).
-pub const SAME_SPEED: f64 = 0.9;
+/// fast: two builds of one architecture differ by timing noise and by
+/// which languages they ran (up to 16% across the recorded runs), while
+/// Whisper large-v3-turbo runs at under half of Parakeet's speed.
+pub const SAME_SPEED: f64 = 0.75;
 
 /// One model in one language.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -279,7 +281,7 @@ mod tests {
             row("fast-far", "de", 9.0, 200.0),
             row("slow-best", "en", 3.0, 40.0),
             row("fast-far", "en", 4.6, 200.0),
-            // As fast as fast-close (within 10%): the lower rate wins.
+            // As fast as fast-close (within 25%): the lower rate wins.
             row("twin", "fr", 4.8, 115.0),
             row("fast-close", "fr", 5.9, 120.0),
             // fast-close's median speed is 120 whatever one language says.

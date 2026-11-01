@@ -28,20 +28,20 @@ AMD Ryzen 9 7950X3D 16-Core Processor with NVIDIA GeForce RTX 4090 (NVIDIA 610.5
 
 ## thor on the gpu tier (2026-11-01)
 
-AMD Ryzen 9 7950X3D 16-Core Processor with NVIDIA GeForce RTX 4090 (NVIDIA 615.78.08), 61 GiB, commit `c4ca60940821`; a Vulkan device is installed and dettivo-engine-whisper runs on it. Load average 8.5 at the start and 0.9 at the end of the run (1 min).
+AMD Ryzen 9 7950X3D 16-Core Processor with NVIDIA GeForce RTX 4090 (NVIDIA 615.78.08), 61 GiB, commit `27a966695060`; a Vulkan device is installed and dettivo-engine-whisper runs on it. Load average 6.1 at the start and 3.3 at the end of the run (1 min).
 
 | Step | NFR | Metric | Measured | Target | Verdict |
 |---|---|---|---|---|---|
-| `first_insert` | NFR-1 | first_insert_p50 | 522 ms | <= 1000 ms | met |
-| `first_insert` · whisper large-v3-turbo | NFR-1 | first_insert_p50 | 522 ms | <= 1000 ms | met |
-| `first_insert` · parakeet parakeet-v3 | NFR-1 | first_insert_p50 | 266 ms | <= 1000 ms | met |
+| `first_insert` | NFR-1 | first_insert_p50 | 296 ms | <= 1000 ms | met |
+| `first_insert` · whisper large-v3-turbo | NFR-1 | first_insert_p50 | 296 ms | <= 1000 ms | met |
+| `first_insert` · parakeet parakeet-v3 | NFR-1 | first_insert_p50 | 185 ms | <= 1000 ms | met |
 | `warm_up` | - | - | - | - | recorded |
 | `gpu_threads` | - | - | - | - | recorded |
-| `stt_throughput` | NFR-4 | stt_realtime_factor | 82.40 x realtime | >= 20.00 x realtime | met |
-| `stt_throughput` · whisper large-v3-turbo | NFR-4 | stt_realtime_factor | 82.40 x realtime | >= 20.00 x realtime | met |
-| `stt_throughput` · parakeet parakeet-v3 | NFR-4 | stt_realtime_factor | 141.54 x realtime | >= 20.00 x realtime | met |
+| `stt_throughput` | NFR-4 | stt_realtime_factor | 64.75 x realtime | >= 20.00 x realtime | met |
+| `stt_throughput` · whisper large-v3-turbo | NFR-4 | stt_realtime_factor | 64.75 x realtime | >= 20.00 x realtime | met |
+| `stt_throughput` · parakeet parakeet-v3 | NFR-4 | stt_realtime_factor | 121.59 x realtime | >= 20.00 x realtime | met |
 | `llm_rewrite` | - | - | - | - | recorded |
-| `idle_footprint` | NFR-6 | daemon_idle_rss | 49.2 MiB | <= 60.0 MiB | met |
+| `idle_footprint` | NFR-6 | daemon_idle_rss | 53.0 MiB | <= 60.0 MiB | met |
 | `startup` | NFR-8 | socket_ready_p50 | 202 ms | <= 300 ms | met |
 | `language_wer` | - | - | - | - | recorded |
 

@@ -255,8 +255,10 @@ void FirstRunModels::refresh(bool includeSpeech)
             if (error.isEmpty())
                 applyStatus(result);
         });
-        requestRanking();
     }
+    // Automatic onboarding reuses the eligibility answer for the rows
+    // (includeSpeech false); the ranking is asked for either way.
+    requestRanking();
     m_link->call(QStringLiteral("llm.providers.list"), QJsonObject(), [this](const QJsonObject &result, const QJsonObject &error) {
         if (error.isEmpty())
             applyProviders(result.value(QStringLiteral("providers")).toArray(), m_llmMethods);

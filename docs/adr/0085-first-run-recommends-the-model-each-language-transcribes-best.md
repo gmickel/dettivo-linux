@@ -23,14 +23,14 @@ The `language_wer` step of `dettivo-qa bench` scored every catalogue speech mode
 | Portuguese | 4.5 | 5.0 | | 4.4 |
 | Polish | 6.9 | 7.7 | | 6.2 |
 
-Whisper base.en and tiny.en scored 8.3 and 10.1 on English. The Parakeet models ran at a median of 160 to 200 times real time, Whisper large-v3-turbo at 60 to 86 times.
+Whisper base.en and tiny.en scored 8.3 and 10.1 on English. In the recorded run the Parakeet models transcribed at 121 to 168 times real time and Whisper large-v3-turbo at 48 to 70 times; the machine shared its GPU with other work, and an earlier run measured 155 to 204 and 60 to 86.
 
 The catalogue already used `recommended_for` for the one-line reason first run shows beside a model, so the per-language scores needed their own key.
 
 ## Decision
 
 - Each speech model in `crates/dettivo-speech/catalogue/v1.toml` carries one `[[models.language_wer]]` table per scored language with `language`, `rank` and `wer`, copied from the recorded run. A new model joins the ranking by running the step with it on disk.
-- The step ranks per language. Rates less than 1.5 points apart tie, and the faster model wins a tie, measured as the median realtime factor over the model's languages. Models within 10% of the fastest count as equally fast, and the lower rate decides between them, so Parakeet v3 and Parakeet Ultra, which share one architecture, never rank on timing noise.
+- The step ranks per language. Rates less than 1.5 points apart tie, and the faster model wins a tie, measured as the median realtime factor over the model's languages. Models at 75% or more of the fastest count as equally fast, and the lower rate decides between them. Parakeet v2, v3 and Ultra share one architecture, and their speeds differed by up to 16% between runs and between the languages each ran, which flipped English between Parakeet v2 and Parakeet Ultra under a 10% tolerance in one of three runs.
 - `speech.providers.list` takes an optional `language` (a code or a locale) and then answers `language_ranking` with each model's rank, rate and readiness. `dettivo speech providers --language <code>` prints the recommendation and the ranking.
 - First run asks for the ranking of `[dictation] language`, or the system locale's language while that is `auto`. The first model is marked recommended with its rate, and while no speech model is ready, no download runs and nothing was picked, it is the selected row. First run writes nothing until the person picks, and a language the run did not cover keeps the GPU-tier shortlist.
 
