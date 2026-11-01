@@ -40,6 +40,17 @@ pub struct StatusResult {
     /// backend (ISO 8601 UTC); absent until one does.
     #[serde(default)]
     pub last_press_at: Option<String>,
+    /// How the portal knows the daemon (ADR 0081): `registered` (the app
+    /// id `dettivo` through the host registry) or `unit` (a portal
+    /// without the registry takes it from the systemd unit); absent when
+    /// no portal session is open.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity: Option<String>,
+    /// The portal took the shortcuts but assigned no keys (Hyprland's
+    /// portal): the compositor binds them through the `dettivo setup`
+    /// snippet, and `bound` stays empty.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub compositor_bound: bool,
 }
 
 /// `hotkeys.snippet` params: the compositor (`hyprland`, `hyprland-lua`,

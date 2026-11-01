@@ -136,8 +136,8 @@ void HotkeysSetupModel::applySample()
     m_compositor = QStringLiteral("Hyprland");
     m_snippetPath = QStringLiteral("~/.config/hypr/bindings/dettivo.conf");
     m_snippetText = QStringLiteral(
-        "bind  = , F9, exec, dettivo dictation start\n"
-        "bindr = , F9, exec, dettivo dictation stop\n"
+        "bind  = , F9, exec, dettivo dictation press\n"
+        "bindr = , F9, exec, dettivo dictation release\n"
         "bind  = SUPER CTRL, X, exec, dettivo dictation toggle\n"
         "bind  = SUPER CTRL SHIFT, X, exec, dettivo dictation reinsert-last\n"
         "bind  = SUPER CTRL, Escape, exec, dettivo dictation cancel\n");

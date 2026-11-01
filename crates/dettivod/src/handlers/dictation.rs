@@ -99,6 +99,20 @@ pub fn toggle(daemon: &Daemon) -> Result<Value, JsonRpcError> {
     }
 }
 
+/// `dictation.press` and `dictation.release` (Linux additions, ADR 0081):
+/// one edge of the hold chord through the hold key. A take the edge
+/// finished is settled before the answer, as `dictation.stop` does.
+pub fn hold(daemon: &Daemon, edge: crate::hold::Edge) -> Result<Value, JsonRpcError> {
+    let outcome = daemon.hotkeys().hold().on(daemon, edge)?;
+    if let Some(job) = &outcome.stop {
+        match daemon.dictation().stop_expected(job) {
+            Ok(_) | Err(dettivo_session::SessionError::NoSession) => {}
+            Err(e) => return Err(actions::session_error(e)),
+        }
+    }
+    json(outcome.result)
+}
+
 /// `dictation.stop`.
 pub fn stop(daemon: &Daemon) -> Result<Value, JsonRpcError> {
     stopped(actions::stop(daemon)?)

@@ -94,6 +94,12 @@ void OsdHostTest::streamMapsToStatesAndCompletionCarriesTheOutcome()
 
     link.notify(QStringLiteral("audio.level"), {{QStringLiteral("rms"), 0.01}});
     QVERIFY(model.level() > 0.25 && model.level() < 0.5);
+    // A double tap locks the take: still Listening, the hint says how it ends.
+    link.notify(QStringLiteral("dictation.state"),
+                dictation("recording", "recording", {{QStringLiteral("reason"), QStringLiteral("locked")}}));
+    QCOMPARE(model.state(), QStringLiteral("listening"));
+    QCOMPARE(model.hint(), QStringLiteral("locked · press to finish"));
+    QVERIFY(model.level() > 0.25 && model.level() < 0.5);
     link.notify(QStringLiteral("audio.level"), {{QStringLiteral("rms"), 0.0001}});
     QCOMPARE(model.level(), 0.0);
     link.notify(QStringLiteral("audio.level"), {{QStringLiteral("rms"), 0.0}});

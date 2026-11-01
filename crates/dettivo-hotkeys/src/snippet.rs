@@ -1,7 +1,8 @@
 //! The binding snippets `dettivo setup <compositor>` writes: press and
 //! release bindings for Hyprland (classic `.conf` and the Lua config that
-//! Hyprland 0.56 and Omarchy use) and Sway, toggle-only for Niri, which
-//! has no release bindings. Every snippet drives the `dettivo` command,
+//! Hyprland 0.56 and Omarchy use) and Sway, which run `dettivo dictation
+//! press` and `release` so the daemon's hold-key machine sees both
+//! (ADR 0081), and toggle-only for Niri, which has no release bindings. Every snippet drives the `dettivo` command,
 //! so the compositor needs no daemon-side backend.
 
 use std::fmt;
@@ -182,8 +183,8 @@ pub fn render(compositor: Compositor, keys: &Keys) -> Snippet {
             toggle = keys.toggle.hyprland_conf(),
             cancel = keys.cancel.hyprland_conf(),
             reinsert = keys.reinsert.hyprland_conf(),
-            start = cmd("start"),
-            stop = cmd("stop"),
+            start = cmd("press"),
+            stop = cmd("release"),
             toggle_cmd = cmd("toggle"),
             cancel_cmd = cmd("cancel"),
             reinsert_cmd = cmd("reinsert-last"),
@@ -207,8 +208,8 @@ pub fn render(compositor: Compositor, keys: &Keys) -> Snippet {
             toggle = keys.toggle.hyprland_lua(),
             cancel = keys.cancel.hyprland_lua(),
             reinsert = keys.reinsert.hyprland_lua(),
-            start = cmd("start"),
-            stop = cmd("stop"),
+            start = cmd("press"),
+            stop = cmd("release"),
             toggle_cmd = cmd("toggle"),
             cancel_cmd = cmd("cancel"),
             reinsert_cmd = cmd("reinsert-last"),
@@ -229,8 +230,8 @@ pub fn render(compositor: Compositor, keys: &Keys) -> Snippet {
             toggle = keys.toggle.sway(),
             cancel = keys.cancel.sway(),
             reinsert = keys.reinsert.sway(),
-            start = cmd("start"),
-            stop = cmd("stop"),
+            start = cmd("press"),
+            stop = cmd("release"),
             toggle_cmd = cmd("toggle"),
             cancel_cmd = cmd("cancel"),
             reinsert_cmd = cmd("reinsert-last"),
@@ -407,21 +408,21 @@ mod tests {
     fn press_and_release_pairs_and_the_niri_note() {
         let keys = Keys::defaults();
         let conf = render(Compositor::HyprlandConf, &keys).text;
-        assert!(conf.contains("bind = , F9, exec, dettivo --quiet dictation start\n"));
-        assert!(conf.contains("bindr = , F9, exec, dettivo --quiet dictation stop\n"));
+        assert!(conf.contains("bind = , F9, exec, dettivo --quiet dictation press\n"));
+        assert!(conf.contains("bindr = , F9, exec, dettivo --quiet dictation release\n"));
         assert!(conf.contains("bind = SUPER CTRL, X, exec, dettivo --quiet dictation toggle\n"));
         let lua = render(Compositor::HyprlandLua, &keys).text;
-        assert!(lua.contains("hl.bind(\"F9\", hl.dsp.exec_cmd(\"dettivo --quiet dictation stop\"), { description = \"Dettivo: hold to talk (release)\", release = true })"));
+        assert!(lua.contains("hl.bind(\"F9\", hl.dsp.exec_cmd(\"dettivo --quiet dictation release\"), { description = \"Dettivo: hold to talk (release)\", release = true })"));
         assert!(lua.contains("hl.unbind(\"SUPER + CTRL + X\")"));
         let sway = render(Compositor::Sway, &keys).text;
-        assert!(sway.contains("bindsym F9 exec dettivo --quiet dictation start\n"));
-        assert!(sway.contains("bindsym --release F9 exec dettivo --quiet dictation stop\n"));
+        assert!(sway.contains("bindsym F9 exec dettivo --quiet dictation press\n"));
+        assert!(sway.contains("bindsym --release F9 exec dettivo --quiet dictation release\n"));
         let niri = render(Compositor::Niri, &keys);
         assert!(
             niri.text
                 .contains("Mod+Ctrl+X { spawn \"dettivo\" \"--quiet\" \"dictation\" \"toggle\"; }")
         );
-        assert!(!niri.text.contains("dictation start"));
+        assert!(!niri.text.contains("dictation press"));
         assert!(niri.text.contains("no release bindings"));
         assert!(niri.notes.iter().any(|n| n.contains("no release bindings")));
     }

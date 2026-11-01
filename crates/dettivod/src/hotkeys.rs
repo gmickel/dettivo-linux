@@ -3,17 +3,21 @@
 //! nothing, since compositor bindings call the CLI), starts it on a thread
 //! of its own so a portal dialog never delays the socket, restarts it when
 //! the section changes, and reports what runs and why the rest does not.
+//! It also holds the hold key (ADR 0081), which every path's presses and
+//! releases of the hold chord go through.
 
 use std::sync::{Arc, Mutex, Weak};
 
 use dettivo_core::config::Loaded;
 use dettivo_core::config::schema::Hotkeys as Section;
 use dettivo_hotkeys::evdev::EvdevBackend;
+use dettivo_hotkeys::identity;
 use dettivo_hotkeys::portal::{PortalBackend, probe};
 use dettivo_hotkeys::{Availability, HotkeyBackend, HotkeyEvent, Keys};
 use dettivo_proto::methods::hotkeys::{BackendAvailability, StatusResult};
 
 use crate::daemon::Daemon;
+use crate::hold::HoldKey;
 
 struct Inner {
     section: Option<Section>,
@@ -22,12 +26,15 @@ struct Inner {
     bound: Vec<String>,
     error: Option<String>,
     last_press_at: Option<String>,
+    identity: Option<String>,
+    compositor_bound: bool,
 }
 
 /// The service.
 pub struct Hotkeys {
     inner: Mutex<Inner>,
     daemon: Mutex<Weak<Daemon>>,
+    hold: HoldKey,
 }
 
 impl Default for Hotkeys {
@@ -47,9 +54,17 @@ impl Hotkeys {
                 bound: Vec::new(),
                 error: None,
                 last_press_at: None,
+                identity: None,
+                compositor_bound: false,
             }),
             daemon: Mutex::new(Weak::new()),
+            hold: HoldKey::default(),
         }
+    }
+
+    /// The hold key.
+    pub fn hold(&self) -> &HoldKey {
+        &self.hold
     }
 
     /// Starts the configured backend in the background.
@@ -99,6 +114,8 @@ impl Hotkeys {
         g.bound = bound;
         g.error = error;
         g.backend = backend;
+        g.identity = None;
+        g.compositor_bound = false;
     }
 
     fn activate(&self, daemon: &Arc<Daemon>, section: &Section) {
@@ -159,19 +176,33 @@ impl Hotkeys {
                 return;
             }
         };
+        if backend.name() == "portal" {
+            ensure_desktop_entry();
+        }
         match backend.start(handler) {
             Ok(registration) => {
                 tracing::info!(
                     backend = registration.backend,
                     bound = registration.bound.len(),
+                    identity = registration.identity.map(|i| i.as_str()),
+                    compositor_bound = registration.compositor_bound,
                     "hotkeys: backend started"
                 );
-                let bound = registration
-                    .bound
-                    .iter()
-                    .map(|a| a.id().to_string())
-                    .collect();
+                // Keys the compositor binds are not bound here: the
+                // snippet is the path, and onboarding still asks for it.
+                let bound = if registration.compositor_bound {
+                    Vec::new()
+                } else {
+                    registration
+                        .bound
+                        .iter()
+                        .map(|a| a.id().to_string())
+                        .collect()
+                };
                 self.set(registration.backend, bound, None, Some(backend));
+                let mut g = self.inner.lock().unwrap_or_else(|p| p.into_inner());
+                g.identity = registration.identity.map(|i| i.as_str().to_string());
+                g.compositor_bound = registration.compositor_bound;
             }
             Err(e) if section.backend == "auto" => {
                 // Nothing was asked for by name: the compositor bindings
@@ -200,13 +231,15 @@ impl Hotkeys {
     /// are probed now, so the answer is current.
     pub fn status(&self, loaded: &Loaded) -> StatusResult {
         let section = &loaded.config.hotkeys;
-        let (active, bound, error, last_press_at) = {
+        let (active, bound, error, last_press_at, identity, compositor_bound) = {
             let g = self.inner.lock().unwrap_or_else(|p| p.into_inner());
             (
                 g.active.clone(),
                 g.bound.clone(),
                 g.error.clone(),
                 g.last_press_at.clone(),
+                g.identity.clone(),
+                g.compositor_bound,
             )
         };
         let portal = availability(probe());
@@ -222,6 +255,8 @@ impl Hotkeys {
             bound,
             error,
             last_press_at,
+            identity,
+            compositor_bound,
         }
     }
 
@@ -253,6 +288,19 @@ impl Hotkeys {
             b.stop();
         }
         self.set("none", Vec::new(), None, None);
+    }
+}
+
+/// The portal resolves the app id `dettivo` through its desktop entry;
+/// a source build has none until the daemon writes it.
+fn ensure_desktop_entry() {
+    let (home, dirs) = identity::data_dirs(|k| std::env::var_os(k));
+    match identity::ensure_desktop_entry(&home, &dirs) {
+        Ok(Some(path)) => {
+            tracing::info!(path = %path.display(), "hotkeys: wrote the desktop entry the portal identifies the daemon by")
+        }
+        Ok(None) => {}
+        Err(e) => tracing::warn!(error = %e, "hotkeys: no desktop entry for the portal identity"),
     }
 }
 

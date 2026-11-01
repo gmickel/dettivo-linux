@@ -1,7 +1,12 @@
 //! The mock `org.freedesktop.portal.GlobalShortcuts`: `CreateSession`
 //! and `BindShortcuts` answered through `Response` signals on the request
 //! paths ashpd derives, a `Session` object per session, and `Activated`
-//! and `Deactivated` fired on demand.
+//! and `Deactivated` fired on demand. Beside it the host registry
+//! `org.freedesktop.host.portal.Registry`: like the stock portal, a
+//! session is refused (`NotAllowed`) to a connection that registered no
+//! app id, and a registration after the connection's first request is
+//! refused. [`MockOptions`] leaves the registry out (an older portal) or
+//! answers binds with no triggers (Hyprland's portal).
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -14,12 +19,57 @@ use zbus::{Connection, interface};
 
 use super::Served;
 
+/// How the mock portal behaves.
+#[derive(Debug, Clone, Copy)]
+pub struct MockOptions {
+    /// Every bind answers "Other".
+    pub deny: bool,
+    /// The portal offers the host registry and requires an app id.
+    pub registry: bool,
+    /// Binds come back with empty trigger descriptions (Hyprland).
+    pub empty_triggers: bool,
+}
+
+impl Default for MockOptions {
+    fn default() -> Self {
+        Self {
+            deny: false,
+            registry: true,
+            empty_triggers: false,
+        }
+    }
+}
+
 #[derive(Default)]
 struct PortalState {
     sessions: Vec<OwnedObjectPath>,
     bound: Vec<String>,
     bind_calls: usize,
-    deny: bool,
+    options: Option<MockOptions>,
+    /// Senders with their registered app id.
+    registered: Vec<(String, String)>,
+    /// Senders that made a portal request.
+    requested: Vec<String>,
+}
+
+impl PortalState {
+    fn options(&self) -> MockOptions {
+        self.options.unwrap_or_default()
+    }
+}
+
+#[derive(Debug, zbus::DBusError)]
+#[zbus(prefix = "org.freedesktop.portal.Error")]
+enum PortalError {
+    #[zbus(error)]
+    ZBus(zbus::Error),
+    NotAllowed(String),
+}
+
+impl From<zbus::fdo::Error> for PortalError {
+    fn from(e: zbus::fdo::Error) -> Self {
+        Self::ZBus(e.into())
+    }
 }
 
 #[derive(Serialize, Type)]
@@ -83,6 +133,35 @@ async fn respond<R: Serialize + Type>(
         .await
 }
 
+struct RegistryIface {
+    state: Arc<Mutex<PortalState>>,
+}
+
+#[interface(name = "org.freedesktop.host.portal.Registry")]
+impl RegistryIface {
+    #[zbus(property, name = "version")]
+    fn version(&self) -> u32 {
+        1
+    }
+
+    async fn register(
+        &self,
+        #[zbus(header)] header: Header<'_>,
+        app_id: String,
+        _options: HashMap<String, OwnedValue>,
+    ) -> Result<(), PortalError> {
+        let sender = sender_segment(&header);
+        let mut s = self.state.lock().unwrap_or_else(|p| p.into_inner());
+        if s.requested.contains(&sender) {
+            return Err(PortalError::NotAllowed(
+                "Connection already associated with an application ID".into(),
+            ));
+        }
+        s.registered.push((sender, app_id));
+        Ok(())
+    }
+}
+
 struct SessionIface;
 
 #[interface(name = "org.freedesktop.portal.Session")]
@@ -107,8 +186,16 @@ impl PortalIface {
         #[zbus(header)] header: Header<'_>,
         #[zbus(connection)] conn: &Connection,
         options: HashMap<String, OwnedValue>,
-    ) -> zbus::fdo::Result<OwnedObjectPath> {
+    ) -> Result<OwnedObjectPath, PortalError> {
         let sender = sender_segment(&header);
+        {
+            let mut s = self.state.lock().unwrap_or_else(|p| p.into_inner());
+            let known = s.registered.iter().any(|(who, _)| *who == sender);
+            if s.options().registry && !known {
+                return Err(PortalError::NotAllowed("An app id is required".into()));
+            }
+            s.requested.push(sender.clone());
+        }
         let request = format!(
             "/org/freedesktop/portal/desktop/request/{sender}/{}",
             token(&options, "handle_token")
@@ -135,7 +222,7 @@ impl PortalIface {
             },
         )
         .await?;
-        object_path(request)
+        Ok(object_path(request)?)
     }
 
     async fn bind_shortcuts(
@@ -152,10 +239,10 @@ impl PortalIface {
             sender_segment(&header),
             token(&options, "handle_token")
         );
-        let deny = {
+        let (deny, empty) = {
             let mut s = self.state.lock().unwrap_or_else(|p| p.into_inner());
             s.bind_calls += 1;
-            s.deny
+            (s.options().deny, s.options().empty_triggers)
         };
         if deny {
             respond(
@@ -176,7 +263,11 @@ impl PortalIface {
                     id.clone(),
                     ShortcutInfo {
                         description: token(info, "description"),
-                        trigger_description: token(info, "preferred_trigger"),
+                        trigger_description: if empty {
+                            String::new()
+                        } else {
+                            token(info, "preferred_trigger")
+                        },
                     },
                 )
             })
@@ -227,23 +318,56 @@ pub struct MockPortal {
 }
 
 impl MockPortal {
-    /// Serves on `address`; `deny` makes every bind answer "Other".
+    /// Serves on `address` with the registry; `deny` makes every bind
+    /// answer "Other".
     pub fn serve(address: &str, deny: bool) -> Result<Self, String> {
+        Self::serve_with(
+            address,
+            MockOptions {
+                deny,
+                ..MockOptions::default()
+            },
+        )
+    }
+
+    /// Serves on `address` behaving as `options` say.
+    pub fn serve_with(address: &str, options: MockOptions) -> Result<Self, String> {
         let state = Arc::new(Mutex::new(PortalState {
-            deny,
+            options: Some(options),
             ..PortalState::default()
         }));
         let iface_state = state.clone();
+        let registry_state = state.clone();
         let served = Served::start(
             move |b| {
-                b.name("org.freedesktop.portal.Desktop")?.serve_at(
+                let b = b.name("org.freedesktop.portal.Desktop")?.serve_at(
                     "/org/freedesktop/portal/desktop",
                     PortalIface { state: iface_state },
+                )?;
+                if !options.registry {
+                    return Ok(b);
+                }
+                b.serve_at(
+                    "/org/freedesktop/portal/desktop",
+                    RegistryIface {
+                        state: registry_state,
+                    },
                 )
             },
             address.to_string(),
         )?;
         Ok(Self { served, state })
+    }
+
+    /// The app ids registered, in order.
+    pub fn registered(&self) -> Vec<String> {
+        self.state
+            .lock()
+            .unwrap_or_else(|p| p.into_inner())
+            .registered
+            .iter()
+            .map(|(_, id)| id.clone())
+            .collect()
     }
 
     /// The ids the last bind registered.

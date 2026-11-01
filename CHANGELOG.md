@@ -4,6 +4,16 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Fixed
+
+- Hold to talk survives a lost key release. Hyprland's Lua binds and GNOME can drop the release, which left the take recording until the 300 s limit; now a press 1 s or more into a hold finishes the take, and a key repeat inside that second is ignored. The `dettivo setup` snippets bind the new idempotent verbs `dettivo dictation press` and `release`, which feed one hold-key state machine in the daemon with the portal and evdev paths ([docs/hotkeys.md](docs/hotkeys.md), [ADR 0081](docs/adr/0081-the-hold-key-is-a-daemon-state-machine-and-the-portal-gets-an-app-id.md)). Existing `start` and `stop` bindings keep working.
+- The GlobalShortcuts portal opens a session for the daemon on a stock Omarchy install. `dettivo doctor` reported `NotAllowed: An app id is required`; the daemon now registers the app id `dettivo` with the portal before it opens the session, writes `dettivo.desktop` for a source build that has none, and `dettivo doctor` says how the portal identified it. Hyprland's portal, which assigns no keys, is reported as `bound by the compositor`.
+- A changed `[hotkeys] hold` takes effect on GNOME and KDE after the daemon reloads its configuration. The desktops kept the first key they saw for a shortcut, so the portal shortcut ids now carry the chord (`dictation-hold-F9`), and a rebind registers a new id.
+
+### Added
+
+- Double-tap the hold key to dictate hands-free. A tap and then a press within 300 ms lock the take; releasing leaves it recording, the pill shows `locked · press to finish`, and the next press finishes it.
+
 ## [0.4.4] - 2026-10-31
 
 ### Fixed

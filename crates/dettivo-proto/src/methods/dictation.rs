@@ -180,3 +180,18 @@ pub enum ToggleResult {
     /// A finished take.
     Stopped(Box<StopResult>),
 }
+
+/// `dictation.press` and `dictation.release` result (Linux addition,
+/// ADR 0081): what the hold key did and where it is now. Both verbs are
+/// idempotent: an event the key's state makes meaningless answers `none`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct HoldResult {
+    /// `started`, `stopped`, `locked`, `discarded` or `none`.
+    pub action: String,
+    /// The hold key afterwards: `idle`, `held`, `locked` or `tapped`.
+    pub hold: String,
+    /// The take the event acted on; absent when it acted on none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub job_id: Option<String>,
+}

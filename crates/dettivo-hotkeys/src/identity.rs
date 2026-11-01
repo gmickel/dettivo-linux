@@ -1,0 +1,151 @@
+//! The daemon's identity at the desktop portal (ADR 0081). A host
+//! (unsandboxed) process has no app id unless it registers one, and the
+//! GlobalShortcuts portal refuses a session without one (`NotAllowed: An
+//! app id is required`). The app id is `dettivo`, the name of the desktop
+//! entry the package ships; a source build gets a minimal entry under
+//! `$XDG_DATA_HOME/applications/`. The id is registered through
+//! `org.freedesktop.host.portal.Registry` on the connection that then
+//! opens the session.
+
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+
+use crate::Identity;
+
+/// The app id, and the desktop entry's name without `.desktop`.
+pub const APP_ID: &str = "dettivo";
+
+/// What to do when the portal still refuses the identity.
+pub const FIX: &str = "restart the portal once ~/.local/share/applications/dettivo.desktop or /usr/share/applications/dettivo.desktop exists (systemctl --user restart xdg-desktop-portal), and start the daemon directly rather than through a setgid wrapper such as newgrp, which hides its /proc entry from the portal";
+
+/// The entry a source build gets, so the portal can resolve the app id.
+pub const MINIMAL_ENTRY: &str = "[Desktop Entry]\nType=Application\nName=Dettivo\nComment=Dictation hotkeys through the desktop portal\nExec=dettivo-app\nNoDisplay=true\n";
+
+/// `$XDG_DATA_HOME` (or `~/.local/share`) and `$XDG_DATA_DIRS` (or
+/// `/usr/local/share:/usr/share`).
+pub fn data_dirs(env: impl Fn(&str) -> Option<std::ffi::OsString>) -> (PathBuf, Vec<PathBuf>) {
+    let home = env("XDG_DATA_HOME")
+        .filter(|v| !v.is_empty())
+        .map(PathBuf::from)
+        .unwrap_or_else(|| {
+            env("HOME")
+                .map(PathBuf::from)
+                .unwrap_or_else(|| PathBuf::from("/"))
+                .join(".local/share")
+        });
+    let dirs = env("XDG_DATA_DIRS")
+        .filter(|v| !v.is_empty())
+        .map(|v| std::env::split_paths(&v).collect())
+        .unwrap_or_else(|| vec!["/usr/local/share".into(), "/usr/share".into()]);
+    (home, dirs)
+}
+
+/// Writes the minimal entry under `data_home` unless `dettivo.desktop`
+/// exists there or under one of `data_dirs`; returns the path written.
+pub fn ensure_desktop_entry(
+    data_home: &Path,
+    data_dirs: &[PathBuf],
+) -> Result<Option<PathBuf>, String> {
+    let name = format!("applications/{APP_ID}.desktop");
+    if std::iter::once(data_home)
+        .chain(data_dirs.iter().map(PathBuf::as_path))
+        .any(|dir| dir.join(&name).is_file())
+    {
+        return Ok(None);
+    }
+    let path = data_home.join(&name);
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("cannot create {}: {e}", parent.display()))?;
+    }
+    std::fs::write(&path, MINIMAL_ENTRY)
+        .map_err(|e| format!("cannot write {}: {e}", path.display()))?;
+    Ok(Some(path))
+}
+
+/// Registers [`APP_ID`] on `conn` before any portal request on it. A
+/// portal without the registry answers that it has no such method or
+/// interface: it derives the id from the systemd unit instead.
+pub(crate) async fn register(conn: &zbus::Connection) -> Result<Identity, String> {
+    let proxy = zbus::Proxy::new(
+        conn,
+        "org.freedesktop.portal.Desktop",
+        "/org/freedesktop/portal/desktop",
+        "org.freedesktop.host.portal.Registry",
+    )
+    .await
+    .map_err(|e| format!("portal registry: {e}"))?;
+    let options: HashMap<&str, zbus::zvariant::Value<'_>> = HashMap::new();
+    match proxy.call_method("Register", &(APP_ID, options)).await {
+        Ok(_) => Ok(Identity::Registered),
+        Err(e) if is_unknown(&e) => Ok(Identity::Unit),
+        Err(e) => Err(format!(
+            "the portal refused the app id {APP_ID}: {e}; {FIX}"
+        )),
+    }
+}
+
+fn is_unknown(e: &zbus::Error) -> bool {
+    let name = match e {
+        zbus::Error::MethodError(name, _, _) => name.as_str().to_string(),
+        zbus::Error::FDO(fdo) => match **fdo {
+            zbus::fdo::Error::UnknownMethod(_) => return true,
+            zbus::fdo::Error::UnknownInterface(_) => return true,
+            _ => return false,
+        },
+        _ => return false,
+    };
+    name == "org.freedesktop.DBus.Error.UnknownMethod"
+        || name == "org.freedesktop.DBus.Error.UnknownInterface"
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_entry_is_written_once_and_only_when_none_exists() {
+        let dir = tempfile::tempdir().unwrap();
+        let home = dir.path().join("home");
+        let system = dir.path().join("system");
+        let written = ensure_desktop_entry(&home, std::slice::from_ref(&system)).unwrap();
+        let path = home.join("applications/dettivo.desktop");
+        assert_eq!(written.as_deref(), Some(path.as_path()));
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), MINIMAL_ENTRY);
+        assert_eq!(
+            ensure_desktop_entry(&home, std::slice::from_ref(&system)).unwrap(),
+            None
+        );
+
+        // The package's entry under a data dir is enough.
+        let fresh = dir.path().join("fresh");
+        std::fs::create_dir_all(system.join("applications")).unwrap();
+        std::fs::write(system.join("applications/dettivo.desktop"), "x").unwrap();
+        assert_eq!(ensure_desktop_entry(&fresh, &[system]).unwrap(), None);
+        assert!(!fresh.join("applications/dettivo.desktop").exists());
+    }
+
+    #[test]
+    fn data_dirs_follow_the_xdg_defaults() {
+        let env = |k: &str| match k {
+            "HOME" => Some("/h".into()),
+            _ => None,
+        };
+        assert_eq!(
+            data_dirs(env),
+            (
+                PathBuf::from("/h/.local/share"),
+                vec![PathBuf::from("/usr/local/share"), "/usr/share".into()]
+            )
+        );
+        let env = |k: &str| match k {
+            "XDG_DATA_HOME" => Some("/d".into()),
+            "XDG_DATA_DIRS" => Some("/a:/b".into()),
+            _ => None,
+        };
+        assert_eq!(
+            data_dirs(env),
+            (PathBuf::from("/d"), vec![PathBuf::from("/a"), "/b".into()])
+        );
+    }
+}

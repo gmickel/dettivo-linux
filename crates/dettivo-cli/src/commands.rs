@@ -250,6 +250,10 @@ pub enum DictationCmd {
     Status,
     /// Start when idle, stop when a session runs (Linux addition).
     Toggle,
+    /// dictation.press: the hold key went down; it also finishes a take whose release was lost (Linux addition)
+    Press,
+    /// dictation.release: the hold key came up; a double tap locks instead (Linux addition)
+    Release,
     /// dictation.reinsert_last: insert the last transcript again (Linux addition).
     ReinsertLast,
 }
@@ -294,6 +298,8 @@ pub fn dictation(cli: &Cli, client: &Client, what: &DictationCmd) -> Result<(), 
         DictationCmd::Status => ("dictation.status", json!({})),
         DictationCmd::ReinsertLast => ("dictation.reinsert_last", json!({})),
         DictationCmd::Toggle => ("dictation.toggle", json!({})),
+        DictationCmd::Press => ("dictation.press", json!({})),
+        DictationCmd::Release => ("dictation.release", json!({})),
     };
     let result = client.call(method, params)?;
     output::result(cli, method, &result);
