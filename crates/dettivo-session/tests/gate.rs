@@ -62,6 +62,43 @@ fn the_voice_stage_gates_a_take_the_level_passed() {
     }
 }
 
+/// A voice pass that hears speech after a delay.
+struct SlowVoice(Duration);
+
+impl VoiceDetector for SlowVoice {
+    fn speech_ms(&self, _: &[i16]) -> Result<u64, EngineError> {
+        std::thread::sleep(self.0);
+        Ok(240)
+    }
+}
+
+#[test]
+fn a_cancel_during_the_voice_pass_never_reaches_the_engine() {
+    let (dir, _rec, session, engine, feed) = rig("never used");
+    session.set_vad(Some(Arc::new(SlowVoice(Duration::from_millis(300)))));
+    session
+        .start(
+            policy(dir.path(), false),
+            engine.clone(),
+            feed.clone(),
+            None,
+        )
+        .unwrap();
+    feed.speak(400);
+    let session = Arc::new(session);
+    let stopper = {
+        let s = session.clone();
+        std::thread::spawn(move || s.stop())
+    };
+    std::thread::sleep(Duration::from_millis(150));
+    session.cancel().unwrap();
+    assert_eq!(
+        stopper.join().unwrap().unwrap_err(),
+        SessionError::Cancelled
+    );
+    assert_eq!(engine.calls.load(Ordering::Relaxed), 0);
+}
+
 /// The scripted engine under the Parakeet provider name.
 struct Parakeet(Arc<FakeEngine>);
 

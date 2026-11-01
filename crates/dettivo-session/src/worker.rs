@@ -113,6 +113,19 @@ impl Worker {
         );
         let transcribe_started = Instant::now();
         let verdict = gate::judge(&samples, self.policy.silence_dbfs, self.vad.as_deref());
+        // A cancel during the voice pass reached no engine to stop.
+        if self.cancel.load(Ordering::Relaxed) {
+            self.cleanup();
+            finish_shared(
+                &shared,
+                &*self.publisher,
+                &self.job_id,
+                State::Transcribing,
+                Exit::Cancelled,
+                None,
+            );
+            return;
+        }
         if let GateVerdict::Silence(stage) = verdict {
             tracing::info!(job = %self.job_id, stage = stage.as_str(), "take is silent; nothing sent to the engine");
             self.cleanup();
