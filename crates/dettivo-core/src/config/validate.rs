@@ -33,10 +33,13 @@ pub fn validate(text: &str) -> Result<Config, ValidationError> {
     let de = toml::Value::Table(table);
     match serde_path_to_error::deserialize::<_, Config>(de) {
         Ok(mut config) => {
-            let vocabulary = std::mem::take(&mut config.dictation.vocabulary);
-            config.dictation.vocabulary = vocabulary_schema::dedup(vocabulary);
+            // Limits apply to the list as written; duplicates drop after.
             match semantic(&config) {
-                None => Ok(config),
+                None => {
+                    let vocabulary = std::mem::take(&mut config.dictation.vocabulary);
+                    config.dictation.vocabulary = vocabulary_schema::dedup(vocabulary);
+                    Ok(config)
+                }
                 Some((key, message)) => Err(ValidationError {
                     line: line_for_key(&doc, text, key),
                     key: Some(key.to_string()),
@@ -292,6 +295,25 @@ mod tests {
         assert!(
             err.message
                 .contains(&format!("\"{long}\" is 65 characters")),
+            "{}",
+            err.message
+        );
+    }
+
+    #[test]
+    fn the_vocabulary_limits_apply_to_the_entries_as_written_before_duplicates_drop() {
+        let copies = vec!["\"Clef\""; 501].join(", ");
+        let err = validate(&format!("[dictation]\nvocabulary = [{copies}]\n")).unwrap_err();
+        assert_eq!(err.key.as_deref(), Some("dictation.vocabulary"));
+        assert!(err.message.contains("has 501 entries"), "{}", err.message);
+        let aliases = vec!["\"clay\""; 17].join(", ");
+        let text = format!(
+            "[dictation]\nvocabulary = [\"Clef\", {{ term = \"CLEF\", sounds_like = [{aliases}] }}]\n"
+        );
+        let err = validate(&text).unwrap_err();
+        assert!(
+            err.message
+                .contains("\"CLEF\" has 17 sounds_like spellings"),
             "{}",
             err.message
         );
