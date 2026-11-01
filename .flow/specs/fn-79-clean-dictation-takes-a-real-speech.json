@@ -532,7 +532,7 @@
     "impl:fn-79-clean-dictation-takes-a-real-speech.1": 0
   },
   "spec_path": ".flow/specs/fn-79-clean-dictation-takes-a-real-speech.md",
-  "status": "open",
+  "status": "done",
   "title": "Clean dictation takes: a real speech gate and engine output guards",
   "tracker": {
     "baseHashFlow": null,
@@ -545,5 +545,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T14:27:29.276657Z"
+  "updated_at": "2026-11-01T14:32:19.278060Z"
 }
