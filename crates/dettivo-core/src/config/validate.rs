@@ -5,6 +5,7 @@
 use dettivo_proto::methods::config::ValidationError;
 
 use super::schema::Config;
+use super::vocabulary_schema;
 
 /// Parses `text` into the typed configuration, or returns the first
 /// finding with the key and line named where they are known.
@@ -31,14 +32,18 @@ pub fn validate(text: &str) -> Result<Config, ValidationError> {
     };
     let de = toml::Value::Table(table);
     match serde_path_to_error::deserialize::<_, Config>(de) {
-        Ok(config) => match semantic(&config) {
-            None => Ok(config),
-            Some((key, message)) => Err(ValidationError {
-                line: line_for_key(&doc, text, key),
-                key: Some(key.to_string()),
-                message,
-            }),
-        },
+        Ok(mut config) => {
+            let vocabulary = std::mem::take(&mut config.dictation.vocabulary);
+            config.dictation.vocabulary = vocabulary_schema::dedup(vocabulary);
+            match semantic(&config) {
+                None => Ok(config),
+                Some((key, message)) => Err(ValidationError {
+                    line: line_for_key(&doc, text, key),
+                    key: Some(key.to_string()),
+                    message,
+                }),
+            }
+        }
         Err(e) => {
             let path = e.path().to_string();
             let message = e.inner().message().to_string();
@@ -97,6 +102,9 @@ fn semantic(config: &Config) -> Option<(&'static str, String)> {
         if !(0.0..=1.0).contains(&value) {
             return Some((key, format!("{key} ({value}) must be between 0 and 1")));
         }
+    }
+    if let Some(m) = vocabulary_schema::limit_error(&config.dictation.vocabulary) {
+        return Some(("dictation.vocabulary", m));
     }
     let floor = config.dictation.silence_dbfs;
     if !(-100.0..=0.0).contains(&floor) {
@@ -267,6 +275,26 @@ mod tests {
         let err = super::super::edit::set("", "transcribe.chunk_seconds", &serde_json::json!(6))
             .unwrap_err();
         assert_eq!(err.key.as_deref(), Some("transcribe.chunk_seconds"));
+    }
+
+    #[test]
+    fn the_vocabulary_drops_duplicates_and_refuses_a_broken_limit_by_entry() {
+        let text = "[dictation]\nvocabulary = [\"Dettivo\", { term = \"dettivo\", sounds_like = [\"x\"] }, \"Clef\"]\n";
+        let config = validate(text).unwrap();
+        assert_eq!(
+            super::vocabulary_schema::terms(&config.dictation.vocabulary),
+            ["Dettivo", "Clef"]
+        );
+        let long = "x".repeat(65);
+        let err = validate(&format!("[dictation]\nvocabulary = [\"{long}\"]\n")).unwrap_err();
+        assert_eq!(err.key.as_deref(), Some("dictation.vocabulary"));
+        assert_eq!(err.line, Some(2));
+        assert!(
+            err.message
+                .contains(&format!("\"{long}\" is 65 characters")),
+            "{}",
+            err.message
+        );
     }
 
     #[test]
