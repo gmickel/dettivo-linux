@@ -30,6 +30,7 @@ mod jobs_run;
 mod listener;
 mod llm_engine;
 mod logging;
+mod media;
 mod meeting_jobs;
 mod meetings;
 mod meetings_archive;
