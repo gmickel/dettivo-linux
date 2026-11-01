@@ -223,7 +223,9 @@ mod tests {
                 engine.limit = Duration::from_millis(500);
                 engine
             };
-            let load = silent().load(Path::new("/models/none.bin"), None).map(|_| ());
+            let load = silent()
+                .load(Path::new("/models/none.bin"), None)
+                .map(|_| ());
             let warm_up = silent().warm_up().map(|_| ());
             let _ = tx.send([load, warm_up]);
         });

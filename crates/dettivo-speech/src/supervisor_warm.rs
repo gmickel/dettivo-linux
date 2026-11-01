@@ -116,10 +116,16 @@ impl Supervisor {
         params: LoadParams,
         f: impl FnOnce(&mut EngineProcess) -> Result<RecognizeResult, EngineError>,
     ) -> Result<RecognizeResult, EngineError> {
-        self.with_slot_then(binary, binary, params, |p, _| f(p), |sup, s, result| {
-            s.last_recognized = Some(Instant::now());
-            sup.inferred(s, binary, Some(result.backend));
-        })
+        self.with_slot_then(
+            binary,
+            binary,
+            params,
+            |p, _| f(p),
+            |sup, s, result| {
+                s.last_recognized = Some(Instant::now());
+                sup.inferred(s, binary, Some(result.backend));
+            },
+        )
     }
 
     /// The loaded model ran an inference on `backend`: an engine moves

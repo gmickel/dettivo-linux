@@ -110,7 +110,10 @@ fn languages(dir: &Path) -> Result<Vec<Language>, String> {
             .map(|(wav, reference)| (dir.join(&code).join(wav), reference.to_string()))
             .collect();
         // Nothing to score would read as a perfect rate.
-        if items.iter().all(|(_, reference)| words(reference).is_empty()) {
+        if items
+            .iter()
+            .all(|(_, reference)| words(reference).is_empty())
+        {
             return Err(format!("{}: no reference words", manifest.display()));
         }
         out.push((code, items));
