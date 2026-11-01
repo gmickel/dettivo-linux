@@ -39,6 +39,15 @@ impl Fake {
     }
 }
 
+fn hundredths(volume: f32) -> f32 {
+    (volume * 100.0).round() / 100.0
+}
+
+/// How long the default duck, 0.80 to 0.20, takes, with slack.
+fn duck_time() -> Duration {
+    STEP * steps(60) + Duration::from_millis(200)
+}
+
 impl Volume for Fake {
     fn default_sink(&self) -> Result<String, String> {
         Ok(self.0.lock().unwrap().default.clone())
@@ -126,7 +135,7 @@ fn end(tx: &Sender<Msg>) {
 fn take(volume: &Fake, players: &FakePlayers, action: WhileDictating, mid: impl FnOnce()) {
     let (tx, thread) = spawn(volume, players);
     tx.send(Msg::Started(action)).unwrap();
-    std::thread::sleep(TAP + RAMP + Duration::from_millis(200));
+    std::thread::sleep(TAP + duck_time());
     mid();
     end(&tx);
     let after = volume.0.lock().unwrap().by_id.clone();
@@ -139,6 +148,8 @@ fn take(volume: &Fake, players: &FakePlayers, action: WhileDictating, mid: impl 
     );
 }
 
+/// The default duck, 0.80 to 0.20, and its restore: eased, and no step
+/// moves the volume more than 0.04.
 #[test]
 fn duck_ramps_down_to_the_duck_level_and_back_smoothly() {
     let volume = sinks(0.8);
@@ -154,17 +165,23 @@ fn duck_ramps_down_to_the_duck_level_and_back_smoothly() {
     assert!((ducked - DUCK_LEVEL).abs() < 1e-6, "{ducked}");
     let a = volume.sink("a");
     assert!((a.volume - 0.8).abs() < 1e-6, "restored to {}", a.volume);
-    let (down, up) = a.sets.split_at(STEPS as usize);
+    let bottom = a.sets.iter().position(|&v| v == DUCK_LEVEL).unwrap();
+    let (down, up) = a.sets.split_at(bottom + 1);
     assert!(down.windows(2).all(|w| w[1] < w[0]), "{down:?}");
     assert!(up.windows(2).all(|w| w[1] > w[0]), "{up:?}");
-    // A smoothstep: small first and last steps, the largest in the middle.
-    let steps: Vec<f32> = std::iter::once(0.8)
-        .chain(down.iter().copied())
+    let moves: Vec<f32> = std::iter::once(0.8)
+        .chain(a.sets.iter().copied())
         .collect::<Vec<_>>()
         .windows(2)
-        .map(|w| w[0] - w[1])
+        .map(|w| (w[1] - w[0]).abs())
         .collect();
-    assert!(steps[0] < steps[4] && steps[9] < steps[5], "{steps:?}");
+    assert!(moves.iter().all(|&m| m <= 0.04 + 1e-4), "{moves:?}");
+    // A smoothstep: the first and last steps of the duck are its smallest.
+    let largest = moves[..down.len()].iter().copied().fold(0.0, f32::max);
+    assert!(
+        moves[0] < largest && moves[down.len() - 1] < largest,
+        "{moves:?}"
+    );
 }
 
 /// A volume the user sets during the ramp or during the take stays, down
@@ -195,27 +212,30 @@ fn a_volume_the_user_set_is_never_overridden() {
         );
         let a = volume.sink("a");
         assert_eq!(a.volume, user);
-        assert_eq!(a.sets.len(), STEPS as usize, "no ramp back up");
+        assert!(a.sets.windows(2).all(|w| w[1] < w[0]), "no ramp back up");
     }
 }
 
 /// A volume the user sets between a step's read and its move is moved by
-/// that one step, never replaced: the ramp stops there and nothing is
-/// put back.
+/// that one step, at most 0.04, never replaced: the ramp stops there and
+/// nothing is put back. A set that lands inside one `wpctl` call can still
+/// be lost; PipeWire has no compare-and-set (ADR 0091).
 #[test]
-fn a_volume_set_between_a_steps_read_and_its_set_stays() {
-    let volume = sinks(0.8);
-    volume.with("a", |s| s.user_before = Some((3, 0.66)));
-    take(
-        &volume,
-        &FakePlayers::default(),
-        WhileDictating::Duck,
-        || {},
-    );
-    // The third step, 0.74 to 0.67, lands on the user's 0.66.
-    let a = volume.sink("a");
-    assert!((a.volume - 0.59).abs() < 1e-4, "{a:?}");
-    assert_eq!(a.sets.len(), 3, "the ramp gave up and nothing was put back");
+fn a_volume_set_between_a_steps_read_and_its_set_stays_within_a_step() {
+    // An early, small step and one from the steep middle of the curve.
+    for n in [2, 10] {
+        let volume = sinks(0.8);
+        volume.with("a", |s| s.user_before = Some((n, 0.66)));
+        take(
+            &volume,
+            &FakePlayers::default(),
+            WhileDictating::Duck,
+            || {},
+        );
+        let a = volume.sink("a");
+        assert!((a.volume - 0.66).abs() <= 0.04 + 1e-4, "{n}: {a:?}");
+        assert_eq!(a.sets.len(), n, "the ramp gave up and nothing was put back");
+    }
 }
 
 /// The default sink changing during the take leaves the new one alone:

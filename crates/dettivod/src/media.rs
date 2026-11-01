@@ -1,6 +1,6 @@
 //! What a dictation does to playing media (`[audio] while_dictating`,
 //! ADR 0091): nothing, pause the MPRIS players, duck the default sink to
-//! 20 % along a smoothstep ramp, or mute it. It acts only once a take has
+//! 20 % along a smoothstep ramp whose steps move at most 0.04, or mute it. It acts only once a take has
 //! recorded past [`TAP`], so a tap the hold key discards never touches
 //! media, and it runs on a thread of its own, so capture never waits for
 //! it. At the end it puts back only what it changed, on the sink it
@@ -20,9 +20,11 @@ use dettivo_core::config::schema::WhileDictating;
 pub const TAP: Duration = Duration::from_millis(300);
 /// The ducked level of the default sink.
 pub const DUCK_LEVEL: f32 = 0.20;
-/// How long the duck ramp takes, and its steps.
-const RAMP: Duration = Duration::from_millis(200);
-const STEPS: u32 = 10;
+/// The most one ramp step moves the volume, in hundredths: a user change
+/// Dettivo detects mid-ramp is shifted by at most this much (ADR 0091).
+const MAX_STEP: u32 = 4;
+/// The pause after each ramp step.
+const STEP: Duration = Duration::from_millis(20);
 /// Volumes are set in hundredths, the precision wpctl reports, so two
 /// volumes closer than half of one are the same and a change of one
 /// hundredth is the user's.
@@ -228,10 +230,6 @@ fn run(rx: &Receiver<Msg>, volume: &dyn Volume, players: &dyn Players) {
     }
 }
 
-fn hundredths(volume: f32) -> f32 {
-    (volume * 100.0).round() / 100.0
-}
-
 fn apply(action: WhileDictating, volume: &dyn Volume, players: &dyn Players) -> Changed {
     let done = match action {
         WhileDictating::Nothing => Ok(Changed::Nothing),
@@ -289,26 +287,41 @@ fn restore(changed: Changed, volume: &dyn Volume, players: &dyn Players) {
     }
 }
 
-/// Moves the sink's volume from `from` to `to` along a smoothstep over
-/// [`RAMP`], in hundredths; gives up when the volume is not the one the
-/// last step left, because the user changed it. Each step is a relative
-/// move: `wpctl` has no compare-and-set, and a volume the user sets
-/// between a step's read and its move is then moved by that one step
-/// instead of replaced, so the next read sees it.
+/// The volume in hundredths, the precision `wpctl` reports.
+fn cents(volume: f32) -> i32 {
+    (volume * 100.0).round() as i32
+}
+
+/// The steps of a ramp over `distance` hundredths: the smoothstep's
+/// steepest step is 1.5 times the average one, so this many keep every
+/// step, rounded to hundredths, within [`MAX_STEP`].
+fn steps(distance: i32) -> u32 {
+    (distance.unsigned_abs() * 3).div_ceil(2 * MAX_STEP).max(1)
+}
+
+/// Moves the sink's volume from `from` to `to` along a smoothstep, in
+/// hundredths, no step more than [`MAX_STEP`], [`STEP`] apart; gives up
+/// when the volume is not the one the last step left, because the user
+/// changed it. Each step is a relative move: `wpctl` has no
+/// compare-and-set, and a volume the user sets between a step's read and
+/// its move is then moved by that one step instead of replaced, so the
+/// next read sees it.
 fn ramp(volume: &dyn Volume, sink: &str, from: f32, to: f32) -> Result<(), String> {
-    let mut last = from;
-    for step in 1..=STEPS {
+    let (start, distance) = (cents(from), cents(to) - cents(from));
+    let n = steps(distance);
+    let mut last = start;
+    for step in 1..=n {
         let (now, _) = volume.get(sink)?;
-        if (now - last).abs() > SAME {
+        if cents(now) != last {
             return Err("the volume was changed during the ramp".into());
         }
-        let t = step as f32 / STEPS as f32;
-        let next = hundredths(from + (to - from) * t * t * (3.0 - 2.0 * t));
-        if (next - last).abs() > SAME {
-            volume.change(sink, next - last)?;
+        let t = step as f32 / n as f32;
+        let next = start + (distance as f32 * t * t * (3.0 - 2.0 * t)).round() as i32;
+        if next != last {
+            volume.change(sink, (next - last) as f32 / 100.0)?;
         }
         last = next;
-        std::thread::sleep(RAMP / STEPS);
+        std::thread::sleep(STEP);
     }
     Ok(())
 }
