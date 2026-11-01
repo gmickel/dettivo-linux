@@ -9,7 +9,8 @@ use std::time::{Duration, Instant};
 
 use dettivo_engine_proto::LoadParams;
 
-use super::{EngineTransition, Slot};
+use super::{EngineTransition, Slot, Supervisor};
+use crate::EngineError;
 
 /// The longest a fallback holds before the GPU is tried again.
 pub const GPU_RETRY_CAP: Duration = Duration::from_secs(30 * 60);
@@ -90,6 +91,55 @@ impl Fallback {
     #[cfg(test)]
     fn hold(&self) -> Duration {
         self.hold
+    }
+}
+
+impl Supervisor {
+    /// Ends the CPU process of an engine whose fallback hold has passed,
+    /// so this request spawns it afresh and loads it on the GPU.
+    pub(super) fn retry_gpu(&self, s: &mut Slot, binary: &str) {
+        tracing::info!(
+            engine = binary,
+            "trying the GPU again after the CPU fallback"
+        );
+        let Some(mut p) = s.process.take() else {
+            return;
+        };
+        p.terminate();
+        s.loaded = None;
+        s.params = None;
+        self.transition(
+            s,
+            EngineTransition {
+                binary: binary.to_string(),
+                state: "unloaded",
+                model: None,
+                backend: None,
+                reason: Some("trying the GPU again".into()),
+            },
+        );
+    }
+
+    /// Terminates an engine whose state is no longer known (a timed-out
+    /// or broken exchange) and forgets what it had loaded, so nothing
+    /// reuses it; the engine reports itself `unloaded` with the reason.
+    pub(super) fn discard_uncertain(&self, s: &mut Slot, binary: &str, error: &EngineError) {
+        tracing::warn!(engine = binary, error = %error, "engine state uncertain; terminating it");
+        if let Some(mut p) = s.process.take() {
+            p.terminate();
+        }
+        s.loaded = None;
+        s.params = None;
+        self.transition(
+            s,
+            EngineTransition {
+                binary: binary.to_string(),
+                state: "unloaded",
+                model: None,
+                backend: None,
+                reason: Some(format!("terminated after {error}")),
+            },
+        );
     }
 }
 

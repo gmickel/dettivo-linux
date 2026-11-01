@@ -165,6 +165,18 @@ pub fn human(report: &Value) -> String {
             show(&report["models"]["selected"]["readiness"])
         ),
     );
+    let vad = &report["models"]["vad"];
+    row(
+        "voice gate",
+        match vad["action"].as_str() {
+            Some(action) => format!(
+                "{} {}: dictation gates on level alone; run `{action}`",
+                show(&vad["model"]),
+                show(&vad["readiness"])
+            ),
+            None => format!("{} {}", show(&vad["model"]), show(&vad["readiness"])),
+        },
+    );
     row(
         "llm",
         format!(

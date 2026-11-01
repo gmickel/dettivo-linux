@@ -317,7 +317,10 @@ pub fn portal_interfaces(introspection: &str) -> Vec<String> {
         .collect()
 }
 
-/// Model selection and readiness per provider.
+/// The dictation gate's voice model, named here as a client sees no daemon crate.
+const VAD_MODEL: (&str, &str) = ("whisper", "silero-vad");
+
+/// Model readiness per provider, and the voice gate's model with its fetch command.
 pub fn models_facts(status: &Value) -> Value {
     let rows = status["models"].as_array().cloned().unwrap_or_default();
     let count = |state: &str| rows.iter().filter(|r| r["readiness"] == state).count();
@@ -346,6 +349,10 @@ pub fn models_facts(status: &Value) -> Value {
             })
         })
         .collect();
+    let vad = rows
+        .iter()
+        .find(|r| r["provider"] == VAD_MODEL.0 && r["id"] == VAD_MODEL.1)
+        .map_or_else(|| json!("missing"), |r| r["readiness"].clone());
     json!({
         "dir": status["models_dir"],
         "catalogue_version": status["catalogue_version"],
@@ -353,6 +360,12 @@ pub fn models_facts(status: &Value) -> Value {
         "quarantined": count("quarantined"),
         "ready": count("ready"),
         "providers": per_provider,
+        "vad": {
+            "model": format!("{}/{}", VAD_MODEL.0, VAD_MODEL.1),
+            "readiness": vad,
+            "action": (vad != "ready")
+                .then(|| format!("dettivo speech download --model {}", VAD_MODEL.1)),
+        },
     })
 }
 
@@ -460,6 +473,16 @@ mod tests {
         assert_eq!(facts["providers"][0]["quarantined"], 1);
         assert_eq!(facts["providers"][1]["ready"], 1);
         assert_eq!(facts["providers"][1]["selected"], "large-v3-turbo");
+        // fn-79 R3: a missing voice model is named with its download command.
+        assert_eq!(facts["vad"]["model"], "whisper/silero-vad");
+        assert_eq!(facts["vad"]["readiness"], "missing");
+        assert_eq!(
+            facts["vad"]["action"],
+            "dettivo speech download --model silero-vad"
+        );
+        let ready =
+            json!({"models": [{"provider": "whisper", "id": "silero-vad", "readiness": "ready"}]});
+        assert_eq!(models_facts(&ready)["vad"]["action"], Value::Null);
         let providers = json!({ "selected": "auto", "providers": [
             { "id": "local", "available": false, "detail": "not downloaded", "hint": "dettivo llm download", "model": "qwen3-4b" },
             { "id": "ollama", "available": true, "model": "qwen3:4b" },

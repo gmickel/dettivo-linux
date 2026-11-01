@@ -100,9 +100,9 @@
           "section": "dictation"
         },
         {
-          "default": 0.01,
-          "doc": "A take whose peak level stays under this is treated as silence.",
-          "key": "dictation.silence_peak_threshold",
+          "default": -50.0,
+          "doc": "A take whose loudest 30 ms window stays under this level (dBFS) is silence and never reaches the engine; one that passes it is checked for a voice.",
+          "key": "dictation.silence_dbfs",
           "kind": "float",
           "section": "dictation"
         },

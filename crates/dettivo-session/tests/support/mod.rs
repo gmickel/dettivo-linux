@@ -75,13 +75,15 @@ impl Recorder {
 }
 
 /// An engine that answers with a fixed text, can be told to fail or crash,
-/// and honours cancel while it "works".
+/// and honours cancel while it "works"; it keeps how many samples the last
+/// request carried.
 pub struct FakeEngine {
     pub text: String,
     pub fail: Option<EngineError>,
     pub slow: Duration,
     pub cancelled: AtomicBool,
     pub calls: AtomicUsize,
+    pub last_samples: AtomicUsize,
 }
 
 impl FakeEngine {
@@ -92,6 +94,7 @@ impl FakeEngine {
             slow: Duration::ZERO,
             cancelled: AtomicBool::new(false),
             calls: AtomicUsize::new(0),
+            last_samples: AtomicUsize::new(0),
         })
     }
 }
@@ -119,6 +122,8 @@ impl SttEngine for FakeEngine {
         _: Duration,
     ) -> Result<dettivo_engine_proto::RecognizeResult, EngineError> {
         self.calls.fetch_add(1, Ordering::Relaxed);
+        self.last_samples
+            .store(request.pcm.len(), Ordering::Relaxed);
         let deadline = std::time::Instant::now() + self.slow;
         while std::time::Instant::now() < deadline {
             if self.cancelled.load(Ordering::Relaxed) {
@@ -167,8 +172,11 @@ impl Feed {
             let _ = tx.send(e);
         }
     }
+    /// `ms` of speech, then a moment for the worker to take it before a
+    /// stop, as it takes a live capture's chunks while they arrive: what
+    /// it reads only after the release never counts as speech.
     pub fn speak(&self, ms: u64) {
-        let chunk = vec![3000i16; 320];
+        let chunk = tone(320);
         for _ in 0..(ms / 20) {
             self.send(Event::Pcm(chunk.clone()));
         }
@@ -176,6 +184,7 @@ impl Feed {
             rms: 0.1,
             peak: 0.2,
         });
+        std::thread::sleep(Duration::from_millis(30));
     }
 }
 
@@ -216,7 +225,7 @@ pub fn policy(dir: &std::path::Path, keep: bool) -> Policy {
         spoken_punctuation: true,
         protect_tokens: true,
         max_duration: Duration::from_secs(30),
-        silence_peak_threshold: 0.01,
+        silence_dbfs: -50.0,
         keep_audio: keep,
         level_interval_ms: 50,
         config_hash: "h".into(),
@@ -225,6 +234,24 @@ pub fn policy(dir: &std::path::Path, keep: bool) -> Policy {
         ),
         llm: dettivo_core::config::polish_schema::Llm::default(),
     }
+}
+
+/// `n` samples of a 1 kHz square wave at 0.09 of full scale: speech to
+/// the level stage of the gate.
+pub fn tone(n: usize) -> Vec<i16> {
+    (0..n)
+        .map(|i| if i % 16 < 8 { 3_000 } else { -3_000 })
+        .collect()
+}
+
+/// The reason the `cancelled` state carried, when one was published.
+pub fn silence_reason(rec: &Recorder) -> Option<String> {
+    rec.states
+        .lock()
+        .unwrap()
+        .iter()
+        .find(|c| c.state == State::Cancelled)
+        .and_then(|c| c.reason.clone())
 }
 
 pub fn rig(

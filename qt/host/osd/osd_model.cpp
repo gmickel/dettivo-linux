@@ -249,7 +249,12 @@ void OsdModel::applyDictationState(const QJsonObject &payload)
     } else if (state == QStringLiteral("failed")) {
         applyFailure(str(payload, "reason"));
     } else if (state == QStringLiteral("cancelled")) {
-        hide();
+        // The speech gate ends a silent take `cancelled`, reason `silence: <stage>`.
+        if (str(payload, "reason").startsWith(QStringLiteral("silence")))
+            show(QStringLiteral("error"),
+                 Texts{tr("Nothing heard"), {}, {}, {}, {}, {}, tr("the take was silent"), tr("try again")});
+        else
+            hide();
     }
 }
 

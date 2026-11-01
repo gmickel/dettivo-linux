@@ -23,7 +23,8 @@ pub const ALLOWED: &[(&str, &[&str])] = &[
     // The session runs the mode step itself (ADR 0023): the raw layer,
     // the deterministic Polish pass and the Enhanced rewrite all live in
     // dettivo-language, and the `[polish]`/`[llm]` sections it freezes
-    // come from dettivo-core's schema.
+    // come from dettivo-core's schema. A take's text drops the known
+    // hallucinations through the meeting pipeline's filter (fn-79).
     (
         "dettivo-session",
         &[
@@ -33,6 +34,7 @@ pub const ALLOWED: &[(&str, &[&str])] = &[
             "dettivo-language",
             "dettivo-speech",
             "dettivo-engine-proto",
+            "dettivo-transcribe",
         ],
     ),
     // The text layers read `[polish]` and `[llm]` straight from the

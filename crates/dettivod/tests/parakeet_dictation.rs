@@ -3,7 +3,9 @@
 //! provider row reports it runnable with word timestamps and the
 //! alignment spike's meeting verdict, `system.capabilities` carries the
 //! same flag, and a dictation through the mock microphone returns the
-//! fixture's words. Skipped by name when the model is not on disk.
+//! fixture's words. A take that ends where its last word ends keeps that
+//! word and its full stop (fn-79 R4). Skipped by name when the model is
+//! not on disk.
 
 mod common;
 
@@ -151,4 +153,53 @@ fn a_parakeet_dictation_returns_the_fixture_words_with_the_provider_selected_ove
         !log.to_lowercase().contains("americans"),
         "transcript leaked into the log"
     );
+}
+
+/// fn-79 R4: the fixture cut at the end of its last word ("... for your
+/// country", which Parakeet times to 10.48 s) is a take released on that
+/// word; the dictation keeps the word and its full stop.
+#[test]
+fn a_take_released_on_its_last_word_keeps_it_and_its_full_stop() {
+    let Some((model, wav)) = local_parakeet() else {
+        eprintln!("skip: parakeet-v2 or jfk.wav missing (run scripts/models/fetch-test-model.sh)");
+        return;
+    };
+    let tree = tree_with_parakeet(&model);
+    let cut = tree.root().join("cut.wav");
+    let mut reader = hound::WavReader::open(&wav).unwrap();
+    let spec = reader.spec();
+    assert_eq!((spec.sample_rate, spec.channels), (16_000, 1));
+    let samples: Vec<i16> = reader.samples::<i16>().map(Result::unwrap).collect();
+    let mut writer = hound::WavWriter::create(&cut, spec).unwrap();
+    for s in &samples[8_200 * 16..10_480 * 16] {
+        writer.write_sample(*s).unwrap();
+    }
+    writer.finalize().unwrap();
+    let daemon = Daemon::spawn(
+        tree,
+        &[
+            ("DETTIVO_QA_MODE", "1"),
+            ("DETTIVO_MOCK_MIC", cut.to_str().unwrap()),
+        ],
+    );
+    daemon.result("speech.selection.set", json!({"provider": "parakeet"}));
+    daemon.result_within(
+        "dictation.start",
+        json!({"language": "en", "mode": "raw"}),
+        Duration::from_secs(120),
+    );
+    // The fixture running out (2.28 s) is the release, and ends the take.
+    let mut items = json!([]);
+    let finished = common::wait_for(Duration::from_secs(120), || {
+        items = daemon.result(
+            "transcripts.list",
+            json!({"kinds": ["dictation"], "limit": 1, "cursor": null}),
+        )["items"]
+            .clone();
+        items.as_array().is_some_and(|i| !i.is_empty())
+    });
+    assert!(finished, "the take never finished");
+    let transcript = daemon.result("transcripts.get", json!({"ref": items[0]["ref"]}));
+    let text = transcript["text_polish"].as_str().unwrap();
+    assert!(text.ends_with("your country."), "{text}");
 }

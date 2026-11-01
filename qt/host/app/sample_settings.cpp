@@ -43,7 +43,7 @@ QJsonArray settingsEntries()
         entry("dictation.language", QStringLiteral("en")),
         entry("dictation.vocabulary", list({"Dettivo", "Omarchy", "Hyprland"})),
         entry("dictation.max_duration_seconds", 300, "default"),
-        entry("dictation.silence_peak_threshold", 0.01, "default"),
+        entry("dictation.silence_dbfs", -50.0, "default"),
         entry("dictation.mode", QStringLiteral("enhanced")),
         entry("dictation.spoken_punctuation", true, "default"),
         entry("dictation.replacements", QJsonObject{{QStringLiteral("teh"), QStringLiteral("the")}}),
