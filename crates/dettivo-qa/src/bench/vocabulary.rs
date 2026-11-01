@@ -109,7 +109,9 @@ pub fn score(set: &Set, transcripts: &[(String, String)]) -> VocabularyScore {
     };
     let terms: Vec<Vec<String>> = set.vocabulary.iter().map(|e| words(&e.term)).collect();
     let (mut hits, mut targets, mut inserted) = (0, 0, 0);
-    let (mut guard_ref, mut guard_hyp) = (Vec::new(), Vec::new());
+    // Each guard clip is aligned on its own, so an error at the end of one
+    // clip cannot cancel an error at the start of the next.
+    let (mut guard_edits, mut guard_words) = (0.0, 0usize);
     for clip in &set.clips {
         let hyp = heard(&clip.id);
         match clip.kind {
@@ -124,8 +126,8 @@ pub fn score(set: &Set, transcripts: &[(String, String)]) -> VocabularyScore {
                     inserted += occurrences(&hyp, term).saturating_sub(occurrences(&said, term));
                 }
                 if clip.kind == Kind::Guard {
-                    guard_ref.extend(said);
-                    guard_hyp.extend(hyp);
+                    guard_edits += wer(&said, &hyp) * said.len().max(1) as f64;
+                    guard_words += said.len();
                 }
             }
         }
@@ -133,7 +135,7 @@ pub fn score(set: &Set, transcripts: &[(String, String)]) -> VocabularyScore {
     VocabularyScore {
         term_recall: (hits, targets),
         false_insertions: inserted,
-        guard_wer: (wer(&guard_ref, &guard_hyp) * 10_000.0).round() as f32 / 10_000.0,
+        guard_wer: (guard_edits / guard_words.max(1) as f64 * 10_000.0).round() as f32 / 10_000.0,
     }
 }
 
@@ -175,6 +177,7 @@ mod tests {
                 clip("t3", Kind::Target, Some("Sapien XT"), "Sapien XT signed."),
                 clip("d1", Kind::Distractor, None, "She shaped the clay."),
                 clip("g1", Kind::Guard, None, "Rain is expected."),
+                clip("g2", Kind::Guard, None, "Bring an umbrella."),
             ],
         }
     }
@@ -196,6 +199,7 @@ mod tests {
                 ("t3", "sapien xt signed"),
                 ("d1", "She shaped the clay."),
                 ("g1", "Rain is expected."),
+                ("g2", "Bring an umbrella."),
             ]),
         );
         assert_eq!(score.term_recall, (2, 3));
@@ -223,7 +227,22 @@ mod tests {
         );
         assert_eq!(score.false_insertions, 3);
         assert_eq!(score.term_recall, (0, 3), "a missing transcript is empty");
-        assert_eq!(score.guard_wer, 1.0, "three words inserted over three said");
+        assert_eq!(
+            score.guard_wer, 1.0,
+            "three inserted and three missing over six said"
+        );
+    }
+
+    #[test]
+    fn guard_errors_in_separate_clips_never_cancel() {
+        let score = score(
+            &set(),
+            &heard(&[("g1", "Rain is"), ("g2", "expected. Bring an umbrella.")]),
+        );
+        assert_eq!(
+            score.guard_wer, 0.3333,
+            "one deletion and one insertion over six words"
+        );
     }
 
     #[test]
