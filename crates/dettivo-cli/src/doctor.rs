@@ -363,7 +363,7 @@ pub fn models_facts(status: &Value) -> Value {
         "vad": {
             "model": format!("{}/{}", VAD_MODEL.0, VAD_MODEL.1),
             "readiness": vad,
-            "action": (vad != "ready")
+            "action": matches!(vad.as_str(), Some("missing" | "partial" | "quarantined"))
                 .then(|| format!("dettivo speech download --model {}", VAD_MODEL.1)),
         },
     })
