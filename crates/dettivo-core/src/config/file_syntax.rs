@@ -94,7 +94,15 @@ pub fn keep_layout(old: &toml_edit::Array, new: &mut toml_edit::Array) {
         |r: Option<&toml_edit::RawString>| r.and_then(|r| r.as_str()).unwrap_or("").to_string();
     let prefixes: Vec<String> = old.iter().map(|v| raw(v.decor().prefix())).collect();
     let trailing = raw(Some(old.trailing()));
-    if !prefixes.iter().chain([&trailing]).any(|p| p.contains('\n')) {
+    // An entry's suffix holds its comment when no comma follows it.
+    let suffixes = old.iter().map(|v| raw(v.decor().suffix()));
+    if !prefixes
+        .iter()
+        .cloned()
+        .chain(suffixes)
+        .chain([trailing.clone()])
+        .any(|p| p.contains('\n'))
+    {
         return;
     }
     // A prefix holds the comment ending the previous line (the head) and
@@ -234,5 +242,9 @@ mod tests {
         let out = crate::config::edit::set(&out, "dictation.vocabulary", &value).unwrap();
         let removed = file("  # names\n  \"Dettivo\", # plain string\n  \"SapienXT\",\n");
         assert_eq!(out, removed);
+        // The last entry's comment with no comma after it.
+        let uncomma = "[dictation]\nvocabulary = [\"Dettivo\" # keep this note\n]\n";
+        let out = crate::config::edit::set(uncomma, "dictation.vocabulary", &json!(["Dettivo"]));
+        assert_eq!(out.unwrap(), uncomma);
     }
 }

@@ -134,6 +134,13 @@ private slots:
         link.notify("config.changed", changed(vocabulary));
         QVERIFY2(model.error(vocabulary).isEmpty(), qPrintable(model.error(vocabulary)));
         QVERIFY2(model.notice().contains("1 value(s) refreshed"), qPrintable(model.notice()));
+
+        // An earlier event's refresh landing late never hides a newer parse error.
+        link.defer = true;
+        link.notify("config.changed", changed(vocabulary));
+        link.notify("config.changed", {{"ok", false}, {"keys", QJsonArray{}}});
+        link.answerPending();
+        QVERIFY2(model.notice().contains("does not parse"), qPrintable(model.notice()));
     }
 };
 

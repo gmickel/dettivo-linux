@@ -107,6 +107,8 @@ private:
     QString m_configPath;
     QString m_notice;
     int m_revision = 0;
+    // Bumps per config.changed; an older event's refresh never sets the notice.
+    int m_fileEvents = 0;
 };
 
 }  // namespace dettivo

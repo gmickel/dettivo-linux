@@ -337,6 +337,7 @@ void SettingsModel::handleNotification(const QString &topic, const QJsonObject &
 {
     if (topic != QStringLiteral("config.changed"))
         return;
+    const int event = ++m_fileEvents;
     QStringList keys;
     for (const QJsonValue &k : payload.value(QStringLiteral("keys")).toArray()) {
         keys.append(k.toString());
@@ -361,7 +362,7 @@ void SettingsModel::handleNotification(const QString &topic, const QJsonObject &
     QHash<QString, QPair<QVariant, QString>> held;
     for (const QString &key : keys)
         held.insert(key, {m_config->value(key), m_config->source(key)});
-    m_link->call(QStringLiteral("config.get"), QJsonObject(), [this, keys, held](const QJsonObject &snapshot, const QJsonObject &error) {
+    m_link->call(QStringLiteral("config.get"), QJsonObject(), [this, event, keys, held](const QJsonObject &snapshot, const QJsonObject &error) {
         if (!error.isEmpty())
             return;
         m_config->applyEntries(snapshot.value(QStringLiteral("entries")).toArray());
@@ -370,7 +371,8 @@ void SettingsModel::handleNotification(const QString &topic, const QJsonObject &
             if (held.value(key) != qMakePair(m_config->value(key), m_config->source(key)))
                 moved.append(key);
         }
-        setNotice(moved.isEmpty() ? QString() : tr("The file changed on disk; %n value(s) refreshed.", nullptr, int(moved.size())));
+        if (event == m_fileEvents)
+            setNotice(moved.isEmpty() ? QString() : tr("The file changed on disk; %n value(s) refreshed.", nullptr, int(moved.size())));
         emit fileChanged(moved);
     });
 }
