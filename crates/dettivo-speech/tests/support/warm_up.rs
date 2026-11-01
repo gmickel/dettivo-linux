@@ -1,6 +1,7 @@
 use super::*;
 use std::sync::{Arc, Mutex};
 
+use dettivo_engine_proto::Backend;
 use dettivo_speech::supervisor::{EngineTransition, WHISPER_BINARY};
 
 /// A supervisor over the scripted engine under the Whisper name, with
@@ -62,11 +63,71 @@ fn a_recent_take_skips_the_warm_up_after_a_reload() {
         .unwrap();
     assert_eq!(*states.lock().unwrap(), ["loaded"]);
     assert!(!warm(&supervisor));
-    // A take on the previous model that finishes after the reload never
-    // marks the new model warm.
-    supervisor.note_recognized(WHISPER_BINARY, "/models/a.bin");
+    supervisor.shutdown();
+}
+
+/// R1: a reload of the same model path on another backend is a new
+/// instance that never inferred: the earlier take does not make it warm.
+#[test]
+fn a_take_never_warms_a_reload_of_its_model_on_another_backend() {
+    let dir = fake_engine_dir(WHISPER_BINARY);
+    let (supervisor, states) = recorded(dir.path());
+    take(&whisper(&supervisor, "/models/a.bin"));
+    assert!(warm(&supervisor));
+    states.lock().unwrap().clear();
+    whisper(&supervisor, "/models/a.bin")
+        .with_backend(BackendPreference::Cpu)
+        .preload(PreloadSource::ModelSelection)
+        .unwrap();
     assert_eq!(*states.lock().unwrap(), ["loaded"]);
     assert!(!warm(&supervisor));
+    supervisor.shutdown();
+}
+
+/// Every transition with the backend it names.
+type Seen = Arc<Mutex<Vec<(&'static str, Option<Backend>)>>>;
+
+/// A supervisor that may load on the GPU (`gpu-has-room`), where the
+/// scripted engine's every inference then reports the CPU.
+fn on_gpu(dir: &Path) -> (Arc<Supervisor>, Seen) {
+    std::fs::write(dir.join("gpu-has-room"), "").unwrap();
+    let supervisor = Supervisor::new(Settings {
+        force_cpu: false,
+        ..settings(dir, Duration::from_secs(60))
+    });
+    let seen: Seen = Arc::default();
+    let sink = seen.clone();
+    supervisor.set_hook(Arc::new(move |t: EngineTransition| {
+        sink.lock().unwrap().push((t.state, t.backend));
+    }));
+    (supervisor, seen)
+}
+
+/// ADR 0080 and 0084: the backend an inference ran on is recorded in the
+/// same step that marks the engine warm, so `warm` is never published on
+/// the backend the engine left, by the warm-up or by a first take.
+#[test]
+fn warm_is_published_on_the_backend_the_inference_ran_on() {
+    let expected = [
+        ("spawned", None),
+        ("loaded", Some(Backend::Vulkan)),
+        ("loaded", Some(Backend::Cpu)),
+        ("warm", Some(Backend::Cpu)),
+    ];
+    let dir = fake_engine_dir(WHISPER_BINARY);
+    let (supervisor, seen) = on_gpu(dir.path());
+    whisper(&supervisor, "/models/fake.bin")
+        .preload(PreloadSource::Startup)
+        .unwrap();
+    assert_eq!(*seen.lock().unwrap(), expected, "the warm-up");
+    supervisor.shutdown();
+
+    let dir = fake_engine_dir(WHISPER_BINARY);
+    let (supervisor, seen) = on_gpu(dir.path());
+    take(&whisper(&supervisor, "/models/fake.bin"));
+    assert_eq!(*seen.lock().unwrap(), expected, "the first take");
+    let status = &supervisor.status(&[WHISPER_BINARY])[0];
+    assert_eq!((status.backend, status.warm), (Some(Backend::Cpu), true));
     supervisor.shutdown();
 }
 
