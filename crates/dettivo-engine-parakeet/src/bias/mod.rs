@@ -129,12 +129,8 @@ impl Rescorer {
         chosen.sort_by_key(|(first, _, _)| std::cmp::Reverse(*first));
         for (first, last, text) in &chosen {
             let span = &raw.words[*first..=*last];
-            let heard_last = &span[span.len() - 1].w;
-            let mark = &heard_last[heard_last
-                .trim_end_matches(|c: char| c.is_ascii_punctuation())
-                .len()..];
             let word = RawWord {
-                w: format!("{text}{mark}"),
+                w: written(text, &span[span.len() - 1].w),
                 start: span[0].start,
                 end: span[span.len() - 1].end,
                 conf: span.iter().map(|w| w.conf).fold(f64::INFINITY, f64::min),
@@ -151,5 +147,26 @@ impl Rescorer {
                 .join(" ");
         }
         Ok(outcome)
+    }
+}
+
+/// The term as it replaces heard words: with the trailing marks of the
+/// last heard word, unless the term ends in a mark of its own.
+fn written(term: &str, heard_last: &str) -> String {
+    if term.ends_with(|c: char| c.is_ascii_punctuation()) {
+        return term.to_string();
+    }
+    let bare = heard_last.trim_end_matches(|c: char| c.is_ascii_punctuation());
+    format!("{term}{}", &heard_last[bare.len()..])
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn the_term_takes_the_heard_marks_unless_it_has_its_own() {
+        assert_eq!(super::written("Hyprland", "Hyperland."), "Hyprland.");
+        assert_eq!(super::written("Hyprland", "Hyperland"), "Hyprland");
+        assert_eq!(super::written("Hyperland.", "Hyperland."), "Hyperland.");
+        assert_eq!(super::written("Yahoo!", "yahoo."), "Yahoo!");
     }
 }

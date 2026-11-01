@@ -10,13 +10,91 @@
     "fn-83-vocabulary-entries-with-spoken-aliases"
   ],
   "id": "fn-84-vocabulary-on-parakeet",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-84-vocabulary-on-parakeet.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "c0b0ad421acccbdd3d2b94269a5770aceb68a9bb62b5e0c7f34225d5560313ac",
+      "backend": "codex",
+      "base_sha": "70d4c99f969a3bd53bb2a0401f3ee13869980db1",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-67b6530558e8c9626699384e841e9377",
+            "classification": "introduced",
+            "findingId": "finding-67b6530558e8c9626699384e841e9377",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4915ddb0df3d9ee3c92e7437e7b2d104",
+            "classification": "introduced",
+            "findingId": "finding-4915ddb0df3d9ee3c92e7437e7b2d104",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0a301861bc05cd07a0f7300df69b5dea",
+            "classification": "introduced",
+            "findingId": "finding-0a301861bc05cd07a0f7300df69b5dea",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-eda2326bceda69209946a64ee76c3d76",
+            "classification": "introduced",
+            "findingId": "finding-eda2326bceda69209946a64ee76c3d76",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "01abb275be38b2f1dbb7fb0a8fe4cde9734a7281",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 3311,
+      "output_sha256": "e6278dd42d39eaba82fbc66c1af89a8408b7f0607c0b560b3b6f634b90402159",
+      "reservation_id": "5274fbea9a1d437b9e1ab67c79ce2d74",
+      "round_consumed": true,
+      "scope": "impl:fn-84-vocabulary-on-parakeet.1",
+      "superseded_by": null,
+      "task": "fn-84-vocabulary-on-parakeet.1",
+      "timestamp": "2026-11-01T20:18:02.669889Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-84-vocabulary-on-parakeet.1": 0
+  },
   "spec_path": ".flow/specs/fn-84-vocabulary-on-parakeet.md",
   "status": "open",
   "title": "Vocabulary on Parakeet",
@@ -31,5 +109,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T11:53:02.292078Z"
+  "updated_at": "2026-11-01T20:18:02.675380Z"
 }

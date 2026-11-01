@@ -234,6 +234,9 @@ impl Engine {
         }
         let audio: Vec<f32> = pcm.iter().map(|s| f32::from(*s) / 32_768.0).collect();
         let ranges = align::chunks(audio.len());
+        // Rescoring's time counts from here: the tokenizer table on the
+        // first request and the terms spelt in pieces on every one.
+        let prepared = Instant::now();
         let rescorer = params.vocabulary.as_ref().and_then(|bias| {
             let pieces = self.pieces.get_or_init(|| {
                 Pieces::new(
@@ -246,7 +249,10 @@ impl Engine {
             });
             Rescorer::new(bias, pieces)
         });
-        let mut rescored = (bias::Outcome::default(), 0.0f64);
+        let mut rescored = (
+            bias::Outcome::default(),
+            prepared.elapsed().as_secs_f64() * 1000.0,
+        );
         let mut chunks = Vec::with_capacity(ranges.len());
         let mut single_text = None;
         for (i, (start, end)) in ranges.iter().enumerate() {

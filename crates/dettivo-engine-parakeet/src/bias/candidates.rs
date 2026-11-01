@@ -22,6 +22,7 @@ pub const MIN_PHONETIC_SOUNDS: usize = 5;
 pub struct Term {
     /// The spelling wanted.
     pub text: String,
+    lower: String,
     norm: String,
     aliases: Vec<String>,
     key: String,
@@ -44,6 +45,7 @@ impl Term {
         let (key, sounds) = key(&norm);
         Some(Self {
             text: text.trim().to_string(),
+            lower: text.trim().to_lowercase(),
             norm,
             aliases,
             key,
@@ -51,19 +53,22 @@ impl Term {
         })
     }
 
+    /// True when the words already are the term: the term in any case
+    /// (`as_written`, lowercased), or the term or a spelling of it with
+    /// `s` or `es` (`heard`, normalised), its plural or possessive.
+    fn written(&self, as_written: &str, heard: &str) -> bool {
+        as_written == self.lower
+            || std::iter::once(&self.norm).chain(&self.aliases).any(|s| {
+                heard
+                    .strip_prefix(s.as_str())
+                    .is_some_and(|rest| rest == "s" || rest == "es")
+            })
+    }
+
     /// How closely `heard` (normalised) matches: lower is closer, `None`
-    /// when it does not qualify or must not be rewritten.
+    /// when it does not qualify.
     fn rank(&self, heard: &str) -> Option<u32> {
         let spellings = || std::iter::once(&self.norm).chain(&self.aliases);
-        // An inflection of the term or of a spelling of it stays as heard.
-        let inflected = |s: &String| {
-            heard
-                .strip_prefix(s.as_str())
-                .is_some_and(|rest| rest == "s" || rest == "es")
-        };
-        if spellings().any(inflected) {
-            return None;
-        }
         if self.aliases.iter().any(|a| a == heard) {
             return Some(0);
         }
@@ -72,6 +77,10 @@ impl Term {
         for s in spellings() {
             let n = s.chars().count();
             let longer = n.max(len);
+            // Lengths alone rule out both rules below, before any table.
+            if 4 * n.min(len) < 3 * longer && n.abs_diff(len) > (n / 4).max(1) {
+                continue;
+            }
             let edits = edit_distance(heard, s);
             let similar = 4 * common_letters(heard, s) >= 3 * longer || edits <= (n / 4).max(1);
             if similar {
@@ -79,12 +88,11 @@ impl Term {
                 best = Some(best.map_or(rank, |b| b.min(rank)));
             }
         }
-        if best.is_none() && self.sounds >= MIN_PHONETIC_SOUNDS {
+        let n = self.norm.chars().count();
+        if best.is_none() && self.sounds >= MIN_PHONETIC_SOUNDS && 2 * len >= n && len <= 2 * n {
             let (heard_key, _) = key(heard);
-            let n = self.norm.chars().count();
             if !heard_key.is_empty()
-                && 2 * len >= n
-                && len <= 2 * n
+                && heard_key.len().abs_diff(self.key.len()) <= 1
                 && edit_distance(&heard_key, &self.key) <= 1
             {
                 best = Some(200);
@@ -137,42 +145,58 @@ pub fn find(words: &[&str], terms: &[Term]) -> Vec<Candidate> {
         .collect();
     let norms: Vec<String> = words.iter().map(|w| normalise(w)).collect();
     let joined = |from: usize, to: usize| norms[from..to].concat();
-    let mut found: Vec<(u32, Candidate)> = Vec::new();
-    for first in 0..words.len() {
-        for last in first..words.len().min(first + MAX_SPAN_WORDS) {
-            if !usable[last] {
-                break;
+    let spans = || {
+        (0..words.len()).flat_map(|first| {
+            (first..words.len().min(first + MAX_SPAN_WORDS)).map(move |last| (first, last))
+        })
+    };
+    // Words that already are a term stay as heard, and no shorter or
+    // overlapping run rewrites them into that term.
+    let mut written: Vec<(usize, usize, usize)> = Vec::new();
+    for (first, last) in spans() {
+        let heard = joined(first, last + 1);
+        let as_written = words[first..=last]
+            .join(" ")
+            .trim_end_matches(|c: char| c.is_ascii_punctuation())
+            .to_lowercase();
+        for (index, term) in terms.iter().enumerate() {
+            if term.written(&as_written, &heard) {
+                written.push((first, last, index));
             }
-            let heard = joined(first, last + 1);
-            let as_written = words[first..=last]
-                .join(" ")
-                .trim_end_matches(|c: char| c.is_ascii_punctuation())
-                .to_lowercase();
-            for (index, term) in terms.iter().enumerate() {
-                // The term in another case stays as heard.
-                if as_written == term.text.to_lowercase() {
-                    continue;
-                }
-                // Each word of a longer span must bring it closer to the
-                // term, so a neighbouring word is never swallowed.
-                let edges_count = first == last || {
-                    let whole = term.closest(&heard);
-                    whole < term.closest(&joined(first + 1, last + 1))
-                        && whole < term.closest(&joined(first, last))
-                };
-                if !edges_count {
-                    continue;
-                }
-                if let Some(rank) = term.rank(&heard) {
-                    found.push((
-                        rank,
-                        Candidate {
-                            first,
-                            last,
-                            term: index,
-                        },
-                    ));
-                }
+        }
+    }
+    let mut found: Vec<(u32, Candidate)> = Vec::new();
+    for (first, last) in spans() {
+        if !usable[first..=last].iter().all(|u| *u) {
+            continue;
+        }
+        let heard = joined(first, last + 1);
+        for (index, term) in terms.iter().enumerate() {
+            if written
+                .iter()
+                .any(|&(f, l, t)| t == index && first <= l && last >= f)
+            {
+                continue;
+            }
+            let Some(rank) = term.rank(&heard) else {
+                continue;
+            };
+            // Each word of a longer span must bring it closer to the
+            // term, so a neighbouring word is never swallowed.
+            let edges_count = first == last || {
+                let whole = term.closest(&heard);
+                whole < term.closest(&joined(first + 1, last + 1))
+                    && whole < term.closest(&joined(first, last))
+            };
+            if edges_count {
+                found.push((
+                    rank,
+                    Candidate {
+                        first,
+                        last,
+                        term: index,
+                    },
+                ));
             }
         }
     }
@@ -256,6 +280,20 @@ mod tests {
         }
         assert!(Term::new("Jev", &[]).is_none());
         assert!(Term::new("Jev", &["jeff".into()]).is_some());
+    }
+
+    /// R5: words that already are a multi-word term are never rewritten
+    /// in part, so no word of the term is written twice.
+    #[test]
+    fn a_term_already_heard_is_never_rewritten_in_part() {
+        for (heard, written) in [
+            ("moved because of the holiday", "because of the"),
+            ("O Markey ships with", "o Markey"),
+            ("Rain is expected over", "Rain Is"),
+            ("two Sapien XTs here", "Sapien XT"),
+        ] {
+            assert_eq!(spans(heard, &[term(written, &[])]), vec![], "{heard}");
+        }
     }
 
     #[test]
