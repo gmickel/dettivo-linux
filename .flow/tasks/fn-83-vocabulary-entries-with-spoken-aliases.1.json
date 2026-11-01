@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-83-vocabulary-entries-with-spoken-aliases",
   "spec_path": ".flow/tasks/fn-83-vocabulary-entries-with-spoken-aliases.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Vocabulary entries with spoken aliases and a term-recall benchmark",
   "updated_at": "2026-11-01T15:58:36.325344Z"
 }

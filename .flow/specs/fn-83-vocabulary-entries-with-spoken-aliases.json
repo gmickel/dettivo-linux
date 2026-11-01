@@ -228,7 +228,7 @@
     "impl:fn-83-vocabulary-entries-with-spoken-aliases.1": 0
   },
   "spec_path": ".flow/specs/fn-83-vocabulary-entries-with-spoken-aliases.md",
-  "status": "open",
+  "status": "done",
   "title": "Vocabulary entries with spoken aliases and a term-recall benchmark",
   "tracker": {
     "baseHashFlow": null,
@@ -241,5 +241,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T17:29:54.372233Z"
+  "updated_at": "2026-11-01T17:36:00.635812Z"
 }
