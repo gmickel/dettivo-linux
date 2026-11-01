@@ -6,7 +6,7 @@ This run sets Parakeet's `vocabulary_boost` levels. At 4.0 nats per piece, `norm
 
 The fixture set grew from 24 clips to 47, so false insertions are measured on more than five sentences. The 15 target clips are unchanged byte for byte, so recall compares directly with the fn-83 baseline ([vocabulary-2026-11-01-thor](vocabulary-2026-11-01-thor.md)) and the first rescoring run ([vocabulary-2026-11-01-thor-rescoring](vocabulary-2026-11-01-thor-rescoring.md)).
 
-- 24 distractor clips, at least four per term, each a near-miss name or a sound-alike common word:
+- 25 distractor clips, at least four per term, each a near-miss name or a sound-alike common word:
   - Dettivo: detective (twice), "the TV, oh", "debt every", TiVo.
   - Clef: clay, cleft, clap, Clay as a name, chef.
   - SapienXT: sapient, "Sapiens next", "sapiens extended", "Damien next".
@@ -14,7 +14,7 @@ The fixture set grew from 24 clips to 47, so false insertions are measured on mo
   - Hyprland: highland, Highlands, "hyper landing", hyperlink, heartland.
 - 7 guard sentences, three of them 16 to 19 words long.
 
-`scripts/qa/make-vocabulary-fixture.py` rendered the 23 new clips with the same two Piper voices. The script now renders only clips whose `.wav` is missing, because a second synthesis of the same text differs byte for byte. Parakeet with the vocabulary off heard the new clips as written, apart from case and "March 8", except "Play and I" for "Clay and I", "TVO" for "TV, oh", "Tyvo" for TiVo and "Marquis" for Marky. In 17 of the 24 distractors, at least one span became a rescoring candidate, so the boost was tested against them.
+`scripts/qa/make-vocabulary-fixture.py` rendered the 23 new clips with the same two Piper voices. The script now renders only clips whose `.wav` is missing, because a second synthesis of the same text differs byte for byte. Parakeet with the vocabulary off heard the new clips as written, apart from case and "March 8", except "Play and I" for "Clay and I", "TVO" for "TV, oh", "Tyvo" for TiVo and "Marquis" for Marky. In 17 of the 25 distractors, at least one span became a rescoring candidate, so the boost was tested against them.
 
 ## Results
 

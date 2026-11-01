@@ -24,7 +24,7 @@ At the levels the spec proposed, `normal` (2.5) missed the two-thirds target (8 
 ## Decision
 
 - Stage 2 is not built. A shadow hypothesis is scored by the same prediction and joint networks over the same frames, with the same boost per piece or less. Stage 1 already sums every TDT alignment of the term over a window padded 4 frames on each side, which bounds what any single decode-time path through those frames can score. A hypothesis that starts at the same word boundary cannot beat that sum, and the gaps above are the model's own preference for a known spelling.
-- The boost carries the rest. Gordon decided on 2026-11-01 that `normal` must meet the target, with the boost raised to 4.0 nats per piece if a larger set of distractors showed it safe. The benchmark was rerun with 24 distractors and 7 guard sentences ([vocabulary-2026-11-01-thor-boosts](../reports/benchmarks/vocabulary-2026-11-01-thor-boosts.md)):
+- The boost carries the rest. Gordon decided on 2026-11-01 that `normal` must meet the target, with the boost raised to 4.0 nats per piece if a larger set of distractors showed it safe. The benchmark was rerun with 25 distractors and 7 guard sentences ([vocabulary-2026-11-01-thor-boosts](../reports/benchmarks/vocabulary-2026-11-01-thor-boosts.md)):
 
 | Boost (nats per piece) | Term recall | Missed terms recovered | False insertions | Guard WER |
 |---|---|---|---|---|
