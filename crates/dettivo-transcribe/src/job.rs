@@ -194,6 +194,7 @@ fn recognize_with_retry(
         language: request.language.clone(),
         prompt: request.prompt.clone(),
         timestamps: true,
+        vocabulary: None,
     };
     match engine.recognize(make(), CHUNK_TIMEOUT) {
         Err(EngineError::Crashed(_)) => {

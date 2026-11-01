@@ -37,6 +37,7 @@ fn main() {
     println!("cargo:rerun-if-changed=wrapper.h");
     println!("cargo:rerun-if-changed=shim.h");
     println!("cargo:rerun-if-changed=shim.cpp");
+    println!("cargo:rerun-if-changed=bias.cpp");
     println!("cargo:rerun-if-env-changed=PARAKEET_CPP_SOURCE_DIR");
     println!("cargo:rerun-if-env-changed=PARAKEET_CPP_ARCHIVE_DIR");
     let out = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR"));
@@ -188,6 +189,7 @@ fn compile_shim(source: &Path) -> PathBuf {
         .cpp(true)
         .std("c++17")
         .file("shim.cpp")
+        .file("bias.cpp")
         .include(".")
         .include(source.join("include"))
         .include(source.join("src"))

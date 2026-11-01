@@ -133,6 +133,34 @@ pub fn limit_error(entries: &[VocabularyEntry]) -> Option<String> {
     None
 }
 
+/// `[dictation] vocabulary_boost`: how strongly Parakeet's transcript
+/// leans towards the vocabulary (ADR 0088).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VocabularyBoost {
+    /// No rescoring.
+    Off,
+    /// A small lean.
+    Light,
+    /// The default lean.
+    #[default]
+    Normal,
+    /// A strong lean.
+    Strong,
+}
+
+impl VocabularyBoost {
+    /// The level's name in `config.toml`.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Off => "off",
+            Self::Light => "light",
+            Self::Normal => "normal",
+            Self::Strong => "strong",
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

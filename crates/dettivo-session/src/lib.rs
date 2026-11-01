@@ -7,6 +7,7 @@
 //! to a publisher so the event stream, the OSD and the bar see the same
 //! state.
 
+mod bias;
 mod guards;
 pub mod machine;
 pub mod source;
@@ -73,6 +74,9 @@ pub struct Policy {
     /// The vocabulary: the terms prime the engine, the aliases inform
     /// the Enhanced prompt.
     pub vocabulary: Vec<dettivo_core::config::vocabulary_schema::VocabularyEntry>,
+    /// How strongly Parakeet leans towards the vocabulary.
+    #[serde(default)]
+    pub vocabulary_boost: dettivo_core::config::vocabulary_schema::VocabularyBoost,
     /// Replacement pairs applied after recognition.
     pub replacements: Vec<(String, String)>,
     /// Spoken punctuation is converted.

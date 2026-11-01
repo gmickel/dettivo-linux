@@ -330,6 +330,8 @@ pub struct Dictation {
     /// Terms the engine is primed with (names, products), each a string
     /// or a `{ term, sounds_like }` table.
     pub vocabulary: Vec<super::vocabulary_schema::VocabularyEntry>,
+    /// How strongly Parakeet's transcript leans towards the vocabulary.
+    pub vocabulary_boost: super::vocabulary_schema::VocabularyBoost,
     /// Whole-word replacements applied after recognition (`{ from = "to" }`).
     pub replacements: std::collections::BTreeMap<String, String>,
     /// Spoken punctuation (`comma`, `period`, `new line`) becomes marks.
@@ -356,6 +358,7 @@ impl Default for Dictation {
             language: "auto".into(),
             mode: "raw".into(),
             vocabulary: Vec::new(),
+            vocabulary_boost: Default::default(),
             replacements: std::collections::BTreeMap::new(),
             spoken_punctuation: true,
             protect_tokens: true,

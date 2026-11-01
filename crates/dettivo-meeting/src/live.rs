@@ -342,6 +342,7 @@ impl Live {
             language: self.language.clone(),
             prompt: self.prompt.clone(),
             timestamps: true,
+            vocabulary: None,
         };
         let result = match self.engine.recognize(make(), WINDOW_TIMEOUT) {
             Err(EngineError::Crashed(_)) => {

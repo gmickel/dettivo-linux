@@ -6,6 +6,7 @@
 //! and never carry transcript text.
 
 mod align;
+mod bias;
 mod engine;
 mod ffi;
 mod gguf;
@@ -14,7 +15,9 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use clap::Parser;
-use dettivo_engine_proto::{BackendPreference, LoadParams, RecognizeParams, host};
+use dettivo_engine_proto::{
+    BackendPreference, BiasTerm, LoadParams, RecognizeParams, VocabularyBias, host,
+};
 
 /// Package names of the workspace crates this binary builds on.
 const UPSTREAM: &[&str] = &[dettivo_engine_proto::CRATE_NAME];
@@ -41,6 +44,13 @@ struct Cli {
     /// Print the recognize result as JSON instead of the transcript text.
     #[arg(long)]
     json: bool,
+    /// Vocabulary to rescore towards (CLI mode): a JSON list of
+    /// `{"term": ..., "aliases": [...]}`.
+    #[arg(long, value_name = "JSON")]
+    vocabulary: Option<String>,
+    /// Vocabulary boost (CLI mode): off, light, normal or strong.
+    #[arg(long, default_value = "normal", value_name = "LEVEL")]
+    boost: String,
 }
 
 fn main() -> ExitCode {
@@ -70,10 +80,26 @@ fn main() -> ExitCode {
                 lora: None,
                 threads: None,
             };
+            let vocabulary = match cli.vocabulary.as_deref().map(|json| {
+                let terms = serde_json::from_str::<Vec<BiasTerm>>(json)
+                    .map_err(|e| format!("--vocabulary: {e}"))?;
+                let boost = VocabularyBias::boost_of(&cli.boost).ok_or_else(|| {
+                    format!("--boost {}: not off, light, normal or strong", cli.boost)
+                })?;
+                Ok::<_, String>(VocabularyBias { terms, boost })
+            }) {
+                None => None,
+                Some(Ok(bias)) => Some(bias),
+                Some(Err(why)) => {
+                    eprintln!("dettivo-engine-parakeet: {why}");
+                    return ExitCode::from(4);
+                }
+            };
             let params = RecognizeParams {
                 language: cli.language,
                 prompt: None,
                 timestamps: true,
+                vocabulary,
             };
             match host::run_cli::<engine::Engine>(&wav, &load, &params, force_cpu) {
                 Ok(json) => {

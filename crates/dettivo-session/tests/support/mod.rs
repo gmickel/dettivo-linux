@@ -217,6 +217,7 @@ pub fn policy(dir: &std::path::Path, keep: bool) -> Policy {
         language: "en".into(),
         mode: "raw".into(),
         vocabulary: vec!["Dettivo".into()],
+        vocabulary_boost: Default::default(),
         replacements: vec![("teh".into(), "the".into())],
         spoken_punctuation: true,
         protect_tokens: true,

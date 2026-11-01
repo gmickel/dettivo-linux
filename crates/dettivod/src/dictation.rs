@@ -181,6 +181,7 @@ impl Dictation {
                 .unwrap_or_else(|| d.language.clone()),
             mode: mode.map(str::to_string).unwrap_or_else(|| d.mode.clone()),
             vocabulary: d.vocabulary.clone(),
+            vocabulary_boost: d.vocabulary_boost,
             replacements: d
                 .replacements
                 .iter()

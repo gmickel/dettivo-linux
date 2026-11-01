@@ -1,14 +1,15 @@
 //! parakeet.cpp through the safe wrapper: load a GGUF model on the chosen
 //! backend (Vulkan first, CPU on failure), recognize 16 kHz mono PCM in
 //! overlapping chunks, and return segments with word timestamps and
-//! confidence. The prompt is accepted and ignored: Parakeet takes no
-//! vocabulary.
+//! confidence. A vocabulary rescores each chunk's transcript towards its
+//! terms (ADR 0088); the Whisper prompt is accepted and ignored.
 
 /// The smallest confidence a word reports; the contract's range is (0, 1].
 pub const MIN_CONFIDENCE: f64 = 0.001;
 
-use std::cell::{Cell, RefCell};
+use std::cell::{Cell, OnceCell, RefCell};
 use std::path::Path;
+use std::time::Instant;
 
 use dettivo_engine_proto::{
     Backend, BackendPreference, EngineError, LoadParams, LoadedResult, RecognizeParams,
@@ -16,7 +17,8 @@ use dettivo_engine_proto::{
 };
 
 use crate::align;
-use crate::ffi::{self, FfiError, Model};
+use crate::bias::{self, Pieces, Rescorer};
+use crate::ffi::{self, FfiError, Model, RawTranscription};
 use crate::gguf;
 
 /// True when the binary was built with ggml's Vulkan backend.
@@ -37,6 +39,8 @@ pub struct Engine {
     gpu_fallback: Cell<bool>,
     /// The languages the model accepts, when known.
     languages: Option<&'static [&'static str]>,
+    /// The tokenizer's pieces, read on the first vocabulary request.
+    pieces: OnceCell<Pieces>,
 }
 
 impl Engine {
@@ -128,6 +132,7 @@ impl Engine {
                 backend_used == Backend::Vulkan && preference == BackendPreference::Auto,
             ),
             languages,
+            pieces: OnceCell::new(),
         })
     }
 
@@ -229,6 +234,19 @@ impl Engine {
         }
         let audio: Vec<f32> = pcm.iter().map(|s| f32::from(*s) / 32_768.0).collect();
         let ranges = align::chunks(audio.len());
+        let rescorer = params.vocabulary.as_ref().and_then(|bias| {
+            let pieces = self.pieces.get_or_init(|| {
+                Pieces::new(
+                    self.model
+                        .borrow()
+                        .as_ref()
+                        .map(Model::pieces)
+                        .unwrap_or_default(),
+                )
+            });
+            Rescorer::new(bias, pieces)
+        });
+        let mut rescored = (bias::Outcome::default(), 0.0f64);
         let mut chunks = Vec::with_capacity(ranges.len());
         let mut single_text = None;
         for (i, (start, end)) in ranges.iter().enumerate() {
@@ -237,13 +255,15 @@ impl Engine {
             } else {
                 params.language.as_str()
             };
-            let raw = self
-                .model
-                .borrow()
+            let model = self.model.borrow();
+            let model = model
                 .as_ref()
-                .ok_or_else(|| EngineError::new("internal", "the model is not loaded"))?
-                .transcribe(&audio[*start..*end], lang)
-                .map_err(|e| EngineError::new("internal", format!("inference: {e}")))?;
+                .ok_or_else(|| EngineError::new("internal", "the model is not loaded"))?;
+            let clip = &audio[*start..*end];
+            let raw = match &rescorer {
+                Some(r) => self.rescored(model, r, clip, lang, &mut rescored)?,
+                None => model.transcribe(clip, lang).map_err(inference)?,
+            };
             let offset_ms = (*start as u64 * 1000) / 16_000;
             let words: Vec<Word> = raw
                 .words
@@ -263,6 +283,15 @@ impl Engine {
             }
             chunks.push((*start, *end, words));
             progress((i + 1) as f64 / (ranges.len() + 1) as f64);
+        }
+        if rescorer.is_some() {
+            // Counts and time only: never the terms or the transcript.
+            tracing::info!(
+                candidates = rescored.0.candidates,
+                replaced = rescored.0.replaced,
+                rescore_ms = format!("{:.1}", rescored.1),
+                "vocabulary rescoring"
+            );
         }
         let words = align::stitch(&chunks);
         let segments = if params.timestamps {
@@ -287,4 +316,41 @@ impl Engine {
             backend: self.backend.get(),
         })
     }
+
+    /// One chunk recognized and rescored; adds what rescoring did and its
+    /// time to `total`. A model rescoring cannot read is transcribed as is.
+    fn rescored(
+        &self,
+        model: &Model,
+        rescorer: &Rescorer,
+        clip: &[f32],
+        lang: &str,
+        total: &mut (bias::Outcome, f64),
+    ) -> Result<RawTranscription, EngineError> {
+        let (take, mut raw) = match model.take(clip) {
+            Ok(v) => v,
+            Err(e) if e.0.starts_with("vocabulary rescoring needs") => {
+                return model.transcribe(clip, lang).map_err(inference);
+            }
+            Err(e) => return Err(inference(e)),
+        };
+        let started = Instant::now();
+        let pieces = self
+            .pieces
+            .get()
+            .expect("pieces are read before a rescorer exists");
+        let outcome = rescorer
+            .rescore(&take, pieces, &mut raw)
+            .map_err(inference)?;
+        total.0.candidates += outcome.candidates;
+        total.0.replaced += outcome.replaced;
+        total.1 += started.elapsed().as_secs_f64() * 1000.0;
+        Ok(raw)
+    }
+}
+
+/// A failed inference, worded so a GPU that cannot run it moves the model
+/// to the CPU.
+fn inference(e: FfiError) -> EngineError {
+    EngineError::new("internal", format!("inference: {e}"))
 }

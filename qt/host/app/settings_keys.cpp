@@ -162,6 +162,7 @@ constexpr Excluded kExcluded[] = {
     {"polish.rules", "an array of tables edited through `dettivo polish rules` and the Polish route's rule list"},
     {"polish.apps", "a table of tables edited through `dettivo polish apps` and the Polish route's app list"},
     {"polish.presets", "a table of tables with nested lists; edited in the file"},
+    {"dictation.vocabulary_boost", "Parakeet's vocabulary lean (off, light, normal, strong); set in the file or with `dettivo config set`"},
 };
 // excluded:end
 

@@ -76,18 +76,57 @@ pub struct LoadedResult {
 }
 
 /// `recognize` (with one `pcm16k` attachment).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RecognizeParams {
     /// Language code, or `auto`.
     #[serde(default = "auto")]
     pub language: String,
-    /// Vocabulary prompt.
+    /// Vocabulary prompt (Whisper).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prompt: Option<String>,
     /// Ask for segment timestamps.
     #[serde(default = "yes")]
     pub timestamps: bool,
+    /// The vocabulary the transcript is rescored towards (Parakeet).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vocabulary: Option<VocabularyBias>,
+}
+
+/// A vocabulary Parakeet rescores its transcript towards: a term replaces
+/// heard words that sound like it when the audio supports the term.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VocabularyBias {
+    /// The terms, in list order.
+    pub terms: Vec<BiasTerm>,
+    /// Nats added per token piece of a term; 0 turns rescoring off.
+    pub boost: f32,
+}
+
+impl VocabularyBias {
+    /// The boost of a `[dictation] vocabulary_boost` level in nats per
+    /// token piece; `None` for a name that is not a level.
+    pub fn boost_of(level: &str) -> Option<f32> {
+        match level {
+            "off" => Some(0.0),
+            "light" => Some(2.0),
+            "normal" => Some(2.5),
+            "strong" => Some(4.0),
+            _ => None,
+        }
+    }
+}
+
+/// One vocabulary term and how it tends to be misheard.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BiasTerm {
+    /// The spelling wanted.
+    pub term: String,
+    /// Spellings the term tends to be transcribed as.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub aliases: Vec<String>,
 }
 
 fn auto() -> String {

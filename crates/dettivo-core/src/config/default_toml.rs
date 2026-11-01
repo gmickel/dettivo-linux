@@ -166,6 +166,10 @@ mode = "raw"
 # ({ term = "Clef", sounds_like = ["clay", "cleff"] }); at most 500 entries,
 # 64 characters a term and 16 sounds_like spellings.
 vocabulary = []
+# How strongly Parakeet leans towards the vocabulary: off, light, normal or
+# strong. A term replaces heard words only where the audio supports it;
+# Whisper takes the terms as a prompt instead.
+vocabulary_boost = "normal"
 # Spoken punctuation ("comma", "period", "new line") becomes marks.
 spoken_punctuation = true
 # File names, paths, URLs, email addresses, versions and dotted identifiers

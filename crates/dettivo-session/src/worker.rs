@@ -153,6 +153,14 @@ impl Worker {
             language: self.policy.language.clone(),
             prompt: vocabulary_prompt(&terms),
             timestamps: true,
+            vocabulary: parakeet
+                .then(|| {
+                    crate::bias::vocabulary_bias(
+                        &self.policy.vocabulary,
+                        self.policy.vocabulary_boost,
+                    )
+                })
+                .flatten(),
         };
         let padded = gate::pad_for_engine(samples.clone(), parakeet, gate::SAMPLE_RATE);
         let was_padded = padded.len() != samples.len();

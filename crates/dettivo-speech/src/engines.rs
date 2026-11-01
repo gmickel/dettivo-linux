@@ -91,6 +91,7 @@ impl Shared {
             language: request.language.clone(),
             prompt: request.prompt.clone(),
             timestamps: request.timestamps,
+            vocabulary: request.vocabulary.clone(),
         };
         let pcm = dettivo_engine_proto::pcm_to_bytes(&request.pcm);
         let result: RecognizeResult = self.supervisor.with_engine_on(
@@ -223,8 +224,8 @@ impl SttEngine for ParakeetEngine {
         request: RecognizeRequest,
         timeout: Duration,
     ) -> Result<RecognizeResult, EngineError> {
-        // Parakeet takes no vocabulary; the prompt is dropped here so the
-        // engine never sees it.
+        // Parakeet takes the vocabulary as terms, never as a prompt; the
+        // prompt is dropped here so the engine never sees it.
         self.0.recognize(
             RecognizeRequest {
                 prompt: None,
