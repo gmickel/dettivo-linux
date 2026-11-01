@@ -187,6 +187,20 @@ impl Supervisor {
         params: LoadParams,
         f: impl FnOnce(&mut EngineProcess, &LoadedResult) -> Result<T, EngineError>,
     ) -> Result<T, EngineError> {
+        self.with_slot_then(name, binary, params, f, |_, _, _| {})
+    }
+
+    /// `with_engine_slot`, then `then` on a success while the slot is
+    /// still locked, so what `f` proved about the loaded engine is never
+    /// recorded against a load that followed it.
+    fn with_slot_then<T>(
+        &self,
+        name: &str,
+        binary: &str,
+        params: LoadParams,
+        f: impl FnOnce(&mut EngineProcess, &LoadedResult) -> Result<T, EngineError>,
+        then: impl FnOnce(&Self, &mut Slot, &T),
+    ) -> Result<T, EngineError> {
         let settings = self.settings();
         let slot = self.slot(name);
         let mut s = slot.lock().unwrap_or_else(|p| p.into_inner());
@@ -198,6 +212,9 @@ impl Supervisor {
             Route::Asked => {}
         }
         let result = self.with_locked((name, binary), params, &settings, &mut s, f);
+        if let Ok(value) = &result {
+            then(self, &mut s, value);
+        }
         self.remember(name, &mut s);
         result
     }
