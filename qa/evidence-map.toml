@@ -1274,7 +1274,7 @@ note = "insert into every available target, writes insertion-matrix.json with ba
 [[spec.route]]
 rids = ["R4"]
 kind = "unit"
-ref = "dettivo-insert::paste_sends_the_terminal_keystroke_and_restores_the_clipboard"
+ref = "dettivo-insert::the_paste_restores_every_type_the_clipboard_offered"
 note = "the clipboard path sends the app-aware paste keystroke and restores the clipboard"
 
 [[spec.route]]

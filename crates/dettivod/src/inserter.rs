@@ -60,6 +60,23 @@ pub fn insert_settings(loaded: &Loaded) -> Settings {
     }
 }
 
+/// When the text landed: now, or for a paste whose clipboard was put
+/// back, before the restore delay, so typing during that delay counts as
+/// input after the delivery.
+fn landed(result: &InsertionResult, settings: &Settings) -> std::time::Instant {
+    let now = std::time::Instant::now();
+    let pasted = result
+        .backend
+        .as_ref()
+        .is_some_and(|b| b.name == "clipboard_paste");
+    if pasted && settings.restore_clipboard {
+        let delay = std::time::Duration::from_millis(settings.clipboard_restore_delay_ms);
+        now.checked_sub(delay).unwrap_or(now)
+    } else {
+        now
+    }
+}
+
 /// The window a take was captured in, when the probe named it whole: a
 /// join needs the window itself, not only its process.
 fn place_of(target: Option<&SessionTarget>) -> Option<Place> {
@@ -153,7 +170,8 @@ impl Inserter for ChainInserter {
             }
         };
         let typed = result.outcome == InsertionOutcome::Inserted;
-        self.joins.delivered(place.filter(|_| typed), &text);
+        self.joins
+            .delivered(place.filter(|_| typed), &text, landed(&result, &settings));
         result
     }
 }
@@ -196,6 +214,23 @@ mod tests {
         assert_eq!(annotate(copied(), Some(&verified)).reason, None);
         assert_eq!(mode_for(None), InsertMode::Raw);
         assert_eq!(annotate(copied(), None).reason, None);
+    }
+
+    /// A paste lands before the restore delay, so typing during the delay
+    /// is input after the delivery; typed text lands at once.
+    #[test]
+    fn a_restored_paste_landed_before_its_restore_delay() {
+        let mut result = copied();
+        let settings = Settings::default();
+        let now = std::time::Instant::now();
+        assert!(landed(&result, &settings) >= now);
+        result.backend = Some(dettivo_proto::runtime::InsertionBackend {
+            name: "clipboard_paste".into(),
+            latency_ms: 600,
+            undo_supported: false,
+        });
+        let delay = std::time::Duration::from_millis(settings.clipboard_restore_delay_ms);
+        assert!(landed(&result, &settings) <= now - delay + std::time::Duration::from_millis(50));
     }
 
     struct Quiet;

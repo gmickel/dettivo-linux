@@ -81,3 +81,48 @@ fn a_printing_stop_inserts_nothing_and_records_printed() {
     assert_eq!(insertion.method, InsertionMethod::Printed);
     assert!(rec.inserted.lock().unwrap().is_empty());
 }
+
+/// A printing stop and the worker's commitment race for the take: a
+/// print that arrives while the engine works wins for every stopper, and
+/// one that arrives once the text is committed to the inserter is
+/// refused instead of reporting a print that never happened.
+#[test]
+fn a_print_counts_only_until_the_text_is_committed() {
+    for (slow, print_after, printed) in [
+        (Duration::from_millis(400), Duration::from_millis(100), true),
+        (Duration::ZERO, Duration::from_millis(120), false),
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let rec = Arc::new(Recorder::default());
+        let session = Arc::new(Session::new(
+            dir.path().join("sessions"),
+            rec.clone(),
+            rec.clone(),
+        ));
+        let feed = Feed::new();
+        let mut engine = FakeEngine::new("hello");
+        Arc::get_mut(&mut engine).unwrap().slow = slow;
+        session
+            .start(policy(dir.path(), false), engine, feed.clone(), None)
+            .unwrap();
+        feed.speak(400);
+        std::thread::sleep(Duration::from_millis(50));
+        let s = session.clone();
+        let plain = std::thread::spawn(move || s.stop());
+        std::thread::sleep(print_after);
+        let print = session.stop_print();
+        let plain = plain.join().unwrap().unwrap();
+        let outcome = plain.insertion.unwrap().outcome;
+        if printed {
+            assert_eq!(print.unwrap().text, "Hello");
+            assert_eq!(outcome, InsertionOutcome::Printed);
+            assert!(rec.inserted.lock().unwrap().is_empty());
+        } else {
+            assert_eq!(
+                print.unwrap_err(),
+                dettivo_session::SessionError::Delivering
+            );
+            assert_eq!(outcome, InsertionOutcome::Inserted);
+        }
+    }
+}

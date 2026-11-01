@@ -6,6 +6,7 @@
 //! the backend types turns the text into shortcuts. No source reports
 //! the held keys on every desktop, so the wait is fixed.
 
+use std::sync::atomic::{AtomicU8, Ordering};
 use std::time::{Duration, Instant};
 
 use dettivo_proto::runtime::{InsertionMethod, InsertionOutcome, InsertionResult, TargetApp};
@@ -14,6 +15,40 @@ use crate::{Inserter, SessionTarget, no_context_pack};
 
 /// How long after the stop the first key may be sent.
 pub const MODIFIER_SETTLE: Duration = Duration::from_millis(250);
+
+/// Where a take's text goes, decided once: a printing stop and the
+/// worker's commitment to insert race for it, and the first one wins.
+#[derive(Default)]
+pub(crate) struct Route(AtomicU8);
+
+const OPEN: u8 = 0;
+const PRINT: u8 = 1;
+const INSERT: u8 = 2;
+
+impl Route {
+    /// A printing stop asks for the text alone; false once the worker
+    /// committed to inserting it.
+    pub(crate) fn print(&self) -> bool {
+        match self
+            .0
+            .compare_exchange(OPEN, PRINT, Ordering::AcqRel, Ordering::Acquire)
+        {
+            Ok(_) => true,
+            Err(now) => now == PRINT,
+        }
+    }
+
+    /// The worker decides: true when a printing stop came first.
+    pub(crate) fn printing(&self) -> bool {
+        match self
+            .0
+            .compare_exchange(OPEN, INSERT, Ordering::AcqRel, Ordering::Acquire)
+        {
+            Ok(_) => false,
+            Err(now) => now == PRINT,
+        }
+    }
+}
 
 /// Hands `text` over, or records it as printed; `None` when there is no
 /// text. `stopped` is when the worker saw the stop.

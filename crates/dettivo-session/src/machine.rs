@@ -52,7 +52,7 @@ pub(crate) struct Active {
     pub(crate) cancel: Arc<AtomicBool>,
     /// The stop asked for the text alone (`dictation stop --print`):
     /// nothing is inserted.
-    pub(crate) print: Arc<AtomicBool>,
+    pub(crate) route: Arc<crate::deliver::Route>,
     pub(crate) engine: Arc<dyn SttEngine>,
     pub(crate) worker: Option<std::thread::JoinHandle<()>>,
     pub(crate) completion: Arc<Completion>,
@@ -164,7 +164,7 @@ impl Session {
         };
         let stop = Arc::new(AtomicBool::new(false));
         let cancel = Arc::new(AtomicBool::new(false));
-        let print = Arc::new(AtomicBool::new(false));
+        let route = Arc::new(crate::deliver::Route::default());
         let completion = Arc::new(Completion::default());
         // The slot is taken now, with this take's completion; the worker
         // fills in the rest.
@@ -172,7 +172,7 @@ impl Session {
             snapshot: snapshot.clone(),
             stop: stop.clone(),
             cancel: cancel.clone(),
-            print: print.clone(),
+            route: route.clone(),
             engine: engine.clone(),
             worker: None,
             completion: completion.clone(),
@@ -221,7 +221,7 @@ impl Session {
             engine,
             stop,
             cancel,
-            print,
+            route,
             dir: self.sessions_dir.join(&job_id),
             publisher: self.publisher.clone(),
             inserter: self.inserter.clone(),
@@ -298,8 +298,8 @@ impl Session {
             if expected_job_id.is_some_and(|id| id != a.snapshot.job_id) {
                 return Err(SessionError::NoSession);
             }
-            if print {
-                a.print.store(true, Ordering::Relaxed);
+            if print && !a.route.print() {
+                return Err(SessionError::Delivering);
             }
             (
                 a.stop.clone(),

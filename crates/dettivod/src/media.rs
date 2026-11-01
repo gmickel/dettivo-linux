@@ -3,10 +3,11 @@
 //! 20 % along a smoothstep ramp, or mute it. It acts only once a take has
 //! recorded past [`TAP`], so a tap the hold key discards never touches
 //! media, and it runs on a thread of its own, so capture never waits for
-//! it. At the end it puts back only what it changed: a volume or mute the
-//! user changed during the take stays. A meeting never runs beside a
-//! dictation (each refuses to start while the other runs), so nothing is
-//! changed under a meeting's recording of the default sink's monitor.
+//! it. At the end it puts back only what it changed, on the sink it
+//! changed: a volume or mute the user changed during the take stays. The
+//! end waits for that restore before the take's slot frees, and a meeting
+//! starts only on a free slot, so nothing changes under a meeting's
+//! recording of the default sink's monitor.
 
 use std::sync::Mutex;
 use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender};
@@ -22,17 +23,23 @@ pub const DUCK_LEVEL: f32 = 0.20;
 /// How long the duck ramp takes, and its steps.
 const RAMP: Duration = Duration::from_millis(200);
 const STEPS: u32 = 10;
-/// Two volumes this close are the same (wpctl reports two decimals).
-const SAME: f32 = 0.015;
+/// Volumes are set in hundredths, the precision wpctl reports, so two
+/// volumes closer than half of one are the same and a change of one
+/// hundredth is the user's.
+const SAME: f32 = 0.005;
+/// The longest the end of a take waits for the restore.
+const DRAIN: Duration = Duration::from_secs(2);
 
-/// The default sink's volume.
+/// A sink's volume, addressed by the id [`Volume::default_sink`] gave.
 pub trait Volume: Send {
+    /// The default sink's id now.
+    fn default_sink(&self) -> Result<String, String>;
     /// The volume (1.0 is 100 %) and whether it is muted.
-    fn get(&self) -> Result<(f32, bool), String>;
+    fn get(&self, sink: &str) -> Result<(f32, bool), String>;
     /// Sets the volume.
-    fn set(&self, volume: f32) -> Result<(), String>;
+    fn set(&self, sink: &str, volume: f32) -> Result<(), String>;
     /// Mutes or unmutes.
-    fn mute(&self, muted: bool) -> Result<(), String>;
+    fn mute(&self, sink: &str, muted: bool) -> Result<(), String>;
 }
 
 /// The playing media players.
@@ -43,7 +50,7 @@ pub trait Players: Send {
     fn resume(&self, names: &[String]) -> Result<(), String>;
 }
 
-/// The default sink through `wpctl`.
+/// The sinks through `wpctl`.
 pub struct Wpctl;
 
 fn wpctl(args: &[&str]) -> Result<String, String> {
@@ -65,26 +72,26 @@ fn parse_volume(text: &str) -> Option<(f32, bool)> {
     Some((volume, text.contains("[MUTED]")))
 }
 
+/// `id 52, type PipeWire:Interface:Node` from `wpctl inspect`.
+fn parse_id(text: &str) -> Option<String> {
+    let id = text.trim_start().strip_prefix("id ")?.split(',').next()?;
+    id.parse::<u32>().ok().map(|n| n.to_string())
+}
+
 impl Volume for Wpctl {
-    fn get(&self) -> Result<(f32, bool), String> {
-        let text = wpctl(&["get-volume", "@DEFAULT_AUDIO_SINK@"])?;
+    fn default_sink(&self) -> Result<String, String> {
+        let text = wpctl(&["inspect", "@DEFAULT_AUDIO_SINK@"])?;
+        parse_id(&text).ok_or_else(|| "wpctl: no default sink id".to_string())
+    }
+    fn get(&self, sink: &str) -> Result<(f32, bool), String> {
+        let text = wpctl(&["get-volume", sink])?;
         parse_volume(&text).ok_or_else(|| format!("wpctl: unexpected answer {text:?}"))
     }
-    fn set(&self, volume: f32) -> Result<(), String> {
-        wpctl(&[
-            "set-volume",
-            "@DEFAULT_AUDIO_SINK@",
-            &format!("{volume:.3}"),
-        ])
-        .map(drop)
+    fn set(&self, sink: &str, volume: f32) -> Result<(), String> {
+        wpctl(&["set-volume", sink, &format!("{volume:.2}")]).map(drop)
     }
-    fn mute(&self, muted: bool) -> Result<(), String> {
-        wpctl(&[
-            "set-mute",
-            "@DEFAULT_AUDIO_SINK@",
-            if muted { "1" } else { "0" },
-        ])
-        .map(drop)
+    fn mute(&self, sink: &str, muted: bool) -> Result<(), String> {
+        wpctl(&["set-mute", sink, if muted { "1" } else { "0" }]).map(drop)
     }
 }
 
@@ -111,16 +118,17 @@ pub fn effective(while_dictating: WhileDictating, pause_media: bool) -> WhileDic
 
 enum Msg {
     Started(WhileDictating),
-    Ended,
+    /// The take ended; the sender hears once media is back.
+    Ended(Sender<()>),
 }
 
-/// What was changed, so the end puts back only that.
+/// What was changed, and where, so the end puts back only that.
 #[derive(Debug, PartialEq)]
 enum Changed {
     Nothing,
     Paused(Vec<String>),
-    Ducked { from: f32, to: f32 },
-    Muted,
+    Ducked { sink: String, from: f32, to: f32 },
+    Muted { sink: String },
 }
 
 /// The media service: a thread that acts on take starts and ends.
@@ -146,9 +154,13 @@ impl Media {
         let _ = self.send(Msg::Started(action));
     }
 
-    /// The take ended (completed, cancelled or failed).
+    /// The take ended (completed, cancelled or failed): returns once
+    /// media is back, or after [`DRAIN`].
     pub fn ended(&self) {
-        let _ = self.send(Msg::Ended);
+        let (done, back) = mpsc::channel();
+        if self.send(Msg::Ended(done)).is_ok() && back.recv_timeout(DRAIN).is_err() {
+            tracing::warn!("media still being put back after dictating");
+        }
     }
 
     fn send(&self, msg: Msg) -> Result<(), mpsc::SendError<Msg>> {
@@ -158,41 +170,65 @@ impl Media {
 
 fn run(rx: &Receiver<Msg>, volume: &dyn Volume, players: &dyn Players) {
     while let Ok(msg) = rx.recv() {
-        let Msg::Started(action) = msg else { continue };
+        let action = match msg {
+            Msg::Started(action) => action,
+            Msg::Ended(done) => {
+                let _ = done.send(());
+                continue;
+            }
+        };
         match rx.recv_timeout(TAP) {
-            Ok(Msg::Ended) => continue,
+            Ok(Msg::Ended(done)) => {
+                let _ = done.send(());
+                continue;
+            }
             Err(RecvTimeoutError::Disconnected) => return,
             Ok(Msg::Started(_)) | Err(RecvTimeoutError::Timeout) => {}
         }
         let changed = apply(action, volume, players);
-        while !matches!(rx.recv(), Ok(Msg::Ended) | Err(_)) {}
+        let done = loop {
+            match rx.recv() {
+                Ok(Msg::Ended(done)) => break Some(done),
+                Ok(Msg::Started(_)) => {}
+                Err(_) => break None,
+            }
+        };
         restore(changed, volume, players);
+        if let Some(done) = done {
+            let _ = done.send(());
+        }
     }
+}
+
+fn hundredths(volume: f32) -> f32 {
+    (volume * 100.0).round() / 100.0
 }
 
 fn apply(action: WhileDictating, volume: &dyn Volume, players: &dyn Players) -> Changed {
     let done = match action {
         WhileDictating::Nothing => Ok(Changed::Nothing),
         WhileDictating::Pause => players.pause().map(Changed::Paused),
-        WhileDictating::Mute => volume.get().and_then(|(_, muted)| {
+        WhileDictating::Mute => volume.default_sink().and_then(|sink| {
+            let (_, muted) = volume.get(&sink)?;
             if muted {
                 Ok(Changed::Nothing)
             } else {
-                volume.mute(true).map(|()| Changed::Muted)
+                volume.mute(&sink, true).map(|()| Changed::Muted { sink })
             }
         }),
-        WhileDictating::Duck => volume.get().map(|(from, _)| {
+        WhileDictating::Duck => volume.default_sink().and_then(|sink| {
+            let (from, _) = volume.get(&sink)?;
             let to = from.min(DUCK_LEVEL);
             if from - to < SAME {
-                return Changed::Nothing;
+                return Ok(Changed::Nothing);
             }
-            match ramp(volume, from, to) {
-                Ok(()) => Changed::Ducked { from, to },
+            Ok(match ramp(volume, &sink, from, to) {
+                Ok(()) => Changed::Ducked { sink, from, to },
                 Err(why) => {
                     tracing::info!(reason = %why, "duck stopped: the volume is left as it is");
                     Changed::Nothing
                 }
-            }
+            })
         }),
     };
     done.unwrap_or_else(|e| {
@@ -206,14 +242,18 @@ fn restore(changed: Changed, volume: &dyn Volume, players: &dyn Players) {
         Changed::Nothing => Ok(()),
         Changed::Paused(names) if names.is_empty() => Ok(()),
         Changed::Paused(names) => players.resume(&names),
-        Changed::Muted => volume
-            .get()
-            .and_then(|(_, muted)| if muted { volume.mute(false) } else { Ok(()) }),
-        Changed::Ducked { from, to } => volume.get().and_then(|(now, _)| {
+        Changed::Muted { sink } => volume.get(&sink).and_then(|(_, muted)| {
+            if muted {
+                volume.mute(&sink, false)
+            } else {
+                Ok(())
+            }
+        }),
+        Changed::Ducked { sink, from, to } => volume.get(&sink).and_then(|(now, _)| {
             if (now - to).abs() > SAME {
                 return Ok(());
             }
-            ramp(volume, to, from)
+            ramp(volume, &sink, to, from)
         }),
     };
     if let Err(e) = done {
@@ -221,19 +261,19 @@ fn restore(changed: Changed, volume: &dyn Volume, players: &dyn Players) {
     }
 }
 
-/// Moves the volume from `from` to `to` along a smoothstep over [`RAMP`];
-/// gives up when the volume is not the one the last step set, because
-/// the user changed it.
-fn ramp(volume: &dyn Volume, from: f32, to: f32) -> Result<(), String> {
+/// Moves the sink's volume from `from` to `to` along a smoothstep over
+/// [`RAMP`], in hundredths; gives up when the volume is not the one the
+/// last step set, because the user changed it.
+fn ramp(volume: &dyn Volume, sink: &str, from: f32, to: f32) -> Result<(), String> {
     let mut last = from;
     for step in 1..=STEPS {
-        let (now, _) = volume.get()?;
+        let (now, _) = volume.get(sink)?;
         if (now - last).abs() > SAME {
             return Err("the volume was changed during the ramp".into());
         }
         let t = step as f32 / STEPS as f32;
-        last = from + (to - from) * t * t * (3.0 - 2.0 * t);
-        volume.set(last)?;
+        last = hundredths(from + (to - from) * t * t * (3.0 - 2.0 * t));
+        volume.set(sink, last)?;
         std::thread::sleep(RAMP / STEPS);
     }
     Ok(())

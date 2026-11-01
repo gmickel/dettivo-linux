@@ -81,13 +81,14 @@ impl Continuation {
         }
     }
 
-    /// Records what reached `place`; `None` (nothing typed into a known
-    /// window) forgets the last delivery.
-    pub fn delivered(&self, place: Option<Place>, text: &str) {
+    /// Records what reached `place` at `at`, when its last key or the
+    /// paste landed; `None` (nothing typed into a known window) forgets
+    /// the last delivery.
+    pub fn delivered(&self, place: Option<Place>, text: &str, at: Instant) {
         *self.last.lock().unwrap_or_else(|p| p.into_inner()) = place.map(|place| Last {
             text: text.to_string(),
             place,
-            at: Instant::now(),
+            at,
             typed_since: true,
         });
     }
@@ -177,7 +178,7 @@ mod tests {
             (Some(false), "0x1", false, false),
         ] {
             let c = Continuation::new(Arc::new(Fixed(activity)));
-            c.delivered(Some(place("0x1")), "I wrote the report");
+            c.delivered(Some(place("0x1")), "I wrote the report", Instant::now());
             if started {
                 c.take_started(Instant::now());
             }
@@ -190,7 +191,7 @@ mod tests {
             assert_eq!(text, expected, "{activity:?} {window} {started}");
         }
         let c = Continuation::new(Arc::new(Fixed(Some(false))));
-        c.delivered(None, "copied, not typed");
+        c.delivered(None, "copied, not typed", Instant::now());
         c.take_started(Instant::now());
         assert_eq!(c.text_for(Some(&place("0x1")), "And so"), "And so");
     }

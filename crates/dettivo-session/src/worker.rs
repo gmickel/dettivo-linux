@@ -49,7 +49,7 @@ pub(crate) struct Worker {
     pub(crate) engine: Arc<dyn SttEngine>,
     pub(crate) stop: Arc<AtomicBool>,
     pub(crate) cancel: Arc<AtomicBool>,
-    pub(crate) print: Arc<AtomicBool>,
+    pub(crate) route: Arc<crate::deliver::Route>,
     pub(crate) dir: PathBuf,
     pub(crate) publisher: Arc<dyn Publisher>,
     pub(crate) inserter: Arc<dyn Inserter>,
@@ -258,7 +258,7 @@ impl Worker {
             &*self.inserter,
             &text,
             self.target.as_ref(),
-            self.print.load(Ordering::Relaxed),
+            self.route.printing(),
             stopped,
         );
         let timings = SessionTimings {

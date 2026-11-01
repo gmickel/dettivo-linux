@@ -268,6 +268,9 @@ pub enum SessionError {
     /// The speech gate found the take silent: nothing was transcribed
     /// (`stop` reports it).
     NoSpeech,
+    /// A printing stop came after the take's text was handed to the
+    /// inserter.
+    Delivering,
 }
 
 impl std::fmt::Display for SessionError {
@@ -289,6 +292,7 @@ impl std::fmt::Display for SessionError {
             Self::Failed(r) => write!(f, "the session failed: {r}"),
             Self::Cancelled => write!(f, "the session was cancelled"),
             Self::NoSpeech => write!(f, "no speech was heard"),
+            Self::Delivering => write!(f, "the take is already being inserted"),
         }
     }
 }

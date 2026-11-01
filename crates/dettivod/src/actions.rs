@@ -40,6 +40,11 @@ pub fn session_error(e: SessionError) -> JsonRpcError {
             message,
             ErrorDetails::conflict_kind("sessionCancelled"),
         ),
+        SessionError::Delivering => JsonRpcError::new(
+            AppCode::Conflict,
+            message,
+            ErrorDetails::conflict_kind("sessionDelivering"),
+        ),
         SessionError::NoSpeech => JsonRpcError::new(
             AppCode::Conflict,
             message,
