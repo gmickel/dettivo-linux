@@ -93,14 +93,17 @@ pub fn keep_layout(old: &toml_edit::Array, new: &mut toml_edit::Array) {
     let raw =
         |r: Option<&toml_edit::RawString>| r.and_then(|r| r.as_str()).unwrap_or("").to_string();
     let prefixes: Vec<String> = old.iter().map(|v| raw(v.decor().prefix())).collect();
-    let trailing = raw(Some(old.trailing()));
-    // An entry's suffix holds its comment when no comma follows it.
-    let suffixes = old.iter().map(|v| raw(v.decor().suffix()));
+    let mut suffixes: Vec<String> = old.iter().map(|v| raw(v.decor().suffix())).collect();
+    let mut trailing = raw(Some(old.trailing()));
+    // With no comma after the last entry, its comment and line break sit in
+    // its suffix; read them as the trailing a comma would leave them in.
+    if let Some(last) = suffixes.last_mut().filter(|_| !old.trailing_comma()) {
+        trailing = std::mem::take(last) + &trailing;
+    }
     if !prefixes
         .iter()
-        .cloned()
-        .chain(suffixes)
-        .chain([trailing.clone()])
+        .chain(&suffixes)
+        .chain([&trailing])
         .any(|p| p.contains('\n'))
     {
         return;
@@ -130,8 +133,7 @@ pub fn keep_layout(old: &toml_edit::Array, new: &mut toml_edit::Array) {
         let (lines, next, suffix) = match found {
             Some(i) => {
                 used[i] = true;
-                let suffix = raw(old.get(i).unwrap().decor().suffix());
-                (above[i].clone(), heads[i + 1].clone(), suffix)
+                (above[i].clone(), heads[i + 1].clone(), suffixes[i].clone())
             }
             None => (fresh.clone(), String::new(), String::new()),
         };
@@ -246,5 +248,22 @@ mod tests {
         let uncomma = "[dictation]\nvocabulary = [\"Dettivo\" # keep this note\n]\n";
         let out = crate::config::edit::set(uncomma, "dictation.vocabulary", &json!(["Dettivo"]));
         assert_eq!(out.unwrap(), uncomma);
+    }
+
+    #[test]
+    fn config_set_lays_out_a_comma_less_last_entry_as_a_trailing_comma_one() {
+        let file = |entries: &str| format!("[dictation]\nvocabulary = [\n{entries}]\n");
+        let before = file("  \"Dettivo\", # first\n  \"Omarchy\" # last, no comma\n");
+        let value = json!(["Dettivo", "Omarchy", "SapienXT"]);
+        let out = crate::config::edit::set(&before, "dictation.vocabulary", &value).unwrap();
+        let appended = concat!(
+            "  \"Dettivo\", # first\n",
+            "  \"Omarchy\", # last, no comma\n",
+            "  \"SapienXT\"\n",
+        );
+        assert_eq!(out, file(appended));
+        let out =
+            crate::config::edit::set(&before, "dictation.vocabulary", &json!(["Dettivo", "Clef"]));
+        assert_eq!(out.unwrap(), file("  \"Dettivo\", # first\n  \"Clef\"\n"));
     }
 }
