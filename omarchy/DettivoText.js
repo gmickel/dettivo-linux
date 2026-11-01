@@ -1,5 +1,5 @@
 // Text helpers shared by DettivoState and DettivoFacts: version order,
-// the shortcut label, the meeting timer and the silent take's pill.
+// the shortcut label, the meeting timer and the pills that end a take.
 .pragma library
 
 function compareVersions(a, b) {
@@ -29,11 +29,37 @@ function formatElapsed(ms) {
 }
 
 // The pill for a take the speech gate found silent (`cancelled`, reason
-// `silence: <stage>`), as the OSD shows it.
+// `silence: <stage>`) or that completed with no text to insert, as the OSD shows it.
 function nothingHeard() {
     return {
         "title": "Nothing heard",
         "reason": "the take was silent",
         "action": "try again"
+    };
+}
+
+// What a completed take leaves: the dictation state, the pill and its texts.
+// A take with no text carries no insertion, so nothing was heard.
+function completion(insertion, words) {
+    if (!insertion)
+        return { "state": "idle", "pill": "error", "texts": nothingHeard() };
+    if (insertion.outcome === "inserted") {
+        const app = insertion.target_app || {};
+        return {
+            "state": "inserted",
+            "pill": "inserted",
+            "texts": { "target": app.name || app.bundle_id || "", "words": words }
+        };
+    }
+    if (insertion.outcome === "copied_to_clipboard")
+        return {
+            "state": "idle",
+            "pill": "copied",
+            "texts": { "reason": insertion.reason || "", "action": "Ctrl+V", "words": words }
+        };
+    return {
+        "state": "failed",
+        "pill": "error",
+        "texts": { "title": "Not inserted", "reason": insertion.reason || "the insertion failed", "action": "copy from history" }
     };
 }

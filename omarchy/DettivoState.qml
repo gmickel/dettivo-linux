@@ -187,9 +187,9 @@ Singleton {
         } else if (state === "inserting") {
             root.dictationState = "inserting";
         } else if (state === "idle" && payload.previous_state === "inserting") {
-            // The completion: the daemon attaches the insertion to the
-            // idle transition (docs/api/linux-deltas.md).
-            root.handleCompletion(payload.insertion || {}, payload.first_words || "");
+            // The completion: the daemon attaches the insertion to the idle
+            // transition (docs/api/linux-deltas.md); a take with no text has none.
+            root.handleCompletion(payload.insertion, payload.first_words || "");
             root.facts.refreshHistory();
         } else if (state === "failed") {
             root.dictationState = "failed";
@@ -207,29 +207,11 @@ Singleton {
     }
 
     function handleCompletion(insertion, words) {
-        if (insertion.outcome === "inserted") {
-            const app = insertion.target_app || {};
-            root.insertedTarget = app.name || app.bundle_id || "";
-            root.dictationState = "inserted";
-            root.showPill("inserted", {
-                "target": root.insertedTarget,
-                "words": words
-            });
-        } else if (insertion.outcome === "copied_to_clipboard") {
-            root.dictationState = "idle";
-            root.showPill("copied", {
-                "reason": insertion.reason || "",
-                "action": "Ctrl+V",
-                "words": words
-            });
-        } else {
-            root.dictationState = "failed";
-            root.showPill("error", {
-                "title": "Not inserted",
-                "reason": insertion.reason || "the insertion failed",
-                "action": "copy from history"
-            });
-        }
+        const done = DettivoText.completion(insertion, words);
+        if (done.state === "inserted")
+            root.insertedTarget = done.texts.target;
+        root.dictationState = done.state;
+        root.showPill(done.pill, done.texts);
     }
 
     // elapsedMs: what the meeting has recorded so far, when known.
