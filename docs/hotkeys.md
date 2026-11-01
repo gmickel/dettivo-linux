@@ -68,7 +68,7 @@ The evdev backend opens the configured `[hotkeys] evdev_devices` (or every keybo
 
 ## Media and sounds
 
-With `[hotkeys] pause_media = true`, every MPRIS player that is `Playing` when capture starts is paused and played again when the session ends, is cancelled or fails. A player you paused yourself stays paused; one that quit meanwhile is skipped. With `[hotkeys] sounds = true`, a short cue plays on start, stop and error through PipeWire's `pw-play`; without `pw-play` on `PATH` the cues stay silent and the journal says so once per cue. Cues never play while a meeting is being captured.
+With `[hotkeys] pause_media = true` (or `[audio] while_dictating = "pause"`, which also offers duck and mute, [docs/dictation.md](dictation.md#media-while-dictating)), every MPRIS player that is `Playing` once the take has recorded 300 ms is paused and played again when the session ends, is cancelled or fails. A player you paused yourself stays paused; one that quit meanwhile is skipped. With `[hotkeys] sounds = true`, a short cue plays on start, stop and error through PipeWire's `pw-play`; without `pw-play` on `PATH` the cues stay silent and the journal says so once per cue. Cues never play while a meeting is being captured.
 
 ## From the app
 

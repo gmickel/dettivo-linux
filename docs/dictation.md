@@ -7,6 +7,7 @@ A compositor binding can dictate: `dettivo dictation start` records the micropho
 ```
 dettivo dictation start --language en     # push to talk: bind to a key press
 dettivo dictation stop                     # bind to the release
+dettivo dictation stop --print             # finish it and print the text instead of inserting it
 dettivo dictation toggle                   # one binding for both
 dettivo dictation cancel                   # drop the take
 dettivo dictation status                   # is a session active, what is it doing
@@ -28,6 +29,8 @@ idle ──start──▶ recording ──stop──▶ transcribing ──▶ i
 - **recording** captures 16 kHz mono through PipeWire (a pinned `[audio] input_device` or the default source), meters it onto `audio.level`, and writes the take under `$XDG_STATE_HOME/dettivo/sessions/<job>/`. The session stops itself at `[dictation] max_duration_seconds`. A default source that moves or a pinned device that vanishes ends the session `failed` with the reason; the next start records on the new device.
 - **transcribing** passes the take through the speech gate, then sends it to the engine with the frozen language and vocabulary (see [The speech gate](#the-speech-gate)). A take the gate finds silent never reaches the engine and ends `cancelled` with `reason` `silence: level` or `silence: voice`, and the pill says "Nothing heard". An engine crash fails the session (the reason names the engine, never the audio) and the supervisor restarts the engine on the next use.
 - **inserting** runs the mode step (the raw layer, then Polish and the model rewrite when the mode asks for them, [docs/polish.md](polish.md)) and hands the text to the insertion chain ([docs/insertion.md](insertion.md)) in raw mode with the window captured at start as the guard; the result names the backend that typed or pasted it. A focus that moved to another window meanwhile refuses the insertion with `CONFLICT` (checked again right before the backend types), an origin the probe could not name at start sends the text to the clipboard with reason `origin_unverified`, a backend that may have typed a prefix ends the insertion as `failed` with reason `partial_delivery` and the text is never typed twice, and when no backend is available it reports `failed` with the reason; the transcript is kept either way, and `dictation.stop` reports the outcome in its `insertion` block.
+- **stop --print** finishes the take and runs the mode step like `stop`, then prints the text on standard output and inserts nothing; the history item records the insertion as `printed` and the pill shows the take as done with no window named. It waits up to 60 s for the transcription. It exits 0 with text and 6 (`NoSpeech`) when no speech was heard, so a script or a terminal agent can read a dictation with `text=$(dettivo dictation stop --print)`. `--json` prints the whole result with the text in `text`.
+- **A silent take** answers `stop` and `stop --print` alike with `CONFLICT` kind `noSpeech` ("no speech was heard"), and the CLI exits 6.
 - **idle** is published after the item is in the history store ([docs/history.md](history.md)) with the transcript, the insertion result, the app, the engine and model and, when `[history] keep_audio` is on, the take moved into the item's directory; the session keeps the last transcript for `reinsert-last` too, and after a restart `reinsert-last` reads the newest item from the store. A store that fails puts `history: <why>` on this state's `reason` and the insertion stands.
 
 `dictation.status` reports `is_active`, the job (`listening with whisper/large-v3-turbo`, progress as a fraction of the maximum duration) and the `target` captured at start; `system.health` reports `recording_state = dictation` and one active job while a session runs.
@@ -92,9 +95,24 @@ A vocabulary holds at most 500 entries, a term at most 64 characters and 16 `sou
 | `[dictation] max_duration_seconds` | `300` | The longest take. |
 | `[dictation] silence_dbfs` | `-50.0` | Under this level, over the loudest 30 ms, the take is silence. |
 | `[history] keep_audio` | `true` | Keep the take with the stored item. |
+| `[dictation] join_continuations` | `true` | A take into the window the previous one landed in, within 30 s and with no input in between, continues it ([docs/insertion.md](insertion.md#consecutive-dictations-join)). |
 | `[audio] input_device` | `""` | A pinned PipeWire node; empty follows the default. |
+| `[audio] while_dictating` | `"nothing"` | What a take does to playing media (see [Media while dictating](#media-while-dictating)). |
 
 If your `config.toml` still sets `[dictation] silence_peak_threshold`, it keeps loading and the daemon ignores that value, because `silence_dbfs` replaced it ([ADR 0081](adr/0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md)). Delete the line when convenient. Its value does not carry over, since the old key measured the single loudest sample and `silence_dbfs` measures the loudest 30 ms window in dBFS; [docs/config.md](config.md) has the full migration note.
+
+## Media while dictating
+
+`[audio] while_dictating` decides what a dictation does to playing music or video ([ADR 0091](adr/0091-delivery-restores-the-whole-clipboard-joins-continuations-and-ducks-media.md)):
+
+| Value | While the take records | After it |
+|---|---|---|
+| `"nothing"` | Media plays on. | Nothing. |
+| `"pause"` | The playing MPRIS players pause. | The players Dettivo paused resume. |
+| `"duck"` | The default output falls to 20 % volume along a smoothstep curve over about 200 ms; a quieter output stays as it is. | The volume rises back the same way. |
+| `"mute"` | The default output mutes. | It unmutes. |
+
+Media changes only once a take has recorded for 300 ms, the hold key's minimum hold, so a tap the hold key throws away never touches it. Dettivo puts back only what it changed. When you change the volume during the duck ramp, the ramp stops there, and a volume or a mute you set during the take stays after it. The volume goes through `wpctl` on `@DEFAULT_AUDIO_SINK@`, the pause through MPRIS on the session bus, all on a thread of its own, so the microphone never waits for it. Nothing changes during a meeting, because a meeting and a dictation never run at once. `[hotkeys] pause_media = true` with `while_dictating` left at `"nothing"` reads as `"pause"`.
 
 ## Testing without a microphone
 

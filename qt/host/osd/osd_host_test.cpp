@@ -133,6 +133,16 @@ void OsdHostTest::streamMapsToStatesAndCompletionCarriesTheOutcome()
     link.notify(QStringLiteral("dictation.state"), dictation("idle", "inserting", {{QStringLiteral("insertion"), inserted}}));
     QCOMPARE(model.state(), QStringLiteral("inserted"));
 
+    // `stop --print` took the text: done, with no window named.
+    QJsonObject printed = inserted;
+    printed.insert(QStringLiteral("outcome"), QStringLiteral("printed"));
+    printed.insert(QStringLiteral("method"), QStringLiteral("printed"));
+    printed.insert(QStringLiteral("target_app"), QJsonObject{{QStringLiteral("bundle_id"), QString()}, {QStringLiteral("name"), QString()}});
+    link.notify(QStringLiteral("dictation.state"), dictation("idle", "inserting", {{QStringLiteral("insertion"), printed}, {QStringLiteral("first_words"), QStringLiteral("Printed words")}}));
+    QCOMPARE(model.state(), QStringLiteral("inserted"));
+    QCOMPARE(model.target(), QString());
+    QCOMPARE(model.words(), QStringLiteral("Printed words"));
+
     QJsonObject failed = inserted;
     failed.insert(QStringLiteral("outcome"), QStringLiteral("failed"));
     failed.insert(QStringLiteral("reason"), QStringLiteral("clipboard unavailable"));

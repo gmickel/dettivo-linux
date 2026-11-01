@@ -51,6 +51,9 @@ function completion(insertion, words) {
             "texts": { "target": app.name || app.bundle_id || "", "words": words }
         };
     }
+    // `dettivo dictation stop --print` took the text: done, into no window.
+    if (insertion.outcome === "printed")
+        return { "state": "inserted", "pill": "inserted", "texts": { "target": "", "words": words } };
     if (insertion.outcome === "copied_to_clipboard")
         return {
             "state": "idle",

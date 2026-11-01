@@ -25,7 +25,7 @@ dettivo  Talk to the Dettivo daemon
 │  └─ keys*  List every key with its section, type, default and meaning
 ├─ dictation  dictation.* methods: start, stop, cancel, status, toggle, reinsert-last
 │  ├─ start --language --mode --expected-target-bundle-id --expected-target-pid  dictation.start
-│  ├─ stop  dictation.stop: finish the take, transcribe and insert
+│  ├─ stop --print  dictation.stop: finish the take, transcribe and insert
 │  ├─ cancel  dictation.cancel: drop the session
 │  ├─ status  dictation.status
 │  ├─ toggle*  Start when idle, stop when a session runs (Linux addition)

@@ -301,6 +301,9 @@ void OsdModel::applyCompletion(const QJsonObject &payload)
     const QString reason = str(insertion, "reason");
     if (outcome == QStringLiteral("inserted")) {
         show(QStringLiteral("inserted"), Texts{{}, {}, {}, {}, words, target == QStringLiteral("mock") ? QString() : target, {}, {}});
+    } else if (outcome == QStringLiteral("printed")) {
+        // `dettivo dictation stop --print` took the text: done, into no window.
+        show(QStringLiteral("inserted"), Texts{{}, {}, {}, {}, words, {}, {}, {}});
     } else if (outcome == QStringLiteral("copied_to_clipboard")) {
         show(QStringLiteral("copied"),
              Texts{{}, {}, {}, {}, words, {}, reason.isEmpty() ? tr("no text input focused") : reason, tr("Ctrl+V")});

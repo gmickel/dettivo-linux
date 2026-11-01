@@ -87,6 +87,8 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0080](0080-whisper-cpp-carries-a-dtw-median-filter-guard.md) | whisper.cpp carries a DTW median-filter guard, a chunk the engine dies on twice becomes a marked gap, and an engine that crashes on the GPU moves to the CPU | Accepted 2026-09-29, amends 0074; amended 2026-09-30 (the GPU is tried again after a hold, crash warnings keep Vulkan exception lines) |
 | [0081](0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md) | A dictation take passes a speech gate before the engine, and its text passes output guards after it | Accepted 2026-11-01, amends 0048; amended by 0082 |
 | [0082](0082-a-take-ends-at-the-stop-within-one-capture-quantum.md) | A dictation take ends at the stop request, within one capture quantum PipeWire may deliver before the stop runs | Accepted 2026-11-01, amends 0081 |
+| [0090](0090-the-first-key-waits-a-fixed-250-ms-after-the-stop.md) | The first key of a dictation waits a fixed 250 ms after the stop, with no key-state source | Accepted 2026-11-01 |
+| [0091](0091-delivery-restores-the-whole-clipboard-joins-continuations-and-ducks-media.md) | Delivery restores the whole clipboard, joins a quiet continuation, prints on request and ducks media past a tap | Accepted 2026-11-01 |
 | [0086](0086-a-vocabulary-entry-names-how-its-term-is-misheard.md) | A vocabulary entry names how its term is misheard, and only Enhanced reads the aliases | Accepted 2026-11-01 |
 | [0087](0087-the-term-recall-benchmark-scores-a-vocabulary-on-synthetic-clips.md) | The term-recall benchmark scores a vocabulary on synthetic clips, with the vocabulary off and on | Accepted 2026-11-01 |
 
