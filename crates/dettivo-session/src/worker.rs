@@ -307,6 +307,7 @@ impl Worker {
         let started = Instant::now();
         let mut ended: Option<EndReason> = None;
         let mut terminal = false;
+        let mut released_at: Option<usize> = None;
         loop {
             if self.cancel.load(Ordering::Relaxed) {
                 return Ok(Recorded {
@@ -317,19 +318,22 @@ impl Worker {
                     capture_ms: 0,
                 });
             }
-            // Once stopped, what the source already delivered was captured
-            // before the release; the tail is what it sends after `src.stop()`.
-            let next = if self.stop.load(Ordering::Relaxed)
-                || started.elapsed() >= self.policy.max_duration
-            {
-                match src.events().try_recv() {
-                    Ok(event) => Ok(event),
-                    Err(TryRecvError::Empty) => break,
-                    Err(TryRecvError::Disconnected) => Err(RecvTimeoutError::Disconnected),
+            // What the source delivered before the stop was captured before
+            // the release, queued or not; a chunk the worker waited for and
+            // that came after the stop opens the post-release tail.
+            let stopping =
+                self.stop.load(Ordering::Relaxed) || started.elapsed() >= self.policy.max_duration;
+            let (next, waited) = match src.events().try_recv() {
+                Ok(event) => (Ok(event), false),
+                Err(TryRecvError::Disconnected) => (Err(RecvTimeoutError::Disconnected), false),
+                Err(TryRecvError::Empty) if stopping => break,
+                Err(TryRecvError::Empty) => {
+                    (src.events().recv_timeout(Duration::from_millis(50)), true)
                 }
-            } else {
-                src.events().recv_timeout(Duration::from_millis(50))
             };
+            if waited && self.stop.load(Ordering::Relaxed) {
+                released_at.get_or_insert(samples.len());
+            }
             match next {
                 Ok(Event::Pcm(chunk)) => {
                     writer
@@ -375,7 +379,7 @@ impl Worker {
             }
         }
         let released = Instant::now();
-        let released_at = samples.len();
+        let released_at = released_at.unwrap_or(samples.len());
         src.stop();
         let deadline = released + Duration::from_secs(2);
         while !terminal {

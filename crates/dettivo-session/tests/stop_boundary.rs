@@ -126,3 +126,28 @@ fn speech_queued_before_the_stop_opens_the_gate() {
     assert_eq!(result.text, "Queued words");
     assert_eq!(result.duration_ms, 200);
 }
+
+/// fn-79 R1: a stop while the worker waits on an empty source, then a
+/// key-up thump: the thump is after the release and never opens the gate.
+#[test]
+fn a_sound_that_arrives_after_the_stop_while_the_worker_waits_is_tail() {
+    let (dir, _, session, engine, feed) = rig("never used");
+    session
+        .start(
+            policy(dir.path(), false),
+            engine.clone(),
+            feed.clone(),
+            None,
+        )
+        .unwrap();
+    feed.send(Event::Pcm(vec![0; 1_600]));
+    std::thread::sleep(Duration::from_millis(20));
+    let late = feed.clone();
+    let thump = std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(10));
+        late.send(Event::Pcm(tone(320)));
+    });
+    assert_eq!(session.stop().unwrap_err(), SessionError::Cancelled);
+    thump.join().unwrap();
+    assert_eq!(engine.calls.load(std::sync::atomic::Ordering::Relaxed), 0);
+}
