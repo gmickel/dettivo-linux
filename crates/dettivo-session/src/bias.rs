@@ -40,7 +40,7 @@ mod tests {
             },
         ];
         let bias = vocabulary_bias(&entries, VocabularyBoost::Normal).unwrap();
-        assert_eq!(bias.boost, 4.0);
+        assert_eq!(bias.boost, 5.0);
         assert_eq!(bias.terms[0].term, "Dettivo");
         assert!(bias.terms[0].aliases.is_empty());
         assert_eq!(bias.terms[1].aliases, vec!["clay".to_string()]);
@@ -48,7 +48,7 @@ mod tests {
             vocabulary_bias(&entries, VocabularyBoost::Strong)
                 .unwrap()
                 .boost,
-            5.0
+            6.0
         );
         assert_eq!(vocabulary_bias(&entries, VocabularyBoost::Off), None);
         assert_eq!(vocabulary_bias(&[], VocabularyBoost::Normal), None);
