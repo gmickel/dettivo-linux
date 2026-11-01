@@ -2,7 +2,7 @@
   "branch": "fn-79-clean-dictation-takes-a-real-speech",
   "findings": {
     "backend": "interactive",
-    "headSha": "1481d34921555d95842cd9816e0056c6b55c157c",
+    "headSha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
     "items": [
       {
         "body": "dettivo doctor's new voice gate row tells the user to run `dettivo speech download --model silero-vad` and says dictation gates on level alone while a present but manifest-less silero-vad is still being verified at start-up; it reads `ready` seconds later. Reproduced twice. Evidence: .flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/early-doctor-1/, runs/early-doctor-2/. Memory: .flow/memory/bug/ui/doctor-tells-a-user-to-download-a-2026-11-01.md (surface: crates/dettivo-cli/src/doctor_report.rs (voice gate row))",
@@ -10,11 +10,11 @@
         "confidence": 100,
         "firstSeenReceiptId": "review-2ffe1b0d8cb083b37b66cb942cbabf8f90803228074f8da77ce0f08b60fac419",
         "id": "finding-541823862e8097dcf9fa9b04b0ab03ec",
-        "lastSeenReceiptId": "review-2ffe1b0d8cb083b37b66cb942cbabf8f90803228074f8da77ce0f08b60fac419",
+        "lastSeenReceiptId": "review-e51c2583a6212e5158816d960deb4cb8c54a41df3d52c5ee13852649298dae6b",
         "ordinal": 1,
         "rIds": [],
         "severity": "P2",
-        "status": "open",
+        "status": "fixed",
         "title": "F1"
       },
       {
@@ -23,13 +23,13 @@
         "confidence": 75,
         "firstSeenReceiptId": "review-2ffe1b0d8cb083b37b66cb942cbabf8f90803228074f8da77ce0f08b60fac419",
         "id": "finding-58a6b1daa9ba1494ebdaa73844d15fd0",
-        "lastSeenReceiptId": "review-2ffe1b0d8cb083b37b66cb942cbabf8f90803228074f8da77ce0f08b60fac419",
+        "lastSeenReceiptId": "review-e51c2583a6212e5158816d960deb4cb8c54a41df3d52c5ee13852649298dae6b",
         "ordinal": 2,
         "rIds": [
           "R8"
         ],
         "severity": "P2",
-        "status": "open",
+        "status": "fixed",
         "title": "F2"
       },
       {
@@ -38,20 +38,21 @@
         "confidence": 50,
         "firstSeenReceiptId": "review-2ffe1b0d8cb083b37b66cb942cbabf8f90803228074f8da77ce0f08b60fac419",
         "id": "finding-59c0e5218f5a6a79ceddb0f35375e041",
-        "lastSeenReceiptId": "review-2ffe1b0d8cb083b37b66cb942cbabf8f90803228074f8da77ce0f08b60fac419",
+        "lastSeenReceiptId": "review-e51c2583a6212e5158816d960deb4cb8c54a41df3d52c5ee13852649298dae6b",
         "ordinal": 3,
         "rIds": [],
         "severity": "P2",
-        "status": "open",
+        "status": "not_fixed",
         "title": "F3"
       }
     ],
     "reviewKind": "qa",
-    "round": 1,
+    "round": 2,
     "schemaVersion": 1,
-    "sourceReceiptId": "review-2ffe1b0d8cb083b37b66cb942cbabf8f90803228074f8da77ce0f08b60fac419"
+    "sourceReceiptId": "review-e51c2583a6212e5158816d960deb4cb8c54a41df3d52c5ee13852649298dae6b",
+    "supersedesReceiptId": "review-2ffe1b0d8cb083b37b66cb942cbabf8f90803228074f8da77ce0f08b60fac419"
   },
-  "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+  "head_sha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
   "id": "fn-79-clean-dictation-takes-a-real-speech",
   "mode": "interactive",
   "open_p0p1": [],
@@ -64,7 +65,7 @@
         "id": "R1"
       },
       {
-        "coverage": "live",
+        "coverage": "carried",
         "id": "R2"
       },
       {
@@ -72,7 +73,7 @@
         "id": "R3"
       },
       {
-        "coverage": "live",
+        "coverage": "carried",
         "id": "R4"
       },
       {
@@ -80,11 +81,11 @@
         "id": "R5"
       },
       {
-        "coverage": "live",
+        "coverage": "carried",
         "id": "R6"
       },
       {
-        "coverage": "live",
+        "coverage": "carried",
         "id": "R7"
       },
       {
@@ -97,10 +98,11 @@
   "scenarios": [
     {
       "evidence": [
-        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r1-click/",
-        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p2-r1-click/"
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-r1-click/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-r1-click/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-run.log"
       ],
-      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "head_sha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
       "id": "S1-click-level",
       "outcome": "PASS",
       "rids": [
@@ -119,7 +121,7 @@
       "rids": [
         "R1"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -132,7 +134,7 @@
       "rids": [
         "R1"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -148,7 +150,7 @@
       "rids": [
         "R2"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -163,7 +165,7 @@
       "rids": [
         "R2"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -181,15 +183,17 @@
         "R2",
         "R7"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r3-novad-jfk/",
-        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r3-novad-click/",
-        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p2-r3-novad-jfk/"
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-r3-novad-jfk/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-r3-novad-click/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-r3-novad-jfk/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-r3-novad-click/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-run.log"
       ],
-      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "head_sha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
       "id": "S7-no-vad-level-only",
       "outcome": "PASS",
       "rids": [
@@ -199,10 +203,14 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r3-novad-jfk/doctor.txt",
-        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r1-click/doctor.txt"
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-r3-novad-jfk/doctor.txt",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-r3-novad-jfk/doctor.txt",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-r1-click/doctor.txt",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-r1-click/doctor.txt",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-unit-doctor-row.log",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-run.log"
       ],
-      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "head_sha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
       "id": "S8-doctor-voice-gate-row",
       "outcome": "PASS",
       "rids": [
@@ -212,12 +220,13 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/early-doctor-1/",
-        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/early-doctor-2/"
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-early-doctor/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-early-doctor/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-run.log"
       ],
-      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "head_sha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
       "id": "S8b-doctor-during-startup-verify",
-      "outcome": "FAIL",
+      "outcome": "PASS",
       "rids": [
         "R3"
       ],
@@ -238,7 +247,7 @@
       "rids": [
         "R4"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -252,7 +261,7 @@
       "rids": [
         "R5"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -268,7 +277,7 @@
       "rids": [
         "R6"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -283,14 +292,16 @@
       "rids": [
         "R7"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r8-legacy-peak-jfk/",
-        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p2-r8-legacy-peak-jfk/"
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-r8-legacy-peak-jfk/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-r8-legacy-peak-jfk/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-r8-docs.log",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-run.log"
       ],
-      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "head_sha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
       "id": "S13-retired-silence-peak-threshold",
       "outcome": "PASS",
       "rids": [
@@ -308,10 +319,22 @@
       "id": "REG1-audio-after-the-stop-never-counts",
       "outcome": "PASS",
       "rids": [],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-r2-fan/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-r2-fan/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-run.log"
+      ],
+      "head_sha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
+      "id": "RC-smoke-voice-gate-fan",
+      "outcome": "PASS",
+      "rids": [],
       "run": "live"
     }
   ],
-  "timestamp": "2026-11-01T14:21:15Z",
+  "timestamp": "2026-11-01T14:31:44Z",
   "type": "qa_verdict",
   "verdict": "SHIP"
 }
