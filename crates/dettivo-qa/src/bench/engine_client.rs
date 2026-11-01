@@ -7,6 +7,8 @@
 use std::io::{BufReader, BufWriter};
 use std::path::Path;
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
+use std::sync::mpsc::{self, RecvTimeoutError};
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use dettivo_engine_proto::{Frame, Kind, pcm_to_bytes, read_frame, write_frame};
@@ -15,12 +17,18 @@ use serde_json::{Value, json};
 /// The warm-up's silence, as the supervisor sends it: 30 s at 16 kHz.
 pub const WARM_UP_SAMPLES: usize = 480_000;
 
+/// The longest one request may take, its frames written and its answer
+/// read: a large model's load or the warm-up on the CPU finishes well
+/// inside it, and an engine still silent then is killed so its step fails.
+const CALL_TIMEOUT: Duration = Duration::from_secs(300);
+
 /// A running engine process.
 pub struct EngineClient {
-    child: Child,
+    child: Arc<Mutex<Child>>,
     writer: BufWriter<ChildStdin>,
     reader: BufReader<ChildStdout>,
     next_id: u64,
+    limit: Duration,
 }
 
 impl EngineClient {
@@ -44,21 +52,47 @@ impl EngineClient {
         let writer = BufWriter::new(child.stdin.take().ok_or("engine stdin")?);
         let reader = BufReader::new(child.stdout.take().ok_or("engine stdout")?);
         Ok(Self {
-            child,
+            child: Arc::new(Mutex::new(child)),
             writer,
             reader,
             next_id: 1,
+            limit: CALL_TIMEOUT,
         })
     }
 
     /// The process id.
     pub fn pid(&self) -> u32 {
-        self.child.id()
+        self.child.lock().unwrap_or_else(|p| p.into_inner()).id()
     }
 
     /// Sends `name` and waits for its response, skipping events; an
-    /// error response is an `Err` with the engine's message.
+    /// error response is an `Err` with the engine's message. An engine
+    /// that has not answered within `limit` is killed, which also ends a
+    /// read or write it left blocked mid-frame, and the call fails.
     pub fn call(
+        &mut self,
+        name: &str,
+        payload: Value,
+        pcm: Option<&[i16]>,
+    ) -> Result<Value, String> {
+        let (done, finished) = mpsc::channel::<()>();
+        let (child, limit) = (self.child.clone(), self.limit);
+        let watchdog = std::thread::spawn(move || {
+            let expired = finished.recv_timeout(limit) == Err(RecvTimeoutError::Timeout);
+            if expired {
+                let _ = child.lock().unwrap_or_else(|p| p.into_inner()).kill();
+            }
+            expired
+        });
+        let result = self.exchange(name, payload, pcm);
+        drop(done);
+        if watchdog.join().unwrap_or(true) {
+            return Err(format!("{name}: no answer within {limit:?}; engine killed"));
+        }
+        result
+    }
+
+    fn exchange(
         &mut self,
         name: &str,
         payload: Value,
@@ -124,8 +158,9 @@ impl EngineClient {
 
 impl Drop for EngineClient {
     fn drop(&mut self) {
-        let _ = self.child.kill();
-        let _ = self.child.wait();
+        let mut child = self.child.lock().unwrap_or_else(|p| p.into_inner());
+        let _ = child.kill();
+        let _ = child.wait();
     }
 }
 
@@ -175,22 +210,29 @@ mod tests {
     use super::*;
 
     /// An engine that never answers: `cat` echoes the request back and
-    /// then waits, so a call blocks on a read, and on a write once a frame
-    /// outgrows the pipe.
+    /// then waits, so a `load` blocks on the read, and the warm-up's 960 kB
+    /// frame blocks on the write once it outgrows the pipe.
     #[test]
     fn an_engine_that_stops_answering_fails_the_call_instead_of_hanging() {
         let dir = tempfile::tempdir().unwrap();
         let (tx, rx) = std::sync::mpsc::channel();
         let log = dir.path().join("engine.log");
         std::thread::spawn(move || {
-            let mut engine = EngineClient::spawn(Path::new("cat"), false, &log).unwrap();
-            let load = engine.load(Path::new("/models/none.bin"), None).map(|_| ());
-            let warm_up = engine.warm_up().map(|_| ());
-            let _ = tx.send((load, warm_up));
+            let silent = || {
+                let mut engine = EngineClient::spawn(Path::new("cat"), false, &log).unwrap();
+                engine.limit = Duration::from_millis(500);
+                engine
+            };
+            let load = silent().load(Path::new("/models/none.bin"), None).map(|_| ());
+            let warm_up = silent().warm_up().map(|_| ());
+            let _ = tx.send([load, warm_up]);
         });
-        let (load, warm_up) = rx
+        let results = rx
             .recv_timeout(Duration::from_secs(10))
             .expect("the calls returned rather than hanging");
-        assert!(load.is_err() && warm_up.is_err(), "{load:?} {warm_up:?}");
+        for result in results {
+            let error = result.expect_err("a silent engine fails the call");
+            assert!(error.contains("no answer within"), "{error}");
+        }
     }
 }
