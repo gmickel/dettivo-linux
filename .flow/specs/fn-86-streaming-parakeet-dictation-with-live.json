@@ -1,0 +1,35 @@
+{
+  "branch_name": "fn-86-streaming-parakeet-dictation-with-live",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-11-01T09:58:06.847471Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-81-catch-the-first-and-last-words-of-every"
+  ],
+  "id": "fn-86-streaming-parakeet-dictation-with-live",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-86-streaming-parakeet-dictation-with-live.md",
+  "status": "open",
+  "title": "Streaming Parakeet dictation with live text",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-01T11:53:03.482659Z"
+}

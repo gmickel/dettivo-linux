@@ -1,0 +1,33 @@
+{
+  "branch_name": "fn-88-better-dictation-shipped-as-one-release",
+  "created_at": "2026-11-01T11:52:53.742042Z",
+  "depends_on_epics": [
+    "fn-79-clean-dictation-takes-a-real-speech",
+    "fn-80-a-fast-first-dictation-and-the-right",
+    "fn-81-catch-the-first-and-last-words-of-every",
+    "fn-82-hold-to-talk-that-survives-lost",
+    "fn-83-vocabulary-entries-with-spoken-aliases",
+    "fn-84-vocabulary-on-parakeet",
+    "fn-85-delivery-that-leaves-the-desktop-as-it",
+    "fn-86-streaming-parakeet-dictation-with-live"
+  ],
+  "id": "fn-88-better-dictation-shipped-as-one-release",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-88-better-dictation-shipped-as-one-release.md",
+  "status": "open",
+  "title": "Better dictation, shipped as one release",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-01T11:53:03.183946Z"
+}
