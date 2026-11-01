@@ -1,0 +1,561 @@
+{
+  "schema_version": 1,
+  "generated_unix": 1793562994,
+  "date": "2026-11-01",
+  "git_sha": "199eb1d51b84a22e36a8e8742edb7ea735166b94",
+  "hostname": "thor",
+  "forced_cpu": false,
+  "fixture_sha256": "fcd09d43bac15469168fe68ca840434899a400368f3a41dd42ad449a38723318",
+  "vocabulary": [
+    {
+      "term": "Dettivo",
+      "sounds_like": [
+        "detivo",
+        "debt evo"
+      ]
+    },
+    {
+      "term": "Clef",
+      "sounds_like": [
+        "clay",
+        "cleff"
+      ]
+    },
+    {
+      "term": "SapienXT",
+      "sounds_like": [
+        "sapient x t",
+        "sapien xt"
+      ]
+    },
+    {
+      "term": "Omarchy",
+      "sounds_like": [
+        "oh marky",
+        "omar key"
+      ]
+    },
+    {
+      "term": "Hyprland",
+      "sounds_like": [
+        "hyper land",
+        "hyperland"
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "provider": "whisper",
+      "model": "large-v3-turbo",
+      "backend": "cpu",
+      "vocabulary": false,
+      "status": "measured",
+      "reason": null,
+      "score": {
+        "term_recall": [
+          2,
+          15
+        ],
+        "false_insertions": 0,
+        "guard_wer": 0.0
+      },
+      "transcripts": [
+        {
+          "id": "target-dettivo-1",
+          "text": "I dictated this note with Detivo on my laptop."
+        },
+        {
+          "id": "target-dettivo-2",
+          "text": "Ittilo puts the text into the focus window."
+        },
+        {
+          "id": "target-dettivo-3",
+          "text": "Open the settings in Didivo and add a new term."
+        },
+        {
+          "id": "target-clef-1",
+          "text": "The Clef released ships on Monday."
+        },
+        {
+          "id": "target-clef-2",
+          "text": "Ask the Clef team to review the change."
+        },
+        {
+          "id": "target-clef-3",
+          "text": "We moved the build server to Cluff last week."
+        },
+        {
+          "id": "target-sapienxt-1",
+          "text": "Sapien XT signed the contract this morning."
+        },
+        {
+          "id": "target-sapienxt-2",
+          "text": "Send the invoice to Sapien XT before the end of the month."
+        },
+        {
+          "id": "target-sapienxt-3",
+          "text": "The Sapien XT dashboard shows three new alerts."
+        },
+        {
+          "id": "target-omarchy-1",
+          "text": "I installed Omarki on the new desktop."
+        },
+        {
+          "id": "target-omarchy-2",
+          "text": "O Marky ships with the Tiling Window Manager."
+        },
+        {
+          "id": "target-omarchy-3",
+          "text": "A theme switcher in OMAR he changed every color"
+        },
+        {
+          "id": "target-hyprland-1",
+          "text": "Piper Lan draws the windows with rounded corners."
+        },
+        {
+          "id": "target-hyprland-2",
+          "text": "I bound the dictation key in Hyperland."
+        },
+        {
+          "id": "target-hyprland-3",
+          "text": "The Hyperland config reloads when you save it."
+        },
+        {
+          "id": "distractor-detective",
+          "text": "The detective closed the case before lunch."
+        },
+        {
+          "id": "distractor-clay",
+          "text": "She shaped the clay into a small bowl."
+        },
+        {
+          "id": "distractor-sapient",
+          "text": "Every sapient creature needs water and rest."
+        },
+        {
+          "id": "distractor-omar",
+          "text": "Omar keeps the spare keys in his desk."
+        },
+        {
+          "id": "distractor-highland",
+          "text": "We walked across the highland in the rain."
+        },
+        {
+          "id": "guard-meeting",
+          "text": "The meeting moved to Thursday afternoon because of the holiday."
+        },
+        {
+          "id": "guard-numbers",
+          "text": "Send the quarterly numbers to the finance team by Friday."
+        },
+        {
+          "id": "guard-rain",
+          "text": "Rain is expected over the weekend, so bring an umbrella."
+        },
+        {
+          "id": "guard-laptop",
+          "text": "The new laptop starts quickly and the battery lasts all day."
+        }
+      ],
+      "wall_ms": 299760
+    },
+    {
+      "provider": "whisper",
+      "model": "large-v3-turbo",
+      "backend": "cpu",
+      "vocabulary": true,
+      "status": "measured",
+      "reason": null,
+      "score": {
+        "term_recall": [
+          10,
+          15
+        ],
+        "false_insertions": 2,
+        "guard_wer": 0.0
+      },
+      "transcripts": [
+        {
+          "id": "target-dettivo-1",
+          "text": "I dictated this note with Detivo on my laptop."
+        },
+        {
+          "id": "target-dettivo-2",
+          "text": "Ittilo puts the text into the focus window."
+        },
+        {
+          "id": "target-dettivo-3",
+          "text": "Open the settings in Didivo and add a new term."
+        },
+        {
+          "id": "target-clef-1",
+          "text": "The Clef released ships on Monday."
+        },
+        {
+          "id": "target-clef-2",
+          "text": "Ask the Clef team to review the change."
+        },
+        {
+          "id": "target-clef-3",
+          "text": "We moved the build server to Clef last week."
+        },
+        {
+          "id": "target-sapienxt-1",
+          "text": "SapienXT signed the contract this morning."
+        },
+        {
+          "id": "target-sapienxt-2",
+          "text": "Send the invoice to SapienXT before the end of the month."
+        },
+        {
+          "id": "target-sapienxt-3",
+          "text": "The SapienXT dashboard shows three new alerts."
+        },
+        {
+          "id": "target-omarchy-1",
+          "text": "I installed Omarchy on the new desktop."
+        },
+        {
+          "id": "target-omarchy-2",
+          "text": "Omarchy ships with the Tiling Window Manager."
+        },
+        {
+          "id": "target-omarchy-3",
+          "text": "A theme switcher in Omarchy changed every color."
+        },
+        {
+          "id": "target-hyprland-1",
+          "text": "Hyprland draws the windows with rounded corners."
+        },
+        {
+          "id": "target-hyprland-2",
+          "text": "I bound the dictation key in Hyperland."
+        },
+        {
+          "id": "target-hyprland-3",
+          "text": "The Hyperland config reloads when you save it."
+        },
+        {
+          "id": "distractor-detective",
+          "text": "The detective closed the case before lunch."
+        },
+        {
+          "id": "distractor-clay",
+          "text": "She shaped the clay into a small bowl."
+        },
+        {
+          "id": "distractor-sapient",
+          "text": "Every Sapient creature needs water and rest."
+        },
+        {
+          "id": "distractor-omar",
+          "text": "Omarchy, Hyprland."
+        },
+        {
+          "id": "distractor-highland",
+          "text": "We walked across the highland in the rain."
+        },
+        {
+          "id": "guard-meeting",
+          "text": "The meeting moved to Thursday afternoon because of the holiday."
+        },
+        {
+          "id": "guard-numbers",
+          "text": "Send the quarterly numbers to the finance team by Friday."
+        },
+        {
+          "id": "guard-rain",
+          "text": "Rain is expected over the weekend, so bring an umbrella."
+        },
+        {
+          "id": "guard-laptop",
+          "text": "The new laptop starts quickly and the battery lasts all day."
+        }
+      ],
+      "wall_ms": 297328
+    },
+    {
+      "provider": "parakeet",
+      "model": "parakeet-v3",
+      "backend": "vulkan",
+      "vocabulary": false,
+      "status": "measured",
+      "reason": null,
+      "score": {
+        "term_recall": [
+          3,
+          15
+        ],
+        "false_insertions": 0,
+        "guard_wer": 0.0
+      },
+      "transcripts": [
+        {
+          "id": "target-dettivo-1",
+          "text": "I dictated this note with dativo on my laptop."
+        },
+        {
+          "id": "target-dettivo-2",
+          "text": "Itivo puts the text into the focus window."
+        },
+        {
+          "id": "target-dettivo-3",
+          "text": "Open the settings in DeDivo and add a new term."
+        },
+        {
+          "id": "target-clef-1",
+          "text": "The Clef release ships on Monday."
+        },
+        {
+          "id": "target-clef-2",
+          "text": "Ask the Clef team to review the change."
+        },
+        {
+          "id": "target-clef-3",
+          "text": "We moved the build server to Clef last week."
+        },
+        {
+          "id": "target-sapienxt-1",
+          "text": "Zapian XT signed the contract this morning."
+        },
+        {
+          "id": "target-sapienxt-2",
+          "text": "Send the invoice to Sapien XT before the end of the month."
+        },
+        {
+          "id": "target-sapienxt-3",
+          "text": "The Sapian XT dashboard shows three new alerts."
+        },
+        {
+          "id": "target-omarchy-1",
+          "text": "I installed Omarkey on the new desktop."
+        },
+        {
+          "id": "target-omarchy-2",
+          "text": "O Markey ships with a tiling window manager."
+        },
+        {
+          "id": "target-omarchy-3",
+          "text": "A theme switcher in Omar He changed every color."
+        },
+        {
+          "id": "target-hyprland-1",
+          "text": "Hyperland draws the windows with rounded corners."
+        },
+        {
+          "id": "target-hyprland-2",
+          "text": "I bound the dictation key in Hyperland."
+        },
+        {
+          "id": "target-hyprland-3",
+          "text": "The HyperLAN config reloads when you save it."
+        },
+        {
+          "id": "distractor-detective",
+          "text": "The detective closed the case before lunch."
+        },
+        {
+          "id": "distractor-clay",
+          "text": "She shaped the clay into a small bowl."
+        },
+        {
+          "id": "distractor-sapient",
+          "text": "Every sapient creature needs water and rest."
+        },
+        {
+          "id": "distractor-omar",
+          "text": "Omar keeps the spare keys in his desk."
+        },
+        {
+          "id": "distractor-highland",
+          "text": "We walked across the highland in the rain."
+        },
+        {
+          "id": "guard-meeting",
+          "text": "The meeting moved to Thursday afternoon because of the holiday."
+        },
+        {
+          "id": "guard-numbers",
+          "text": "Send the quarterly numbers to the finance team by Friday."
+        },
+        {
+          "id": "guard-rain",
+          "text": "Rain is expected over the weekend, so bring an umbrella."
+        },
+        {
+          "id": "guard-laptop",
+          "text": "The new laptop starts quickly and the battery lasts all day."
+        }
+      ],
+      "wall_ms": 19058
+    },
+    {
+      "provider": "parakeet",
+      "model": "parakeet-v3",
+      "backend": "vulkan",
+      "vocabulary": true,
+      "status": "measured",
+      "reason": null,
+      "score": {
+        "term_recall": [
+          8,
+          15
+        ],
+        "false_insertions": 0,
+        "guard_wer": 0.0
+      },
+      "transcripts": [
+        {
+          "id": "target-dettivo-1",
+          "text": "I dictated this note with dativo on my laptop.",
+          "candidates": 1,
+          "rescore_ms": 15.5
+        },
+        {
+          "id": "target-dettivo-2",
+          "text": "Itivo puts the text into the focus window.",
+          "candidates": 1,
+          "rescore_ms": 13.6
+        },
+        {
+          "id": "target-dettivo-3",
+          "text": "Open the settings in DeDivo and add a new term.",
+          "candidates": 1,
+          "rescore_ms": 19.1
+        },
+        {
+          "id": "target-clef-1",
+          "text": "The Clef release ships on Monday.",
+          "candidates": 0,
+          "rescore_ms": 0.1
+        },
+        {
+          "id": "target-clef-2",
+          "text": "Ask the Clef team to review the change.",
+          "candidates": 0,
+          "rescore_ms": 0.1
+        },
+        {
+          "id": "target-clef-3",
+          "text": "We moved the build server to Clef last week.",
+          "candidates": 0,
+          "rescore_ms": 0.2
+        },
+        {
+          "id": "target-sapienxt-1",
+          "text": "SapienXT signed the contract this morning.",
+          "candidates": 1,
+          "rescore_ms": 26.6
+        },
+        {
+          "id": "target-sapienxt-2",
+          "text": "Send the invoice to SapienXT before the end of the month.",
+          "candidates": 2,
+          "rescore_ms": 39.8
+        },
+        {
+          "id": "target-sapienxt-3",
+          "text": "The SapienXT dashboard shows three new alerts.",
+          "candidates": 1,
+          "rescore_ms": 22.7
+        },
+        {
+          "id": "target-omarchy-1",
+          "text": "I installed Omarchy on the new desktop.",
+          "candidates": 1,
+          "rescore_ms": 18.0
+        },
+        {
+          "id": "target-omarchy-2",
+          "text": "O Markey ships with a tiling window manager.",
+          "candidates": 2,
+          "rescore_ms": 34.2
+        },
+        {
+          "id": "target-omarchy-3",
+          "text": "A theme switcher in Omarchy changed every color.",
+          "candidates": 2,
+          "rescore_ms": 27.7
+        },
+        {
+          "id": "target-hyprland-1",
+          "text": "Hyperland draws the windows with rounded corners.",
+          "candidates": 1,
+          "rescore_ms": 15.4
+        },
+        {
+          "id": "target-hyprland-2",
+          "text": "I bound the dictation key in Hyperland.",
+          "candidates": 1,
+          "rescore_ms": 17.4
+        },
+        {
+          "id": "target-hyprland-3",
+          "text": "The HyperLAN config reloads when you save it.",
+          "candidates": 1,
+          "rescore_ms": 15.9
+        },
+        {
+          "id": "distractor-detective",
+          "text": "The detective closed the case before lunch.",
+          "candidates": 0,
+          "rescore_ms": 0.1
+        },
+        {
+          "id": "distractor-clay",
+          "text": "She shaped the clay into a small bowl.",
+          "candidates": 1,
+          "rescore_ms": 14.6
+        },
+        {
+          "id": "distractor-sapient",
+          "text": "Every sapient creature needs water and rest.",
+          "candidates": 1,
+          "rescore_ms": 17.4
+        },
+        {
+          "id": "distractor-omar",
+          "text": "Omar keeps the spare keys in his desk.",
+          "candidates": 1,
+          "rescore_ms": 15.6
+        },
+        {
+          "id": "distractor-highland",
+          "text": "We walked across the highland in the rain.",
+          "candidates": 0,
+          "rescore_ms": 0.1
+        },
+        {
+          "id": "guard-meeting",
+          "text": "The meeting moved to Thursday afternoon because of the holiday.",
+          "candidates": 0,
+          "rescore_ms": 0.2
+        },
+        {
+          "id": "guard-numbers",
+          "text": "Send the quarterly numbers to the finance team by Friday.",
+          "candidates": 0,
+          "rescore_ms": 0.2
+        },
+        {
+          "id": "guard-rain",
+          "text": "Rain is expected over the weekend, so bring an umbrella.",
+          "candidates": 0,
+          "rescore_ms": 0.2
+        },
+        {
+          "id": "guard-laptop",
+          "text": "The new laptop starts quickly and the battery lasts all day.",
+          "candidates": 0,
+          "rescore_ms": 0.2
+        }
+      ],
+      "wall_ms": 19445,
+      "rescoring": {
+        "clips_with_candidates": 15,
+        "median_ms_with_candidates": 17.4,
+        "max_ms_without_candidates": 0.2
+      }
+    }
+  ]
+}
