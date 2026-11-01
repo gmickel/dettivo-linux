@@ -761,6 +761,7 @@ dependencies = [
  "tokio",
  "tracing",
  "wayland-client",
+ "wayland-protocols",
  "wayland-protocols-misc",
  "wl-clipboard-rs",
  "x11rb",

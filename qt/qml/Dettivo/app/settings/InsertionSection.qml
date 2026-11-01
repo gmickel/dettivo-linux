@@ -72,6 +72,18 @@ SettingsPage {
     }
 
     SettingsGroup {
+        title: qsTr("Consecutive dictations")
+
+        SettingRow {
+            hint: qsTr("same window, within 30 s, nothing typed between")
+            key: "dictation.join_continuations"
+            kind: "switch"
+            label: qsTr("Join consecutive dictations")
+            settings: root.settings
+        }
+    }
+
+    SettingsGroup {
         title: qsTr("Undo")
 
         SettingRow {

@@ -51,6 +51,13 @@
           "section": "audio"
         },
         {
+          "default": "nothing",
+          "doc": "What a dictation does to playing media once the key is held past a tap: \"nothing\", \"pause\" (MPRIS players), \"duck\" (the default output to 20 %) or \"mute\". Nothing changes while a meeting records. [hotkeys] pause_media = true reads as \"pause\".",
+          "key": "audio.while_dictating",
+          "kind": "text",
+          "section": "audio"
+        },
+        {
           "default": "info",
           "doc": "Lowest level written to the journal: error, warn, info, debug, trace. No level ever logs transcript text, audio or prompts.",
           "key": "daemon.log_level",
@@ -63,6 +70,13 @@
           "key": "daemon.shutdown_timeout_ms",
           "kind": "integer",
           "section": "daemon"
+        },
+        {
+          "default": true,
+          "doc": "A dictation into the window the previous one landed in, within 30 s and with no typing in between, continues it: one joining space, and a capital only after a sentence end. Needs the compositor's input-idle signal; false types every dictation as it is.",
+          "key": "dictation.join_continuations",
+          "kind": "boolean",
+          "section": "dictation"
         },
         {
           "default": "auto",
@@ -262,7 +276,7 @@
         },
         {
           "default": false,
-          "doc": "Pause playing MPRIS players while capturing and resume them after.",
+          "doc": "Pause playing MPRIS players while capturing and resume them after; the same as [audio] while_dictating = \"pause\".",
           "key": "hotkeys.pause_media",
           "kind": "boolean",
           "section": "hotkeys"
@@ -296,8 +310,8 @@
           "section": "insert"
         },
         {
-          "default": 300,
-          "doc": "How long the restore waits for the target to take the paste, in milliseconds. A clipboard the user changed meanwhile is left alone.",
+          "default": 500,
+          "doc": "How long the restore waits for the target to take the paste, in milliseconds. Every type the clipboard offered (an image, rich text, a file list) comes back; a copy made meanwhile is left alone.",
           "key": "insert.clipboard_restore_delay_ms",
           "kind": "integer",
           "section": "insert"

@@ -15,6 +15,7 @@ tracing.workspace = true
 tokio.workspace = true
 libc.workspace = true
 wayland-client.workspace = true
+wayland-protocols.workspace = true
 wayland-protocols-misc.workspace = true
 xkbcommon.workspace = true
 wl-clipboard-rs.workspace = true

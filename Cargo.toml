@@ -79,6 +79,7 @@ atspi = { version = "0.30", default-features = false, features = ["connection", 
 zbus = { version = "5", default-features = false, features = ["tokio"] }
 x11rb = { version = "0.14", features = ["xtest", "image"] }
 wayland-client = "0.31"
+wayland-protocols = { version = "0.32", features = ["client", "staging"] }
 wayland-protocols-misc = { version = "0.3", features = ["client"] }
 xkbcommon = "0.9"
 ashpd = { version = "0.13", default-features = false, features = ["tokio", "remote_desktop", "screencast", "global_shortcuts"] }

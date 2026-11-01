@@ -111,7 +111,7 @@ QJsonArray settingsEntries()
         entry("insert.self_app_ids", list({"dettivo", "dettivo-app", "dettivo-osd", "dettivo-sheet"}), "default"),
         entry("insert.inter_key_delay_ms", 2, "default"),
         entry("insert.restore_clipboard", true, "default"),
-        entry("insert.clipboard_restore_delay_ms", 300, "default"),
+        entry("insert.clipboard_restore_delay_ms", 500, "default"),
         entry("insert.undo_window_ms", 5000, "default"),
         entry("history.keep_audio", true, "default"),
         entry("history.audio_retention_days", 30, "default"),
