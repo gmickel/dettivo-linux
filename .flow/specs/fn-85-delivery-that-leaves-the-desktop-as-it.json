@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-85-delivery-that-leaves-the-desktop-as-it",
   "impl_review_rounds": {
-    "fn-85-delivery-that-leaves-the-desktop-as-it.1": 1
+    "fn-85-delivery-that-leaves-the-desktop-as-it.1": 0
   },
   "next_task": 1,
   "no_plan": true,
@@ -353,10 +353,102 @@
       "task": "fn-85-delivery-that-leaves-the-desktop-as-it.1",
       "timestamp": "2026-11-01T22:33:22.562297Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ae53461574bf6b5f6d4795023fed451854a18c3ef3af92b9307267d59b3a551f",
+      "backend": "codex",
+      "base_sha": "439fe3f78ff2a22040f7faa98b9018d0e48ce345",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5bed081eca1b436549666b945c5a80f5",
+            "classification": "introduced",
+            "findingId": "finding-5bed081eca1b436549666b945c5a80f5",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6fe578027b8af1b6ad9a536b19f41232",
+            "classification": "introduced",
+            "findingId": "finding-6fe578027b8af1b6ad9a536b19f41232",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-584cb7836feaa65760a4cae88278a70c",
+            "classification": "introduced",
+            "findingId": "finding-584cb7836feaa65760a4cae88278a70c",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-067196f5f72caf2c382f6be3c1bbe9ba",
+            "classification": "introduced",
+            "findingId": "finding-067196f5f72caf2c382f6be3c1bbe9ba",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f53140cb32dbf4c45751c6dadf395fa9",
+            "classification": "introduced",
+            "findingId": "finding-f53140cb32dbf4c45751c6dadf395fa9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-318614b7213b5c638fb1482cdc455a76",
+            "classification": "introduced",
+            "findingId": "finding-318614b7213b5c638fb1482cdc455a76",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ebcec02b254a5b6564d2bcfc7f9df361",
+            "classification": "introduced",
+            "findingId": "finding-ebcec02b254a5b6564d2bcfc7f9df361",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "7ad6bd26f7134f88fb7244b312c5753b74253252",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1995,
+      "output_sha256": "4a5ebc6dad75851c31d4d4da472aefe4ae0ad63ddc75d41f15751195ad9d0461",
+      "reservation_id": "582c49756bc9445986ca0a3b7b1d83fa",
+      "round_consumed": true,
+      "scope": "impl:fn-85-delivery-that-leaves-the-desktop-as-it.1",
+      "superseded_by": null,
+      "task": "fn-85-delivery-that-leaves-the-desktop-as-it.1",
+      "timestamp": "2026-11-01T22:55:55.439229Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-85-delivery-that-leaves-the-desktop-as-it.1": 1
+    "impl:fn-85-delivery-that-leaves-the-desktop-as-it.1": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -377,5 +469,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T22:33:22.565748Z"
+  "updated_at": "2026-11-01T22:55:55.442926Z"
 }
