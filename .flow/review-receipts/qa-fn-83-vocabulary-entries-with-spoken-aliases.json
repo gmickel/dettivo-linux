@@ -2,7 +2,7 @@
   "branch": "fn-83-vocabulary-entries-with-spoken-aliases",
   "findings": {
     "backend": "receipt",
-    "headSha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+    "headSha": "26411eaaa14fade2ba2257ee21e793dce44c6bb9",
     "items": [
       {
         "body": "`dettivo config set dictation.vocabulary` with a JSON object entry is refused with the stale message 'expected a list of strings' (exit 4, twice); the file-syntax table form and the JSON form over `config.set` work. Evidence .flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a2-config/run.log (surface: crates/dettivo-core/src/config/edit.rs)",
@@ -10,11 +10,11 @@
         "confidence": 75,
         "firstSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
         "id": "finding-44c0f6acc4bdf9ff585d1c49ceaf2cb4",
-        "lastSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "lastSeenReceiptId": "review-91de11641e8e088d9e7276bae0e0605fad104e7b2af3142bd44aa95652823c30",
         "ordinal": 1,
         "rIds": [],
         "severity": "P2",
-        "status": "open",
+        "status": "fixed",
         "title": "QA-1"
       },
       {
@@ -23,11 +23,11 @@
         "confidence": 75,
         "firstSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
         "id": "finding-ae1f66ef18428d8700dfb1dabbadafab",
-        "lastSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "lastSeenReceiptId": "review-91de11641e8e088d9e7276bae0e0605fad104e7b2af3142bd44aa95652823c30",
         "ordinal": 2,
         "rIds": [],
         "severity": "P2",
-        "status": "open",
+        "status": "fixed",
         "title": "QA-2"
       },
       {
@@ -36,12 +36,25 @@
         "confidence": 75,
         "firstSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
         "id": "finding-c32fd035689d156e7793dbba6dfb67ae",
-        "lastSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "lastSeenReceiptId": "review-91de11641e8e088d9e7276bae0e0605fad104e7b2af3142bd44aa95652823c30",
         "ordinal": 3,
         "rIds": [],
         "severity": "P2",
-        "status": "open",
+        "status": "fixed",
         "title": "QA-3"
+      },
+      {
+        "body": "`dettivo config set dictation.vocabulary` on a multi-line array whose last entry has no trailing comma moves the closing `]` onto the last entry's line and leaves a line holding only `,` before an appended entry (twice, identical). Comments survive and the file stays valid; with a trailing comma (CLI a2-config, Settings g-gui) the layout is kept exactly. QA-1..QA-5 re-ran live twice and no longer reproduce. Evidence .flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/f-cli/f2-after-set-file-syntax.toml, recheck/run2/f-cli/run.log; memory .flow/memory/bug/ui/cli-users-comma-less-last-vocabulary-2026-11-01.md (surface: crates/dettivo-core/src/config/file_syntax.rs)",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-91de11641e8e088d9e7276bae0e0605fad104e7b2af3142bd44aa95652823c30",
+        "id": "finding-005ffd54f5b765026f680a2e5212e54f",
+        "lastSeenReceiptId": "review-91de11641e8e088d9e7276bae0e0605fad104e7b2af3142bd44aa95652823c30",
+        "ordinal": 6,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-6"
       },
       {
         "body": "A refused vocabulary save's error ('\"Omarchy\" has 17 sounds_like spellings') stays after a hand edit removes Omarchy and the page refreshes (twice). Evidence .flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui-repro/tree-r2-after-hand-edit.json (surface: qt/qml/Dettivo/app/settings/VocabularySection.qml)",
@@ -49,11 +62,11 @@
         "confidence": 50,
         "firstSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
         "id": "finding-56838bc69b82541c32850eb79917da06",
-        "lastSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "lastSeenReceiptId": "review-91de11641e8e088d9e7276bae0e0605fad104e7b2af3142bd44aa95652823c30",
         "ordinal": 4,
         "rIds": [],
         "severity": "P2",
-        "status": "open",
+        "status": "fixed",
         "title": "QA-4"
       },
       {
@@ -62,20 +75,21 @@
         "confidence": 50,
         "firstSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
         "id": "finding-6d8bd82b23bb460d7b9d5b1e38513dce",
-        "lastSeenReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42",
+        "lastSeenReceiptId": "review-91de11641e8e088d9e7276bae0e0605fad104e7b2af3142bd44aa95652823c30",
         "ordinal": 5,
         "rIds": [],
         "severity": "P2",
-        "status": "open",
+        "status": "fixed",
         "title": "QA-5"
       }
     ],
     "reviewKind": "qa",
-    "round": 1,
+    "round": 2,
     "schemaVersion": 1,
-    "sourceReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42"
+    "sourceReceiptId": "review-91de11641e8e088d9e7276bae0e0605fad104e7b2af3142bd44aa95652823c30",
+    "supersedesReceiptId": "review-08e94f24416f7f8339b7744ede378c726dd25a5880019320674b7b6eeadc0e42"
   },
-  "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+  "head_sha": "26411eaaa14fade2ba2257ee21e793dce44c6bb9",
   "id": "fn-83-vocabulary-entries-with-spoken-aliases",
   "mode": "receipt",
   "open_p0p1": [],
@@ -92,11 +106,11 @@
         "id": "R2"
       },
       {
-        "coverage": "live",
+        "coverage": "carried",
         "id": "R3"
       },
       {
-        "coverage": "live",
+        "coverage": "carried",
         "id": "R4"
       },
       {
@@ -104,7 +118,7 @@
         "id": "R5"
       },
       {
-        "coverage": "live",
+        "coverage": "carried",
         "id": "R6"
       },
       {
@@ -117,11 +131,11 @@
   "scenarios": [
     {
       "evidence": [
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/run.log",
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/s1-initial.toml",
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/s1b-legacy.toml"
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/a-config/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run2/a-config/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/a-config/s1b-legacy.toml"
       ],
-      "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+      "head_sha": "26411eaaa14fade2ba2257ee21e793dce44c6bb9",
       "id": "S1-file-forms-load",
       "outcome": "PASS",
       "rids": [
@@ -131,11 +145,14 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/run.log",
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a2-config/run.log",
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a2-config/after-json-api.toml"
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/a-config/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/a2-config/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run2/a2-config/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/f-cli/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run2/f-cli/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/f-cli/config-keys.log"
       ],
-      "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+      "head_sha": "26411eaaa14fade2ba2257ee21e793dce44c6bb9",
       "id": "S2-config-set-both-forms-comments",
       "outcome": "PASS",
       "rids": [
@@ -146,11 +163,10 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/run.log",
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a2-config/run.log",
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/s3d-hand-edit.toml"
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/a-config/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run2/a2-config/run.log"
       ],
-      "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+      "head_sha": "26411eaaa14fade2ba2257ee21e793dce44c6bb9",
       "id": "S3-limits-refused-naming-entry",
       "outcome": "PASS",
       "rids": [
@@ -160,10 +176,10 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/run.log",
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/a-config/s4b-hand-dup.toml"
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/a-config/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run2/a-config/s4b-hand-dup.toml"
       ],
-      "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+      "head_sha": "26411eaaa14fade2ba2257ee21e793dce44c6bb9",
       "id": "S4-case-duplicates-first-spelling",
       "outcome": "PASS",
       "rids": [
@@ -184,7 +200,7 @@
       "rids": [
         "R4"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -197,18 +213,17 @@
       "rids": [
         "R3"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui/screenshot-7a-shown.png",
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui/screenshot-7b-dettivo-aliases.png",
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui/screenshot-7d-hyprland-added.png",
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui/screenshot-7e-case-duplicate.png",
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui/screenshot-7f-too-many-aliases.png",
-        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/c-gui/run.log"
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/c-gui/screenshot-7a-shown.png",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/c-gui/screenshot-7d-hyprland-added.png",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/c-gui/screenshot-7f-too-many-aliases.png",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/c-gui/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run2/c-gui/run.log"
       ],
-      "head_sha": "faf7680092f3c8ebfe96c5b4720a3180ff47af25",
+      "head_sha": "26411eaaa14fade2ba2257ee21e793dce44c6bb9",
       "id": "S7-settings-vocabulary-sounds-like",
       "outcome": "PASS",
       "rids": [
@@ -228,10 +243,27 @@
       "rids": [
         "R6"
       ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/g-gui/screenshot-g2-after-own-save.png",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/g-gui/screenshot-g4-refused.png",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/g-gui/screenshot-g5-after-hand-edit.png",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/g-gui/g3-after-add.toml",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run1/g-gui/run.log",
+        ".flow/tmp/qa-fn-83-vocabulary-entries-with-spoken-aliases/recheck/run2/g-gui/run.log"
+      ],
+      "head_sha": "26411eaaa14fade2ba2257ee21e793dce44c6bb9",
+      "id": "S9-settings-own-save-and-stale-refusal",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
       "run": "live"
     }
   ],
-  "timestamp": "2026-11-01T16:55:12Z",
+  "timestamp": "2026-11-01T17:24:36Z",
   "type": "qa_verdict",
   "verdict": "SHIP"
 }
