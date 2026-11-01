@@ -27,8 +27,6 @@ const STEPS: u32 = 10;
 /// volumes closer than half of one are the same and a change of one
 /// hundredth is the user's.
 const SAME: f32 = 0.005;
-/// The longest the end of a take waits for the restore.
-const DRAIN: Duration = Duration::from_secs(2);
 
 /// A sink's volume, addressed by the id [`Volume::default_sink`] gave.
 pub trait Volume: Send {
@@ -53,15 +51,39 @@ pub trait Players: Send {
 /// The sinks through `wpctl`.
 pub struct Wpctl;
 
+/// How long one `wpctl` run may take before it is killed.
+const WPCTL_TIMEOUT: Duration = Duration::from_secs(2);
+
 fn wpctl(args: &[&str]) -> Result<String, String> {
-    let out = std::process::Command::new("wpctl")
+    use std::io::Read;
+    let mut child = std::process::Command::new("wpctl")
         .args(args)
-        .output()
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .spawn()
         .map_err(|e| format!("wpctl: {e}"))?;
-    if !out.status.success() {
-        return Err(format!("wpctl {}: {}", args[0], out.status));
+    let deadline = std::time::Instant::now() + WPCTL_TIMEOUT;
+    let status = loop {
+        match child.try_wait().map_err(|e| format!("wpctl: {e}"))? {
+            Some(status) => break status,
+            None if std::time::Instant::now() >= deadline => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err(format!("wpctl {}: no answer within 2 s", args[0]));
+            }
+            None => std::thread::sleep(Duration::from_millis(5)),
+        }
+    };
+    if !status.success() {
+        return Err(format!("wpctl {}: {status}", args[0]));
     }
-    Ok(String::from_utf8_lossy(&out.stdout).into_owned())
+    let mut out = String::new();
+    if let Some(mut stdout) = child.stdout.take() {
+        stdout
+            .read_to_string(&mut out)
+            .map_err(|e| format!("wpctl: {e}"))?;
+    }
+    Ok(out)
 }
 
 /// `Volume: 0.40` or `Volume: 0.40 [MUTED]`.
@@ -154,12 +176,15 @@ impl Media {
         let _ = self.send(Msg::Started(action));
     }
 
-    /// The take ended (completed, cancelled or failed): returns once
-    /// media is back, or after [`DRAIN`].
+    /// The take ended (completed, cancelled or failed): returns once the
+    /// media work of the take is done and media is back, so the session
+    /// holds its slot, and a meeting stays out, until then. Every MPRIS
+    /// call and `wpctl` run is bounded by its own timeout; a media thread
+    /// that died ends the wait.
     pub fn ended(&self) {
         let (done, back) = mpsc::channel();
-        if self.send(Msg::Ended(done)).is_ok() && back.recv_timeout(DRAIN).is_err() {
-            tracing::warn!("media still being put back after dictating");
+        if self.send(Msg::Ended(done)).is_ok() {
+            let _ = back.recv();
         }
     }
 

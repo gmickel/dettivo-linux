@@ -110,7 +110,8 @@ fn spawn(volume: &Fake, players: &FakePlayers) -> (Sender<Msg>, JoinHandle<()>) 
 fn end(tx: &Sender<Msg>) {
     let (done, back) = mpsc::channel();
     tx.send(Msg::Ended(done)).unwrap();
-    back.recv_timeout(DRAIN).expect("the end is acknowledged");
+    back.recv_timeout(Duration::from_secs(5))
+        .expect("the end is acknowledged");
 }
 
 /// A take held past the tap and the ramp, then ended; the state the
