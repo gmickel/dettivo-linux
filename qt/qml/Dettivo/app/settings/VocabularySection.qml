@@ -54,6 +54,36 @@ SettingsPage {
         } : term;
         root.save(root.entries.map((e, i) => i === index ? next : e));
     }
+    // One row per entry, updated in place so an editor and its draft
+    // survive a write from this page or another client.
+    ListModel {
+        id: rows
+    }
+    onEntriesChanged: root.sync()
+    Component.onCompleted: root.sync()
+    function sync() {
+        let i = 0;
+        for (; i < root.entries.length; i++) {
+            const term = root.termOf(root.entries[i]);
+            const aliases = root.aliasesOf(root.entries[i]).join(", ");
+            let j = i;
+            while (j < rows.count && rows.get(j).term !== term)
+                j++;
+            if (j === rows.count) {
+                rows.insert(i, {
+                    term: term,
+                    aliases: aliases
+                });
+                continue;
+            }
+            if (j > i)
+                rows.remove(i, j - i);
+            if (rows.get(i).aliases !== aliases)
+                rows.setProperty(i, "aliases", aliases);
+        }
+        if (rows.count > i)
+            rows.remove(i, rows.count - i);
+    }
     Connections {
         target: root.settings
         function onErrorChanged(key) {
@@ -77,6 +107,9 @@ SettingsPage {
         }
         Button {
             text: qsTr("Add term")
+            // A click leaves an alias field focused, so its blur save
+            // cannot mark the list pending under the click.
+            focusPolicy: Qt.TabFocus
             enabled: !root.pending && root.lockedBy.length === 0 && entry.text.trim().length > 0 && !root.known(entry.text.trim())
             onClicked: root.addTerm()
         }
@@ -105,18 +138,22 @@ SettingsPage {
         Accessible.name: text
     }
     Repeater {
-        model: root.entries
+        model: rows
         delegate: Item {
             id: termRow
-            required property var modelData
+            required property string term
+            required property string aliases
             required property int index
-            readonly property string term: root.termOf(modelData)
-            readonly property string aliasText: root.aliasesOf(modelData).join(", ")
+            // A field being edited keeps its draft; the others follow.
+            onAliasesChanged: {
+                if (!aliasField.activeFocus)
+                    aliasField.text = termRow.aliases;
+            }
             width: parent.width
             height: Theme.settingsRowHeight
             Text {
                 anchors.left: parent.left
-                anchors.right: aliases.left
+                anchors.right: aliasField.left
                 anchors.rightMargin: Theme.space3
                 anchors.verticalCenter: parent.verticalCenter
                 text: termRow.term
@@ -128,12 +165,12 @@ SettingsPage {
                 Accessible.name: text
             }
             TextField {
-                id: aliases
+                id: aliasField
                 anchors.right: remove.left
                 anchors.rightMargin: Theme.space3
                 anchors.verticalCenter: parent.verticalCenter
                 width: Theme.settingsControlWidth
-                text: termRow.aliasText
+                Component.onCompleted: text = termRow.aliases
                 placeholderText: qsTr("Sounds like")
                 enabled: !root.pending && root.lockedBy.length === 0
                 Accessible.name: qsTr("Sounds like for %1").arg(termRow.term)
@@ -149,6 +186,7 @@ SettingsPage {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("Remove")
+                focusPolicy: Qt.TabFocus
                 enabled: !root.pending && root.lockedBy.length === 0
                 Accessible.name: qsTr("Remove vocabulary term %1").arg(termRow.term)
                 onClicked: root.save(root.entries.filter((e, index) => index !== termRow.index))

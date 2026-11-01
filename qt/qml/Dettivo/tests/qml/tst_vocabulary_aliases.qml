@@ -67,6 +67,55 @@ TestCase {
         ]);
     }
 
+    function vocabularyWith(entries, deferred) {
+        const settings = createTemporaryObject(settingsC, root, {
+            deferred: deferred
+        });
+        settings.values["dictation.vocabulary"] = entries;
+        const vocabulary = createTemporaryObject(vocabularyC, root, {
+            settings: settings,
+            width: 1080,
+            height: 820
+        });
+        waitForRendering(vocabulary);
+        return [settings, vocabulary];
+    }
+
+    // The click on Remove must remove, not commit the alias being edited.
+    function test_remove_during_an_alias_edit_removes_the_term() {
+        const [settings, vocabulary] = vocabularyWith(["Dettivo", "Clef"], true);
+        const field = named(vocabulary, "Sounds like for Clef");
+        mouseClick(field);
+        verify(field.activeFocus);
+        field.text = "clay";
+        mouseClick(named(vocabulary, "Remove vocabulary term Clef"));
+        verify(settings.queued !== null, "the click wrote the list");
+        compare(settings.queued, ["Dettivo"]);
+    }
+
+    // A change from another client keeps the field being edited.
+    function test_an_outside_change_keeps_the_alias_edit_in_progress() {
+        const [settings, vocabulary] = vocabularyWith(["Dettivo", "Clef"], false);
+        const field = named(vocabulary, "Sounds like for Dettivo");
+        mouseClick(field);
+        field.text = "detivo";
+        settings.values = {
+            "dictation.vocabulary": ["Dettivo",
+                {
+                    "term": "Clef",
+                    "sounds_like": ["clay"]
+                },
+                "Omarchy"]
+        };
+        settings.revision++;
+        waitForRendering(vocabulary);
+        compare(named(vocabulary, "Sounds like for Dettivo"), field, "the editor is kept");
+        verify(field.activeFocus);
+        compare(field.text, "detivo");
+        compare(named(vocabulary, "Sounds like for Clef").text, "clay", "a row not being edited follows");
+        verify(named(vocabulary, "Sounds like for Omarchy") !== null);
+    }
+
     Component {
         id: vocabularyC
         VocabularySection {}
@@ -78,6 +127,9 @@ TestCase {
             property string notice: ""
             property bool registryLoaded: true
             property var values: ({})
+            // A deferred write stays queued and pending, as a daemon round trip does.
+            property bool deferred: false
+            property var queued: null
             signal errorChanged(string key)
             function value(key) {
                 return values[key] === undefined ? "" : values[key];
@@ -86,7 +138,7 @@ TestCase {
                 return "";
             }
             function pending(key) {
-                return false;
+                return queued !== null;
             }
             function error(key) {
                 return "";
@@ -98,6 +150,11 @@ TestCase {
                 return "[]";
             }
             function set(key, value) {
+                if (deferred) {
+                    queued = value;
+                    revision++;
+                    return;
+                }
                 const next = Object.assign({}, values);
                 next[key] = value;
                 values = next;
