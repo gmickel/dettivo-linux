@@ -6,8 +6,10 @@ import Dettivo
 SettingsPage {
     id: root
     section: "vocabulary"
-    subtitle: qsTr("Add names, products and jargon to help recognition. Each entry is one term or phrase.")
-    readonly property var terms: root.settings && root.revision >= 0 ? root.settings.value("dictation.vocabulary") || [] : []
+    subtitle: qsTr("Add names, products and jargon to help recognition. Each entry is one term or phrase, with the spellings it tends to be misheard as.")
+    // An entry is a term, or a { term, sounds_like } table (ADR 0086).
+    readonly property var entries: root.settings && root.revision >= 0 ? root.settings.value("dictation.vocabulary") || [] : []
+    readonly property var terms: root.entries.map(entry => root.termOf(entry))
     readonly property string lockedBy: root.settings && root.revision >= 0 ? root.settings.lockedBy("dictation.vocabulary") : ""
     readonly property bool pending: settings && revision >= 0 ? settings.pending("dictation.vocabulary") : false
     property int errorRevision: 0
@@ -19,16 +21,38 @@ SettingsPage {
             pendingTerm = "";
         }
     }
-    function save(terms) {
+    function termOf(entry) {
+        return typeof entry === "string" ? entry : entry.term;
+    }
+    function aliasesOf(entry) {
+        return typeof entry === "string" ? [] : entry.sounds_like || [];
+    }
+    // The daemon drops a term that differs from an earlier one only in case.
+    function known(term) {
+        return root.terms.some(t => t.toLowerCase() === term.toLowerCase());
+    }
+    function save(entries) {
         if (root.settings && !root.pending && !root.lockedBy.length)
-            root.settings.set("dictation.vocabulary", terms);
+            root.settings.set("dictation.vocabulary", entries);
     }
     function addTerm() {
         const term = entry.text.trim();
-        if (!root.pending && term.length > 0 && root.terms.indexOf(term) < 0) {
+        if (!root.pending && term.length > 0 && !root.known(term)) {
             root.pendingTerm = term;
-            root.save(root.terms.concat([term]));
+            root.save(root.entries.concat([term]));
         }
+    }
+    // A comma-separated list of spellings; none writes the plain term.
+    function setAliases(index, text) {
+        const term = root.termOf(root.entries[index]);
+        const aliases = text.split(",").map(a => a.trim()).filter(a => a.length > 0);
+        if (aliases.join(", ") === root.aliasesOf(root.entries[index]).join(", "))
+            return;
+        const next = aliases.length ? {
+            term: term,
+            sounds_like: aliases
+        } : term;
+        root.save(root.entries.map((e, i) => i === index ? next : e));
     }
     Connections {
         target: root.settings
@@ -53,7 +77,7 @@ SettingsPage {
         }
         Button {
             text: qsTr("Add term")
-            enabled: !root.pending && root.lockedBy.length === 0 && entry.text.trim().length > 0 && root.terms.indexOf(entry.text.trim()) < 0
+            enabled: !root.pending && root.lockedBy.length === 0 && entry.text.trim().length > 0 && !root.known(entry.text.trim())
             onClicked: root.addTerm()
         }
         SettingReset {
@@ -81,19 +105,21 @@ SettingsPage {
         Accessible.name: text
     }
     Repeater {
-        model: root.terms
+        model: root.entries
         delegate: Item {
             id: termRow
-            required property string modelData
+            required property var modelData
             required property int index
+            readonly property string term: root.termOf(modelData)
+            readonly property string aliasText: root.aliasesOf(modelData).join(", ")
             width: parent.width
             height: Theme.settingsRowHeight
             Text {
                 anchors.left: parent.left
-                anchors.right: remove.left
+                anchors.right: aliases.left
                 anchors.rightMargin: Theme.space3
                 anchors.verticalCenter: parent.verticalCenter
-                text: termRow.modelData
+                text: termRow.term
                 elide: Text.ElideRight
                 color: Theme.roleText
                 font.family: Theme.fontFamily
@@ -101,14 +127,31 @@ SettingsPage {
                 Accessible.role: Accessible.StaticText
                 Accessible.name: text
             }
+            TextField {
+                id: aliases
+                anchors.right: remove.left
+                anchors.rightMargin: Theme.space3
+                anchors.verticalCenter: parent.verticalCenter
+                width: Theme.settingsControlWidth
+                text: termRow.aliasText
+                placeholderText: qsTr("Sounds like")
+                enabled: !root.pending && root.lockedBy.length === 0
+                Accessible.name: qsTr("Sounds like for %1").arg(termRow.term)
+                Accessible.description: qsTr("Spellings this term tends to be transcribed as, separated by commas.")
+                onAccepted: root.setAliases(termRow.index, text)
+                onActiveFocusChanged: {
+                    if (!activeFocus)
+                        root.setAliases(termRow.index, text);
+                }
+            }
             Button {
                 id: remove
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("Remove")
                 enabled: !root.pending && root.lockedBy.length === 0
-                Accessible.name: qsTr("Remove vocabulary term %1").arg(termRow.modelData)
-                onClicked: root.save(root.terms.filter((term, index) => index !== termRow.index))
+                Accessible.name: qsTr("Remove vocabulary term %1").arg(termRow.term)
+                onClicked: root.save(root.entries.filter((e, index) => index !== termRow.index))
             }
         }
     }

@@ -1,6 +1,7 @@
 //! A list or table value typed as it appears in the file, `["a", "b"]` or
 //! `{ foot = "ctrl+shift+v" }`, read as TOML so `dettivo config set` takes
-//! what its help promises instead of splitting the brackets on commas.
+//! what its help promises instead of splitting the brackets on commas,
+//! and a JSON list written back as the TOML array it stands for.
 
 use serde_json::{Map, Value};
 use toml_edit::DocumentMut;
@@ -42,6 +43,41 @@ fn table_of(table: &toml_edit::InlineTable, lists: bool) -> Option<Value> {
         Some((k.to_string(), value))
     });
     entries.collect::<Option<Map<_, _>>>().map(Value::Object)
+}
+
+/// A JSON list as the TOML array it writes: strings, and tables that are
+/// `dictation.vocabulary` entries (the schema refuses a table under any
+/// other list key); `None` for any other item.
+pub fn list(items: &[Value]) -> Option<toml_edit::Array> {
+    let mut array = toml_edit::Array::new();
+    for item in items {
+        match item {
+            Value::String(s) => array.push(s.as_str()),
+            Value::Object(map) => array.push(list_item_table(map)?),
+            _ => return None,
+        }
+    }
+    Some(array)
+}
+
+/// A list item's table: string values, or lists of strings. `term` is
+/// written first, as the file documents the entry, since a JSON object
+/// arrives with its keys sorted.
+fn list_item_table(map: &Map<String, Value>) -> Option<toml_edit::InlineTable> {
+    let mut table = toml_edit::InlineTable::new();
+    let term = map.get_key_value("term").into_iter();
+    for (k, v) in term.chain(map.iter().filter(|(k, _)| *k != "term")) {
+        let value = match v {
+            Value::String(s) => toml_edit::Value::from(s.as_str()),
+            Value::Array(items) => {
+                let strings = items.iter().map(Value::as_str);
+                toml_edit::Value::from(strings.collect::<Option<toml_edit::Array>>()?)
+            }
+            _ => return None,
+        };
+        table.insert(k, value);
+    }
+    Some(table)
 }
 
 #[cfg(test)]

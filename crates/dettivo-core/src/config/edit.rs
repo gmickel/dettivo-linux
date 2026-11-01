@@ -169,22 +169,10 @@ pub fn coerce(key: &str, value: &Value) -> Result<toml_edit::Value, ValidationEr
             Ok(f) => toml_edit::Value::from(f),
             Err(_) => return Err(mismatch("a number")),
         },
-        (Kind::List, Value::Array(items)) => {
-            // A table item is one `dictation.vocabulary` entry; the schema
-            // refuses it under any other list key.
-            let mut array = toml_edit::Array::new();
-            for item in items {
-                match item {
-                    Value::String(s) => array.push(s.as_str()),
-                    Value::Object(map) => match list_item_table(map) {
-                        Some(table) => array.push(table),
-                        None => return Err(mismatch("a list of strings")),
-                    },
-                    _ => return Err(mismatch("a list of strings")),
-                }
-            }
-            toml_edit::Value::from(array)
-        }
+        (Kind::List, Value::Array(items)) => match super::file_syntax::list(items) {
+            Some(array) => toml_edit::Value::from(array),
+            None => return Err(mismatch("a list of strings")),
+        },
         (Kind::List, Value::String(s)) => {
             let mut array = toml_edit::Array::new();
             for item in s.split(',').map(str::trim).filter(|i| !i.is_empty()) {
@@ -221,26 +209,6 @@ pub fn coerce(key: &str, value: &Value) -> Result<toml_edit::Value, ValidationEr
         (Kind::Integer, _) => return Err(mismatch("an integer")),
         (Kind::Float, _) => return Err(mismatch("a number")),
     })
-}
-
-/// A list item's table: string values, or lists of strings. `term` is
-/// written first, as the file documents the entry, since a JSON object
-/// arrives with its keys sorted.
-fn list_item_table(map: &serde_json::Map<String, Value>) -> Option<toml_edit::InlineTable> {
-    let mut table = toml_edit::InlineTable::new();
-    let term = map.get_key_value("term").into_iter();
-    for (k, v) in term.chain(map.iter().filter(|(k, _)| *k != "term")) {
-        let value = match v {
-            Value::String(s) => toml_edit::Value::from(s.as_str()),
-            Value::Array(items) => {
-                let strings = items.iter().map(Value::as_str);
-                toml_edit::Value::from(strings.collect::<Option<toml_edit::Array>>()?)
-            }
-            _ => return None,
-        };
-        table.insert(k, value);
-    }
-    Some(table)
 }
 
 fn parse_document(text: &str) -> Result<DocumentMut, ValidationError> {
