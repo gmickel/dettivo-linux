@@ -23,20 +23,25 @@ Packaging for more distributions (fn-87) is not part of this goal or this releas
 
 ## Approach
 
-How strict each child's path is, in the repository's fast-build mode:
+This goal runs at full rigor, the way Dettivo was built before fast-build mode, and overrides the repository's fast-build settings (review backend `none`, `pipeline.qa` off) for every child:
 
-- Each child goes through work (`--no-plan`, already recorded on every child), make-pr into the integration branch, and land.
-- No plan review, no per-child implementation review, no QA. Review backend `none`.
-- Children land on the integration branch without waiting for review bots. CI must be green on each child's pull request.
-- The final pull request from the integration branch into `main` is a normal pull request under the repository rules: CI green, and Cursor Bugbot or GitHub Copilot has reviewed its head with no open thread.
-- No final implementation review on the whole diff (fast-build mode: `skipped(goal: fast-build, review backend none)`).
+- **Per child:** work (`--no-plan`, already recorded on every child) → implementation review → QA → make-pr into the integration branch → land.
+- **Implementation review on every child**, on `gpt-6-astra` per `CLAUDE.md`'s model routing: review backend `codex` first, `cursor-agent` when Codex has no usage left. The review judges YAGNI and overengineering first. A child moves on only with a `SHIP` verdict. When neither subscription can reach `gpt-6-astra`, the goal stops with a question rather than substituting another model.
+- **QA on every child**, with `/flow-next:qa` against the running app on this Omarchy desktop, scenarios derived from the child's R-IDs. A child moves on only with a `YES` ship verdict.
+- **Bugs are fixed as they appear.** Every review finding, every QA P0 and P1, every CI failure and every review-bot thread on the child's pull request is fixed (or answered with a reason) on that child's branch before it lands. A QA P2 is fixed in the child unless it belongs to another child's scope, where it is logged for that child. Nothing is deferred to a later child or to the final pull request.
+- **CI green on every child's pull request** into the integration branch.
+- **Final gate before `main`:**
+  - a whole-diff implementation review on `gpt-6-astra` (as above) over the integration branch, with its fixes pushed there;
+  - a QA pass over the combined build covering every child's R-IDs together, because children touch the same take pipeline;
+  - the final pull request into `main` then needs green CI and a Cursor Bugbot or GitHub Copilot review of its head with no open thread, per the repository rules.
 
 ## Acceptance
 
-- **R1:** Every child above is closed in Flow with its own acceptance criteria met and its pull request merged into the integration branch. A child whose spec ends in a measurement gate or an ADR-only outcome (fn-80's idle timeout, fn-84 stage 2, fn-86's gate) counts as met when that ADR is merged.
+- **R1:** Every child above is closed in Flow with its own acceptance criteria met, a `SHIP` implementation-review receipt on `gpt-6-astra`, a `YES` QA receipt, no open finding from either, and its pull request merged into the integration branch with CI green. A child whose spec ends in a measurement gate or an ADR-only outcome (fn-80's idle timeout, fn-84 stage 2, fn-86's gate) counts as met when that ADR is merged.
 - **R2:** `just build test lint` passes in CI on the final pull request into `main`.
 - **R3:** `CHANGELOG.md` has a single `[Unreleased]` section that describes all eight changes for users, ready to become the 0.5.0 notes. The docs each child names are updated.
-- **R4:** The final pull request into `main` is merged by land under the invoking session's consent, after a review bot has reviewed its head and no thread is open.
+- **R4:** Before the final pull request opens, the whole-diff review on `gpt-6-astra` returns `SHIP` and the combined QA pass returns `YES`, both recorded on the integration branch's head.
+- **R5:** The final pull request into `main` is merged by land under the invoking session's consent, after a review bot has reviewed its head and no thread is open.
 
 ## Boundaries
 
@@ -50,7 +55,9 @@ How strict each child's path is, in the repository's fast-build mode:
 
 - The default for the always-ready microphone is off (decided 2026-11-01): no indicator surprise on a fresh install, opt-in for people who lose first words.
 - One release for all eight (decided 2026-11-01).
+- Full rigor for this goal, overriding fast-build mode: implementation review and QA on every child, bugs fixed as they appear, a whole-diff review and a combined QA pass before `main` (decided 2026-11-01).
 
 ## Goal log
 
 - 2026-11-01: goal captured from the eight dictation specs; children fn-79 to fn-86 adopted, marked ready, route `no_plan` recorded on each.
+- 2026-11-01: rigor set to full (per-child gpt-6-astra review and QA, fix-as-found, final whole-diff review and combined QA), from Gordon's words: "QA should be on for each spec/pr, impl-review too imo, bugs fixed as they appear".
