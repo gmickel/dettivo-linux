@@ -94,6 +94,47 @@ private slots:
         QVERIFY(!model.pending(key));
         QVERIFY(!model.error(key).isEmpty());
     }
+
+    // The daemon answers a write before the config.changed it raised: the
+    // route's own write is no change on disk, a hand edit is, and a hand
+    // edit clears a refusal that no longer describes the file.
+    void ownWritesAreNotFileChanges()
+    {
+        const QString vocabulary = QStringLiteral("dictation.vocabulary");
+        const auto entry = [](const QString &key, const QJsonValue &value) {
+            return QJsonObject{{"key", key}, {"value", value}, {"source", "file"}};
+        };
+        const auto changed = [](const QString &key) { return QJsonObject{{"ok", true}, {"keys", QJsonArray{key}}}; };
+        FakeLink link;
+        ConfigBinding config(&link);
+        SettingsModel model(&link, &config);
+        config.applyEntries({entry(vocabulary, QJsonArray{"Dettivo"}), entry("hotkeys.hold", "F9")});
+        const QJsonObject added = entry(vocabulary, QJsonArray{"Dettivo", "Omarchy"});
+        link.answers.insert("config.set", added);
+        link.answers.insert("config.get", {{"entries", QJsonArray{added, entry("hotkeys.hold", "F9")}}});
+        model.set(vocabulary, QVariantList{"Dettivo", "Omarchy"});
+        link.notify("config.changed", changed(vocabulary));
+        QVERIFY2(model.notice().isEmpty(), qPrintable(model.notice()));
+
+        // A field's write: its refresh may still be in flight when the event lands.
+        link.defer = true;
+        link.answers.insert("config.set", entry("hotkeys.hold", "F10"));
+        link.answers.insert("config.get", {{"entries", QJsonArray{added, entry("hotkeys.hold", "F10")}}});
+        model.set("hotkeys.hold", "F10");
+        link.answerPending();
+        link.notify("config.changed", changed("hotkeys.hold"));
+        link.answerPending();
+        QVERIFY2(model.notice().isEmpty(), qPrintable(model.notice()));
+        link.defer = false;
+
+        link.errors.insert("config.set", {{"message", "\"Omarchy\" has 17 sounds_like spellings"}});
+        model.set(vocabulary, QVariantList{"Dettivo", "Omarchy"});
+        QVERIFY(!model.error(vocabulary).isEmpty());
+        link.answers.insert("config.get", {{"entries", QJsonArray{entry(vocabulary, QJsonArray{"Dettivo"})}}});
+        link.notify("config.changed", changed(vocabulary));
+        QVERIFY2(model.error(vocabulary).isEmpty(), qPrintable(model.error(vocabulary)));
+        QVERIFY2(model.notice().contains("1 value(s) refreshed"), qPrintable(model.notice()));
+    }
 };
 
 QTEST_GUILESS_MAIN(SettingsPendingTest)

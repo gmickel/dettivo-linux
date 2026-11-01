@@ -179,14 +179,16 @@ void SettingsModel::unset(const QString &key)
         return;
     }
     m_link->call(QStringLiteral("config.unset"), QJsonObject{{QStringLiteral("key"), key}},
-                 [this, key](const QJsonObject &, const QJsonObject &error) {
+                 [this, key](const QJsonObject &result, const QJsonObject &error) {
                      if (!error.isEmpty()) {
                          m_errors.insert(key, error.value(QStringLiteral("message")).toString());
                          emit errorChanged(key);
                          return;
                      }
-                     if (m_config != nullptr)
+                     if (m_config != nullptr) {
+                         m_config->applyEntries({result});
                          m_config->refresh();
+                     }
                  });
 }
 
@@ -336,15 +338,41 @@ void SettingsModel::handleNotification(const QString &topic, const QJsonObject &
     if (topic != QStringLiteral("config.changed"))
         return;
     QStringList keys;
-    for (const QJsonValue &k : payload.value(QStringLiteral("keys")).toArray())
+    for (const QJsonValue &k : payload.value(QStringLiteral("keys")).toArray()) {
         keys.append(k.toString());
-    if (m_config != nullptr)
-        m_config->refresh();
-    if (payload.value(QStringLiteral("ok")).toBool(true))
-        setNotice(keys.isEmpty() ? QString() : tr("The file changed on disk; %n value(s) refreshed.", nullptr, int(keys.size())));
-    else
+        // A refusal of an earlier write no longer describes the file.
+        if (m_errors.remove(keys.last()) > 0)
+            emit errorChanged(keys.last());
+    }
+    if (!payload.value(QStringLiteral("ok")).toBool(true)) {
+        if (m_config != nullptr)
+            m_config->refresh();
         setNotice(tr("The file changed on disk and does not parse; the daemon keeps the last valid settings."));
-    emit fileChanged(keys);
+        emit fileChanged(keys);
+        return;
+    }
+    if (m_config == nullptr) {
+        emit fileChanged(keys);
+        return;
+    }
+    // The daemon answers a write before the event it raised, and the app
+    // applies that answer, so a key whose refreshed value is the one already
+    // held is the app's own write, not a change on disk.
+    QHash<QString, QPair<QVariant, QString>> held;
+    for (const QString &key : keys)
+        held.insert(key, {m_config->value(key), m_config->source(key)});
+    m_link->call(QStringLiteral("config.get"), QJsonObject(), [this, keys, held](const QJsonObject &snapshot, const QJsonObject &error) {
+        if (!error.isEmpty())
+            return;
+        m_config->applyEntries(snapshot.value(QStringLiteral("entries")).toArray());
+        QStringList moved;
+        for (const QString &key : keys) {
+            if (held.value(key) != qMakePair(m_config->value(key), m_config->source(key)))
+                moved.append(key);
+        }
+        setNotice(moved.isEmpty() ? QString() : tr("The file changed on disk; %n value(s) refreshed.", nullptr, int(moved.size())));
+        emit fileChanged(moved);
+    });
 }
 
 }  // namespace dettivo
