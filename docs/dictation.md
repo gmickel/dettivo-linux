@@ -60,13 +60,32 @@ A take that passes reaches the engine at least 1.5 s long, and a Parakeet take g
 
 Payloads carry ids and states; the one exception is `first_words` on the completion transition, the transcript's first sentence bounded to 72 characters, which the pill shows for a moment. The daemon's logs never carry transcript text.
 
+## Vocabulary
+
+A vocabulary teaches Dettivo the names and jargon you dictate. Each entry is a term, and an entry can also say how the engine tends to mishear it:
+
+```toml
+[dictation]
+vocabulary = [
+  "Dettivo",
+  { term = "Clef", sounds_like = ["clay", "cleff"] },
+  { term = "SapienXT", sounds_like = ["sapient x t"] },
+]
+```
+
+- **Whisper** is primed with the terms only, joined by commas and closed with a full stop, up to 500 characters of whole terms ([docs/engines.md](engines.md)). The `sounds_like` spellings never reach the engine, so it never learns a misspelling.
+- **Enhanced** gets each term with its spellings in the last line of its system prompt, so the rewrite can correct `clay` to `Clef` when the sentence means the product: `Vocabulary (spell these exactly when the speaker means them): Clef (may be transcribed as clay, cleff); SapienXT (may be transcribed as sapient x t); Dettivo`. The first 50 entries go in.
+- **Raw and Polish** take nothing from the spellings. A `sounds_like` spelling never rewrites text by itself; `[dictation] replacements` is the tool for a substitution you always want.
+
+A vocabulary holds at most 500 entries, a term at most 64 characters and 16 `sounds_like` spellings. A file, `dettivo config set` or Settings that breaks a limit is refused with the entry named. A term that repeats an earlier one in another case is dropped as the file loads, and the first spelling stays. `dettivo-qa bench vocabulary` measures whether a vocabulary helps ([docs/qa.md](qa.md#vocabulary-term-recall)).
+
 ## Configuration
 
 | Key | Default | Meaning |
 |---|---|---|
 | `[dictation] language` | `"auto"` | The language the engine is told; `dictation.start` may override it. |
 | `[dictation] mode` | `"raw"` | The mode; `polish` is gated on the polish spec. |
-| `[dictation] vocabulary` | `[]` | Words the engine is primed with. |
+| `[dictation] vocabulary` | `[]` | Terms the engine is primed with. An entry is a term, or a `{ term, sounds_like }` table naming how the term tends to be misheard ([Vocabulary](#vocabulary)). |
 | `[dictation] replacements` | `{}` | Whole-word replacements applied after recognition. |
 | `[dictation] spoken_punctuation` | `true` | Spoken punctuation becomes marks. |
 | `[dictation] protect_tokens` | `true` | File names, paths, URLs, addresses, versions and dotted identifiers pass through untouched. |

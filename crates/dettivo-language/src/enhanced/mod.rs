@@ -124,7 +124,7 @@ pub fn rewrite(
     input: &str,
     policy: &EffectivePolicy,
     provider: &dyn LlmProvider,
-    vocabulary: &[String],
+    vocabulary: &[dettivo_core::config::vocabulary_schema::VocabularyEntry],
     timeout: Duration,
 ) -> Rewrite {
     let baseline = deterministic(input, policy);

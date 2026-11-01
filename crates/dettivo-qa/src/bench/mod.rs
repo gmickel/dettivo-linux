@@ -21,6 +21,8 @@ pub mod meetings;
 pub mod render;
 pub mod report;
 pub mod throughput;
+pub mod vocabulary;
+pub mod vocabulary_run;
 pub mod warmth;
 
 pub use report::{

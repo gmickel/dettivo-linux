@@ -8,7 +8,7 @@ Settings opens in Simple mode with everyday recording, model, polish and retenti
 
 Language and model menus name their choices. Automatic language detection and inherited meeting/analysis models have explicit labels. A configured value missing from a menu stays visible as custom/unavailable until you choose another value. The language menu lists Whisper language names; support depends on the selected speech model. Custom codes from the file remain visible.
 
-**Vocabulary** has its own page. Enter a term or phrase, choose **Add term**, and use **Remove** beside an entry to delete it. Entries containing commas remain single terms. Polish offers separate switches for grammar, fillers and punctuation.
+**Vocabulary** has its own page. Enter a term or phrase, choose **Add term**, and use **Remove** beside an entry to delete it. Entries containing commas remain single terms. The **Sounds like** field beside each term takes the spellings the engine tends to hear instead, separated by commas, and saves when you press Enter or leave the field; an empty field keeps the plain term. A term that differs from a saved one only in case cannot be added. Polish offers separate switches for grammar, fillers and punctuation.
 
 Each editable setting has **Reset**. Its tooltip shows the canonical default. Reset removes the file override through the daemon, which validates the result, preserves unrelated values and comments, and refreshes the effective value. Empty path defaults follow the system's configured directories. Resetting the dictation model selects the canonical provider and model together. Environment-controlled settings remain locked. Errors stay beside the affected control. Paths and listener settings that require a restart retain the behavior described below.
 
@@ -142,7 +142,7 @@ Text insertion (ADR 0007, [docs/insertion.md](insertion.md)).
 |---|---|---|---|
 | `language` | string | `"auto"` | The language the engine is told, or `auto` to detect. `dictation.start` may override it per session. |
 | `mode` | string | `"raw"` | `raw`, `deterministic_polish` (the contract's `polish` is an accepted alias) or `enhanced` ([docs/polish.md](polish.md)); any other string is `INVALID_PARAMS` naming the four. |
-| `vocabulary` | array of strings | `[]` | Words the engine is primed with (names, products, jargon). |
+| `vocabulary` | array of strings or `{ term, sounds_like }` tables | `[]` | Terms the engine is primed with (names, products, jargon). A table also names how the term tends to be misheard: `{ term = "Clef", sounds_like = ["clay", "cleff"] }`. Whisper gets the terms only; Enhanced gets each term with its spellings ([docs/dictation.md](dictation.md#vocabulary)). At most 500 entries, 64 characters a term and 16 spellings a term; a later term matching an earlier one in another case is dropped. `dettivo config set dictation.vocabulary '["Dettivo", { term = "Clef", sounds_like = ["clay"] }]'` takes both forms. |
 | `replacements` | inline table | `{}` | Whole-word, case-insensitive replacements applied after recognition: `replacements = { teh = "the" }`. |
 | `spoken_punctuation` | boolean | `true` | `comma`, `period`, `question mark`, `new line` and friends become marks. |
 | `protect_tokens` | boolean | `true` | File names, paths, URLs, email addresses, versions, dotted identifiers and backticked spans pass through the raw layer byte for byte: no sentence end on a dot inside one, no replacement inside one ([docs/dictation.md](dictation.md)). `false` makes every dot a sentence end. |

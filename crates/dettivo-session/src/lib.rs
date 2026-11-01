@@ -70,8 +70,9 @@ pub struct Policy {
     /// The mode identifier on the wire (`raw`, `deterministic_polish`,
     /// `enhanced`).
     pub mode: String,
-    /// The vocabulary prompt words.
-    pub vocabulary: Vec<String>,
+    /// The vocabulary: the terms prime the engine, the aliases inform
+    /// the Enhanced prompt.
+    pub vocabulary: Vec<dettivo_core::config::vocabulary_schema::VocabularyEntry>,
     /// Replacement pairs applied after recognition.
     pub replacements: Vec<(String, String)>,
     /// Spoken punctuation is converted.

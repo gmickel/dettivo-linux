@@ -89,6 +89,8 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0082](0082-a-take-ends-at-the-stop-within-one-capture-quantum.md) | A dictation take ends at the stop request, within one capture quantum PipeWire may deliver before the stop runs | Accepted 2026-11-01, amends 0081 |
 | [0084](0084-a-loaded-engine-is-warmed-before-the-first-take.md) | A loaded speech engine is warmed before the first take, idles out after 300 s, and runs four CPU threads on the GPU | Accepted 2026-11-01 |
 | [0085](0085-first-run-recommends-the-model-each-language-transcribes-best.md) | First run recommends the speech model each language transcribes best, from a recorded FLEURS run | Accepted 2026-11-01, amends 0024 |
+| [0086](0086-a-vocabulary-entry-names-how-its-term-is-misheard.md) | A vocabulary entry names how its term is misheard, and only Enhanced reads the aliases | Accepted 2026-11-01 |
+| [0087](0087-the-term-recall-benchmark-scores-a-vocabulary-on-synthetic-clips.md) | The term-recall benchmark scores a vocabulary on synthetic clips, with the vocabulary off and on | Accepted 2026-11-01 |
 
 ## Writing a record
 

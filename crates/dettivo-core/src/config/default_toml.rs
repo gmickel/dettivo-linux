@@ -161,7 +161,10 @@ language = "auto"
 # then a language model rewrite through [llm]; falls back to Polish with a
 # notice when no provider answers in time).
 mode = "raw"
-# Words the engine is primed with: names, products, jargon.
+# Terms the engine is primed with: names, products, jargon. An entry is a
+# term ("Dettivo") or a table naming how it tends to be misheard
+# ({ term = "Clef", sounds_like = ["clay", "cleff"] }); at most 500 entries,
+# 64 characters a term and 16 sounds_like spellings.
 vocabulary = []
 # Spoken punctuation ("comma", "period", "new line") becomes marks.
 spoken_punctuation = true
