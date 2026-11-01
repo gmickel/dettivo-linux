@@ -104,11 +104,15 @@ fn languages(dir: &Path) -> Result<Vec<Language>, String> {
         let manifest = dir.join(&code).join("manifest.tsv");
         let text = std::fs::read_to_string(&manifest)
             .map_err(|e| format!("{}: {e}", manifest.display()))?;
-        let items = text
+        let items: Vec<_> = text
             .lines()
             .filter_map(|l| l.split_once('\t'))
             .map(|(wav, reference)| (dir.join(&code).join(wav), reference.to_string()))
             .collect();
+        // Nothing to score would read as a perfect rate.
+        if items.iter().all(|(_, reference)| words(reference).is_empty()) {
+            return Err(format!("{}: no reference words", manifest.display()));
+        }
         out.push((code, items));
     }
     Ok(out)
@@ -136,7 +140,7 @@ fn score(
         audio_ms += pcm.len() as u64 / 16;
         wall_ms += ms(took);
     }
-    let rate = (errors / reference_words.max(1) as f64 * 1000.0).round() / 10.0;
+    let rate = (errors / reference_words as f64 * 1000.0).round() / 10.0;
     Ok(Some((rate, audio_ms as f64 / wall_ms.max(1) as f64)))
 }
 
