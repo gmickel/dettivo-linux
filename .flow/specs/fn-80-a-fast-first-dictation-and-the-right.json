@@ -237,10 +237,86 @@
       "task": "fn-80-a-fast-first-dictation-and-the-right.1",
       "timestamp": "2026-11-01T20:22:46.673781Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b737daf289e9e8e066360cd607d7d5bc15034b64b96bce39bc2069933a9cb8aa",
+      "backend": "codex",
+      "base_sha": "826563624835764c7ed19a66382a7b25720fecfd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f149b8f698f0e08400fad585ed7f2b44",
+            "classification": "introduced",
+            "findingId": "finding-f149b8f698f0e08400fad585ed7f2b44",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e1a7f6cf2df36fd0ddd84661fe1522c2",
+            "classification": "introduced",
+            "findingId": "finding-e1a7f6cf2df36fd0ddd84661fe1522c2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d670cf0d698b438544f2c96bd90fe075",
+            "classification": "introduced",
+            "findingId": "finding-d670cf0d698b438544f2c96bd90fe075",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-91d387ecac143f5fda73cbb77c7534fe",
+            "classification": "introduced",
+            "findingId": "finding-91d387ecac143f5fda73cbb77c7534fe",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-43bc363f7c07ba0df17b2d42adfd4e0a",
+            "classification": "introduced",
+            "findingId": "finding-43bc363f7c07ba0df17b2d42adfd4e0a",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "58bca614579d63ede64357c600cd4decf0f76aeb",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "ca0b4d6ee6324765aebb4746d237a0d2",
+      "round_consumed": true,
+      "scope": "impl:fn-80-a-fast-first-dictation-and-the-right.1",
+      "superseded_by": null,
+      "task": "fn-80-a-fast-first-dictation-and-the-right.1",
+      "timestamp": "2026-11-01T22:04:45.321581Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-80-a-fast-first-dictation-and-the-right.1": 1
+    "impl:fn-80-a-fast-first-dictation-and-the-right.1": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -261,5 +337,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T20:23:25.958046Z"
+  "updated_at": "2026-11-01T22:04:45.324728Z"
 }

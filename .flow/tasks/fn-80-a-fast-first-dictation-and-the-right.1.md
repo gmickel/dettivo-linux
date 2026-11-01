@@ -21,7 +21,11 @@ Tier: implementer (project routing block: claude-opus-5-5) (model: claude-opus-5
 baseline: build green pre-edit (cargo build -p dettivod -p dettivo-cli -p dettivo-qa); tests not run pre-edit
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
+
+QA follow-up (QA-fn80-1, P1): with `[dictation] language = "en"` the fifth speech row pushed the Models step's Enhanced rows over its footer at 1280x820. ModelsStep now reports the height its rows need above the footer, and OnboardingRoute grows its scroll content to that height, so English scrolls and German keeps its unscrolled layout. `tst_models_step_overflow.qml` failed before the fix (footer at 733 over rows ending at 734) and passes after it. Renders under `scripts/qa/xvfb-session.sh` with an isolated profile: `.flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/fix-en-models.png`, `fix-en-models-scrolled.png`, `fix-de-models.png`, `fix-de-models-scrolled.png` (commit 58bca61).
+
+stage: impl-review - ran (codex gpt-6.1-sol high, 1 reviewer) - SHIP at 58bca61 on base 8265636, no findings
 ## Evidence
-- Commits: 27a966695060a280a7bdfebbad5bb37d3360570a, e79aba1e6334b8b1b9ed7f59b598414af8170ad8, 7f907c99c1e3d94597c17d6697e0c4b0967bdce6, 2f8cfb34e2407eec929667eaf88c1b4998809c4b
-- Tests: just lint, GATE_SKIPPED:cargo-test:docs-only - continuation diff 7f907c9..2f8cfb3 classified tier-B (no executable paths touched), GATE_SKIPPED:build-test-lint:docs-only - continuation diff classified tier-B; lint ran separately
+- Commits: 27a966695060a280a7bdfebbad5bb37d3360570a, e79aba1e6334b8b1b9ed7f59b598414af8170ad8, 7f907c99c1e3d94597c17d6697e0c4b0967bdce6, 2f8cfb34e2407eec929667eaf88c1b4998809c4b, 58bca614579d63ede64357c600cd4decf0f76aeb
+- Tests: just lint, GATE_SKIPPED:cargo-test:docs-only - continuation diff 7f907c9..2f8cfb3 classified tier-B (no executable paths touched), GATE_SKIPPED:build-test-lint:docs-only - continuation diff classified tier-B; lint ran separately, QT_QPA_PLATFORM=offscreen ctest --test-dir build/qt -R "dettivo-quick-test|dettivo-first-run-test|onboarding|dettivo-app-render" (QA fix 58bca61, 5/5 passed), just lint (QA fix 58bca61, rc 0)
 - PRs:
