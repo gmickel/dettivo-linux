@@ -400,7 +400,7 @@
     "impl:fn-80-a-fast-first-dictation-and-the-right.1": 0
   },
   "spec_path": ".flow/specs/fn-80-a-fast-first-dictation-and-the-right.md",
-  "status": "open",
+  "status": "done",
   "title": "A fast first dictation and the right model for each language",
   "tracker": {
     "baseHashFlow": null,
@@ -413,5 +413,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T22:17:55.993347Z"
+  "updated_at": "2026-11-01T22:44:51.989291Z"
 }

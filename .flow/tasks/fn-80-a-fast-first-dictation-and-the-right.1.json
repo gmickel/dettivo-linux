@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-80-a-fast-first-dictation-and-the-right",
   "spec_path": ".flow/tasks/fn-80-a-fast-first-dictation-and-the-right.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement A fast first dictation and the right model for each language",
   "updated_at": "2026-11-01T15:58:35.630305Z"
 }
