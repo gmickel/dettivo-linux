@@ -136,11 +136,15 @@ pub fn coerce(key: &str, value: &Value) -> Result<toml_edit::Value, ValidationEr
         line: None,
         message: format!("{key}: expected {want}, got {value}"),
     };
+    let list = match key {
+        "dictation.vocabulary" => "a list of terms or { term, sounds_like } tables",
+        _ => "a list of strings",
+    };
     if let (Kind::List | Kind::Table, Value::String(s)) = (kind, value) {
         if super::file_syntax::is_file_syntax(s) {
             return match super::file_syntax::parse(s) {
                 Some(parsed) => coerce(key, &parsed),
-                None if kind == Kind::List => Err(mismatch("a list of strings")),
+                None if kind == Kind::List => Err(mismatch(list)),
                 None => Err(mismatch("a table of strings")),
             };
         }
@@ -171,7 +175,7 @@ pub fn coerce(key: &str, value: &Value) -> Result<toml_edit::Value, ValidationEr
         },
         (Kind::List, Value::Array(items)) => match super::file_syntax::list(items) {
             Some(array) => toml_edit::Value::from(array),
-            None => return Err(mismatch("a list of strings")),
+            None => return Err(mismatch(list)),
         },
         (Kind::List, Value::String(s)) => {
             let mut array = toml_edit::Array::new();
@@ -202,7 +206,7 @@ pub fn coerce(key: &str, value: &Value) -> Result<toml_edit::Value, ValidationEr
             }
             toml_edit::Value::from(table)
         }
-        (Kind::List, _) => return Err(mismatch("a list of strings")),
+        (Kind::List, _) => return Err(mismatch(list)),
         (Kind::Table, _) => return Err(mismatch("a table of strings")),
         (Kind::Text, _) => return Err(mismatch("a string")),
         (Kind::Boolean, _) => return Err(mismatch("a boolean")),
@@ -231,6 +235,9 @@ pub fn set(text: &str, key: &str, value: &Value) -> Result<String, ValidationErr
         Some(item) if item.is_value() => {
             let decor = item.as_value().map(|v| v.decor().clone());
             let mut new_value = toml_value;
+            if let (Some(old), Some(new)) = (item.as_array(), new_value.as_array_mut()) {
+                super::file_syntax::keep_layout(old, new);
+            }
             if let Some(decor) = decor {
                 *new_value.decor_mut() = decor;
             }
