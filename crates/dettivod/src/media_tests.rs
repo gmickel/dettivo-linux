@@ -9,14 +9,16 @@ use std::thread::JoinHandle;
 
 use super::*;
 
-/// A sink: its volume, its mute and every volume set on it; `user_at`
-/// makes the user set `user_volume` on the n-th set.
+/// A sink: its volume, its mute and the volume after every change;
+/// `user_at` makes the user set a volume just after the n-th change,
+/// `user_before` just before it, after the ramp's read.
 #[derive(Debug, Default, Clone)]
 struct Sink {
     volume: f32,
     muted: bool,
     sets: Vec<f32>,
     user_at: Option<(usize, f32)>,
+    user_before: Option<(usize, f32)>,
 }
 
 #[derive(Default)]
@@ -45,10 +47,15 @@ impl Volume for Fake {
         let s = self.sink(sink);
         Ok((s.volume, s.muted))
     }
-    fn set(&self, sink: &str, volume: f32) -> Result<(), String> {
+    fn change(&self, sink: &str, by: f32) -> Result<(), String> {
         self.with(sink, |s| {
-            s.volume = volume;
-            s.sets.push(volume);
+            if let Some((n, user)) = s.user_before
+                && s.sets.len() + 1 == n
+            {
+                s.volume = user;
+            }
+            s.volume = hundredths(s.volume + by);
+            s.sets.push(s.volume);
             if let Some((n, user)) = s.user_at
                 && s.sets.len() == n
             {
@@ -190,6 +197,25 @@ fn a_volume_the_user_set_is_never_overridden() {
         assert_eq!(a.volume, user);
         assert_eq!(a.sets.len(), STEPS as usize, "no ramp back up");
     }
+}
+
+/// A volume the user sets between a step's read and its move is moved by
+/// that one step, never replaced: the ramp stops there and nothing is
+/// put back.
+#[test]
+fn a_volume_set_between_a_steps_read_and_its_set_stays() {
+    let volume = sinks(0.8);
+    volume.with("a", |s| s.user_before = Some((3, 0.66)));
+    take(
+        &volume,
+        &FakePlayers::default(),
+        WhileDictating::Duck,
+        || {},
+    );
+    // The third step, 0.74 to 0.67, lands on the user's 0.66.
+    let a = volume.sink("a");
+    assert!((a.volume - 0.59).abs() < 1e-4, "{a:?}");
+    assert_eq!(a.sets.len(), 3, "the ramp gave up and nothing was put back");
 }
 
 /// The default sink changing during the take leaves the new one alone:

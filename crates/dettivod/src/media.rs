@@ -34,8 +34,10 @@ pub trait Volume: Send {
     fn default_sink(&self) -> Result<String, String>;
     /// The volume (1.0 is 100 %) and whether it is muted.
     fn get(&self, sink: &str) -> Result<(f32, bool), String>;
-    /// Sets the volume.
-    fn set(&self, sink: &str, volume: f32) -> Result<(), String>;
+    /// Moves the volume by `by` from the one the sink has when the move
+    /// lands, so a volume the user set since the last read is moved, not
+    /// replaced.
+    fn change(&self, sink: &str, by: f32) -> Result<(), String>;
     /// Mutes or unmutes.
     fn mute(&self, sink: &str, muted: bool) -> Result<(), String>;
 }
@@ -109,8 +111,9 @@ impl Volume for Wpctl {
         let text = wpctl(&["get-volume", sink])?;
         parse_volume(&text).ok_or_else(|| format!("wpctl: unexpected answer {text:?}"))
     }
-    fn set(&self, sink: &str, volume: f32) -> Result<(), String> {
-        wpctl(&["set-volume", sink, &format!("{volume:.2}")]).map(drop)
+    fn change(&self, sink: &str, by: f32) -> Result<(), String> {
+        let sign = if by < 0.0 { '-' } else { '+' };
+        wpctl(&["set-volume", sink, &format!("{:.2}{sign}", by.abs())]).map(drop)
     }
     fn mute(&self, sink: &str, muted: bool) -> Result<(), String> {
         wpctl(&["set-mute", sink, if muted { "1" } else { "0" }]).map(drop)
@@ -288,7 +291,10 @@ fn restore(changed: Changed, volume: &dyn Volume, players: &dyn Players) {
 
 /// Moves the sink's volume from `from` to `to` along a smoothstep over
 /// [`RAMP`], in hundredths; gives up when the volume is not the one the
-/// last step set, because the user changed it.
+/// last step left, because the user changed it. Each step is a relative
+/// move: `wpctl` has no compare-and-set, and a volume the user sets
+/// between a step's read and its move is then moved by that one step
+/// instead of replaced, so the next read sees it.
 fn ramp(volume: &dyn Volume, sink: &str, from: f32, to: f32) -> Result<(), String> {
     let mut last = from;
     for step in 1..=STEPS {
@@ -297,8 +303,11 @@ fn ramp(volume: &dyn Volume, sink: &str, from: f32, to: f32) -> Result<(), Strin
             return Err("the volume was changed during the ramp".into());
         }
         let t = step as f32 / STEPS as f32;
-        last = hundredths(from + (to - from) * t * t * (3.0 - 2.0 * t));
-        volume.set(sink, last)?;
+        let next = hundredths(from + (to - from) * t * t * (3.0 - 2.0 * t));
+        if (next - last).abs() > SAME {
+            volume.change(sink, next - last)?;
+        }
+        last = next;
         std::thread::sleep(RAMP / STEPS);
     }
     Ok(())
