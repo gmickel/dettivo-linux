@@ -4,6 +4,17 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Fixed
+
+- An empty or noisy dictation no longer pastes "Thank you." A take now passes a speech gate before the engine hears it. Its loudest 30 ms window must reach -50 dBFS, so a click or keyboard thump stays out, and the Silero model must hear a voice in it, so a fan or music bed stays out too. A gated take shows "Nothing heard" and pastes nothing. The voice check needs `whisper/silero-vad`, which now downloads with any speech model. Without it the level check runs alone, and `dettivo doctor` names the model and `dettivo speech download --model silero-vad` ([docs/dictation.md](docs/dictation.md)).
+- A dictation never pastes the vocabulary back when the take was silent, a decoder loop leaves the words before it, and the silence hallucinations and blank markers meetings already dropped (`thanks for watching`, `[BLANK_AUDIO]`) are dropped from dictation too.
+- A long vocabulary keeps its first words. The Whisper prompt stops at 500 characters, at a whole word.
+
+### Changed
+
+- `[dictation] silence_dbfs` (default -50) replaces `silence_peak_threshold`, which is retired. A file that still sets the old key loads, and the value is ignored ([docs/config.md](docs/config.md)).
+- Takes shorter than 1.5 s reach the engine padded to 1.5 s, and Parakeet takes carry 400 ms of trailing silence. A padded take that comes back with no text is recognized once more as captured.
+
 ## [0.4.4] - 2026-10-31
 
 ### Fixed

@@ -48,7 +48,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0040](0040-fast-ci-loop-proves-the-receipt-the-rig-runs-nightly-and-at-release.md) | Fast PR gates and one tested release package | Accepted 2026-09-05, amended by 0051 |
 | [0041](0041-guides-docs-build-evidence-map-and-the-release-gate-script.md) | Four guides lead the reader, the docs build holds the pages together, the evidence map proves every requirement has a route, and the release gate is one script with its blockers named | Accepted 2026-09-06, amended by 0051 |
 | [0042](0042-design-checklist-gate-and-the-human-checkpoint.md) | The design checklist is a gate with machine verdicts, and the beauty pass closes on a person's receipt, never on a pilot's | Accepted 2026-09-05 |
-| [0043](0043-qa-profiles-carry-a-private-models-directory-and-the-gate-passes-on-what-the-code-does.md) | QA profiles carry a private models directory, the capability flags tell the truth, and the history drives read the seed | Accepted 2026-09-06 |
+| [0043](0043-qa-profiles-carry-a-private-models-directory-and-the-gate-passes-on-what-the-code-does.md) | QA profiles carry a private models directory, the capability flags tell the truth, and the history drives read the seed | Accepted 2026-09-06; amended by 0081 |
 | [0045](0045-a-write-owns-its-fields-and-nothing-announces-what-it-did-not-store.md) | A write owns the fields its operation changes, and nothing announces what it did not store | Accepted 2026-09-06 |
 | [0047](0047-delivery-guards-the-window-itself-and-a-take-is-never-typed-twice.md) | Delivery guards the window itself, checks it again before typing, and never types a take twice | Accepted 2026-09-06 |
 | [0046](0046-every-session-job-download-and-connection-has-one-owner-and-one-deadline.md) | Every session, job, download and connection has one owner and one deadline | Accepted 2026-09-06 |
@@ -85,6 +85,8 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0078](0078-the-final-bench-keeps-the-sherpa-onnx-set-the-default.md) | The final bench with every labelling rule on keeps the sherpa-onnx set the default and Nemotron opt-in | Accepted 2026-09-28, supersedes 0073's default |
 | [0079](0079-a-release-builds-each-ggml-engine-in-its-own-job.md) | A release builds each ggml engine in its own CI job and assembles the package from them, and NeMo-Speech.cpp links with no undefined symbols | Accepted 2026-09-29, amends 0070 |
 | [0080](0080-whisper-cpp-carries-a-dtw-median-filter-guard.md) | whisper.cpp carries a DTW median-filter guard, a chunk the engine dies on twice becomes a marked gap, and an engine that crashes on the GPU moves to the CPU | Accepted 2026-09-29, amends 0074; amended 2026-09-30 (the GPU is tried again after a hold, crash warnings keep Vulkan exception lines) |
+| [0081](0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md) | A dictation take passes a speech gate before the engine, and its text passes output guards after it | Accepted 2026-11-01, amends 0048; amended by 0082 |
+| [0082](0082-a-take-ends-at-the-stop-within-one-capture-quantum.md) | A dictation take ends at the stop request, within one capture quantum PipeWire may deliver before the stop runs | Accepted 2026-11-01, amends 0081 |
 
 ## Writing a record
 

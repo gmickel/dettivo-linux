@@ -7,6 +7,7 @@
 //! to a publisher so the event stream, the OSD and the bar see the same
 //! state.
 
+mod guards;
 pub mod machine;
 pub mod source;
 mod worker;
@@ -79,8 +80,9 @@ pub struct Policy {
     pub protect_tokens: bool,
     /// The longest take before the session stops itself.
     pub max_duration: Duration,
-    /// A take whose peak stays under this is treated as silence.
-    pub silence_peak_threshold: f32,
+    /// A take whose loudest 30 ms window stays under this level (dBFS) is
+    /// silence.
+    pub silence_dbfs: f32,
     /// Keep the take after the session (FR-A4).
     pub keep_audio: bool,
     /// The meter interval.
@@ -119,8 +121,6 @@ pub struct Transcript {
     pub language: String,
     /// The take length.
     pub duration_ms: u64,
-    /// The take was near silent and not sent to the engine.
-    pub silent: bool,
     /// The policy the session ran under.
     pub policy: Policy,
     /// The insertion outcome.
@@ -142,7 +142,7 @@ pub struct Transcript {
 pub struct SessionTimings {
     /// From the stop being observed to the take being final.
     pub capture_ms: u64,
-    /// The engine's `recognize` call; 0 for a silent take.
+    /// The speech gate and the engine's `recognize` call.
     pub transcribe_ms: u64,
     /// The inserter's call; 0 when there was nothing to insert.
     pub insert_ms: u64,

@@ -141,8 +141,17 @@ void OsdHostTest::streamMapsToStatesAndCompletionCarriesTheOutcome()
     QCOMPARE(model.title(), QStringLiteral("Not inserted"));
     QCOMPARE(model.reason(), QStringLiteral("clipboard unavailable"));
 
-    // A silent take completes without an insertion.
+    // A take whose text the guards emptied completes without an insertion.
     link.notify(QStringLiteral("dictation.state"), dictation("idle", "inserting"));
+    QCOMPARE(model.title(), QStringLiteral("Nothing heard"));
+
+    // A take the speech gate found silent ends cancelled with its stage (fn-79).
+    const QJsonObject silence{{QStringLiteral("reason"), QStringLiteral("silence: voice")}};
+    link.notify(QStringLiteral("dictation.state"), dictation("transcribing", "recording"));
+    link.notify(QStringLiteral("dictation.state"), dictation("cancelled", "transcribing", silence));
+    QCOMPARE(model.state(), QStringLiteral("error"));
+    QCOMPARE(model.title(), QStringLiteral("Nothing heard"));
+    link.notify(QStringLiteral("dictation.state"), dictation("idle", "cancelled", silence));
     QCOMPARE(model.title(), QStringLiteral("Nothing heard"));
 
     model.pillHidden();

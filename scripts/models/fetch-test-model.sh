@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Fetch the small Whisper model, the Parakeet TDT 0.6B v2 model and the
-# speech fixture the engine tests use, into the model layout the daemon
+# Fetch the small Whisper model, the Silero voice activity model, the
+# Parakeet TDT 0.6B v2 model and the speech fixture the engine tests use, into the model layout the daemon
 # reads (ADR 0005), with pinned checksums. Idempotent; CI caches the
 # directory.
 #
@@ -12,6 +12,9 @@ models="${1:-${XDG_DATA_HOME:-$HOME/.local/share}/dettivo/models}"
 model_dir="${models}/whisper/tiny.en"
 model_url="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin"
 model_sha="921e4cf8686fdd993dcd081a5da5b6c365bfde1162e72b08d75ac75289920b1f"
+vad_dir="${models}/whisper/silero-vad"
+vad_url="https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin"
+vad_sha="29940d98d42b91fbd05ce489f3ecf7c72f0a42f027e4875919a28fb4c04ea2cf"
 parakeet_dir="${models}/parakeet/parakeet-v2"
 parakeet_url="https://huggingface.co/mudler/parakeet-cpp-gguf/resolve/main/tdt-0.6b-v2-q8_0.gguf"
 parakeet_sha="2027e2e1a4dc60ccdd8558f93b15e7c0db4ef8895b4e82e889f3a6275d8119c6"
@@ -40,6 +43,7 @@ fetch() {
 
 fetch "${model_url}" "${model_dir}/ggml-tiny.en.bin" "${model_sha}"
 printf '{"provider":"whisper","id":"tiny.en","source":"%s","sha256":"%s","license":"MIT (OpenAI Whisper weights)"}\n' "${model_url}" "${model_sha}" > "${model_dir}/manifest.json"
+fetch "${vad_url}" "${vad_dir}/ggml-silero-v5.1.2.bin" "${vad_sha}"
 fetch "${parakeet_url}" "${parakeet_dir}/tdt-0.6b-v2-q8_0.gguf" "${parakeet_sha}"
 # The daemon's manifest shape (crates/dettivo-speech/src/models.rs), marked
 # verified, so the catalogue reports the model ready without re-hashing.

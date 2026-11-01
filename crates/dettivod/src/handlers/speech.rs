@@ -370,11 +370,22 @@ fn one(daemon: &Daemon, provider: &str, model: &str) -> Result<ModelStatus, Json
 }
 
 /// `speech.models.download`: starts or joins the download and answers the
-/// model's status.
+/// model's status. A speech model brings the voice activity model of the
+/// dictation gate with it when that is not on disk yet.
 pub fn models_download(daemon: &Daemon, params_value: Value) -> Result<Value, JsonRpcError> {
     let p: ModelParams = params(params_value)?;
     let entry = speech_entry(daemon, &p.provider, &p.model)?;
     daemon.models().download(&entry).map_err(model_error)?;
+    if entry.kind == dettivo_speech::catalogue::ModelKind::Stt {
+        let (provider, id) = dettivo_speech::gate::VAD_MODEL;
+        if let Err(e) = daemon
+            .models()
+            .entry(provider, id)
+            .and_then(|vad| daemon.models().download(&vad))
+        {
+            tracing::warn!(error = %e, "voice activity model not queued with the speech model");
+        }
+    }
     json(one(daemon, &p.provider, &p.model)?)
 }
 

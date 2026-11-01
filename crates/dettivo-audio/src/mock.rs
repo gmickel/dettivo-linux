@@ -87,16 +87,18 @@ impl MockCapture {
                 let start = Instant::now();
                 let mut sent = 0usize;
                 for (i, piece) in samples.chunks(chunk).enumerate() {
+                    let due = start + Duration::from_millis(i as u64 * 20);
+                    let now = Instant::now();
+                    if due > now {
+                        std::thread::sleep(due - now);
+                    }
+                    // Checked after the wait, so a stop during it publishes
+                    // no chunk after the stop.
                     if flag.load(Ordering::Relaxed) {
                         let _ = tx.send(Event::Ended {
                             reason: EndReason::Stopped,
                         });
                         return;
-                    }
-                    let due = start + Duration::from_millis(i as u64 * 20);
-                    let now = Instant::now();
-                    if due > now {
-                        std::thread::sleep(due - now);
                     }
                     if tx.send(Event::Pcm(piece.to_vec())).is_err() {
                         return;
@@ -124,23 +126,27 @@ impl MockCapture {
     pub fn stop(&self) {
         self.stop.store(true, Ordering::Relaxed);
     }
+
+    /// `stop` for another thread, which never holds the event stream.
+    pub fn stopper(&self) -> impl Fn() + Send + Sync + 'static {
+        let stop = self.stop.clone();
+        move || stop.store(true, Ordering::Relaxed)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn fixture_plays_at_real_time_with_levels_and_ends() {
-        let dir = tempfile::tempdir().unwrap();
-        let path = dir.path().join("f.wav");
+    /// Half a second of a 440 Hz tone, stereo at 48 kHz.
+    fn tone_fixture(path: &Path) {
         let spec = hound::WavSpec {
             channels: 2,
             sample_rate: 48_000,
             bits_per_sample: 16,
             sample_format: hound::SampleFormat::Int,
         };
-        let mut w = hound::WavWriter::create(&path, spec).unwrap();
+        let mut w = hound::WavWriter::create(path, spec).unwrap();
         for n in 0..24_000 {
             let v = (0.5
                 * (2.0 * std::f64::consts::PI * 440.0 * f64::from(n) / 48_000.0).sin()
@@ -149,6 +155,40 @@ mod tests {
             w.write_sample(v).unwrap();
         }
         w.finalize().unwrap();
+    }
+
+    #[test]
+    fn a_stop_during_the_wait_publishes_no_further_chunk() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("f.wav");
+        tone_fixture(&path);
+        let capture = MockCapture::open(&path, 50).unwrap();
+        let events = capture.events();
+        loop {
+            if let Event::Pcm(_) = events.recv().unwrap() {
+                break;
+            }
+        }
+        // The thread now waits 20 ms for the next chunk's due time.
+        capture.stop();
+        for event in events.iter() {
+            match event {
+                Event::Pcm(chunk) => panic!("{} samples published after the stop", chunk.len()),
+                Event::Ended { reason } => {
+                    assert_eq!(reason, EndReason::Stopped);
+                    return;
+                }
+                Event::Level { .. } | Event::DeviceChanged { .. } => {}
+            }
+        }
+        panic!("the stream closed without Ended");
+    }
+
+    #[test]
+    fn fixture_plays_at_real_time_with_levels_and_ends() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("f.wav");
+        tone_fixture(&path);
         let start = Instant::now();
         let capture = MockCapture::open(&path, 50).unwrap();
         let mut pcm = 0usize;

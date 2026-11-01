@@ -147,7 +147,9 @@ Text insertion (ADR 0007, [docs/insertion.md](insertion.md)).
 | `spoken_punctuation` | boolean | `true` | `comma`, `period`, `question mark`, `new line` and friends become marks. |
 | `protect_tokens` | boolean | `true` | File names, paths, URLs, email addresses, versions, dotted identifiers and backticked spans pass through the raw layer byte for byte: no sentence end on a dot inside one, no replacement inside one ([docs/dictation.md](dictation.md)). `false` makes every dot a sentence end. |
 | `max_duration_seconds` | integer | `300` | The longest take; the session stops itself there. |
-| `silence_peak_threshold` | float | `0.01` | A take whose peak level stays under this is treated as silence and produces an empty transcript. 0 to 1. |
+| `silence_dbfs` | float | `-50.0` | A take whose loudest 30 ms window, DC removed, stays under this level is silence and never reaches the engine. -100 to 0. A take that passes it goes through the Silero voice check when `whisper/silero-vad` is downloaded ([docs/dictation.md](dictation.md)). |
+
+**Migrating from the peak threshold.** `silence_peak_threshold` is retired ([ADR 0081](adr/0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md)). A file that still sets it loads, and the daemon ignores the value, so delete the line when convenient. Its peak scale does not convert to `silence_dbfs`, which measures a 30 ms window instead of one sample.
 
 ### `[history]`
 
@@ -339,7 +341,7 @@ Every key above has an editor on one of the app's settings routes ([docs/app.md]
 
 | Route | Keys |
 |---|---|
-| `settings.general` (Settings / General) | `app.renderer`, `daemon.log_level`, `daemon.shutdown_timeout_ms`, `audio.input_device`, `audio.level_interval_ms`, `dictation.language`, `dictation.max_duration_seconds`, `dictation.silence_peak_threshold`, `paths.data_dir`, `paths.models_dir`, `osd.enabled`, `osd.host`, `osd.position`, `osd.margin`, `osd.monitor`, `osd.hide_after_ms`, `osd.error_hide_after_ms`, `osd.show_level`, `osd.motion`, `omarchy.glyph`, `omarchy.level_meter`, `omarchy.osd`, `omarchy.open_shortcut`, `omarchy.history_items` |
+| `settings.general` (Settings / General) | `app.renderer`, `daemon.log_level`, `daemon.shutdown_timeout_ms`, `audio.input_device`, `audio.level_interval_ms`, `dictation.language`, `dictation.max_duration_seconds`, `dictation.silence_dbfs`, `paths.data_dir`, `paths.models_dir`, `osd.enabled`, `osd.host`, `osd.position`, `osd.margin`, `osd.monitor`, `osd.hide_after_ms`, `osd.error_hide_after_ms`, `osd.show_level`, `osd.motion`, `omarchy.glyph`, `omarchy.level_meter`, `omarchy.osd`, `omarchy.open_shortcut`, `omarchy.history_items` |
 | `settings.vocabulary` (Settings / Vocabulary) | `dictation.vocabulary` |
 | `settings.hotkeys` (Settings / Hotkeys) | `hotkeys.hold`, `hotkeys.toggle`, `hotkeys.cancel`, `hotkeys.reinsert`, `hotkeys.backend`, `hotkeys.pause_media`, `hotkeys.sounds`, `hotkeys.evdev_devices` |
 | `settings.models` (Settings / Models) | `speech.provider`, `speech.model`, `speech.meeting_model`, `speech.parakeet_model_id`, `llm.model`, `engines.stt_idle_seconds`, `engines.llm_idle_seconds`, `engines.directory`, `engines.whisper.backend`, `engines.parakeet.backend`, `engines.llm.backend`, `engines.llm.context_length`, `engines.llm.max_tokens`, `engines.diarize.backend`, `engines.diarize.threads`, `models.max_concurrent_downloads`, `models.verify_on_start`, `models.catalogue_file` |

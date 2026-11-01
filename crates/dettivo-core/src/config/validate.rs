@@ -84,10 +84,6 @@ fn semantic(config: &Config) -> Option<(&'static str, String)> {
     }
     let d = &m.diarization;
     let unit = [
-        (
-            "dictation.silence_peak_threshold",
-            config.dictation.silence_peak_threshold,
-        ),
         ("transcribe.silence_rms_floor", t.silence_rms_floor),
         ("meetings.speech_floor_rms", m.speech_floor_rms),
         (
@@ -101,6 +97,13 @@ fn semantic(config: &Config) -> Option<(&'static str, String)> {
         if !(0.0..=1.0).contains(&value) {
             return Some((key, format!("{key} ({value}) must be between 0 and 1")));
         }
+    }
+    let floor = config.dictation.silence_dbfs;
+    if !(-100.0..=0.0).contains(&floor) {
+        return Some((
+            "dictation.silence_dbfs",
+            format!("dictation.silence_dbfs ({floor}) must be between -100 and 0"),
+        ));
     }
     if !(d.clustering_threshold.is_finite() && d.clustering_threshold >= 0.0) {
         return Some((
@@ -231,8 +234,12 @@ mod tests {
                 "meetings.diarization.clustering_threshold",
             ),
             (
-                "[dictation]\nsilence_peak_threshold = -0.1\n",
-                "dictation.silence_peak_threshold",
+                "[dictation]\nsilence_dbfs = 3.0\n",
+                "dictation.silence_dbfs",
+            ),
+            (
+                "[dictation]\nsilence_dbfs = nan\n",
+                "dictation.silence_dbfs",
             ),
             (
                 "[transcribe]\nsilence_rms_floor = 2.0\n",
@@ -251,7 +258,8 @@ mod tests {
             "[meetings.diarization]\nmin_speaker_share = 1.0\nclustering_threshold = 0.0\n",
             // The retired key still loads and is ignored (ADR 0072).
             "[meetings.diarization]\nmin_coverage = 0.25\n",
-            "[dictation]\nsilence_peak_threshold = 1.0\n",
+            // Retired by fn-79: it loads and is ignored.
+            "[dictation]\nsilence_peak_threshold = 0.01\nsilence_dbfs = -100.0\n",
         ] {
             assert!(validate(ok).is_ok(), "{ok}");
         }

@@ -16,6 +16,7 @@ use std::time::Instant;
 
 use dettivo_language::provider::LocalEngine;
 use dettivo_speech::SttEngine;
+use dettivo_speech::gate::{SilenceReason, VoiceDetector};
 
 use crate::source::SourceFactory;
 use crate::worker::Worker;
@@ -51,6 +52,9 @@ pub(crate) struct Active {
     pub(crate) engine: Arc<dyn SttEngine>,
     pub(crate) worker: Option<std::thread::JoinHandle<()>>,
     pub(crate) completion: Arc<Completion>,
+    /// Ends the capture from the stopping thread, so the take holds nothing
+    /// recorded after the release; set once the source is open.
+    pub(crate) stop_source: Option<Arc<dyn Fn() + Send + Sync>>,
 }
 
 /// How a take ended.
@@ -103,6 +107,9 @@ pub struct Session {
     /// The daemon's local language model engine, frozen per session at
     /// its start (ADR 0026).
     local_llm: Mutex<Option<Arc<dyn LocalEngine>>>,
+    /// The voice activity pass of the speech gate, frozen per session at
+    /// its start; without it the level stage decides alone.
+    vad: Mutex<Option<Arc<dyn VoiceDetector>>>,
 }
 
 impl Session {
@@ -121,7 +128,14 @@ impl Session {
             inserter,
             archive: None,
             local_llm: Mutex::new(None),
+            vad: Mutex::new(None),
         }
+    }
+
+    /// Installs (or clears) the voice activity pass; a session starting
+    /// afterwards freezes it.
+    pub fn set_vad(&self, vad: Option<Arc<dyn VoiceDetector>>) {
+        *self.vad.lock().unwrap_or_else(|p| p.into_inner()) = vad;
     }
 
     /// Installs (or clears) the local language model engine the Enhanced
@@ -194,6 +208,7 @@ impl Session {
             engine: engine.clone(),
             worker: None,
             completion: completion.clone(),
+            stop_source: None,
         });
         drop(guard);
         let shared = self.shared(completion);
@@ -213,6 +228,18 @@ impl Session {
                 return Err(SessionError::Audio(e));
             }
         };
+        let stop_source = src.stopper();
+        if let Some(a) = self
+            .active
+            .lock()
+            .unwrap_or_else(|p| p.into_inner())
+            .as_mut()
+        {
+            a.stop_source = Some(stop_source.clone());
+        }
+        if stop.load(Ordering::Relaxed) {
+            stop_source();
+        }
         self.publisher.state(&StateChange::plain(
             &job_id,
             State::Recording,
@@ -236,6 +263,7 @@ impl Session {
                 .lock()
                 .unwrap_or_else(|p| p.into_inner())
                 .clone(),
+            vad: self.vad.lock().unwrap_or_else(|p| p.into_inner()).clone(),
         };
         let worker_shared = shared.clone();
         let handle = match std::thread::Builder::new()
@@ -278,7 +306,7 @@ impl Session {
 
     /// Stops only the named active take when supplied, never a replacement.
     pub fn stop_expected(&self, expected_job_id: Option<&str>) -> Result<Transcript, SessionError> {
-        let (stop, worker, completion) = {
+        let (stop, worker, completion, stop_source) = {
             let mut g = self.active.lock().unwrap_or_else(|p| p.into_inner());
             let Some(a) = g.as_mut() else {
                 return Err(SessionError::NoSession);
@@ -286,9 +314,17 @@ impl Session {
             if expected_job_id.is_some_and(|id| id != a.snapshot.job_id) {
                 return Err(SessionError::NoSession);
             }
-            (a.stop.clone(), a.worker.take(), a.completion.clone())
+            (
+                a.stop.clone(),
+                a.worker.take(),
+                a.completion.clone(),
+                a.stop_source.clone(),
+            )
         };
         stop.store(true, Ordering::Relaxed);
+        if let Some(stop_source) = stop_source {
+            stop_source();
+        }
         Self::await_take(worker, &completion);
         match completion.wait() {
             Outcome::Completed(t) => Ok(*t),
@@ -390,6 +426,8 @@ pub(crate) enum Exit {
     /// Finished; a warning (the archive failed) rides on the final state.
     Completed(Option<String>),
     Cancelled,
+    /// The speech gate found the take silent; it never reached the engine.
+    Silence(SilenceReason),
     Failed(String),
 }
 
@@ -404,6 +442,10 @@ pub(crate) fn finish_shared(
     let (state, reason) = match &exit {
         Exit::Completed(warning) => (State::Idle, warning.clone()),
         Exit::Cancelled => (State::Cancelled, Some("cancelled".to_string())),
+        Exit::Silence(stage) => (
+            State::Cancelled,
+            Some(format!("silence: {}", stage.as_str())),
+        ),
         Exit::Failed(r) => (State::Failed, Some(r.clone())),
     };
     let outcome = match (&exit, transcript) {
@@ -412,7 +454,7 @@ pub(crate) fn finish_shared(
             Outcome::Completed(Box::new(t))
         }
         (Exit::Completed(_), None) => Outcome::Failed("no transcript".into()),
-        (Exit::Cancelled, _) => Outcome::Cancelled,
+        (Exit::Cancelled | Exit::Silence(_), _) => Outcome::Cancelled,
         (Exit::Failed(r), _) => Outcome::Failed(r.clone()),
     };
     let completion = match &outcome {

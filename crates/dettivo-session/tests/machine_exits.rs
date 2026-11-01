@@ -47,6 +47,7 @@ fn cancel_works_in_every_state() {
         slow: Duration::from_secs(5),
         cancelled: AtomicBool::new(false),
         calls: AtomicUsize::new(0),
+        last_samples: AtomicUsize::new(0),
     });
     let feed2 = Feed::new();
     session2
@@ -132,6 +133,7 @@ fn an_engine_crash_fails_the_session_and_the_next_one_runs() {
         slow: Duration::ZERO,
         cancelled: AtomicBool::new(false),
         calls: AtomicUsize::new(0),
+        last_samples: AtomicUsize::new(0),
     });
     session
         .start(policy(dir.path(), false), crashing, feed.clone(), None)

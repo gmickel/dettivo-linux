@@ -256,6 +256,11 @@
       "readiness": "missing",
       "recommended_for": "99 languages · vocabulary prompts · the Mac default",
       "size_bytes": 874188075
+    },
+    "vad": {
+      "action": "dettivo speech download --model silero-vad",
+      "model": "whisper/silero-vad",
+      "readiness": "missing"
     }
   },
   "omarchy": {

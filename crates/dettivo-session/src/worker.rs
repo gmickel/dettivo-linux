@@ -1,16 +1,21 @@
 //! The session's worker thread: drains the source into a take, meters
-//! levels, transcribes through the frozen engine, applies the raw pipeline,
-//! hands the text over and records the outcome. Whether a take is silent
-//! is read from its samples, never from the meter's display windows.
+//! levels, passes the take through the speech gate, transcribes it through
+//! the frozen engine, guards the engine's text, applies the raw pipeline,
+//! hands the text over and records the outcome. The gate judges the take's
+//! samples, never the meter's display windows; the capture ends at the stop
+//! request, so nothing after the release is in them. A take the gate finds
+//! silent ends `cancelled` without reaching the engine.
 
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc::RecvTimeoutError;
 use std::time::{Duration, Instant};
 
 use dettivo_audio::takes::TakeWriter;
 use dettivo_audio::{EndReason, Event};
-use dettivo_speech::{EngineError, RecognizeRequest, SttEngine, vocabulary_prompt};
+use dettivo_speech::gate::{self, GateVerdict, VoiceDetector};
+use dettivo_speech::{EngineError, RecognizeRequest, SttEngine, prompt_terms, vocabulary_prompt};
 
 use dettivo_language::pipeline::{Mode, Settings};
 use dettivo_language::provider::LocalEngine;
@@ -25,7 +30,6 @@ use crate::{
 struct Recorded {
     samples: Vec<i16>,
     duration_ms: u64,
-    peak: f32,
     /// An early exit when the recording itself decided the outcome.
     exit: Option<Exit>,
     /// From the stop being observed to the take being final.
@@ -34,15 +38,6 @@ struct Recorded {
 
 fn elapsed_ms(since: Instant) -> u64 {
     u64::try_from(since.elapsed().as_millis()).unwrap_or(u64::MAX)
-}
-
-/// The peak of `samples` on the meter's scale (0 to 1), so the silence
-/// threshold reads the same as a level event's `peak`.
-fn peak_of(samples: &[i16]) -> f32 {
-    samples
-        .iter()
-        .map(|s| (f64::from(*s) / 32_768.0).abs() as f32)
-        .fold(0.0, f32::max)
 }
 
 pub(crate) struct Worker {
@@ -57,6 +52,7 @@ pub(crate) struct Worker {
     pub(crate) archive: Option<Arc<dyn Archive>>,
     pub(crate) target: Option<SessionTarget>,
     pub(crate) local_llm: Option<Arc<dyn LocalEngine>>,
+    pub(crate) vad: Option<Arc<dyn VoiceDetector>>,
 }
 
 impl Worker {
@@ -80,7 +76,6 @@ impl Worker {
         let Recorded {
             samples,
             duration_ms,
-            peak,
             exit: record_exit,
             capture_ms,
         } = match outcome {
@@ -116,22 +111,60 @@ impl Worker {
             0.0,
             Some("loading engine".into()),
         );
-        let silent = peak < self.policy.silence_peak_threshold;
         let transcribe_started = Instant::now();
-        let recognized = if silent {
-            tracing::info!(job = %self.job_id, "take is near silent; nothing sent to the engine");
-            Ok((String::new(), self.policy.language.clone()))
+        let verdict = gate::judge(&samples, self.policy.silence_dbfs, self.vad.as_deref());
+        // A cancel during the voice pass reached no engine to stop.
+        if self.cancel.load(Ordering::Relaxed) {
+            self.cleanup();
+            finish_shared(
+                &shared,
+                &*self.publisher,
+                &self.job_id,
+                State::Transcribing,
+                Exit::Cancelled,
+                None,
+            );
+            return;
+        }
+        if let GateVerdict::Silence(stage) = verdict {
+            tracing::info!(job = %self.job_id, stage = stage.as_str(), "take is silent; nothing sent to the engine");
+            self.cleanup();
+            finish_shared(
+                &shared,
+                &*self.publisher,
+                &self.job_id,
+                State::Transcribing,
+                Exit::Silence(stage),
+                None,
+            );
+            return;
+        }
+        // An echo of the prompt is only possible from an engine that took one.
+        let echo_terms = if self.engine.capabilities().supports_custom_vocabulary {
+            prompt_terms(&self.policy.vocabulary)
         } else {
-            let request = RecognizeRequest {
-                pcm: samples,
-                language: self.policy.language.clone(),
-                prompt: vocabulary_prompt(&self.policy.vocabulary),
-                timestamps: true,
-            };
-            self.engine
-                .recognize(request, Duration::from_secs(300))
-                .map(|r| (r.text, r.language))
+            &[]
         };
+        let parakeet = self.engine.provider() == "parakeet";
+        let request = |pcm| RecognizeRequest {
+            pcm,
+            language: self.policy.language.clone(),
+            prompt: vocabulary_prompt(&self.policy.vocabulary),
+            timestamps: true,
+        };
+        let padded = gate::pad_for_engine(samples.clone(), parakeet, gate::SAMPLE_RATE);
+        let was_padded = padded.len() != samples.len();
+        let timeout = Duration::from_secs(300);
+        let mut recognized = self.engine.recognize(request(padded), timeout);
+        // Padding never empties a take: Parakeet v3 reads some takes whole
+        // only without the added silence (ADR 0081), so those run once more as captured.
+        if was_padded
+            && recognized.as_ref().is_ok_and(|r| r.text.trim().is_empty())
+            && !self.cancel.load(Ordering::Relaxed)
+        {
+            recognized = self.engine.recognize(request(samples), timeout);
+        }
+        let recognized = recognized.map(|r| (crate::guards::clean(&r, echo_terms), r.language));
         if self.cancel.load(Ordering::Relaxed) {
             self.cleanup();
             finish_shared(
@@ -197,12 +230,7 @@ impl Worker {
             "dictation text step"
         );
         let text = stepped.text;
-        // A silent take never reached the engine: the contract says 0.
-        let transcribe_ms = if silent {
-            0
-        } else {
-            elapsed_ms(transcribe_started)
-        };
+        let transcribe_ms = elapsed_ms(transcribe_started);
         // A cancel that landed while the text was being polished: nothing
         // is typed and nothing is archived. Past this point the delivery
         // has started and a cancel finds no session to stop.
@@ -245,7 +273,6 @@ impl Worker {
             policy_hash: Some(stepped.policy_hash),
             language,
             duration_ms,
-            silent,
             policy: self.policy.clone(),
             insertion,
             target: self.target.clone(),
@@ -273,9 +300,9 @@ impl Worker {
     }
 
     /// Drains the source until stop, cancel, the maximum duration or the
-    /// source's end. Returns the samples, the duration, the peak, an early
-    /// exit when the recording itself decided the outcome, and how long the
-    /// drain and the take's finish took after the stop.
+    /// source's end. Returns the samples, the duration, an early exit when
+    /// the recording itself decided the outcome, and how long the drain and
+    /// the take's finish took after the stop.
     fn record(&self, src: &crate::source::Source, shared: &SharedState) -> Result<Recorded, Exit> {
         let mut writer =
             TakeWriter::new(&self.dir).map_err(|e| Exit::Failed(format!("take: {e}")))?;
@@ -283,7 +310,6 @@ impl Worker {
             .start_take(false)
             .map_err(|e| Exit::Failed(format!("take: {e}")))?;
         let mut samples: Vec<i16> = Vec::new();
-        let mut peak: f32 = 0.0;
         let started = Instant::now();
         let mut ended: Option<EndReason> = None;
         let mut terminal = false;
@@ -292,7 +318,6 @@ impl Worker {
                 return Ok(Recorded {
                     samples,
                     duration_ms: 0,
-                    peak,
                     exit: Some(Exit::Cancelled),
                     capture_ms: 0,
                 });
@@ -305,7 +330,6 @@ impl Worker {
                     writer
                         .write(&chunk)
                         .map_err(|e| Exit::Failed(format!("take: {e}")))?;
-                    peak = peak.max(peak_of(&chunk));
                     samples.extend_from_slice(&chunk);
                     let progress = (started.elapsed().as_secs_f64()
                         / self.policy.max_duration.as_secs_f64())
@@ -335,8 +359,8 @@ impl Worker {
                     terminal = true;
                     break;
                 }
-                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {}
-                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                Err(RecvTimeoutError::Timeout) => {}
+                Err(RecvTimeoutError::Disconnected) => {
                     ended = Some(EndReason::Error(
                         "capture stop acknowledgement missing".into(),
                     ));
@@ -363,7 +387,6 @@ impl Worker {
                     writer
                         .write(&chunk)
                         .map_err(|e| Exit::Failed(format!("take: {e}")))?;
-                    peak = peak.max(peak_of(&chunk));
                     samples.extend_from_slice(&chunk);
                 }
                 Event::Level { rms, peak: p } => {
@@ -393,7 +416,6 @@ impl Worker {
         Ok(Recorded {
             samples,
             duration_ms,
-            peak,
             exit,
             capture_ms: elapsed_ms(released),
         })

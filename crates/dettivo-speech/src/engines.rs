@@ -1,13 +1,17 @@
 //! The speech engines as `SttEngine`s over the supervisor: one struct per
-//! engine binary with its capabilities, and the per-provider meeting
-//! capability the S-13 alignment spike decided (ADR 0018).
+//! engine binary with its capabilities, the per-provider meeting
+//! capability the S-13 alignment spike decided (ADR 0018), and the Silero
+//! voice activity pass the dictation gate asks (`SileroVad`).
 
 use std::sync::Arc;
 use std::time::Duration;
 
-use dettivo_engine_proto::{Backend, BackendPreference, RecognizeParams, RecognizeResult};
+use dettivo_engine_proto::{
+    Backend, BackendPreference, DetectSpeechResult, LoadParams, RecognizeParams, RecognizeResult,
+};
 use serde_json::Value;
 
+use crate::gate::{VAD_PARAMS, VoiceDetector};
 use crate::supervisor::{LlmLoad, Supervisor};
 use crate::{Capabilities, EngineError, PreloadSource, RecognizeRequest, SttEngine};
 
@@ -19,6 +23,9 @@ pub const PARAKEET_BINARY: &str = "dettivo-engine-parakeet";
 pub const LLM_BINARY: &str = "dettivo-engine-llm";
 /// The diarization engine binary name (ADR 0035).
 pub const DIARIZE_BINARY: &str = "dettivo-engine-diarize";
+/// The supervisor slot of the voice activity pass: a second Whisper engine
+/// process holding only the Silero model, so it never evicts a recognizer.
+pub const VAD_SLOT: &str = "dettivo-engine-whisper/vad";
 
 /// Whether a provider's timestamps are precise enough for the meeting
 /// merger: the outcome of the alignment spike
@@ -231,6 +238,46 @@ impl SttEngine for ParakeetEngine {
 
     fn backend(&self) -> Option<Backend> {
         self.0.backend()
+    }
+}
+
+/// The Silero voice activity pass over the supervisor, on the CPU.
+pub struct SileroVad {
+    supervisor: Arc<Supervisor>,
+    model: String,
+}
+
+impl SileroVad {
+    /// A pass over `supervisor` with the Silero model at `model`.
+    pub fn new(supervisor: Arc<Supervisor>, model: String) -> Self {
+        Self { supervisor, model }
+    }
+}
+
+impl VoiceDetector for SileroVad {
+    fn speech_ms(&self, pcm: &[i16]) -> Result<u64, EngineError> {
+        let load = LoadParams {
+            model: String::new(),
+            backend_preference: BackendPreference::Cpu,
+            vad_model: Some(self.model.clone()),
+            context_length: None,
+            lora: None,
+            threads: None,
+        };
+        let pcm = dettivo_engine_proto::pcm_to_bytes(pcm);
+        self.supervisor
+            .with_engine_slot(VAD_SLOT, WHISPER_BINARY, load, |process, _| {
+                let value = process.call(
+                    "detect_speech",
+                    serde_json::to_value(VAD_PARAMS).unwrap_or(Value::Null),
+                    &[&pcm],
+                    Duration::from_secs(30),
+                    |_| {},
+                )?;
+                serde_json::from_value::<DetectSpeechResult>(value)
+                    .map(|r| r.speech_ms)
+                    .map_err(|e| EngineError::Transport(format!("detect_speech response: {e}")))
+            })
     }
 }
 
