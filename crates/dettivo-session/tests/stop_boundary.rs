@@ -3,6 +3,7 @@
 
 mod support;
 
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, mpsc};
 use std::time::{Duration, Instant};
 
@@ -25,10 +26,13 @@ impl SourceFactory for StopSource {
         if !self.before.is_empty() {
             let _ = tx.send(Event::Pcm(self.before.clone()));
         }
+        // The stop request and the worker both stop the source: only the
+        // first acknowledges, as a real capture does.
+        let stopped = AtomicBool::new(false);
         Ok(Source::Channel {
             events,
             on_stop: Arc::new(move || {
-                if acknowledge {
+                if acknowledge && !stopped.swap(true, Ordering::SeqCst) {
                     let tx = tx.clone();
                     std::thread::spawn(move || {
                         let _ = tx.send(Event::Pcm(tone(320)));
