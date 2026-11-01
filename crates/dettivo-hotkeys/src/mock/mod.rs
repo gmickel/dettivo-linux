@@ -14,7 +14,7 @@ use std::time::Duration;
 use zbus::Connection;
 
 pub use player::MockPlayer;
-pub use portal::MockPortal;
+pub use portal::{MockOptions, MockPortal};
 
 /// A session bus of our own; killed on drop. Its configuration names no
 /// service directory, so nothing on the bus can activate the desktop's

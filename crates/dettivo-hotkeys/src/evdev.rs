@@ -224,6 +224,8 @@ impl HotkeyBackend for EvdevBackend {
         Ok(Registration {
             backend: "evdev",
             bound: Action::ALL.to_vec(),
+            identity: None,
+            compositor_bound: false,
         })
     }
 

@@ -229,7 +229,11 @@ void OsdModel::applyDictationState(const QJsonObject &payload)
 {
     const QString state = str(payload, "state");
     const QString previous = str(payload, "previous_state");
-    if (state == QStringLiteral("recording")) {
+    if (state == QStringLiteral("recording") && previous == QStringLiteral("recording")
+        && str(payload, "reason") == QStringLiteral("locked")) {
+        // The same take, locked by a double tap: the release no longer ends it.
+        show(QStringLiteral("listening"), Texts{{}, tr("locked · press to finish"), {}, {}, {}, {}, {}, {}});
+    } else if (state == QStringLiteral("recording")) {
         // A new take: a completion of the previous one still waiting out
         // its beat belongs to that take and is dropped when it fires.
         ++m_take;
@@ -361,8 +365,11 @@ void OsdModel::refreshFromStatus()
         const QString engine = message.section(QStringLiteral(" with "), 1, 1).replace(QLatin1Char('/'), QLatin1Char(' '));
         if (!engine.isEmpty())
             m_engineLabel = engine;
+        // A take a double tap locked ends on the next press, not the release.
+        const bool locked = result.value(QStringLiteral("locked")).toBool(false);
         if (phase == QStringLiteral("listening"))
-            show(QStringLiteral("listening"), Texts{{}, tr("release to insert"), {}, {}, {}, {}, {}, {}});
+            show(QStringLiteral("listening"),
+                 Texts{{}, locked ? tr("locked · press to finish") : tr("release to insert"), {}, {}, {}, {}, {}, {}});
         else if (phase == QStringLiteral("transcribing") || phase == QStringLiteral("inserting"))
             show(QStringLiteral("transcribing"), Texts{{}, {}, m_engineLabel, m_elapsed, {}, {}, {}, {}});
     });

@@ -22,6 +22,7 @@ mod events;
 mod feedback;
 mod handlers;
 mod history;
+mod hold;
 mod hotkeys;
 mod imports;
 mod inserter;

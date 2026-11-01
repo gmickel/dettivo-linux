@@ -14,6 +14,10 @@ pub const STATEFUL: &[(&str, &str)] = &[
         "dictation/toggle.json",
         "starts or stops a capture and needs the selected speech model; concurrent default and override toggles covered by toggles_serialize_and_preserve_configured_mode",
     ),
+    (
+        "dictation/press.json",
+        "starts a capture and needs the selected speech model; covered by the_hold_verbs_survive_a_lost_release_and_lock_on_a_double_tap",
+    ),
     ("dictation/cancel.json", "needs an active dictation session"),
     (
         "dictation/start.json",
