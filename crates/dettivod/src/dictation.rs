@@ -235,6 +235,11 @@ impl Dictation {
         self.session.stop()
     }
 
+    /// Stops and finishes the session without inserting.
+    pub fn stop_print(&self) -> Result<Transcript, SessionError> {
+        self.session.stop_print()
+    }
+
     /// Stops the named take without affecting a replacement session.
     pub fn stop_expected(&self, expected_job_id: &str) -> Result<Transcript, SessionError> {
         self.session.stop_expected(Some(expected_job_id))

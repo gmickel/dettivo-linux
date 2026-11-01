@@ -47,7 +47,7 @@ fn the_voice_stage_gates_a_take_the_level_passed() {
     let (_dir, rec, session, engine, feed) = rig("never used");
     session.set_vad(Some(Arc::new(Voice(Ok(0)))));
     let ended = take(&session, engine.clone(), &feed, &[]);
-    assert_eq!(ended.unwrap_err(), SessionError::Cancelled);
+    assert_eq!(ended.unwrap_err(), SessionError::NoSpeech);
     assert_eq!(engine.calls.load(Ordering::Relaxed), 0);
     assert_eq!(silence_reason(&rec).as_deref(), Some("silence: voice"));
 

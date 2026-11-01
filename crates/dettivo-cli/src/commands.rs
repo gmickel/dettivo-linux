@@ -243,7 +243,13 @@ pub enum DictationCmd {
         expected_target_pid: Option<String>,
     },
     /// dictation.stop: finish the take, transcribe and insert.
-    Stop,
+    Stop {
+        /// Print the processed text to stdout and insert nothing; waits up
+        /// to 60 s for the transcription and exits 6 when no speech was
+        /// heard.
+        #[arg(long)]
+        print: bool,
+    },
     /// dictation.cancel: drop the session.
     Cancel,
     /// dictation.status
@@ -289,7 +295,8 @@ pub fn dictation(cli: &Cli, client: &Client, what: &DictationCmd) -> Result<(), 
                 expected_target_pid.as_deref(),
             ),
         ),
-        DictationCmd::Stop => ("dictation.stop", json!({})),
+        DictationCmd::Stop { print: true } => return stop_print(cli, client),
+        DictationCmd::Stop { print: false } => ("dictation.stop", json!({})),
         DictationCmd::Cancel => ("dictation.cancel", json!({})),
         DictationCmd::Status => ("dictation.status", json!({})),
         DictationCmd::ReinsertLast => ("dictation.reinsert_last", json!({})),
@@ -297,6 +304,33 @@ pub fn dictation(cli: &Cli, client: &Client, what: &DictationCmd) -> Result<(), 
     };
     let result = client.call(method, params)?;
     output::result(cli, method, &result);
+    Ok(())
+}
+
+/// How long `dictation stop --print` waits for the transcription.
+pub const PRINT_WAIT: std::time::Duration = std::time::Duration::from_secs(60);
+
+/// `dettivo dictation stop --print`: the processed text on stdout, nothing
+/// inserted. A take without speech exits 6 (`NoSpeech`).
+fn stop_print(cli: &Cli, client: &Client) -> Result<(), Failure> {
+    let client = Client {
+        timeout: client.timeout.max(PRINT_WAIT),
+        ..client.clone()
+    };
+    let result = client.call("dictation.stop", json!({"print": true}))?;
+    let text = result
+        .get("text")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    if cli.quiet {
+    } else if cli.json {
+        println!("{result}");
+    } else if !text.is_empty() {
+        println!("{text}");
+    }
+    if text.is_empty() {
+        return Err(Failure::reported(Exit::NoSpeech, "no speech was heard"));
+    }
     Ok(())
 }
 

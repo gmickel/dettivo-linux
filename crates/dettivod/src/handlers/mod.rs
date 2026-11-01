@@ -80,10 +80,7 @@ pub fn resolve(method: &str) -> Option<Handler> {
             let _: dettivo_proto::catalog::NoParams = params(value)?;
             dictation::toggle(daemon)
         },
-        "dictation.stop" => |daemon, _ctx, value| {
-            let _: dettivo_proto::catalog::NoParams = params(value)?;
-            dictation::stop(daemon)
-        },
+        "dictation.stop" => |daemon, _ctx, value| dictation::stop(daemon, value),
         "dictation.cancel" => |daemon, _ctx, value| dictation::cancel(daemon, value),
         "dictation.status" => |daemon, _ctx, value| {
             let _: dettivo_proto::catalog::NoParams = params(value)?;

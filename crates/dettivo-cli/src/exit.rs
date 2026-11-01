@@ -5,6 +5,10 @@ use std::process::ExitCode;
 
 use dettivo_proto::error::{AppCode, JsonRpcError};
 
+/// The `CONFLICT` kind the daemon answers a stop with when the take held
+/// no speech.
+pub const NO_SPEECH: &str = "noSpeech";
+
 /// Exit codes, normative for every adapter.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Exit {
@@ -20,6 +24,8 @@ pub enum Exit {
     InvalidArgs,
     /// 5: timeout or interrupted operation.
     Timeout,
+    /// 6: the take held no speech, so there is no text (Linux addition).
+    NoSpeech,
 }
 
 impl Exit {
@@ -37,6 +43,7 @@ impl Exit {
             Self::PermissionDenied => 3,
             Self::InvalidArgs => 4,
             Self::Timeout => 5,
+            Self::NoSpeech => 6,
         }
     }
 
@@ -46,6 +53,7 @@ impl Exit {
             AppCode::UnauthorizedClient => Self::PermissionDenied,
             AppCode::InvalidParams => Self::InvalidArgs,
             AppCode::AppNotRunning => Self::Unavailable,
+            AppCode::Conflict if error.data.details.kind() == Some(NO_SPEECH) => Self::NoSpeech,
             _ => Self::Failure,
         }
     }
@@ -116,5 +124,13 @@ mod tests {
             Exit::for_rpc(&err(AppCode::AppNotRunning)),
             Exit::Unavailable
         );
+        let silent = JsonRpcError::new(
+            AppCode::Conflict,
+            "no speech was heard",
+            ErrorDetails::conflict_kind(NO_SPEECH),
+        );
+        assert_eq!(Exit::for_rpc(&silent), Exit::NoSpeech);
+        assert_eq!(Exit::NoSpeech.number(), 6);
+        assert_eq!(Exit::for_rpc(&err(AppCode::Conflict)), Exit::Failure);
     }
 }
