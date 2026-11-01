@@ -30,6 +30,10 @@ use crate::keys::{self, Keyboard};
 /// The scenario.
 pub struct HotkeysHyprland;
 
+/// The pause between the tap's release and the second press, on top of
+/// one [`keys::SETTLE`].
+const TAP_GAP: Duration = Duration::from_millis(100);
+
 /// The modifier keys of every chord.
 const MODIFIERS: &[KeyCode] = &[
     KeyCode::KEY_LEFTCTRL,
@@ -176,7 +180,8 @@ impl Scenario for HotkeysHyprland {
         .map_err(|e| e.to_string())?;
         let mut env: BTreeMap<String, String> = ctx.profile.env();
         env.insert("DETTIVO_MOCK_MIC".into(), wav.display().to_string());
-        env.insert("RUST_LOG".into(), "info".into());
+        // The hold key logs the edges it ignored at debug.
+        env.insert("RUST_LOG".into(), "info,dettivod::hold=debug".into());
         let log = std::fs::File::create(ctx.evidence_dir.join("daemon.log"))
             .map_err(|e| format!("daemon.log: {e}"))?;
         ctx.evidence.push("daemon.log".into());
@@ -330,13 +335,14 @@ fn drive_keys(
     events.wait_for(11, "idle", Duration::from_secs(15))?;
     // Double tap: the tap's take is dropped, the second press's release
     // locks (a recording-to-recording event), the next press finishes.
-    // The edges stay 80 to 100 ms apart, so the commands the compositor
-    // spawns reach the daemon in order and inside the 300 ms window.
+    // The modifiers stay down and only the key is tapped again, so the
+    // second press lands `TAP_GAP` after the tap's release, inside the
+    // daemon's window; lifting the whole chord costs a settle per key.
     keyboard.chord_down(MODIFIERS, hold)?;
     std::thread::sleep(Duration::from_millis(80));
-    keyboard.chord_up(MODIFIERS, hold)?;
-    std::thread::sleep(Duration::from_millis(100));
-    keyboard.chord_down(MODIFIERS, hold)?;
+    keyboard.release(hold)?;
+    std::thread::sleep(TAP_GAP);
+    keyboard.press(hold)?;
     events.wait_for(15, "recording", Duration::from_secs(15))?;
     std::thread::sleep(Duration::from_millis(600));
     keyboard.chord_up(MODIFIERS, hold)?;
@@ -380,4 +386,17 @@ fn drive_keys(
         return Err(format!("transitions {states:?}, expected {expected:?}"));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_double_tap_lands_well_inside_the_daemons_300_ms_window() {
+        // The daemon's window (dettivo_hotkeys::hold::DOUBLE_TAP) is 300 ms;
+        // the rest is the compositor spawning `dettivo dictation press`.
+        let gap = keys::SETTLE + TAP_GAP;
+        assert!(gap <= Duration::from_millis(150), "{gap:?}");
+    }
 }

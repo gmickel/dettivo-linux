@@ -116,6 +116,9 @@ impl HoldKey {
                 }
             }
             HoldAction::None => {
+                // At debug, so a live run can tell a release the
+                // compositor never delivered from one the key ignored.
+                tracing::debug!(edge = ?edge, hold = g.state.as_str(), "hold key: edge did nothing");
                 if edge == Edge::Press {
                     tracing::info!(action = "push_to_talk", "hotkey press ignored: key repeat");
                 }
