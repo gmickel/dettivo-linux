@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-83-vocabulary-entries-with-spoken-aliases",
   "impl_review_rounds": {
-    "fn-83-vocabulary-entries-with-spoken-aliases.1": 1
+    "fn-83-vocabulary-entries-with-spoken-aliases.1": 0
   },
   "next_task": 1,
   "no_plan": true,
@@ -113,10 +113,62 @@
       "task": "fn-83-vocabulary-entries-with-spoken-aliases.1",
       "timestamp": "2026-11-01T17:13:30.453162Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "bead49d235190231dfd5e64b74fe79f0c6cee6f00a5c30f4d2d92dac27e656ff",
+      "backend": "codex",
+      "base_sha": "59199ffce887c39b21915fe2e298b2975719a27a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-bb33eff3cc1fcd2cf4f29d7619b2afd6",
+            "classification": "introduced",
+            "findingId": "finding-bb33eff3cc1fcd2cf4f29d7619b2afd6",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6adb62c09572b81d2cd2a11ab323068c",
+            "classification": "introduced",
+            "findingId": "finding-6adb62c09572b81d2cd2a11ab323068c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "c5071039ffb8a26cd0b55b1c0e06fc8b53b4b2b8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1069,
+      "output_sha256": "1736a7770683c2cf099019dedbad7e53196de10f7753ac1ce6ea8518c1670e10",
+      "reservation_id": "cf396e20caf64d63b16633b31cc819c5",
+      "round_consumed": true,
+      "scope": "impl:fn-83-vocabulary-entries-with-spoken-aliases.1",
+      "superseded_by": null,
+      "task": "fn-83-vocabulary-entries-with-spoken-aliases.1",
+      "timestamp": "2026-11-01T17:16:43.710871Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-83-vocabulary-entries-with-spoken-aliases.1": 1
+    "impl:fn-83-vocabulary-entries-with-spoken-aliases.1": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -137,5 +189,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T17:13:30.456615Z"
+  "updated_at": "2026-11-01T17:16:43.713730Z"
 }
