@@ -61,3 +61,5 @@ This goal runs at full rigor, the way Dettivo was built before fast-build mode, 
 
 - 2026-11-01: goal captured from the eight dictation specs; children fn-79 to fn-86 adopted, marked ready, route `no_plan` recorded on each.
 - 2026-11-01: rigor set to full (per-child gpt-6.1-sol review and QA, fix-as-found, final whole-diff review and combined QA), from Gordon's words: "QA should be on for each spec/pr, impl-review too imo, bugs fixed as they appear".
+
+- 2026-11-01: integration line goal/fn-88-better-dictation-shipped-as-one-release opened from main 4052810; each child lands there through its own pull request, and one final pull request takes the goal to main. Review backend codex resolves to gpt-6.1-sol at high.
