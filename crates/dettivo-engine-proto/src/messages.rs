@@ -110,9 +110,9 @@ impl VocabularyBias {
     pub fn boost_of(level: &str) -> Option<f32> {
         match level {
             "off" => Some(0.0),
-            "light" => Some(2.0),
-            "normal" => Some(2.5),
-            "strong" => Some(4.0),
+            "light" => Some(2.5),
+            "normal" => Some(4.0),
+            "strong" => Some(5.0),
             _ => None,
         }
     }
