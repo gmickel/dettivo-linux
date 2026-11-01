@@ -273,6 +273,19 @@ mod tests {
         }
     }
 
+    /// A manifest with nothing to score (empty, no tab-separated rows, or
+    /// blank references) is refused rather than scored as a perfect 0.0.
+    #[test]
+    fn a_language_with_no_reference_words_is_refused() {
+        for manifest in ["", "no tab on this line\n", "a.wav\t \n"] {
+            let dir = tempfile::tempdir().unwrap();
+            std::fs::create_dir(dir.path().join("de")).unwrap();
+            std::fs::write(dir.path().join("de/manifest.tsv"), manifest).unwrap();
+            let error = languages(dir.path()).expect_err(manifest);
+            assert!(error.contains("no reference words"), "{error}");
+        }
+    }
+
     #[test]
     fn a_tie_goes_to_the_faster_model_and_a_real_gap_to_the_better_one() {
         let mut rows = vec![
