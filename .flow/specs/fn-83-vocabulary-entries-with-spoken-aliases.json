@@ -165,10 +165,62 @@
       "task": "fn-83-vocabulary-entries-with-spoken-aliases.1",
       "timestamp": "2026-11-01T17:16:43.710871Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "48eadb04b51f6258c3d950410e68871ad68086658ace616d5031290371727ebf",
+      "backend": "codex",
+      "base_sha": "a17f4c92c1c676a042184cf202f27b09917fcf02",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-bb33eff3cc1fcd2cf4f29d7619b2afd6",
+            "classification": "introduced",
+            "findingId": "finding-bb33eff3cc1fcd2cf4f29d7619b2afd6",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6adb62c09572b81d2cd2a11ab323068c",
+            "classification": "introduced",
+            "findingId": "finding-6adb62c09572b81d2cd2a11ab323068c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "ba8b805d56ff91f9f627e0a77f1e5cd683f67c38",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "97aa6d847adc40d29efd2f15d42d2d69",
+      "round_consumed": true,
+      "scope": "impl:fn-83-vocabulary-entries-with-spoken-aliases.1",
+      "superseded_by": null,
+      "task": "fn-83-vocabulary-entries-with-spoken-aliases.1",
+      "timestamp": "2026-11-01T17:29:54.369629Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-83-vocabulary-entries-with-spoken-aliases.1": 2
+    "impl:fn-83-vocabulary-entries-with-spoken-aliases.1": 3
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -189,5 +241,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T17:16:43.713730Z"
+  "updated_at": "2026-11-01T17:29:54.372233Z"
 }
