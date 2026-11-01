@@ -2,7 +2,7 @@
   "branch": "fn-80-a-fast-first-dictation-and-the-right",
   "findings": {
     "backend": "interactive",
-    "headSha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+    "headSha": "0619ed44b272dd2a986ecbdfb3eb008b7a28e958",
     "items": [
       {
         "body": "With [dictation] language = en and no model on disk, first run correctly preselects Parakeet v2 (RECOMMENDED, word error 4.1 %), but the recommendation adds a fifth speech row and the Models step overflows: the Enhanced 'Use Ollama instead' row draws over the footer note and next to Back / Continue. Reproduced twice; German (4 rows) is clean. Memory: .flow/memory/bug/ui/english-first-run-user-sees-the-models-2026-11-01.md. Evidence: .flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6b-en-models.png, r6b2-en-models.png (surface: qt/host/app/first_run_models.cpp (Models step rows) / first-run Models QML layout)",
@@ -10,54 +10,59 @@
         "confidence": 100,
         "firstSeenReceiptId": "review-e7da19954818e79759c9fe0035fe64c4bc78d8ba8c212139438c0b574ca7d090",
         "id": "finding-6ffc07e88e6d2e98118477f4b075e28f",
-        "lastSeenReceiptId": "review-e7da19954818e79759c9fe0035fe64c4bc78d8ba8c212139438c0b574ca7d090",
+        "lastSeenReceiptId": "review-5b31ae2062d912f59ecbc0eca30a5d751fd47899f5ea17b46c4338b2303d7301",
         "ordinal": 1,
         "rIds": [],
         "severity": "P1",
-        "status": "open",
+        "status": "fixed",
         "title": "QA-fn80-1"
+      },
+      {
+        "body": "English Models step (5 speech rows, 1280x820): Tab to Back scrolls only until Back meets the window's bottom edge, so the footer note's last line ('file.') stays half-clipped; the wheel scrolls further and shows the whole footer. No overlap. Reproduced on two runs. Memory: .flow/memory/bug/ui/keyboard-user-tabbing-to-the-english-2026-11-01.md. Evidence: .flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6b-en-tab8.png, rc-s6b2-en-tab8.png (surface: qt/qml/Dettivo/app/OnboardingRoute.qml (focus scroll-into-view) / ModelsStep.qml footer)",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-5b31ae2062d912f59ecbc0eca30a5d751fd47899f5ea17b46c4338b2303d7301",
+        "id": "finding-8c64fb90efa9f718577d2dea8e2706f0",
+        "lastSeenReceiptId": "review-5b31ae2062d912f59ecbc0eca30a5d751fd47899f5ea17b46c4338b2303d7301",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-fn80-2"
       }
     ],
     "reviewKind": "qa",
-    "round": 1,
+    "round": 2,
     "schemaVersion": 1,
-    "sourceReceiptId": "review-e7da19954818e79759c9fe0035fe64c4bc78d8ba8c212139438c0b574ca7d090"
+    "sourceReceiptId": "review-5b31ae2062d912f59ecbc0eca30a5d751fd47899f5ea17b46c4338b2303d7301",
+    "supersedesReceiptId": "review-e7da19954818e79759c9fe0035fe64c4bc78d8ba8c212139438c0b574ca7d090"
   },
-  "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+  "head_sha": "0619ed44b272dd2a986ecbdfb3eb008b7a28e958",
   "id": "fn-80-a-fast-first-dictation-and-the-right",
   "mode": "interactive",
-  "open_p0p1": [
-    {
-      "classification": "introduced",
-      "confidence": 100,
-      "file": "qt/host/app/first_run_models.cpp (Models step rows) / first-run Models QML layout",
-      "id": "QA-fn80-1",
-      "reason": "With [dictation] language = en and no model on disk, first run correctly preselects Parakeet v2 (RECOMMENDED, word error 4.1 %), but the recommendation adds a fifth speech row and the Models step overflows: the Enhanced 'Use Ollama instead' row draws over the footer note and next to Back / Continue. Reproduced twice; German (4 rows) is clean. Memory: .flow/memory/bug/ui/english-first-run-user-sees-the-models-2026-11-01.md. Evidence: .flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6b-en-models.png, r6b2-en-models.png",
-      "severity": "P1"
-    }
-  ],
-  "qa_outcome": "NEEDS_WORK",
+  "open_p0p1": [],
+  "qa_outcome": "SHIP",
   "rid_coverage": {
     "covered": 6,
     "rids": [
       {
-        "coverage": "live",
+        "coverage": "carried",
         "id": "R1"
       },
       {
-        "coverage": "live",
+        "coverage": "carried",
         "id": "R2"
       },
       {
-        "coverage": "live",
+        "coverage": "carried",
         "id": "R3"
       },
       {
-        "coverage": "live",
+        "coverage": "carried",
         "id": "R4"
       },
       {
-        "coverage": "live",
+        "coverage": "carried",
         "id": "R5"
       },
       {
@@ -80,7 +85,7 @@
       "rids": [
         "R1"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -94,7 +99,7 @@
       "rids": [
         "R1"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -110,7 +115,7 @@
       "rids": [
         "R1"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -124,7 +129,7 @@
       "rids": [
         "R1"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -142,7 +147,7 @@
       "rids": [
         "R2"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -155,7 +160,7 @@
       "rids": [
         "R3"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -168,7 +173,7 @@
       "rids": [
         "R4"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -181,14 +186,17 @@
       "rids": [
         "R5"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6a-de-models.png",
-        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6a-de-steps.log"
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6a-de-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6a-de-tab7.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6a-de-scrolled.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6a-de-steps.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6a-de-app.log"
       ],
-      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "head_sha": "0619ed44b272dd2a986ecbdfb3eb008b7a28e958",
       "id": "S6a-first-run-german",
       "outcome": "PASS",
       "rids": [
@@ -198,13 +206,19 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6b-en-models.png",
-        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6b2-en-models.png",
-        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6b-en-app.log"
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6b-en-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6b-en-tab8.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6b-en-top.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6b-en-scrolled.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6b2-en-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6b2-en-tab8.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6b2-en-scrolled.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6b-en-steps.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6b-en-app.log"
       ],
-      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "head_sha": "0619ed44b272dd2a986ecbdfb3eb008b7a28e958",
       "id": "S6b-first-run-english",
-      "outcome": "FAIL",
+      "outcome": "PASS",
       "rids": [
         "R6"
       ],
@@ -212,9 +226,11 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6c-auto-models.png"
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6c-auto-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6c-auto-scrolled.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6c-auto-steps.log"
       ],
-      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "head_sha": "0619ed44b272dd2a986ecbdfb3eb008b7a28e958",
       "id": "S6c-first-run-auto-locale-de_CH",
       "outcome": "PASS",
       "rids": [
@@ -224,9 +240,11 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6d-ja-models.png"
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6d-ja-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6d-ja-scrolled.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6d-ja-steps.log"
       ],
-      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "head_sha": "0619ed44b272dd2a986ecbdfb3eb008b7a28e958",
       "id": "S6d-first-run-uncovered-language-ja",
       "outcome": "PASS",
       "rids": [
@@ -236,12 +254,12 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6e-existing-models.png",
-        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6e-existing-config-before.sha",
-        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6e-existing-config-after.sha",
-        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6e-existing-steps.log"
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6e-existing-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6e-existing-config-before.sha",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6e-existing-config-after.sha",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6e-existing-steps.log"
       ],
-      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "head_sha": "0619ed44b272dd2a986ecbdfb3eb008b7a28e958",
       "id": "S6e-existing-install-keeps-selection",
       "outcome": "PASS",
       "rids": [
@@ -259,10 +277,10 @@
       "rids": [
         "R6"
       ],
-      "run": "live"
+      "run": "carried"
     }
   ],
-  "timestamp": "2026-11-01T21:00:51Z",
+  "timestamp": "2026-11-01T22:10:42Z",
   "type": "qa_verdict",
-  "verdict": "NEEDS_WORK"
+  "verdict": "SHIP"
 }

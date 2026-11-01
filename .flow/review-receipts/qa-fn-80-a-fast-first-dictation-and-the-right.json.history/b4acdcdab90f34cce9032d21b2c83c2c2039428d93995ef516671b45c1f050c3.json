@@ -1,0 +1,268 @@
+{
+  "branch": "fn-80-a-fast-first-dictation-and-the-right",
+  "findings": {
+    "backend": "interactive",
+    "headSha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+    "items": [
+      {
+        "body": "With [dictation] language = en and no model on disk, first run correctly preselects Parakeet v2 (RECOMMENDED, word error 4.1 %), but the recommendation adds a fifth speech row and the Models step overflows: the Enhanced 'Use Ollama instead' row draws over the footer note and next to Back / Continue. Reproduced twice; German (4 rows) is clean. Memory: .flow/memory/bug/ui/english-first-run-user-sees-the-models-2026-11-01.md. Evidence: .flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6b-en-models.png, r6b2-en-models.png (surface: qt/host/app/first_run_models.cpp (Models step rows) / first-run Models QML layout)",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-e7da19954818e79759c9fe0035fe64c4bc78d8ba8c212139438c0b574ca7d090",
+        "id": "finding-6ffc07e88e6d2e98118477f4b075e28f",
+        "lastSeenReceiptId": "review-e7da19954818e79759c9fe0035fe64c4bc78d8ba8c212139438c0b574ca7d090",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P1",
+        "status": "open",
+        "title": "QA-fn80-1"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-e7da19954818e79759c9fe0035fe64c4bc78d8ba8c212139438c0b574ca7d090"
+  },
+  "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+  "id": "fn-80-a-fast-first-dictation-and-the-right",
+  "mode": "interactive",
+  "open_p0p1": [
+    {
+      "classification": "introduced",
+      "confidence": 100,
+      "file": "qt/host/app/first_run_models.cpp (Models step rows) / first-run Models QML layout",
+      "id": "QA-fn80-1",
+      "reason": "With [dictation] language = en and no model on disk, first run correctly preselects Parakeet v2 (RECOMMENDED, word error 4.1 %), but the recommendation adds a fifth speech row and the Models step overflows: the Enhanced 'Use Ollama instead' row draws over the footer note and next to Back / Continue. Reproduced twice; German (4 rows) is clean. Memory: .flow/memory/bug/ui/english-first-run-user-sees-the-models-2026-11-01.md. Evidence: .flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6b-en-models.png, r6b2-en-models.png",
+      "severity": "P1"
+    }
+  ],
+  "qa_outcome": "NEEDS_WORK",
+  "rid_coverage": {
+    "covered": 6,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "live",
+        "id": "R2"
+      },
+      {
+        "coverage": "live",
+        "id": "R3"
+      },
+      {
+        "coverage": "live",
+        "id": "R4"
+      },
+      {
+        "coverage": "live",
+        "id": "R5"
+      },
+      {
+        "coverage": "live",
+        "id": "R6"
+      }
+    ],
+    "total": 6
+  },
+  "scenarios": [
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-daemon.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-steps.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-events.jsonl"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S1-warm-up-after-load",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-daemon.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3b-daemon.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3b-steps.log"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S1b-skip-within-60s",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r1b-0.4-daemon.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r1b-0.6-daemon.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r1b-0.8-daemon.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r1b-0.2-daemon.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r1b-0.65-daemon.log"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S1c-take-during-warm-up",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-events.jsonl",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-steps.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-daemon.log"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S1d-warm-up-leaves-no-text",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r2-run1.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r2-run2.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r2-run3.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r2-run4.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r2-gpu.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/bench-run1",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/bench-run4"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S2-first-take-after-start-vs-warm",
+      "outcome": "PASS",
+      "rids": [
+        "R2"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-steps.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3b-steps.log"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S3-status-doctor-cold-loaded-warm",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r45-warm_up.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/bench-warm_up"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S4-adr-latencies-vram-idle-default",
+      "outcome": "PASS",
+      "rids": [
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r45-gpu_threads.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/bench-gpu_threads"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S5-gpu-thread-default",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6a-de-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6a-de-steps.log"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S6a-first-run-german",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6b-en-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6b2-en-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6b-en-app.log"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S6b-first-run-english",
+      "outcome": "FAIL",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6c-auto-models.png"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S6c-first-run-auto-locale-de_CH",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6d-ja-models.png"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S6d-first-run-uncovered-language-ja",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6e-existing-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6e-existing-config-before.sha",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6e-existing-config-after.sha",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6e-existing-steps.log"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S6e-existing-install-keeps-selection",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6a-de-steps.log"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S6f-cli-providers-language",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    }
+  ],
+  "timestamp": "2026-11-01T21:00:51Z",
+  "type": "qa_verdict",
+  "verdict": "NEEDS_WORK"
+}
