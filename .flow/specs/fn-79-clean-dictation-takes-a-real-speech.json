@@ -8,13 +8,91 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-79-clean-dictation-takes-a-real-speech",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-79-clean-dictation-takes-a-real-speech.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "5693ad87d7e0d8b3c8527dab7f639a0f39072db71ad214087c5ee18b89122eb6",
+      "backend": "codex",
+      "base_sha": "fd69c6ab8c6de3b4a1e0b9d58d38bcd1434b56cc",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "classification": "introduced",
+            "findingId": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "classification": "introduced",
+            "findingId": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9e546fe212589f8a8847d244794dcac9",
+            "classification": "introduced",
+            "findingId": "finding-9e546fe212589f8a8847d244794dcac9",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "classification": "introduced",
+            "findingId": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8f9aabd65c77b608eedb1727927b5c1295c34a3b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 3433,
+      "output_sha256": "6ae8b5e0086060f5e5474b92388e5378deaecdea959d9252e5c62090c507b1d8",
+      "reservation_id": "01c88183bf104747b45bdace6279c316",
+      "round_consumed": true,
+      "scope": "impl:fn-79-clean-dictation-takes-a-real-speech.1",
+      "superseded_by": null,
+      "task": "fn-79-clean-dictation-takes-a-real-speech.1",
+      "timestamp": "2026-11-01T13:11:37.952934Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-79-clean-dictation-takes-a-real-speech.1": 0
+  },
   "spec_path": ".flow/specs/fn-79-clean-dictation-takes-a-real-speech.md",
   "status": "open",
   "title": "Clean dictation takes: a real speech gate and engine output guards",
@@ -29,5 +107,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T11:52:59.320232Z"
+  "updated_at": "2026-11-01T13:11:37.955907Z"
 }

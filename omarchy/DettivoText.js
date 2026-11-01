@@ -1,5 +1,5 @@
 // Text helpers shared by DettivoState and DettivoFacts: version order,
-// the shortcut label and the meeting timer.
+// the shortcut label, the meeting timer and the silent take's pill.
 .pragma library
 
 function compareVersions(a, b) {
@@ -26,4 +26,14 @@ function formatElapsed(ms) {
     const s = total % 60;
     const two = n => (n < 10 ? "0" : "") + n;
     return two(h) + ":" + two(m) + ":" + two(s);
+}
+
+// The pill for a take the speech gate found silent (`cancelled`, reason
+// `silence: <stage>`), as the OSD shows it.
+function nothingHeard() {
+    return {
+        "title": "Nothing heard",
+        "reason": "the take was silent",
+        "action": "try again"
+    };
 }

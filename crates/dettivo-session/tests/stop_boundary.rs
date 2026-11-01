@@ -107,3 +107,22 @@ fn a_source_that_never_acknowledges_stop_fails_within_a_bound() {
     assert!(session.snapshot().is_none());
     assert!(session.last().is_none());
 }
+
+/// fn-79 R1: speech the source delivered before the stop counts even when
+/// the worker had not read it yet; nothing waits for the worker here.
+#[test]
+fn speech_queued_before_the_stop_opens_the_gate() {
+    let (dir, _, session, engine, feed) = rig("queued words");
+    session
+        .start(
+            policy(dir.path(), false),
+            engine.clone(),
+            feed.clone(),
+            None,
+        )
+        .unwrap();
+    feed.speak(200);
+    let result = session.stop().unwrap();
+    assert_eq!(result.text, "Queued words");
+    assert_eq!(result.duration_ms, 200);
+}

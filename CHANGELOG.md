@@ -13,7 +13,7 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 ### Changed
 
 - `[dictation] silence_dbfs` (default -50) replaces `silence_peak_threshold`, which is retired. A file that still sets the old key loads, and the value is ignored ([docs/config.md](docs/config.md)).
-- Takes shorter than 1.5 s reach the engine padded to 1.5 s, and Parakeet takes carry 400 ms of trailing silence.
+- Takes shorter than 1.5 s reach the engine padded to 1.5 s, and Parakeet takes carry 400 ms of trailing silence. A padded take that comes back with no text is recognized once more as captured.
 
 ## [0.4.4] - 2026-10-31
 

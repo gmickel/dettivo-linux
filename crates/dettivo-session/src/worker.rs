@@ -8,6 +8,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc::{RecvTimeoutError, TryRecvError};
 use std::time::{Duration, Instant};
 
 use dettivo_audio::takes::TakeWriter;
@@ -138,16 +139,25 @@ impl Worker {
             &[]
         };
         let parakeet = self.engine.provider() == "parakeet";
-        let request = RecognizeRequest {
-            pcm: gate::pad_for_engine(samples, parakeet, gate::SAMPLE_RATE),
+        let request = |pcm| RecognizeRequest {
+            pcm,
             language: self.policy.language.clone(),
             prompt: vocabulary_prompt(&self.policy.vocabulary),
             timestamps: true,
         };
-        let recognized = self
-            .engine
-            .recognize(request, Duration::from_secs(300))
-            .map(|r| (crate::guards::clean(&r, echo_terms), r.language));
+        let padded = gate::pad_for_engine(samples.clone(), parakeet, gate::SAMPLE_RATE);
+        let was_padded = padded.len() != samples.len();
+        let timeout = Duration::from_secs(300);
+        let mut recognized = self.engine.recognize(request(padded), timeout);
+        // Padding never empties a take: Parakeet v3 reads some takes whole
+        // only without the added silence (ADR 0081), so those run once more as captured.
+        if was_padded
+            && recognized.as_ref().is_ok_and(|r| r.text.trim().is_empty())
+            && !self.cancel.load(Ordering::Relaxed)
+        {
+            recognized = self.engine.recognize(request(samples), timeout);
+        }
+        let recognized = recognized.map(|r| (crate::guards::clean(&r, echo_terms), r.language));
         if self.cancel.load(Ordering::Relaxed) {
             self.cleanup();
             finish_shared(
@@ -307,10 +317,20 @@ impl Worker {
                     capture_ms: 0,
                 });
             }
-            if self.stop.load(Ordering::Relaxed) || started.elapsed() >= self.policy.max_duration {
-                break;
-            }
-            match src.events().recv_timeout(Duration::from_millis(50)) {
+            // Once stopped, what the source already delivered was captured
+            // before the release; the tail is what it sends after `src.stop()`.
+            let next = if self.stop.load(Ordering::Relaxed)
+                || started.elapsed() >= self.policy.max_duration
+            {
+                match src.events().try_recv() {
+                    Ok(event) => Ok(event),
+                    Err(TryRecvError::Empty) => break,
+                    Err(TryRecvError::Disconnected) => Err(RecvTimeoutError::Disconnected),
+                }
+            } else {
+                src.events().recv_timeout(Duration::from_millis(50))
+            };
+            match next {
                 Ok(Event::Pcm(chunk)) => {
                     writer
                         .write(&chunk)
@@ -344,8 +364,8 @@ impl Worker {
                     terminal = true;
                     break;
                 }
-                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {}
-                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                Err(RecvTimeoutError::Timeout) => {}
+                Err(RecvTimeoutError::Disconnected) => {
                     ended = Some(EndReason::Error(
                         "capture stop acknowledgement missing".into(),
                     ));

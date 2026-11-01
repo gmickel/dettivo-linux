@@ -4,13 +4,12 @@ import Quickshell
 import Quickshell.Io
 import "DettivoText.js" as DettivoText
 
-// Everything the widget, the panel and the pill know about Dettivo, read
-// from the `dettivo` command and nothing else: one long-lived
-// `dettivo --json events --follow` for the life of the shell, and the
-// short `dettivo --json` calls of DettivoFacts for each fact and each
-// action. The daemon may come and go; the stream restarts with the
-// pill's backoff (half a second to eight) and every fact is re-read when
-// it is back. No audio, no models and no socket are touched here (FR-B7).
+// Everything the widget, the panel and the pill know about Dettivo, read from
+// the `dettivo` command and nothing else: one long-lived `dettivo --json events
+// --follow` for the life of the shell, and the short `dettivo --json` calls of
+// DettivoFacts for each fact and each action. The daemon may come and go; the
+// stream restarts with the pill's backoff (half a second to eight) and every
+// fact is re-read when it is back. No audio, models or socket are touched (FR-B7).
 Singleton {
     id: root
 
@@ -198,9 +197,10 @@ Singleton {
                 "title": "Dictation failed",
                 "reason": payload.reason || ""
             });
-        } else if (state === "idle" && payload.previous_state === "failed") {
-            // The idle that follows a failure at once; the pill keeps the reason.
-        } else if (state === "cancelled" || state === "idle") {
+        } else if (String(payload.reason || "").startsWith("silence")) {
+            root.dictationState = "idle";
+            root.showPill("error", DettivoText.nothingHeard());
+        } else if ((state === "cancelled" || state === "idle") && payload.previous_state !== "failed") {
             root.dictationState = "idle";
             root.pillState = "hidden";
         }

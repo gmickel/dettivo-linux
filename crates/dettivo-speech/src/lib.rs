@@ -75,9 +75,10 @@ pub const PROMPT_MAX_CHARS: usize = 500;
 pub fn prompt_terms(words: &[String]) -> &[String] {
     let mut len = 0;
     for (i, word) in words.iter().enumerate() {
-        // The separator before the term, and the full stop the prompt may need.
+        // The separator before the term, and the full stop it needs as the last.
         len += word.chars().count() + if i == 0 { 0 } else { 2 };
-        if len + 1 > PROMPT_MAX_CHARS {
+        let stop = usize::from(!word.ends_with(['.', '!', '?']));
+        if len + stop > PROMPT_MAX_CHARS {
             return &words[..i];
         }
     }
@@ -237,6 +238,11 @@ mod tests {
         // A term longer than the cap leaves no prompt.
         assert_eq!(prompt(&[&"x".repeat(500)]), None);
         assert_eq!(prompt(&[&"x".repeat(499)]).unwrap().len(), 500);
+        // A term that brings its own full stop needs none added.
+        let terminated = format!("{}.", "x".repeat(499));
+        assert_eq!(prompt(&[&terminated]).as_deref(), Some(terminated.as_str()));
+        let (first, last) = ("y".repeat(200), format!("{}.", "z".repeat(297)));
+        assert_eq!(prompt(&[&first, &last]).unwrap().chars().count(), 500);
     }
 
     #[test]

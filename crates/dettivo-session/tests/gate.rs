@@ -1,7 +1,8 @@
 //! fn-79 through the session: the voice stage gates a take the level
 //! passed (R2), a missing or failing voice pass leaves the level stage to
 //! decide (R3), a Parakeet take reaches the engine with its trailing
-//! silence (R4), and a prompt echo never pastes the vocabulary (R6).
+//! silence and padding never empties a take (R4), and a prompt echo never
+//! pastes the vocabulary (R6).
 
 mod support;
 
@@ -113,6 +114,57 @@ fn a_parakeet_take_reaches_the_engine_with_trailing_silence() {
         32_000 + 6_400,
         "400 ms of silence after the last word"
     );
+}
+
+/// An engine that, like Parakeet v3 on some takes, returns nothing for the
+/// padded take and the words for the take as captured.
+struct EmptyWhenPadded(Arc<FakeEngine>, usize);
+
+impl SttEngine for EmptyWhenPadded {
+    fn provider(&self) -> &str {
+        "parakeet"
+    }
+    fn capabilities(&self) -> Capabilities {
+        self.0.capabilities()
+    }
+    fn preload(&self, source: PreloadSource) -> Result<(), EngineError> {
+        self.0.preload(source)
+    }
+    fn recognize(
+        &self,
+        request: RecognizeRequest,
+        timeout: Duration,
+    ) -> Result<dettivo_engine_proto::RecognizeResult, EngineError> {
+        let captured = request.pcm.len() == self.1;
+        let mut result = self.0.recognize(request, timeout)?;
+        if !captured {
+            result.text.clear();
+        }
+        Ok(result)
+    }
+    fn cancel(&self) {}
+    fn backend(&self) -> Option<dettivo_engine_proto::Backend> {
+        None
+    }
+}
+
+#[test]
+fn padding_never_empties_a_take() {
+    let (_dir, _rec, session, engine, feed) = rig("what you can do for your country.");
+    let dir = tempfile::tempdir().unwrap();
+    session
+        .start(
+            policy(dir.path(), false),
+            Arc::new(EmptyWhenPadded(engine.clone(), 32_000)),
+            feed.clone(),
+            None,
+        )
+        .unwrap();
+    feed.speak(2_000);
+    let t = session.stop().unwrap();
+    assert_eq!(t.text, "What you can do for your country.");
+    assert_eq!(engine.calls.load(Ordering::Relaxed), 2);
+    assert_eq!(engine.last_samples.load(Ordering::Relaxed), 32_000);
 }
 
 #[test]

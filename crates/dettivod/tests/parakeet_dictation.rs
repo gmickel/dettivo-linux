@@ -26,18 +26,23 @@ fn local_parakeet() -> Option<(PathBuf, PathBuf)> {
     (model.is_file() && wav.is_file()).then_some((model, wav))
 }
 
-/// A tree whose models directory links the local model in as a verified
-/// download and whose config selects the Parakeet provider.
+const V2_MANIFEST: &str = r#"{"provider":"parakeet","id":"parakeet-v2","sha256":"2027e2e1a4dc60ccdd8558f93b15e7c0db4ef8895b4e82e889f3a6275d8119c6","size_bytes":903835936,"downloaded_at":0,"catalogue_version":1,"verified":true}"#;
+
+/// A tree whose models directory links the local v2 model in as a
+/// verified download and whose config selects the Parakeet provider.
 fn tree_with_parakeet(model: &Path) -> Tree {
+    tree_with_parakeet_model("parakeet-v2", model, V2_MANIFEST)
+}
+
+/// `tree_with_parakeet` for the model `id` at `model` with its `manifest`.
+fn tree_with_parakeet_model(id: &str, model: &Path, manifest: &str) -> Tree {
     let tree = Tree::new();
-    let dir = tree.root().join("data/dettivo/models/parakeet/parakeet-v2");
+    let dir = tree
+        .root()
+        .join(format!("data/dettivo/models/parakeet/{id}"));
     std::fs::create_dir_all(&dir).unwrap();
-    std::os::unix::fs::symlink(model, dir.join("tdt-0.6b-v2-q8_0.gguf")).unwrap();
-    std::fs::write(
-        dir.join("manifest.json"),
-        r#"{"provider":"parakeet","id":"parakeet-v2","sha256":"2027e2e1a4dc60ccdd8558f93b15e7c0db4ef8895b4e82e889f3a6275d8119c6","size_bytes":903835936,"downloaded_at":0,"catalogue_version":1,"verified":true}"#,
-    )
-    .unwrap();
+    std::os::unix::fs::symlink(model, dir.join(model.file_name().unwrap())).unwrap();
+    std::fs::write(dir.join("manifest.json"), manifest).unwrap();
     let bin_dir = Path::new(DAEMON).parent().unwrap().to_path_buf();
     if !bin_dir.join("dettivo-engine-parakeet").is_file() {
         let status = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()))
@@ -47,7 +52,7 @@ fn tree_with_parakeet(model: &Path) -> Tree {
         assert!(status.success());
     }
     tree.write_config(&format!(
-        "[engines]\ndirectory = \"{}\"\n[engines.parakeet]\nbackend = \"cpu\"\n[speech]\nprovider = \"whisper\"\nmodel = \"tiny.en\"\nparakeet_model_id = \"parakeet-v2\"\n[dictation]\nlanguage = \"en\"\n",
+        "[engines]\ndirectory = \"{}\"\n[engines.parakeet]\nbackend = \"cpu\"\n[speech]\nprovider = \"whisper\"\nmodel = \"tiny.en\"\nparakeet_model_id = \"{id}\"\n[dictation]\nlanguage = \"en\"\n",
         bin_dir.display()
     ));
     tree
@@ -155,23 +160,16 @@ fn a_parakeet_dictation_returns_the_fixture_words_with_the_provider_selected_ove
     );
 }
 
-/// fn-79 R4: the fixture cut at the end of its last word ("... for your
-/// country", which Parakeet times to 10.48 s) is a take released on that
-/// word; the dictation keeps the word and its full stop.
-#[test]
-fn a_take_released_on_its_last_word_keeps_it_and_its_full_stop() {
-    let Some((model, wav)) = local_parakeet() else {
-        eprintln!("skip: parakeet-v2 or jfk.wav missing (run scripts/models/fetch-test-model.sh)");
-        return;
-    };
-    let tree = tree_with_parakeet(&model);
+/// One dictation of `wav` cut to `start_ms..end_ms` through the mock
+/// microphone; the fixture running out is the release and ends the take.
+fn dictate_cut(tree: Tree, wav: &Path, start_ms: usize, end_ms: usize) -> String {
     let cut = tree.root().join("cut.wav");
-    let mut reader = hound::WavReader::open(&wav).unwrap();
+    let mut reader = hound::WavReader::open(wav).unwrap();
     let spec = reader.spec();
     assert_eq!((spec.sample_rate, spec.channels), (16_000, 1));
     let samples: Vec<i16> = reader.samples::<i16>().map(Result::unwrap).collect();
     let mut writer = hound::WavWriter::create(&cut, spec).unwrap();
-    for s in &samples[8_200 * 16..10_480 * 16] {
+    for s in &samples[start_ms * 16..end_ms * 16] {
         writer.write_sample(*s).unwrap();
     }
     writer.finalize().unwrap();
@@ -188,7 +186,6 @@ fn a_take_released_on_its_last_word_keeps_it_and_its_full_stop() {
         json!({"language": "en", "mode": "raw"}),
         Duration::from_secs(120),
     );
-    // The fixture running out (2.28 s) is the release, and ends the take.
     let mut items = json!([]);
     let finished = common::wait_for(Duration::from_secs(120), || {
         items = daemon.result(
@@ -200,6 +197,43 @@ fn a_take_released_on_its_last_word_keeps_it_and_its_full_stop() {
     });
     assert!(finished, "the take never finished");
     let transcript = daemon.result("transcripts.get", json!({"ref": items[0]["ref"]}));
-    let text = transcript["text_polish"].as_str().unwrap();
+    transcript["text_polish"].as_str().unwrap().to_string()
+}
+
+/// fn-79 R4: the fixture cut at the end of its last word ("... for your
+/// country", which Parakeet times to 10.48 s) is a take released on that
+/// word; the dictation keeps the word and its full stop.
+#[test]
+fn a_take_released_on_its_last_word_keeps_it_and_its_full_stop() {
+    let Some((model, wav)) = local_parakeet() else {
+        eprintln!("skip: parakeet-v2 or jfk.wav missing (run scripts/models/fetch-test-model.sh)");
+        return;
+    };
+    let text = dictate_cut(tree_with_parakeet(&model), &wav, 8_200, 10_480);
+    assert!(text.ends_with("your country."), "{text}");
+}
+
+/// fn-79 R4 on Parakeet v3, the catalogue default: this cut comes back
+/// empty with the 400 ms tail and whole without it, so the take keeps its
+/// words. Skipped when v3 is not downloaded on this machine.
+#[test]
+fn a_parakeet_v3_take_the_tail_empties_keeps_its_words() {
+    let Some((_, wav)) = local_parakeet() else {
+        eprintln!("skip: jfk.wav missing (run scripts/models/fetch-test-model.sh)");
+        return;
+    };
+    let dir = wav
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("parakeet/parakeet-v3");
+    let model = dir.join("tdt-0.6b-v3-q8_0.gguf");
+    let Ok(manifest) = std::fs::read_to_string(dir.join("manifest.json")) else {
+        eprintln!("skip: parakeet-v3 is not downloaded");
+        return;
+    };
+    let tree = tree_with_parakeet_model("parakeet-v3", &model, &manifest);
+    let text = dictate_cut(tree, &wav, 8_500, 10_480);
     assert!(text.ends_with("your country."), "{text}");
 }

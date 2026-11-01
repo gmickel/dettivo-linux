@@ -172,9 +172,6 @@ impl Feed {
             let _ = tx.send(e);
         }
     }
-    /// `ms` of speech, then a moment for the worker to take it before a
-    /// stop, as it takes a live capture's chunks while they arrive: what
-    /// it reads only after the release never counts as speech.
     pub fn speak(&self, ms: u64) {
         let chunk = tone(320);
         for _ in 0..(ms / 20) {
@@ -184,7 +181,6 @@ impl Feed {
             rms: 0.1,
             peak: 0.2,
         });
-        std::thread::sleep(Duration::from_millis(30));
     }
 }
 
