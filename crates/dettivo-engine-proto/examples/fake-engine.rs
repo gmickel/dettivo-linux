@@ -15,7 +15,9 @@
 //! answers that as an `internal` error instead, as parakeet.cpp does.
 //! Either marker is read again on every `recognize`, so removing it frees
 //! the GPU; a `gpu-has-room` file makes a load report `vulkan` and serve
-//! requests.
+//! requests. With a `record-loads` file beside it, each `load` appends its
+//! backend preference to `loads.log`; with `record-recognizes`, each
+//! `recognize` appends its sample count to `recognizes.log`.
 //! `diarize` answers one turn per second of audio, alternating two
 //! speakers, after one `progress` event. Speaks the protocol on
 //! stdin/stdout exactly like a real engine.
@@ -185,6 +187,15 @@ fn main() {
                     .parent()
                     .unwrap()
                     .to_path_buf();
+                if dir.join("record-recognizes").exists() {
+                    let mut log = std::fs::OpenOptions::new()
+                        .create(true)
+                        .append(true)
+                        .open(dir.join("recognizes.log"))
+                        .unwrap();
+                    let samples = attachments.first().map_or(0, |a| a.len() / 2);
+                    writeln!(log, "{samples}").unwrap();
+                }
                 let full = dir.join("gpu-oom-on-request").exists()
                     || dir.join("gpu-oom-error-on-request").exists();
                 if on_gpu && full {

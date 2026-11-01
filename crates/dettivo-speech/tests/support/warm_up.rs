@@ -147,3 +147,21 @@ fn a_waiting_take_cancels_the_warm_up() {
     assert!(warm(&supervisor), "the take itself warmed the engine");
     supervisor.shutdown();
 }
+
+/// R1 on the CPU backend (ADR 0084): there are no GPU kernels to compile,
+/// so the first take costs what a warm one does; a CPU load reads warm at
+/// once and runs no silent inference a take would have to wait behind.
+#[test]
+fn a_cpu_load_is_warm_without_a_warm_up() {
+    let dir = fake_engine_dir(WHISPER_BINARY);
+    std::fs::write(dir.path().join("record-recognizes"), "").unwrap();
+    let (supervisor, states) = recorded(dir.path());
+    whisper(&supervisor, "/models/fake.bin")
+        .preload(PreloadSource::Startup)
+        .unwrap();
+    assert_eq!(*states.lock().unwrap(), ["spawned", "loaded", "warm"]);
+    assert!(warm(&supervisor));
+    let recognized = std::fs::read_to_string(dir.path().join("recognizes.log")).unwrap_or_default();
+    assert_eq!(recognized, "", "no warm-up inference on the CPU");
+    supervisor.shutdown();
+}
