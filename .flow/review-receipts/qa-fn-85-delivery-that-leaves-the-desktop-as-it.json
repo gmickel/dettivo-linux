@@ -1,0 +1,369 @@
+{
+  "branch": "fn-85-delivery-that-leaves-the-desktop-as-it",
+  "findings": {
+    "backend": "interactive",
+    "headSha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+    "items": [
+      {
+        "body": "R5: a user volume change that lands between a duck-ramp step's get-volume and its next set-volume is overwritten, the ramp runs on to 20 % and the restore puts the pre-take volume back (4-5 of 16 swept offsets, two passes; other offsets give up correctly). Private null sink behind a wpctl guard shim, which widens the window. Evidence: .flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-race-p1/, runs/r5-race-p2/, runs/r5-media-p3/wpctl.log (M4). Memory: .flow/memory/bug/runtime-errors/duck-ramp-overwrites-a-volume-the-user-2026-11-01.md (surface: crates/dettivod/src/media.rs (ramp))",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-02e589b08db9cfe4744ec44c00a9854beae25c97ecebc172ea779201ad2e988d",
+        "id": "finding-c2d58ec99b851933b54ccee2457191b9",
+        "lastSeenReceiptId": "review-02e589b08db9cfe4744ec44c00a9854beae25c97ecebc172ea779201ad2e988d",
+        "ordinal": 1,
+        "rIds": [
+          "R5"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "title": "F1"
+      },
+      {
+        "body": "Exit 6 (NoSpeech) is live (dettivo dictation stop / stop --print on a silent take exit 6) and listed in docs/daemon.md, but the agent guide's exit-code table (docs/guides/agents.md:176-185) still lists 0-5. Evidence: runs/r4-silence-p2/, runs/r4-silence-p3/. Memory: .flow/memory/bug/ui/agent-guide-exit-code-table-omits-exit-2026-11-01.md (surface: docs/guides/agents.md)",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-02e589b08db9cfe4744ec44c00a9854beae25c97ecebc172ea779201ad2e988d",
+        "id": "finding-b9ff25ba7add31255fa37593583e30c7",
+        "lastSeenReceiptId": "review-02e589b08db9cfe4744ec44c00a9854beae25c97ecebc172ea779201ad2e988d",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "F2"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-02e589b08db9cfe4744ec44c00a9854beae25c97ecebc172ea779201ad2e988d"
+  },
+  "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+  "id": "fn-85-delivery-that-leaves-the-desktop-as-it",
+  "mode": "interactive",
+  "open_p0p1": [],
+  "qa_outcome": "NEEDS_WORK",
+  "rid_coverage": {
+    "covered": 5,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "live",
+        "id": "R2"
+      },
+      {
+        "coverage": "no_live_scenario",
+        "id": "R3"
+      },
+      {
+        "coverage": "live",
+        "id": "R4"
+      },
+      {
+        "coverage": "live",
+        "id": "R5"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R6"
+      }
+    ],
+    "total": 6
+  },
+  "scenarios": [
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r1-clipboard-p3/",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r1-clipboard-p4/"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S1a-image-restored",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r1-clipboard-p3/results.txt",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r1-clipboard-p4/results.txt"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S1b-five-types-restored",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r1-clipboard-p3/run.log",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r1-clipboard-p4/run.log"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S1c-10MB-image-restored",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r1-clipboard-p3/daemon.log",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r1-clipboard-p4/xdotool.log",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/r2-r1-field-montage.png"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S1d-copy-during-delay-wins",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S1e-hyprland-data-control",
+      "outcome": "BLOCKED",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r2-settle-p3/results.txt",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r2-settle-p4/results.txt"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S2a-settle-timing",
+      "outcome": "PASS",
+      "rids": [
+        "R2"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r2-settle-p4/b-hold-0.15.png",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r2-settle-p4/b-hold-1.5.png",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/r2-r1-field-montage.png"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S2b-held-chord-released-inside-settle",
+      "outcome": "PASS",
+      "rids": [
+        "R2"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S2c-hyprland-chord",
+      "outcome": "BLOCKED",
+      "rids": [
+        "R2"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r3-join-p1/",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r3-join-p2/"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S3a-no-idle-signal-no-join",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S3b-join-on-wayland",
+      "outcome": "BLOCKED",
+      "rids": [
+        "R3"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r4-print-p2/",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r4-print-p3/"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S4a-print-speech",
+      "outcome": "PASS",
+      "rids": [
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r4-silence-p2/",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r4-silence-p3/"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S4b-print-silent-exit-6",
+      "outcome": "PASS",
+      "rids": [
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r2-settle-p3/r4-print-field.png",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r2-settle-p4/r4-print-field.png"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S4c-print-real-chain-types-nothing",
+      "outcome": "PASS",
+      "rids": [
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r4-silence-p2/stop-json.txt",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r4-silence-p3/stop-json.txt"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "REG-F3-plain-stop-silent-exit-6",
+      "outcome": "PASS",
+      "rids": [],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-media-p2/wpctl.log",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-media-p3/volume-M1.log"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S5a-duck-ramp-and-restore",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-media-p2/run.log",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-media-p3/run.log"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S5b-taps-never-touch-media",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-media-p2/volume-M3.log",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-media-p3/volume-M3.log"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S5c-user-volume-after-duck-stays",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-race-p1/results.txt",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-race-p2/results.txt",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-media-p3/volume-M4.log"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S5d-user-volume-during-ramp",
+      "outcome": "FAIL",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-media-p3/volume-M5.log"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S5e-quiet-output-untouched",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-media-p2/volume-M6.log",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-media-p3/volume-M6.log"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S5f-mute-and-unmute",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-media-p2/dictation-during-meeting.json",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-media-p3/meeting-during-take.json"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S5g-never-during-a-meeting",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-media-p2/run.log",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/r5-media-p3/run.log"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "S5h-pause-media-reads-as-pause",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/reg-media-meeting-p1/results.txt",
+        ".flow/tmp/qa-fn-85-delivery-that-leaves-the-desktop-as-it/runs/reg-media-meeting-p2/results.txt"
+      ],
+      "head_sha": "eb05fdafbba33ed4e95a609701263351cff47ba2",
+      "id": "REG-media-restore-before-meeting",
+      "outcome": "PASS",
+      "rids": [],
+      "run": "live"
+    }
+  ],
+  "timestamp": "2026-11-01T22:20:56Z",
+  "type": "qa_verdict",
+  "verdict": "NEEDS_WORK"
+}
