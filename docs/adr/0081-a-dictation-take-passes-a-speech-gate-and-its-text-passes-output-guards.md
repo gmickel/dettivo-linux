@@ -1,6 +1,6 @@
 # 0081. A dictation take passes a speech gate before the engine, and its text passes output guards after it
 
-Status: Accepted 2026-11-01. Amends 0048 (a take's silence).
+Status: Accepted 2026-11-01. Amends 0048 (a take's silence). Amended by 0082 (the stop boundary).
 
 ## What this gives you
 
