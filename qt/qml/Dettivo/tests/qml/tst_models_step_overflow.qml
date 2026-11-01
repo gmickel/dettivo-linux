@@ -9,6 +9,10 @@ import QtTest
 TestCase {
     id: root
     name: "ModelsStepOverflow"
+    width: 1280
+    height: 820
+    visible: true
+    when: windowShown
 
     function findByName(item, name) {
         for (const child of item.children) {
@@ -21,7 +25,7 @@ TestCase {
         return null;
     }
 
-    function test_five_speech_rows_scroll_instead_of_overlapping() {
+    function englishRoute() {
         const models = createTemporaryObject(modelsC, root);
         for (const name of ["Whisper small.en", "Whisper large-v3-turbo", "Parakeet TDT 0.6B v2 (English)", "Parakeet TDT 0.6B v3", "Parakeet Ultra 0.6B"])
             models.append({
@@ -44,6 +48,11 @@ TestCase {
             "height": 820
         });
         waitForRendering(page);
+        return page;
+    }
+
+    function test_five_speech_rows_scroll_instead_of_overlapping() {
+        const page = englishRoute();
         const enhanced = findByName(page, "Enhanced models");
         const footer = findByName(page, "First run actions");
         const enhancedBottom = enhanced.mapToItem(page.contentItem, 0, enhanced.height).y;
@@ -51,6 +60,19 @@ TestCase {
         verify(footerTop >= enhancedBottom + Theme.space5, `footer at ${footerTop} overlaps the Enhanced rows ending at ${enhancedBottom}`);
         verify(page.contentHeight > page.height, "the page does not scroll");
         verify(footer.mapToItem(page.contentItem, 0, footer.height).y <= page.contentHeight);
+    }
+
+    // Tab to Back scrolls the whole footer into view, its two-line note
+    // included, not just the button.
+    function test_focusing_a_footer_button_reveals_the_whole_footer() {
+        const page = englishRoute();
+        const footer = findByName(page, "First run actions");
+        const back = findByName(footer, "Back");
+        verify(back);
+        back.forceActiveFocus();
+        tryVerify(() => back.mapToItem(page, 0, back.height).y <= page.height);
+        const footerBottom = footer.mapToItem(page, 0, footer.height).y;
+        verify(footerBottom <= page.height, `footer ends at ${footerBottom}, below the ${page.height} px window`);
     }
 
     Component {
