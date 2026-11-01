@@ -122,12 +122,14 @@ fn start_reserved(
     };
     daemon.engines().ensure_selected_verified()?;
     let engine = daemon.engines().engine();
+    let vad = daemon.engines().voice_detector(&daemon.paths, &loaded);
     daemon.engines().preload_session_start();
     daemon
         .dictation()
         .start(
             policy,
             engine,
+            vad,
             daemon.audio().cloned(),
             &loaded.config.audio.input_device,
             Some(target),

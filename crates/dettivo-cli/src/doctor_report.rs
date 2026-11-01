@@ -9,7 +9,7 @@ pub fn human(report: &Value) -> String {
         if name.starts_with("-- ") {
             out.push_str(&format!("{name} {text}\n"));
         } else {
-            out.push_str(&format!("{name:<10}{text}\n"));
+            out.push_str(&format!("{name:<9} {text}\n"));
         }
     };
     row("-- desktop", "--".into());
@@ -165,6 +165,22 @@ pub fn human(report: &Value) -> String {
             show(&report["models"]["selected"]["readiness"])
         ),
     );
+    let vad = &report["models"]["vad"];
+    row(
+        "voice gate",
+        match (vad["action"].as_str(), vad["readiness"].as_str()) {
+            (Some(action), _) => format!(
+                "{} {}: dictation gates on level alone; run `{action}`",
+                show(&vad["model"]),
+                show(&vad["readiness"])
+            ),
+            (None, Some("unverified")) => format!(
+                "{} unverified: on disk, checked before the voice gate first uses it",
+                show(&vad["model"])
+            ),
+            (None, _) => format!("{} {}", show(&vad["model"]), show(&vad["readiness"])),
+        },
+    );
     row(
         "llm",
         format!(
@@ -269,5 +285,48 @@ fn engine_state(engine: &Value) -> String {
         "ready, not running".into()
     } else {
         "not found".into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::human;
+    use crate::doctor::models_facts;
+    use serde_json::json;
+
+    fn voice_gate_row(readiness: &str) -> String {
+        let status = json!({ "models": [
+            { "provider": "whisper", "id": "silero-vad", "readiness": readiness },
+        ]});
+        let report = json!({ "models": models_facts(&status) });
+        human(&report)
+            .lines()
+            .find(|l| l.starts_with("voice gate"))
+            .expect("a voice gate row")
+            .to_string()
+    }
+
+    /// fn-79 R3: only an absent or refused model asks for a download; a model
+    /// on disk that start-up has not hashed yet says it is being checked.
+    #[test]
+    fn the_voice_gate_row_asks_for_a_download_only_when_the_model_is_absent() {
+        let fetch = "run `dettivo speech download --model silero-vad`";
+        for readiness in ["missing", "partial", "quarantined"] {
+            let row = voice_gate_row(readiness);
+            assert!(row.contains(fetch), "{readiness}: {row}");
+            assert!(row.contains("gates on level alone"), "{readiness}: {row}");
+        }
+        assert_eq!(
+            voice_gate_row("unverified"),
+            "voice gate whisper/silero-vad unverified: on disk, checked before the voice gate first uses it"
+        );
+        assert_eq!(
+            voice_gate_row("ready"),
+            "voice gate whisper/silero-vad ready"
+        );
+        assert_eq!(
+            voice_gate_row("downloading"),
+            "voice gate whisper/silero-vad downloading"
+        );
     }
 }

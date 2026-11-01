@@ -23,7 +23,7 @@ constexpr RouteKey kRouteKeys[] = {
     {"general", "dictation.language"},
     {"vocabulary", "dictation.vocabulary"},
     {"general", "dictation.max_duration_seconds"},
-    {"general", "dictation.silence_peak_threshold"},
+    {"general", "dictation.silence_dbfs"},
     {"general", "paths.data_dir"},
     {"general", "paths.models_dir"},
     {"general", "osd.enabled"},

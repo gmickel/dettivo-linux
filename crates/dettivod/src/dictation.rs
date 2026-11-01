@@ -26,6 +26,7 @@ use dettivo_session::{
     Archive, Inserter, Level, Policy, Publisher, SessionError, SessionTarget, StateChange,
     Transcript,
 };
+use dettivo_speech::gate::VoiceDetector;
 use serde_json::json;
 
 use crate::events::EventBus;
@@ -188,7 +189,7 @@ impl Dictation {
             spoken_punctuation: d.spoken_punctuation,
             protect_tokens: d.protect_tokens,
             max_duration: Duration::from_secs(d.max_duration_seconds.max(1)),
-            silence_peak_threshold: d.silence_peak_threshold as f32,
+            silence_dbfs: d.silence_dbfs as f32,
             keep_audio: loaded.config.history.keep_audio,
             level_interval_ms: loaded.config.audio.level_interval_ms.max(1),
             config_hash: config_hash(loaded, paths),
@@ -197,16 +198,18 @@ impl Dictation {
         }
     }
 
-    /// Starts a session with the policy, engine, source and the window
-    /// captured at start.
+    /// Starts a session with the policy, engine, the speech gate's voice
+    /// pass, source and the window captured at start.
     pub fn start(
         &self,
         policy: Policy,
         engine: Arc<dyn dettivo_speech::SttEngine>,
+        vad: Option<Arc<dyn VoiceDetector>>,
         audio: Option<AudioService>,
         input_device: &str,
         target: Option<SessionTarget>,
     ) -> Result<Snapshot, SessionError> {
+        self.session.set_vad(vad);
         let mock = std::env::var_os("DETTIVO_MOCK_MIC")
             .map(PathBuf::from)
             .filter(|p| !p.as_os_str().is_empty());

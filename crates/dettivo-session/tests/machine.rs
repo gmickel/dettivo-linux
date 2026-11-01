@@ -35,7 +35,6 @@ fn a_full_session_runs_every_state_and_keeps_the_transcript() {
     let t = session.stop().unwrap();
     assert_eq!(t.text, "The quick fox, done.");
     assert!(t.duration_ms >= 380, "{}", t.duration_ms);
-    assert!(!t.silent);
     assert_eq!(
         t.insertion.as_ref().unwrap().outcome,
         InsertionOutcome::Inserted
@@ -84,7 +83,8 @@ fn a_full_session_runs_every_state_and_keeps_the_transcript() {
 
 /// dictation/F18: a voiced take shorter than the meter window carries no
 /// level event; its silence is read from the samples and it reaches the
-/// engine. A level event over silent samples does not make them speech.
+/// engine, padded to 1.5 s (fn-79 R4). A level event over silent samples
+/// does not make them speech.
 #[test]
 fn silence_is_read_from_the_samples_not_the_meter() {
     let (dir, _rec, session, engine, feed) = rig("short take");
@@ -96,16 +96,16 @@ fn silence_is_read_from_the_samples_not_the_meter() {
             None,
         )
         .unwrap();
-    // 20 ms at 0.09 of full scale, well over the 0.01 threshold, and no
-    // level event at all.
-    feed.send(Event::Pcm(vec![3000i16; 320]));
+    // 40 ms at 0.09 of full scale and no level event at all.
+    feed.send(Event::Pcm(support::tone(640)));
     std::thread::sleep(Duration::from_millis(50));
     let t = session.stop().unwrap();
-    assert!(!t.silent);
     assert_eq!(t.text, "Short take");
+    assert_eq!(t.duration_ms, 40);
     assert_eq!(engine.calls.load(Ordering::Relaxed), 1);
+    assert_eq!(engine.last_samples.load(Ordering::Relaxed), 24_000);
 
-    let (dir, _rec, session, engine, feed) = rig("never used");
+    let (dir, rec, session, engine, feed) = rig("never used");
     session
         .start(
             policy(dir.path(), false),
@@ -114,20 +114,25 @@ fn silence_is_read_from_the_samples_not_the_meter() {
             None,
         )
         .unwrap();
-    feed.send(Event::Pcm(vec![0i16; 320]));
+    feed.send(Event::Pcm(vec![0i16; 3_200]));
     feed.send(Event::Level {
         rms: 0.5,
         peak: 0.9,
     });
     std::thread::sleep(Duration::from_millis(50));
-    let t = session.stop().unwrap();
-    assert!(t.silent);
+    assert_eq!(session.stop().unwrap_err(), SessionError::Cancelled);
     assert_eq!(engine.calls.load(Ordering::Relaxed), 0);
+    assert_eq!(
+        support::silence_reason(&rec).as_deref(),
+        Some("silence: level")
+    );
 }
 
+/// fn-79: a silent take ends `cancelled` with the gate's stage, never
+/// reaches the engine, and leaves no staging behind.
 #[test]
 fn unarchived_staging_is_discarded_and_silence_skips_the_engine() {
-    let (dir, _rec, session, engine, feed) = rig("never used");
+    let (dir, rec, session, engine, feed) = rig("never used");
     session
         .start(policy(dir.path(), true), engine.clone(), feed.clone(), None)
         .unwrap();
@@ -139,19 +144,34 @@ fn unarchived_staging_is_discarded_and_silence_skips_the_engine() {
         peak: 0.001,
     });
     std::thread::sleep(Duration::from_millis(50));
-    let t = session.stop().unwrap();
-    assert!(t.silent);
-    assert_eq!(t.text, "");
+    assert_eq!(session.stop().unwrap_err(), SessionError::Cancelled);
     assert_eq!(
         engine.calls.load(Ordering::Relaxed),
         0,
         "silence never reaches the engine"
+    );
+    assert_eq!(
+        rec.sequence(),
+        [
+            State::Recording,
+            State::Transcribing,
+            State::Cancelled,
+            State::Idle
+        ]
+    );
+    assert_eq!(
+        support::silence_reason(&rec).as_deref(),
+        Some("silence: level")
     );
     assert!(
         !dir.path()
             .join("sessions/job_dict_1/microphone.wav")
             .exists(),
         "history alone owns retention"
+    );
+    assert!(
+        session.reinsert_last().is_err(),
+        "a silent take is no transcript"
     );
 }
 

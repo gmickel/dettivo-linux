@@ -171,8 +171,9 @@ spoken_punctuation = true
 protect_tokens = true
 # The longest take in seconds before the session stops itself.
 max_duration_seconds = 300
-# A take whose peak level stays under this is treated as silence.
-silence_peak_threshold = 0.01
+# A take whose loudest 30 ms window stays under this level (dBFS) is silence
+# and never reaches the engine; one that passes it is checked for a voice.
+silence_dbfs = -50.0
 # Whole-word replacements applied after recognition, case-insensitive:
 # replacements = { teh = "the", dettivo = "Dettivo" }
 replacements = {}

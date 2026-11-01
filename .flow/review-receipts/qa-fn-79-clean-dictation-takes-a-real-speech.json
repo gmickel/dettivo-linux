@@ -1,0 +1,340 @@
+{
+  "branch": "fn-79-clean-dictation-takes-a-real-speech",
+  "findings": {
+    "backend": "interactive",
+    "headSha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
+    "items": [
+      {
+        "body": "dettivo doctor's new voice gate row tells the user to run `dettivo speech download --model silero-vad` and says dictation gates on level alone while a present but manifest-less silero-vad is still being verified at start-up; it reads `ready` seconds later. Reproduced twice. Evidence: .flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/early-doctor-1/, runs/early-doctor-2/. Memory: .flow/memory/bug/ui/doctor-tells-a-user-to-download-a-2026-11-01.md (surface: crates/dettivo-cli/src/doctor_report.rs (voice gate row))",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-2ffe1b0d8cb083b37b66cb942cbabf8f90803228074f8da77ce0f08b60fac419",
+        "id": "finding-541823862e8097dcf9fa9b04b0ab03ec",
+        "lastSeenReceiptId": "review-e51c2583a6212e5158816d960deb4cb8c54a41df3d52c5ee13852649298dae6b",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P2",
+        "status": "fixed",
+        "title": "F1"
+      },
+      {
+        "body": "R8 asks for the silence_peak_threshold migration in docs/config.md and docs/dictation.md; only config.md (line 152) and CHANGELOG.md carry it. Runtime behaviour is correct (old key loads, config valid, value ignored, JFK dictates in full, two passes). Evidence: runs/p1-r8-legacy-peak-jfk/, runs/p2-r8-legacy-peak-jfk/. Memory: .flow/memory/bug/ui/dictation-docs-omit-the-silence-peak-2026-11-01.md (surface: docs/dictation.md)",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-2ffe1b0d8cb083b37b66cb942cbabf8f90803228074f8da77ce0f08b60fac419",
+        "id": "finding-58a6b1daa9ba1494ebdaa73844d15fd0",
+        "lastSeenReceiptId": "review-e51c2583a6212e5158816d960deb4cb8c54a41df3d52c5ee13852649298dae6b",
+        "ordinal": 2,
+        "rIds": [
+          "R8"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "title": "F2"
+      },
+      {
+        "body": "`dettivo dictation stop` on a gated take exits 1 with `the session was cancelled (CONFLICT)` (details.kind sessionCancelled); the silence reason reaches only the event stream and the pill. The sessionCancelled mapping exists at the merge base. Reproduced twice. Evidence: runs/reg1-stop-before-speech/stop.json, runs/reg2-stop-before-speech/stop.json. Memory: .flow/memory/bug/ui/dictation-stop-on-a-gated-take-answers-2026-11-01.md (surface: crates/dettivod/src/actions.rs (dictation.stop error mapping))",
+        "classification": "pre_existing",
+        "confidence": 50,
+        "firstSeenReceiptId": "review-2ffe1b0d8cb083b37b66cb942cbabf8f90803228074f8da77ce0f08b60fac419",
+        "id": "finding-59c0e5218f5a6a79ceddb0f35375e041",
+        "lastSeenReceiptId": "review-e51c2583a6212e5158816d960deb4cb8c54a41df3d52c5ee13852649298dae6b",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P2",
+        "status": "not_fixed",
+        "title": "F3"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-e51c2583a6212e5158816d960deb4cb8c54a41df3d52c5ee13852649298dae6b",
+    "supersedesReceiptId": "review-2ffe1b0d8cb083b37b66cb942cbabf8f90803228074f8da77ce0f08b60fac419"
+  },
+  "head_sha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
+  "id": "fn-79-clean-dictation-takes-a-real-speech",
+  "mode": "interactive",
+  "open_p0p1": [],
+  "qa_outcome": "SHIP",
+  "rid_coverage": {
+    "covered": 8,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "carried",
+        "id": "R2"
+      },
+      {
+        "coverage": "live",
+        "id": "R3"
+      },
+      {
+        "coverage": "carried",
+        "id": "R4"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R5"
+      },
+      {
+        "coverage": "carried",
+        "id": "R6"
+      },
+      {
+        "coverage": "carried",
+        "id": "R7"
+      },
+      {
+        "coverage": "live",
+        "id": "R8"
+      }
+    ],
+    "total": 8
+  },
+  "scenarios": [
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-r1-click/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-r1-click/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-run.log"
+      ],
+      "head_sha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
+      "id": "S1-click-level",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r1-thump/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p2-r1-thump/"
+      ],
+      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "id": "S2-thump-level",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r1-quiet-word/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p2-r1-quiet-word/"
+      ],
+      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "id": "S3-quiet-word-minus45",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r2-thump-loud/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r2-fan/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r2-music/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r2-breathing/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p2-r2-fan/"
+      ],
+      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "id": "S4-no-voice-gated (loud thump, fan, music bed, breathing)",
+      "outcome": "PASS",
+      "rids": [
+        "R2"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r2-whisper/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r2-one-word/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p2-r2-whisper/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p2-r2-one-word/"
+      ],
+      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "id": "S5-whisper-and-one-word-pass",
+      "outcome": "PASS",
+      "rids": [
+        "R2"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/pill1-montage-plus1s.png",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/pill1-level-click/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/pill1-voice-fan/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/pill1-novad-fan/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/pill2-level-click/"
+      ],
+      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "id": "S6-pill-nothing-heard",
+      "outcome": "PASS",
+      "rids": [
+        "R1",
+        "R2",
+        "R7"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-r3-novad-jfk/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-r3-novad-click/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-r3-novad-jfk/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-r3-novad-click/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-run.log"
+      ],
+      "head_sha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
+      "id": "S7-no-vad-level-only",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-r3-novad-jfk/doctor.txt",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-r3-novad-jfk/doctor.txt",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-r1-click/doctor.txt",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-r1-click/doctor.txt",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-unit-doctor-row.log",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-run.log"
+      ],
+      "head_sha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
+      "id": "S8-doctor-voice-gate-row",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-early-doctor/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-early-doctor/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-run.log"
+      ],
+      "head_sha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
+      "id": "S8b-doctor-during-startup-verify",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r4-whisper-base-a1/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r4-whisper-base-hello/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r4-parakeet-a1/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r4-parakeet-hello/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r4-parakeet-one-word/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p2-r4-parakeet-hello/"
+      ],
+      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "id": "S9-last-word-at-release (Whisper base.en, Parakeet v3)",
+      "outcome": "PASS",
+      "rids": [
+        "R4"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r5-vocab-long-jfk/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p2-r5-vocab-long-jfk/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/backend-unit-tests.log"
+      ],
+      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "id": "S10-overlong-vocabulary-dictates",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r6-silence-vocab3/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r6-novad-fan-vocab3/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r6-novad-breath-vocab3/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r6-one-term/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r6-parakeet-silence-vocab3/"
+      ],
+      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "id": "S11-vocabulary-never-pasted-and-one-term-pastes",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r3-novad-fan/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/p1-r3-novad-breath/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/fixtures/engine-cli-raw-tiny.en-noise.log",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/backend-unit-tests.log"
+      ],
+      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "id": "S12-blank-markers-and-hallucinations-removed",
+      "outcome": "PASS",
+      "rids": [
+        "R7"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-r8-legacy-peak-jfk/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-r8-legacy-peak-jfk/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-r8-docs.log",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-run.log"
+      ],
+      "head_sha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
+      "id": "S13-retired-silence-peak-threshold",
+      "outcome": "PASS",
+      "rids": [
+        "R8"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/reg1-stop-before-speech/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/reg1-stop-after-speech/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/reg2-stop-before-speech/"
+      ],
+      "head_sha": "1481d34921555d95842cd9816e0056c6b55c157c",
+      "id": "REG1-audio-after-the-stop-never-counts",
+      "outcome": "PASS",
+      "rids": [],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc1-r2-fan/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/runs/rc2-r2-fan/",
+        ".flow/tmp/qa-fn-79-clean-dictation-takes-a-real-speech/recheck-run.log"
+      ],
+      "head_sha": "3395e8b3f6288be025fb26dcfb09781c375372bb",
+      "id": "RC-smoke-voice-gate-fan",
+      "outcome": "PASS",
+      "rids": [],
+      "run": "live"
+    }
+  ],
+  "timestamp": "2026-11-01T14:31:44Z",
+  "type": "qa_verdict",
+  "verdict": "SHIP"
+}

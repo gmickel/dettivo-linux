@@ -2,8 +2,8 @@
 //! `[engines]`, the speech engine and model from `[speech]` (the provider
 //! picks the binary, the catalogue names the file), a preloader that
 //! warms the engine at start and after a model change, the local language
-//! model bound to `[llm] model` (ADR 0026), an idle reaper and the status
-//! rows `speech.engines` and `dettivo doctor` show.
+//! model bound to `[llm] model` (ADR 0026), the dictation gate's voice
+//! pass, an idle reaper and the rows `speech.engines` and doctor show.
 
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
@@ -14,9 +14,10 @@ use dettivo_core::config::schema::EngineBackend;
 use dettivo_core::paths::Paths;
 use dettivo_engine_proto::BackendPreference;
 use dettivo_proto::error::{AppCode, ErrorDetails, JsonRpcError};
-use dettivo_speech::engines;
+use dettivo_speech::engines::{self, SileroVad, VAD_SLOT};
+use dettivo_speech::gate::{VAD_MODEL, VoiceDetector};
 use dettivo_speech::preload::Preloader;
-use dettivo_speech::supervisor::{EngineStatus, Settings, Supervisor};
+use dettivo_speech::supervisor::{EngineStatus, EngineTransition, Settings, Supervisor};
 use dettivo_speech::{PreloadSource, SttEngine};
 
 use crate::llm_engine::LocalLlm;
@@ -280,6 +281,18 @@ impl Engines {
         Ok((engine, path))
     }
 
+    /// The dictation gate's voice activity pass, when its model is on disk
+    /// and verifies; `None` leaves the level stage to decide alone.
+    pub fn voice_detector(&self, paths: &Paths, loaded: &Loaded) -> Option<Arc<dyn VoiceDetector>> {
+        let path = model_path(paths, loaded, VAD_MODEL.0, VAD_MODEL.1).filter(|p| p.is_file())?;
+        if let Err(why) = self.verifier.ensure(&path) {
+            tracing::warn!(error = %why, "voice activity model refused; the level stage gates alone");
+            return None;
+        }
+        let model = path.to_string_lossy().into_owned();
+        Some(Arc::new(SileroVad::new(self.supervisor.clone(), model)))
+    }
+
     /// The selected model file.
     pub fn model_path(&self) -> PathBuf {
         self.selected
@@ -305,9 +318,15 @@ impl Engines {
         self.supervisor.clone()
     }
 
-    /// Installs the engine transition hook.
+    /// Installs the engine transition hook; the voice activity pass is the
+    /// gate's own and never reports as an engine.
     pub fn set_hook(&self, hook: dettivo_speech::supervisor::StateHook) {
-        self.supervisor.set_hook(hook);
+        self.supervisor
+            .set_hook(Arc::new(move |t: EngineTransition| {
+                if t.binary != VAD_SLOT {
+                    hook(t);
+                }
+            }));
     }
 
     /// Unloads engines idle past their timeout; returns how many stopped.

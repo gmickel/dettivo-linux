@@ -340,8 +340,13 @@ pub struct Dictation {
     pub protect_tokens: bool,
     /// The longest take before the session stops itself.
     pub max_duration_seconds: u64,
-    /// A take whose peak stays under this is treated as silence.
-    pub silence_peak_threshold: f64,
+    /// A take whose loudest 30 ms window stays under this level, in dBFS,
+    /// is silence and never reaches the engine.
+    pub silence_dbfs: f64,
+    /// Retired by fn-79: read and ignored, so a file that still sets it
+    /// loads; never written or listed.
+    #[serde(skip_serializing)]
+    pub silence_peak_threshold: serde::de::IgnoredAny,
 }
 
 impl Default for Dictation {
@@ -354,7 +359,8 @@ impl Default for Dictation {
             spoken_punctuation: true,
             protect_tokens: true,
             max_duration_seconds: 300,
-            silence_peak_threshold: 0.01,
+            silence_dbfs: -50.0,
+            silence_peak_threshold: serde::de::IgnoredAny,
         }
     }
 }

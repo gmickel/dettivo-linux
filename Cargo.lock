@@ -879,6 +879,7 @@ dependencies = [
  "dettivo-language",
  "dettivo-proto",
  "dettivo-speech",
+ "dettivo-transcribe",
  "serde",
  "serde_json",
  "tempfile",

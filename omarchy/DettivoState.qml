@@ -4,13 +4,12 @@ import Quickshell
 import Quickshell.Io
 import "DettivoText.js" as DettivoText
 
-// Everything the widget, the panel and the pill know about Dettivo, read
-// from the `dettivo` command and nothing else: one long-lived
-// `dettivo --json events --follow` for the life of the shell, and the
-// short `dettivo --json` calls of DettivoFacts for each fact and each
-// action. The daemon may come and go; the stream restarts with the
-// pill's backoff (half a second to eight) and every fact is re-read when
-// it is back. No audio, no models and no socket are touched here (FR-B7).
+// Everything the widget, the panel and the pill know about Dettivo, read from
+// the `dettivo` command and nothing else: one long-lived `dettivo --json events
+// --follow` for the life of the shell, and the short `dettivo --json` calls of
+// DettivoFacts for each fact and each action. The daemon may come and go; the
+// stream restarts with the pill's backoff (half a second to eight) and every
+// fact is re-read when it is back. No audio, models or socket are touched (FR-B7).
 Singleton {
     id: root
 
@@ -188,9 +187,9 @@ Singleton {
         } else if (state === "inserting") {
             root.dictationState = "inserting";
         } else if (state === "idle" && payload.previous_state === "inserting") {
-            // The completion: the daemon attaches the insertion to the
-            // idle transition (docs/api/linux-deltas.md).
-            root.handleCompletion(payload.insertion || {}, payload.first_words || "");
+            // The completion: the daemon attaches the insertion to the idle
+            // transition (docs/api/linux-deltas.md); a take with no text has none.
+            root.handleCompletion(payload.insertion, payload.first_words || "");
             root.facts.refreshHistory();
         } else if (state === "failed") {
             root.dictationState = "failed";
@@ -198,38 +197,21 @@ Singleton {
                 "title": "Dictation failed",
                 "reason": payload.reason || ""
             });
-        } else if (state === "idle" && payload.previous_state === "failed") {
-            // The idle that follows a failure at once; the pill keeps the reason.
-        } else if (state === "cancelled" || state === "idle") {
+        } else if (String(payload.reason || "").startsWith("silence")) {
+            root.dictationState = "idle";
+            root.showPill("error", DettivoText.nothingHeard());
+        } else if ((state === "cancelled" || state === "idle") && payload.previous_state !== "failed") {
             root.dictationState = "idle";
             root.pillState = "hidden";
         }
     }
 
     function handleCompletion(insertion, words) {
-        if (insertion.outcome === "inserted") {
-            const app = insertion.target_app || {};
-            root.insertedTarget = app.name || app.bundle_id || "";
-            root.dictationState = "inserted";
-            root.showPill("inserted", {
-                "target": root.insertedTarget,
-                "words": words
-            });
-        } else if (insertion.outcome === "copied_to_clipboard") {
-            root.dictationState = "idle";
-            root.showPill("copied", {
-                "reason": insertion.reason || "",
-                "action": "Ctrl+V",
-                "words": words
-            });
-        } else {
-            root.dictationState = "failed";
-            root.showPill("error", {
-                "title": "Not inserted",
-                "reason": insertion.reason || "the insertion failed",
-                "action": "copy from history"
-            });
-        }
+        const done = DettivoText.completion(insertion, words);
+        if (done.state === "inserted")
+            root.insertedTarget = done.texts.target;
+        root.dictationState = done.state;
+        root.showPill(done.pill, done.texts);
     }
 
     // elapsedMs: what the meeting has recorded so far, when known.

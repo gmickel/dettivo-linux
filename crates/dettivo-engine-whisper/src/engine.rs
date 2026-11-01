@@ -1,20 +1,22 @@
 //! whisper.cpp through `whisper-rs`: load a ggml model on the chosen
 //! backend (Vulkan first, CPU on failure), recognize 16 kHz mono PCM with
 //! optional VAD, a language and a vocabulary prompt, and return timestamped
-//! segments. The protocol loop and the CLI mode come from
-//! `dettivo-engine-proto`'s host.
+//! segments. A load that names only a VAD model holds the Silero model
+//! alone and answers `detect_speech` (`vad`). The protocol loop and the CLI
+//! mode come from `dettivo-engine-proto`'s host.
 
 use std::path::Path;
 
 use dettivo_engine_proto::{
-    Backend, BackendPreference, EngineError, LoadParams, LoadedResult, RecognizeParams,
-    RecognizeResult, Segment, SpeechEngine, backend,
+    Backend, BackendPreference, DetectSpeechParams, DetectSpeechResult, EngineError, LoadParams,
+    LoadedResult, RecognizeParams, RecognizeResult, Segment, SpeechEngine, backend,
 };
 use whisper_rs::{
     DtwMode, DtwParameters, FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters,
     WhisperSegment,
 };
 
+use crate::vad::Vad;
 use crate::words::{self, Spoken, Timing, Token};
 
 /// True when the binary was built with ggml's Vulkan backend.
@@ -41,7 +43,10 @@ fn vulkan_devices() -> i32 {
 
 /// A loaded model.
 pub struct Engine {
-    context: WhisperContext,
+    /// `None` when the load named only a VAD model.
+    context: Option<WhisperContext>,
+    /// The Silero model of a VAD-only load.
+    vad: Option<Vad>,
     /// The model path.
     pub model: String,
     /// The backend that loaded it.
@@ -61,6 +66,17 @@ impl Engine {
         force_cpu: bool,
         vad_model: Option<&str>,
     ) -> Result<Self, EngineError> {
+        if let (true, Some(vad)) = (model.is_empty(), vad_model) {
+            return Ok(Self {
+                context: None,
+                vad: Some(Vad::load(vad)?),
+                model: String::new(),
+                backend: Backend::Cpu,
+                reason: "voice activity model only, on the CPU".into(),
+                vad_model: Some(vad.to_string()),
+                timing: Timing::Plain,
+            });
+        }
         if !Path::new(model).is_file() {
             return Err(EngineError::new(
                 "model_missing",
@@ -151,7 +167,8 @@ impl Engine {
         };
         tracing::info!(backend = ?backend_used, reason = %reason, timing = ?timing, "model loaded");
         Ok(Self {
-            context,
+            context: Some(context),
+            vad: None,
             model: model.to_string(),
             backend: backend_used,
             reason,
@@ -186,6 +203,12 @@ impl SpeechEngine for Engine {
         params: &RecognizeParams,
         _progress: &mut dyn FnMut(f64),
     ) -> Result<RecognizeResult, EngineError> {
+        let Some(context) = &self.context else {
+            return Err(EngineError::new(
+                "bad_request",
+                "only a VAD model is loaded; load a Whisper model to recognize",
+            ));
+        };
         let language = params.language.as_str();
         let duration_ms = (pcm.len() as u64 * 1000) / 16_000;
         if pcm.is_empty() {
@@ -222,7 +245,7 @@ impl SpeechEngine for Engine {
         // not token times, so words are timed only without VAD.
         let timed = params.timestamps && self.vad_model.is_none();
         full.set_token_timestamps(timed && self.timing == Timing::Plain);
-        let mut token_beg = self.context.token_beg();
+        let mut token_beg = context.token_beg();
         if self.timing == Timing::Dtw {
             #[allow(unsafe_code)]
             // SAFETY: the callback reads the arguments whisper.cpp passes and
@@ -234,8 +257,7 @@ impl SpeechEngine for Engine {
                 );
             }
         }
-        let mut state = self
-            .context
+        let mut state = context
             .create_state()
             .map_err(|e| EngineError::new("internal", format!("state: {e}")))?;
         state
@@ -244,7 +266,7 @@ impl SpeechEngine for Engine {
         let mut spoken = Vec::new();
         let mut pieces = Vec::new();
         let mut text = String::new();
-        let eot = self.context.token_eot();
+        let eot = context.token_eot();
         for i in 0..state.full_n_segments() {
             let Some(segment) = state.get_segment(i) else {
                 continue;
@@ -312,6 +334,22 @@ impl SpeechEngine for Engine {
             duration_ms,
             backend: self.backend,
         })
+    }
+
+    fn detect_speech(
+        &self,
+        pcm: &[i16],
+        params: &DetectSpeechParams,
+    ) -> Result<DetectSpeechResult, EngineError> {
+        self.vad
+            .as_ref()
+            .ok_or_else(|| {
+                EngineError::new(
+                    "bad_request",
+                    "no voice activity model is loaded; load one with only vad_model",
+                )
+            })?
+            .detect(pcm, params)
     }
 }
 

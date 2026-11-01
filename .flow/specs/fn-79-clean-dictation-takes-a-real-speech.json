@@ -1,22 +1,538 @@
 {
   "branch_name": "fn-79-clean-dictation-takes-a-real-speech",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-01T13:57:44.047632Z",
   "created_at": "2026-11-01T09:58:04.400372Z",
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-79-clean-dictation-takes-a-real-speech",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-79-clean-dictation-takes-a-real-speech.1": 0
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "5693ad87d7e0d8b3c8527dab7f639a0f39072db71ad214087c5ee18b89122eb6",
+      "backend": "codex",
+      "base_sha": "fd69c6ab8c6de3b4a1e0b9d58d38bcd1434b56cc",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "classification": "introduced",
+            "findingId": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "classification": "introduced",
+            "findingId": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9e546fe212589f8a8847d244794dcac9",
+            "classification": "introduced",
+            "findingId": "finding-9e546fe212589f8a8847d244794dcac9",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "classification": "introduced",
+            "findingId": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8f9aabd65c77b608eedb1727927b5c1295c34a3b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 3433,
+      "output_sha256": "6ae8b5e0086060f5e5474b92388e5378deaecdea959d9252e5c62090c507b1d8",
+      "reservation_id": "01c88183bf104747b45bdace6279c316",
+      "round_consumed": true,
+      "scope": "impl:fn-79-clean-dictation-takes-a-real-speech.1",
+      "superseded_by": null,
+      "task": "fn-79-clean-dictation-takes-a-real-speech.1",
+      "timestamp": "2026-11-01T13:11:37.952934Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b98ebdf389b8d0c7f970fd171db38338bd32299352bbbb26dcd58bb0643dd4f5",
+      "backend": "codex",
+      "base_sha": "fd69c6ab8c6de3b4a1e0b9d58d38bcd1434b56cc",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "classification": "introduced",
+            "findingId": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "classification": "introduced",
+            "findingId": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-13bd8287a3cbfcf79cbaf2cde80ed833",
+            "classification": "introduced",
+            "findingId": "finding-13bd8287a3cbfcf79cbaf2cde80ed833",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9e546fe212589f8a8847d244794dcac9",
+            "classification": "introduced",
+            "findingId": "finding-9e546fe212589f8a8847d244794dcac9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "classification": "introduced",
+            "findingId": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "37af701cb397a96f79cea3ec0d3207260b5be58c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2272,
+      "output_sha256": "4f01687d0074d1e223840521cddddedee01755777e3934e3d8e450c2f76a2ce2",
+      "reservation_id": "8b6bda0e972b4d2f85bd58593f04997e",
+      "round_consumed": true,
+      "scope": "impl:fn-79-clean-dictation-takes-a-real-speech.1",
+      "superseded_by": null,
+      "task": "fn-79-clean-dictation-takes-a-real-speech.1",
+      "timestamp": "2026-11-01T13:20:21.256158Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "700ca61a402f9e299b292d01a1e806c92b9a514bd48282a6d33e16f8a4a440ae",
+      "backend": "codex",
+      "base_sha": "fd69c6ab8c6de3b4a1e0b9d58d38bcd1434b56cc",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "classification": "introduced",
+            "findingId": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "classification": "introduced",
+            "findingId": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-13bd8287a3cbfcf79cbaf2cde80ed833",
+            "classification": "introduced",
+            "findingId": "finding-13bd8287a3cbfcf79cbaf2cde80ed833",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-065c59ea25be271aa92b9c0dc8ad2075",
+            "classification": "introduced",
+            "findingId": "finding-065c59ea25be271aa92b9c0dc8ad2075",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9e546fe212589f8a8847d244794dcac9",
+            "classification": "introduced",
+            "findingId": "finding-9e546fe212589f8a8847d244794dcac9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "classification": "introduced",
+            "findingId": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5f78e079ce5315a8c886f59efc8f58c0258585a4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1997,
+      "output_sha256": "8132189b9afb3e07487e0a542a7d966534e0ba7ce1626db66e06188c6c76760a",
+      "reservation_id": "0c00b0e473fd401599aa296097580ae2",
+      "round_consumed": true,
+      "scope": "impl:fn-79-clean-dictation-takes-a-real-speech.1",
+      "superseded_by": null,
+      "task": "fn-79-clean-dictation-takes-a-real-speech.1",
+      "timestamp": "2026-11-01T13:24:53.474999Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d29eca2314e26302cb1f27034aecb4f3236cc2605417e843ca5b9029eb7ee5a9",
+      "backend": "codex",
+      "base_sha": "fd69c6ab8c6de3b4a1e0b9d58d38bcd1434b56cc",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "classification": "introduced",
+            "findingId": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "classification": "introduced",
+            "findingId": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-13bd8287a3cbfcf79cbaf2cde80ed833",
+            "classification": "introduced",
+            "findingId": "finding-13bd8287a3cbfcf79cbaf2cde80ed833",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-065c59ea25be271aa92b9c0dc8ad2075",
+            "classification": "introduced",
+            "findingId": "finding-065c59ea25be271aa92b9c0dc8ad2075",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c99697bc44dc395ef0e267234816f87a",
+            "classification": "introduced",
+            "findingId": "finding-c99697bc44dc395ef0e267234816f87a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9e546fe212589f8a8847d244794dcac9",
+            "classification": "introduced",
+            "findingId": "finding-9e546fe212589f8a8847d244794dcac9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "classification": "introduced",
+            "findingId": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5d405bf70b18e5ce58fc252cb3f6bf10f02a5643",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2098,
+      "output_sha256": "af184cf7c86d8f873693c6a7605d8836dc26856b363d7d12d0fc16e568ab6883",
+      "reservation_id": "a8f12ea8947d47e79051acbc9cade5ab",
+      "round_consumed": true,
+      "scope": "impl:fn-79-clean-dictation-takes-a-real-speech.1",
+      "superseded_by": null,
+      "task": "fn-79-clean-dictation-takes-a-real-speech.1",
+      "timestamp": "2026-11-01T13:30:59.293731Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "16fccf88ae25fc10ce850a2368d7bf333e61df5f845eda151796388a187c2a5d",
+      "backend": "codex",
+      "base_sha": "fd69c6ab8c6de3b4a1e0b9d58d38bcd1434b56cc",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "classification": "introduced",
+            "findingId": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "classification": "introduced",
+            "findingId": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-13bd8287a3cbfcf79cbaf2cde80ed833",
+            "classification": "introduced",
+            "findingId": "finding-13bd8287a3cbfcf79cbaf2cde80ed833",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-065c59ea25be271aa92b9c0dc8ad2075",
+            "classification": "introduced",
+            "findingId": "finding-065c59ea25be271aa92b9c0dc8ad2075",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c99697bc44dc395ef0e267234816f87a",
+            "classification": "introduced",
+            "findingId": "finding-c99697bc44dc395ef0e267234816f87a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-9e546fe212589f8a8847d244794dcac9",
+            "classification": "introduced",
+            "findingId": "finding-9e546fe212589f8a8847d244794dcac9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "classification": "introduced",
+            "findingId": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "b827fc4c414775dfda0870a3a557915e88d4b9d5",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1091,
+      "output_sha256": "2f6b58fed657980fff80ec8585fca5785c1d4e746a1f29ed5ca56c62d5f97680",
+      "reservation_id": "f316eb553d2044b29ed6d1fbf5ff17c3",
+      "round_consumed": true,
+      "scope": "impl:fn-79-clean-dictation-takes-a-real-speech.1",
+      "superseded_by": null,
+      "task": "fn-79-clean-dictation-takes-a-real-speech.1",
+      "timestamp": "2026-11-01T13:57:07.823948Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "8a873c899d8f377d491549e30fc11a5acabcd08691744eaf54c010777e66deba",
+      "backend": "codex",
+      "base_sha": "e8d5d20586adc6870db11a1135c163e6b5911c14",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "classification": "introduced",
+            "findingId": "finding-3ccc82b43e125058d3df44cd7868a609",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "classification": "introduced",
+            "findingId": "finding-1071e2cc66a6f288d18b61d17733a390",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-13bd8287a3cbfcf79cbaf2cde80ed833",
+            "classification": "introduced",
+            "findingId": "finding-13bd8287a3cbfcf79cbaf2cde80ed833",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-065c59ea25be271aa92b9c0dc8ad2075",
+            "classification": "introduced",
+            "findingId": "finding-065c59ea25be271aa92b9c0dc8ad2075",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c99697bc44dc395ef0e267234816f87a",
+            "classification": "introduced",
+            "findingId": "finding-c99697bc44dc395ef0e267234816f87a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9e546fe212589f8a8847d244794dcac9",
+            "classification": "introduced",
+            "findingId": "finding-9e546fe212589f8a8847d244794dcac9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "classification": "introduced",
+            "findingId": "finding-b16bec1fb6d27eef8de4fbae4480088f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "088517bb66674cb1029eaab8f1435c4c87036b81",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "a264100056d24111b4afd310f74e2b37",
+      "round_consumed": true,
+      "scope": "impl:fn-79-clean-dictation-takes-a-real-speech.1",
+      "superseded_by": null,
+      "task": "fn-79-clean-dictation-takes-a-real-speech.1",
+      "timestamp": "2026-11-01T14:27:29.273533Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-79-clean-dictation-takes-a-real-speech.1": 3
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-79-clean-dictation-takes-a-real-speech.1": 0
+  },
   "spec_path": ".flow/specs/fn-79-clean-dictation-takes-a-real-speech.md",
-  "status": "open",
+  "status": "done",
   "title": "Clean dictation takes: a real speech gate and engine output guards",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +545,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T11:52:59.320232Z"
+  "updated_at": "2026-11-01T14:32:19.278060Z"
 }

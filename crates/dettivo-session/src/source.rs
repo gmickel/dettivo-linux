@@ -1,6 +1,7 @@
 //! Where a session's audio comes from: a PipeWire capture, the mock
 //! microphone fixture (`DETTIVO_MOCK_MIC`), or a channel the tests feed.
 
+use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 
 use dettivo_audio::Event;
@@ -18,7 +19,7 @@ pub enum Source {
         /// The events.
         events: Receiver<Event>,
         /// Requests stop; must emit `Ended` after its final accepted PCM.
-        on_stop: Box<dyn Fn() + Send>,
+        on_stop: Arc<dyn Fn() + Send + Sync>,
     },
 }
 
@@ -38,6 +39,16 @@ impl Source {
             Self::Capture(c) => c.stop(),
             Self::Mock(m) => m.stop(),
             Self::Channel { on_stop, .. } => on_stop(),
+        }
+    }
+
+    /// `stop` for the thread that takes the stop request, so the capture
+    /// ends at the release and not when the worker next looks.
+    pub fn stopper(&self) -> Arc<dyn Fn() + Send + Sync> {
+        match self {
+            Self::Capture(c) => Arc::new(c.stopper()),
+            Self::Mock(m) => Arc::new(m.stopper()),
+            Self::Channel { on_stop, .. } => on_stop.clone(),
         }
     }
 }

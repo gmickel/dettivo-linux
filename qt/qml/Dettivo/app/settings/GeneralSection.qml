@@ -84,8 +84,8 @@ SettingsPage {
         }
 
         SettingRow {
-            hint: qsTr("a take whose peak stays under this is silence")
-            key: "dictation.silence_peak_threshold"
+            hint: qsTr("dBFS; a take whose loudest moment stays under this is silence")
+            key: "dictation.silence_dbfs"
             label: qsTr("Silence threshold")
             settings: root.settings
         }
