@@ -17,8 +17,11 @@ use crate::idle::InputActivity;
 pub const JOIN_WINDOW: Duration = Duration::from_secs(30);
 
 /// Input this close before a take starts may be the hotkey that started
-/// it: one burst of input inside it is the chord, a second one is typing.
-pub const HOTKEY_GRACE: Duration = Duration::from_secs(1);
+/// it: one burst of input that began inside it is the chord, a second one
+/// is typing. A burst holds keys less than 100 ms apart, so a chord of up
+/// to three keys pressed as one burst begins within it; a burst that
+/// began earlier, typing that ran into the chord included, is typing.
+pub const HOTKEY_GRACE: Duration = Duration::from_millis(300);
 
 /// How late after the press the chord's own burst may be recorded.
 const CHORD_LATENESS: Duration = Duration::from_millis(50);
@@ -225,6 +228,8 @@ mod tests {
             (vec![ms(4_950)], true),
             (vec![ms(4_400), ms(4_950)], false),
             (vec![ms(3_000), ms(4_950)], false),
+            // Typing that ran into the chord began before the chord could.
+            (vec![ms(4_400)], false),
             (vec![], true),
         ] {
             let c = Continuation::new(Arc::new(Bursts(bursts.clone())));
