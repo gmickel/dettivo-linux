@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-91-dettivo-survives-a-compositor-restart",
   "spec_path": ".flow/tasks/fn-91-dettivo-survives-a-compositor-restart.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Dettivo survives a compositor restart",
   "updated_at": "2026-11-02T10:12:18.544255Z"
 }

@@ -238,7 +238,7 @@
     "impl:fn-91-dettivo-survives-a-compositor-restart.1": 0
   },
   "spec_path": ".flow/specs/fn-91-dettivo-survives-a-compositor-restart.md",
-  "status": "open",
+  "status": "done",
   "title": "Dettivo survives a compositor restart",
   "tracker": {
     "baseHashFlow": null,
@@ -251,5 +251,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-02T11:17:50.295890Z"
+  "updated_at": "2026-11-02T14:49:51.225483Z"
 }
