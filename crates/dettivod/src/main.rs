@@ -182,10 +182,10 @@ fn main() -> ExitCode {
         let reaper = tokio::spawn(reap_idle_engines(daemon.clone()));
         let maintenance = tokio::spawn(maintain_history(daemon.clone()));
         let downloads = tokio::spawn(publish_downloads(daemon.clone()));
-        // Before the first reconcile, so the ring waits for the compositor.
+        // Before the first reconcile, so the ring waits for both lock sources.
         ready_screen::watch(daemon.clone());
-        let ready = tokio::spawn(ready::supervise(daemon.clone()));
         let session_lock = tokio::spawn(ready_session::watch(daemon.clone()));
+        let ready = tokio::spawn(ready::supervise(daemon.clone()));
         // One deadline from the signal: the drain, the listener release
         // and every stop below share `[daemon] shutdown_timeout_ms`.
         let deadline = server::run(daemon.clone(), acquired).await;
