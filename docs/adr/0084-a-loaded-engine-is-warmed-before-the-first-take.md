@@ -1,6 +1,6 @@
 # 0084. A loaded speech engine is warmed before the first take, idles out after 300 s, and runs four CPU threads on the GPU
 
-Status: Accepted 2026-11-01.
+Status: Accepted 2026-11-01. Amended by 0098 (Parakeet's warm-up length).
 
 ## What this gives you
 
