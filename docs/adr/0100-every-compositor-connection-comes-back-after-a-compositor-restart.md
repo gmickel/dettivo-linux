@@ -19,7 +19,7 @@ The virtual keyboard and the clipboard connect once per insertion, so they reach
 ## Decision
 
 - `crates/dettivo-insert/src/display.rs` connects to the display socket by path (`WAYLAND_DISPLAY` under `XDG_RUNTIME_DIR`) and runs the long-lived watchers in one loop. A refused or lost connection is tried again after 100 ms, the wait doubling to a 2 s cap and starting over after a connection that served 10 s. A compositor that does not offer the watched protocol ends the loop, as before. Only an unset `WAYLAND_DISPLAY` means there is no display.
-- The screen-lock watcher and the input-idle watch both run in that loop. A lost lock watcher still keeps the last lock it saw until the new compositor reports.
+- The screen-lock watcher and the input-idle watch both run in that loop. A lost lock watcher still keeps the last lock it saw until the new compositor reports. The input-idle watch answers only for spans that start after its current connection began, so input made while the compositor was away never reads as a quiet continuation and the next take is not joined.
 - The portal backend follows `NameOwnerChanged` for the bus names `org.freedesktop.impl.portal.desktop.*`. When a name it saw lose its owner gets one again, the daemon closes its old session, opens a new one and binds the same shortcuts, trying 5 times with the wait doubling from 250 ms. The app id stays registered with the frontend, which did not restart, so the daemon does not register it again.
 
 ## Consequences

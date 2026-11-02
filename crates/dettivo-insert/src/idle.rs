@@ -35,8 +35,9 @@ pub trait InputActivity: Send + Sync {
 
 #[derive(Default)]
 struct Seen {
-    /// The compositor answered with a notification.
-    watching: bool,
+    /// Since when the current connection has watched without a gap; input
+    /// before it went unseen.
+    watching_since: Option<Instant>,
     resumed: VecDeque<Instant>,
 }
 
@@ -49,8 +50,9 @@ pub struct IdleMonitor {
 impl InputActivity for IdleMonitor {
     fn active_between(&self, from: Instant, until: Instant) -> Option<bool> {
         let seen = self.seen.lock().unwrap_or_else(|p| p.into_inner());
-        seen.watching
-            .then(|| seen.resumed.iter().any(|&r| r > from && r < until))
+        seen.watching_since
+            .filter(|&since| since <= from)
+            .map(|_| seen.resumed.iter().any(|&r| r > from && r < until))
     }
 }
 
@@ -184,13 +186,17 @@ fn watch(conn: &Connection, seen: &Arc<Mutex<Seen>>) -> Watched {
     };
     let timeout = u32::try_from(IDLE_AFTER.as_millis()).unwrap_or(u32::MAX);
     let _notification = notifier.get_input_idle_notification(timeout, &seat, &qh, ());
-    seen.lock().unwrap_or_else(|p| p.into_inner()).watching = true;
+    seen.lock()
+        .unwrap_or_else(|p| p.into_inner())
+        .watching_since = Some(Instant::now());
     let ended = loop {
         if let Err(e) = queue.blocking_dispatch(&mut state) {
             break format!("wayland dispatch: {e}");
         }
     };
-    seen.lock().unwrap_or_else(|p| p.into_inner()).watching = false;
+    seen.lock()
+        .unwrap_or_else(|p| p.into_inner())
+        .watching_since = None;
     Watched::Lost(ended)
 }
 
@@ -206,7 +212,7 @@ mod tests {
         assert_eq!(monitor.active_between(t0, t(100)), None, "no source");
         {
             let mut seen = monitor.seen.lock().unwrap();
-            seen.watching = true;
+            seen.watching_since = Some(t0);
             seen.resumed.push_back(t(50));
         }
         assert_eq!(monitor.active_between(t0, t(100)), Some(true));
@@ -244,8 +250,12 @@ mod tests {
         wait_for("the first compositor is watched", || watching(&monitor));
         first.crash();
         wait_for("a lost compositor gives no answer", || !watching(&monitor));
+        let outage = Instant::now();
         std::thread::sleep(Duration::from_millis(300));
         let _second = WaylandStandIn::start(&socket, &globals).unwrap();
         wait_for("the new compositor is watched", || watching(&monitor));
+        // Input during the outage went unseen: a span across it has no
+        // answer, so it never reads as a quiet continuation.
+        assert_eq!(monitor.active_between(outage, Instant::now()), None);
     }
 }

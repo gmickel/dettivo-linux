@@ -31,10 +31,11 @@ pub struct Instances {
     state: Mutex<State>,
 }
 
-/// The instances under the runtime directory for the session's display,
+/// The instances under the runtime directory whose display socket is the
+/// session's,
 /// other than `skip`, newest first by their lock file.
 fn live_candidates(session: &Session, skip: Option<&str>) -> Vec<(String, PathBuf)> {
-    let (Some(runtime), Some(display)) = (&session.runtime_dir, &session.wayland_display) else {
+    let (Some(runtime), Some(display)) = (&session.runtime_dir, session.wayland_socket()) else {
         return Vec::new();
     };
     let Ok(entries) = std::fs::read_dir(runtime.join("hypr")) else {
@@ -50,8 +51,9 @@ fn live_candidates(session: &Session, skip: Option<&str>) -> Vec<(String, PathBu
             let dir = entry.path();
             let lock = dir.join("hyprland.lock");
             let text = std::fs::read_to_string(&lock).ok()?;
-            // Hyprland writes its pid, then its Wayland display.
-            if text.lines().nth(1).map(str::trim) != Some(display.as_str()) {
+            // Hyprland writes its pid, then its Wayland display's name,
+            // which names a socket under the runtime directory.
+            if text.lines().nth(1).map(|name| runtime.join(name.trim())) != Some(display.clone()) {
                 return None;
             }
             let socket = dir.join(".socket.sock");
@@ -132,41 +134,46 @@ mod tests {
     use super::*;
     use crate::stand_in::HyprlandStandIn;
 
-    fn session(runtime: &std::path::Path, signature: &str) -> Session {
-        Session {
-            runtime_dir: Some(runtime.to_path_buf()),
-            wayland_display: Some("wl-0".into()),
-            hyprland_signature: Some(signature.into()),
-            ..Session::default()
-        }
-    }
-
     /// The boundary: a live instance of another display is never
     /// connected to, and with none of this display live the probe fails
-    /// (the take goes to the clipboard) and the report says so.
+    /// (the take goes to the clipboard) and the report says so. The
+    /// display matches whether `WAYLAND_DISPLAY` is a name or the socket's
+    /// path.
     #[test]
     fn only_an_instance_of_this_display_is_ever_tried() {
-        let dir = tempfile::Builder::new()
-            .prefix("dtv")
-            .tempdir_in("/tmp")
-            .unwrap();
-        let mut dead = HyprlandStandIn::start(dir.path(), "dead", "wl-0").unwrap();
-        dead.crash();
-        let other = HyprlandStandIn::start(dir.path(), "other", "wl-9").unwrap();
-        let instances = Instances::default();
-        let session = session(dir.path(), "dead");
-        assert!(instances.connect(&session).is_err());
-        assert!(instances.connect(&session).is_err());
-        assert_eq!(other.queries(), 0);
-        let report = instances.report(&session).unwrap();
-        assert_eq!(report.signature, None);
-        assert!(report.environment_stale);
+        for absolute in [false, true] {
+            let dir = tempfile::Builder::new()
+                .prefix("dtv")
+                .tempdir_in("/tmp")
+                .unwrap();
+            let display = if absolute {
+                dir.path().join("wl-0").to_string_lossy().into_owned()
+            } else {
+                "wl-0".to_string()
+            };
+            let session = Session {
+                runtime_dir: Some(dir.path().to_path_buf()),
+                wayland_display: Some(display),
+                hyprland_signature: Some("dead".into()),
+                ..Session::default()
+            };
+            let mut dead = HyprlandStandIn::start(dir.path(), "dead", "wl-0").unwrap();
+            dead.crash();
+            let other = HyprlandStandIn::start(dir.path(), "other", "wl-9").unwrap();
+            let instances = Instances::default();
+            assert!(instances.connect(&session).is_err());
+            assert!(instances.connect(&session).is_err());
+            assert_eq!(other.queries(), 0);
+            let report = instances.report(&session).unwrap();
+            assert_eq!(report.signature, None);
+            assert!(report.environment_stale);
 
-        let _live = HyprlandStandIn::start(dir.path(), "live", "wl-0").unwrap();
-        assert!(instances.connect(&session).is_ok());
-        assert_eq!(
-            instances.report(&session).unwrap().signature.as_deref(),
-            Some("live")
-        );
+            let _live = HyprlandStandIn::start(dir.path(), "live", "wl-0").unwrap();
+            assert!(instances.connect(&session).is_ok(), "absolute: {absolute}");
+            assert_eq!(
+                instances.report(&session).unwrap().signature.as_deref(),
+                Some("live")
+            );
+        }
     }
 }
