@@ -117,6 +117,13 @@ public:
     /// The default pick for the tier (`parakeet-v3` on Vulkan, `small.en`
     /// on the CPU) when nothing is selected or ready.
     static QString defaultFor(const QString &gpu);
+    /// The language the Models step recommends for: `[dictation]
+    /// language`, or the locale's language while that is `auto`.
+    static QString languageFor(const QString &configured, const QString &locale);
+    /// Applies `speech.providers.list`'s `language_ranking`: its first
+    /// model is the recommended row and, until a model is ready, a
+    /// download runs or a row is picked, the selected one (ADR 0085).
+    void applyRanking(const QJsonObject &ranking);
 
 public slots:
     void handleNotification(const QString &topic, const QJsonObject &payload);
@@ -135,6 +142,10 @@ private:
     void applyLocalDownload(const QJsonObject &payload);
     void updateRow(int row);
     void writeSelection(const QString &provider, const QString &id);
+    /// Reads `[dictation] language` and asks for its ranking.
+    void requestRanking();
+    /// Marks the ranking's first model on the rows (first_run_ranking.cpp).
+    void markRecommended();
 
     DaemonLink *m_link;
     QList<Row> m_rows;
@@ -152,6 +163,13 @@ private:
     /// The catalogue model `[llm] model` names, once `llm.models.status`
     /// answered; what `setEnhanced("local")` downloads.
     QString m_localModel;
+    /// The last `speech.models.status` answer, re-read when the ranking
+    /// arrives after it.
+    QJsonObject m_status;
+    /// `provider/id` of the language's recommended model, and its line.
+    QString m_recommendedKey, m_recommendedLine;
+    /// A row was picked; the recommendation stops preselecting.
+    bool m_picked = false;
     QElapsedTimer m_rate;
     quint64 m_rateBytes = 0;
     double m_bytesPerSecond = 0.0;

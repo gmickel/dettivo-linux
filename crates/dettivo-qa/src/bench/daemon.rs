@@ -120,6 +120,15 @@ impl BenchDaemon {
         extra.insert("DETTIVO_MOCK_MODE".to_string(), "0".to_string());
         extra.insert("DETTIVO_MOCK_INSERT".to_string(), "1".to_string());
         extra.insert("DETTIVO_MOCK_A11Y".to_string(), "1".to_string());
+        // The graphics driver keeps compiled shaders on disk across a user's
+        // daemon starts; the bench daemons share one cache under target/ so
+        // a fresh profile does not measure the first run after an install
+        // (ADR 0084).
+        let shaders = bench.opts.repo_root.join("target/bench-shader-cache");
+        std::fs::create_dir_all(&shaders).map_err(|e| format!("{}: {e}", shaders.display()))?;
+        for var in ["__GL_SHADER_DISK_CACHE_PATH", "MESA_SHADER_CACHE_DIR"] {
+            extra.insert(var.to_string(), shaders.to_string_lossy().into_owned());
+        }
         let log = bench.run_dir.join(format!("{step}-daemon.log"));
         Ok(Prepared {
             binary,

@@ -364,10 +364,7 @@ Every crate below is linked into one or more of the installed binaries as `Cargo
 | `wl-clipboard-rs` | 0.9.3 | MIT OR Apache-2.0 |
 | `writeable` | 0.6.4 | Unicode-3.0 |
 | `wyz` | 0.5.1 | MIT |
-| `x11-clipboard` | 0.9.3 | MIT |
-| `x11rb` | 0.13.2 | MIT OR Apache-2.0 |
 | `x11rb` | 0.14.0 | MIT OR Apache-2.0 |
-| `x11rb-protocol` | 0.13.2 | MIT OR Apache-2.0 |
 | `x11rb-protocol` | 0.14.0 | MIT OR Apache-2.0 |
 | `xkbcommon` | 0.9.0 | MIT |
 | `xkeysym` | 0.2.1 | MIT OR Apache-2.0 OR Zlib |

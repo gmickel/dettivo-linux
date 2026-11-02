@@ -1,0 +1,35 @@
+{
+  "branch_name": "fn-89-whisper-vocabulary-without-false",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-11-01T23:42:38.323065Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-84-vocabulary-on-parakeet"
+  ],
+  "id": "fn-89-whisper-vocabulary-without-false",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-89-whisper-vocabulary-without-false.md",
+  "status": "open",
+  "title": "Whisper vocabulary without false insertions",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-01T23:42:46.786261Z"
+}

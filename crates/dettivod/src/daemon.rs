@@ -10,6 +10,8 @@ use dettivo_core::config::{Loaded, LogLevel};
 use dettivo_core::paths::Paths;
 use dettivo_core::qa::QaEnv;
 use dettivo_core::state::State;
+use dettivo_insert::idle::IdleMonitor;
+use dettivo_insert::join::Continuation;
 use dettivo_insert::{Mock, Session, Settings};
 use dettivo_proto::capabilities::IpcMode;
 
@@ -21,7 +23,7 @@ use crate::events::EventBus;
 use crate::feedback::Feedback;
 use crate::history::History;
 use crate::hotkeys::Hotkeys;
-use crate::inserter::ChainInserter;
+use crate::inserter::{ChainInserter, insert_settings};
 use crate::jobs::Jobs;
 use crate::meetings::Meetings;
 use crate::meetings_archive::MeetingArchive;
@@ -143,12 +145,16 @@ impl Daemon {
             sounds_log,
         ));
         let self_target = Arc::new(SelfTargetAllowance::default());
+        let joins = Arc::new(Continuation::new(Arc::new(IdleMonitor::start())));
         let inserter = Arc::new(ChainInserter::new(
             insert.clone(),
             config.clone(),
             self_target.clone(),
+            joins.clone(),
         ));
-        let dictation = Dictation::new(&paths, bus.clone(), inserter, history.clone(), feedback);
+        let mut dictation =
+            Dictation::new(&paths, bus.clone(), inserter, history.clone(), feedback);
+        dictation.set_continuation(joins);
         dictation.set_local_llm(engines.local_llm());
         let analysis = Arc::new(Analysis::new(config.clone(), bus.clone(), history.clone()));
         analysis.set_local_llm(engines.analysis_llm());
@@ -478,20 +484,5 @@ impl Daemon {
         if let Err(e) = state.save(path) {
             tracing::warn!(path = %path.display(), error = %e, "state file not written");
         }
-    }
-}
-
-/// The `[insert]` settings of a configuration snapshot.
-pub fn insert_settings(loaded: &Loaded) -> Settings {
-    let insert = loaded.config.insert.clone();
-    Settings {
-        backend: insert.backend,
-        paste_keys: insert.paste_keys,
-        terminal_app_ids: insert.terminal_app_ids,
-        self_app_ids: insert.self_app_ids,
-        inter_key_delay_ms: insert.inter_key_delay_ms,
-        restore_clipboard: insert.restore_clipboard,
-        clipboard_restore_delay_ms: insert.clipboard_restore_delay_ms,
-        undo_window_ms: insert.undo_window_ms,
     }
 }

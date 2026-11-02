@@ -14,6 +14,7 @@ use dettivo_audio::mock::MockCapture;
 use dettivo_audio::service::AudioService;
 use dettivo_core::config::Loaded;
 use dettivo_core::paths::Paths;
+use dettivo_insert::join::Continuation;
 use dettivo_language::policy::RulesConfig;
 use dettivo_proto::events::{
     AudioLevelPayload, DictationInsertion, DictationStatePayload, DictationTimings, LevelSource,
@@ -129,6 +130,9 @@ impl SourceFactory for DaemonSource {
 /// The service.
 pub struct Dictation {
     session: Session,
+    /// Told when a take starts, so a join knows whether the user typed
+    /// since the last delivery (ADR 0091).
+    joins: Option<Arc<Continuation>>,
 }
 
 impl Dictation {
@@ -153,7 +157,15 @@ impl Dictation {
             inserter,
         );
         session.set_archive(archive);
-        Self { session }
+        Self {
+            session,
+            joins: None,
+        }
+    }
+
+    /// The continuation each take start is reported to.
+    pub fn set_continuation(&mut self, joins: Arc<Continuation>) {
+        self.joins = Some(joins);
     }
 
     /// The inserter in force (the chain; its mock backend in QA mode).
@@ -222,7 +234,11 @@ impl Dictation {
             mock,
             input_device: input_device.to_string(),
         });
-        self.session.start(policy, engine, source, target)
+        let started = self.session.start(policy, engine, source, target)?;
+        if let Some(joins) = &self.joins {
+            joins.take_started(started.started);
+        }
+        Ok(started)
     }
 
     /// Installs the local language model the Enhanced pass reaches; a
@@ -234,6 +250,11 @@ impl Dictation {
     /// Stops and finishes the session.
     pub fn stop(&self) -> Result<Transcript, SessionError> {
         self.session.stop()
+    }
+
+    /// Stops and finishes the session without inserting.
+    pub fn stop_print(&self) -> Result<Transcript, SessionError> {
+        self.session.stop_print()
     }
 
     /// Stops the named take without affecting a replacement session.
@@ -249,6 +270,11 @@ impl Dictation {
     /// Cancels the expected job without affecting a replacement session.
     pub fn cancel_expected(&self, expected_job_id: Option<&str>) -> Result<Snapshot, SessionError> {
         self.session.cancel_expected(expected_job_id)
+    }
+
+    /// Runs `f` while the take `job_id` records and has not begun to end.
+    pub fn while_recording<R>(&self, job_id: &str, f: impl FnOnce() -> R) -> Option<R> {
+        self.session.while_recording(job_id, f)
     }
 
     /// The active session.

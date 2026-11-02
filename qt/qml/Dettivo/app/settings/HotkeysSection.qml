@@ -195,6 +195,18 @@ SettingsPage {
             }
 
             SettingRow {
+                choices: ["nothing", "pause", "duck", "mute"]
+                choiceLabels: [qsTr("Nothing"), qsTr("Pause"), qsTr("Duck"), qsTr("Mute")]
+                hint: qsTr("once the key is held past a tap; never in meetings")
+                key: "audio.while_dictating"
+                showKey: false
+                kind: "choice"
+                label: qsTr("Media while dictating")
+                settings: root.settings
+                width: parent.width
+            }
+
+            SettingRow {
                 hint: qsTr("start, stop, error; never in meetings")
                 key: "hotkeys.sounds"
                 showKey: false

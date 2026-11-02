@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Quickshell
+import "DettivoText.js" as DettivoText
 import "plugin_support.js" as Support
 
 // The Omarchy plugin under the shell shim (fn-29 R2, R5): a missing
@@ -110,6 +111,33 @@ TestCase {
         claim.exit(1);
         compare(host.claimed, false);
         compare(host.pillWindow.visible, false);
+        DettivoState.pillState = "hidden";
+    }
+
+    // `dettivo dictation stop --print` completes as done, into no window.
+    function test_4_a_printed_take_shows_as_done_without_a_window() {
+        const done = DettivoText.completion({
+            "outcome": "printed",
+            "target_app": {}
+        }, "Hello");
+        compare(done.pill, "inserted");
+        compare(done.texts.target, "");
+        compare(done.texts.words, "Hello");
+    }
+
+    // A double tap of the hold key locks the take; the pill says how it ends.
+    function test_5_a_locked_take_names_the_press_that_finishes_it() {
+        DettivoState.handleDictation({
+            "state": "recording"
+        });
+        compare(DettivoState.pillHint, "release to insert");
+        DettivoState.handleDictation({
+            "state": "recording",
+            "previous_state": "recording",
+            "reason": "locked"
+        });
+        compare(DettivoState.pillState, "listening");
+        compare(DettivoState.pillHint, "locked · press to finish");
         DettivoState.pillState = "hidden";
     }
 }

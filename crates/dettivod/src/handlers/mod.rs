@@ -80,10 +80,17 @@ pub fn resolve(method: &str) -> Option<Handler> {
             let _: dettivo_proto::catalog::NoParams = params(value)?;
             dictation::toggle(daemon)
         },
-        "dictation.stop" => |daemon, _ctx, value| {
+        "dictation.press" => |daemon, _ctx, value| {
+            let at = std::time::Instant::now();
             let _: dettivo_proto::catalog::NoParams = params(value)?;
-            dictation::stop(daemon)
+            dictation::hold(daemon, crate::hold::Edge::Press, at)
         },
+        "dictation.release" => |daemon, _ctx, value| {
+            let at = std::time::Instant::now();
+            let _: dettivo_proto::catalog::NoParams = params(value)?;
+            dictation::hold(daemon, crate::hold::Edge::Release, at)
+        },
+        "dictation.stop" => |daemon, _ctx, value| dictation::stop(daemon, value),
         "dictation.cancel" => |daemon, _ctx, value| dictation::cancel(daemon, value),
         "dictation.status" => |daemon, _ctx, value| {
             let _: dettivo_proto::catalog::NoParams = params(value)?;
@@ -177,8 +184,8 @@ pub fn resolve(method: &str) -> Option<Handler> {
             audio::devices(daemon)
         },
         "speech.providers.list" => |daemon, _ctx, value| {
-            let _: dettivo_proto::catalog::NoParams = params(value)?;
-            speech::providers_list(daemon)
+            let p: dettivo_proto::methods::speech::ProvidersListParams = params(value)?;
+            speech::providers_list(daemon, p.language.as_deref())
         },
         "speech.selection.get" => |daemon, _ctx, value| {
             let _: dettivo_proto::catalog::NoParams = params(value)?;

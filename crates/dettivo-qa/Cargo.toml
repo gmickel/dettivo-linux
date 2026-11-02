@@ -17,6 +17,8 @@ dettivo-rest = { path = "../dettivo-rest" }
 # The chunker and the merger the import-merge pipeline drives through the
 # engine CLI modes (ADR 0022).
 dettivo-transcribe.workspace = true
+# The engine protocol the warm-up and thread steps drive an engine over.
+dettivo-engine-proto.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true

@@ -21,7 +21,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0013](0013-qt-floor-and-packaging.md) | Qt 6.8 floor; AUR packages with engine binaries as separate files | Accepted 2026-09-03 |
 | [0014](0014-sqlite-history-store.md) | One SQLite file with FTS5 is the history store; artifacts sit beside it under a policy | Accepted 2026-09-04 |
 | [0015](0015-osd-pill-hosting.md) | One pill component, hosted on a layer-shell overlay with a window fallback; the completion event carries the outcome; frame pacing is measured, not claimed | Accepted 2026-09-04 |
-| [0016](0016-hotkeys-compositor-bindings-portal-evdev.md) | Compositor bindings drive the CLI; the portal and evdev backends live in the daemon; every start captures the focused window | Accepted 2026-09-04 |
+| [0016](0016-hotkeys-compositor-bindings-portal-evdev.md) | Compositor bindings drive the CLI; the portal and evdev backends live in the daemon; every start captures the focused window | Accepted 2026-09-04; amended 2026-11-01 by 0083 (the hold key's press and release verbs, the portal app id, shortcut ids with the chord) |
 | [0017](0017-qa-packs-and-the-dictation-report.md) | Packs compose scenarios into one release-shaped report; the completion event carries the timing split | Accepted 2026-09-04 |
 | [0018](0018-parakeet-engine-dictation-only.md) | Parakeet runs on parakeet.cpp through an in-repo binding; its timestamps keep it dictation-only for now | Accepted 2026-09-04 |
 | [0019](0019-mcp-hand-rolled-protocol-and-tool-mapping.md) | The MCP server is a hand-rolled JSON-RPC layer over stdio that maps the macOS tools one to one onto daemon methods | Accepted 2026-09-04 |
@@ -29,7 +29,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0021](0021-visual-regression-gate-and-frame-pacing.md) | Every surface is held to an approved baseline on every theme and scale by a blocking job with a canary; frame pacing is judged in the drives while a surface animates | Accepted 2026-09-04 |
 | [0022](0022-chunked-import-symphonia-decoder-and-overlap-merger.md) | Imports decode in-process through Symphonia and every long transcription runs through one chunked pipeline with a timestamp merger | Accepted 2026-09-04 |
 | [0023](0023-polish-layers-and-the-llm-provider-layer.md) | The Polish layers are ported verbatim from macOS with their golden cases; one provider interface serves Enhanced, and a remote endpoint needs one explicit confirmation | Accepted 2026-09-04 |
-| [0024](0024-first-run-three-screens-config-writes.md) | First run is three screens of config writes, shown only when a key or a model is missing, with one allowance to dictate into itself | Accepted 2026-09-04 |
+| [0024](0024-first-run-three-screens-config-writes.md) | First run is three screens of config writes, shown only when a key or a model is missing, with one allowance to dictate into itself | Accepted 2026-09-04; amended by 0085 |
 | [0025](0025-history-detail-facts-playback-and-export-file.md) | The history detail reads one answer, plays the take in-process and writes an export where the portal says | Accepted 2026-09-04 |
 | [0026](0026-local-llm-engine-llama-cpp-and-the-gguf-catalogue.md) | The local language model runs llama.cpp through the engine protocol with the macOS catalogue in GGUF, and the `local` provider is the default once a model is on disk | Accepted 2026-09-04 |
 | [0027](0027-two-stream-meeting-capture-journal-and-checkpoint.md) | A meeting is two takes on one clock, a journal and a live checkpoint; the daemon's next start promotes what a killed one left | Accepted 2026-09-04 |
@@ -87,10 +87,15 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0080](0080-whisper-cpp-carries-a-dtw-median-filter-guard.md) | whisper.cpp carries a DTW median-filter guard, a chunk the engine dies on twice becomes a marked gap, and an engine that crashes on the GPU moves to the CPU | Accepted 2026-09-29, amends 0074; amended 2026-09-30 (the GPU is tried again after a hold, crash warnings keep Vulkan exception lines) |
 | [0081](0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md) | A dictation take passes a speech gate before the engine, and its text passes output guards after it | Accepted 2026-11-01, amends 0048; amended by 0082 |
 | [0082](0082-a-take-ends-at-the-stop-within-one-capture-quantum.md) | A dictation take ends at the stop request, within one capture quantum PipeWire may deliver before the stop runs | Accepted 2026-11-01, amends 0081 |
+| [0083](0083-the-hold-key-is-a-daemon-state-machine-and-the-portal-gets-an-app-id.md) | The hold key is a daemon state machine that survives a lost release and locks on a double tap, and the portal gets the app id `dettivo` | Accepted 2026-11-01, amends 0016 |
+| [0084](0084-a-loaded-engine-is-warmed-before-the-first-take.md) | A loaded speech engine is warmed before the first take, idles out after 300 s, and runs four CPU threads on the GPU | Accepted 2026-11-01 |
+| [0085](0085-first-run-recommends-the-model-each-language-transcribes-best.md) | First run recommends the speech model each language transcribes best, from a recorded FLEURS run | Accepted 2026-11-01, amends 0024 |
 | [0086](0086-a-vocabulary-entry-names-how-its-term-is-misheard.md) | A vocabulary entry names how its term is misheard, and only Enhanced reads the aliases | Accepted 2026-11-01; amended by 0088 |
 | [0087](0087-the-term-recall-benchmark-scores-a-vocabulary-on-synthetic-clips.md) | The term-recall benchmark scores a vocabulary on synthetic clips, with the vocabulary off and on | Accepted 2026-11-01 |
 | [0088](0088-parakeet-rescores-its-transcript-towards-the-vocabulary.md) | Parakeet rescores its transcript towards the vocabulary, and a term replaces heard words only where the audio supports it | Accepted 2026-11-01, amends 0086 |
 | [0089](0089-decode-time-vocabulary-biasing-is-not-built.md) | Decode-time vocabulary biasing is not built, because it weighs the same scores rescoring already weighs | Accepted 2026-11-01 |
+| [0090](0090-the-first-key-waits-a-fixed-250-ms-after-the-stop.md) | The first key of a dictation waits a fixed 250 ms after the stop, with no key-state source | Accepted 2026-11-01 |
+| [0091](0091-delivery-restores-the-whole-clipboard-joins-continuations-and-ducks-media.md) | Delivery restores the whole clipboard, joins a quiet continuation, prints on request and ducks media past a tap | Accepted 2026-11-01 |
 
 ## Writing a record
 

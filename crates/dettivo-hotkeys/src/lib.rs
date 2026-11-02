@@ -9,6 +9,9 @@
 pub mod chord;
 #[cfg(feature = "backends")]
 pub mod evdev;
+pub mod hold;
+#[cfg(feature = "backends")]
+pub mod identity;
 pub mod install;
 #[cfg(feature = "mock")]
 pub mod mock;
@@ -66,6 +69,17 @@ impl Action {
         Self::ALL.into_iter().find(|a| a.id() == id)
     }
 
+    /// The start of the portal shortcut id; [`Keys::shortcut_id`] adds
+    /// the chord.
+    pub fn portal_prefix(self) -> &'static str {
+        match self {
+            Self::PushToTalk => "dictation-hold",
+            Self::Toggle => "dictation-toggle",
+            Self::Cancel => "dictation-cancel",
+            Self::ReinsertLast => "dictation-reinsert",
+        }
+    }
+
     /// One line for a portal dialog or a snippet comment.
     pub fn description(self) -> &'static str {
         match self {
@@ -113,6 +127,27 @@ impl Availability {
     }
 }
 
+/// How the desktop portal knows the daemon (ADR 0083).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Identity {
+    /// The daemon registered the app id `dettivo` with the portal's host
+    /// registry before it opened the session.
+    Registered,
+    /// The portal has no host registry; it takes the app id from the
+    /// systemd unit the daemon runs in.
+    Unit,
+}
+
+impl Identity {
+    /// The wire value: `registered` or `unit`.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Registered => "registered",
+            Self::Unit => "unit",
+        }
+    }
+}
+
 /// What a started backend bound.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Registration {
@@ -120,6 +155,11 @@ pub struct Registration {
     pub backend: &'static str,
     /// The actions the backend delivers.
     pub bound: Vec<Action>,
+    /// How the portal knows the daemon; `None` for evdev.
+    pub identity: Option<Identity>,
+    /// The portal took the shortcuts but assigned no keys (Hyprland's
+    /// portal): the compositor binds them, through the snippet.
+    pub compositor_bound: bool,
 }
 
 /// A source of presses and releases.
@@ -195,6 +235,25 @@ impl Keys {
             Action::ReinsertLast => &self.reinsert,
         }
     }
+
+    /// The portal shortcut id of an action: its prefix and its chord
+    /// (`dictation-hold-F9`, `dictation-toggle-SUPER_CTRL_X`). GNOME and
+    /// KDE keep the first trigger they saw for an id, so a changed chord
+    /// needs a new id for the desktop to honour it.
+    pub fn shortcut_id(&self, action: Action) -> String {
+        format!(
+            "{}-{}",
+            action.portal_prefix(),
+            self.chord(action).hyprland_lua().replace(" + ", "_")
+        )
+    }
+
+    /// The action a portal shortcut id names under these chords.
+    pub fn action_for(&self, shortcut_id: &str) -> Option<Action> {
+        Action::ALL
+            .into_iter()
+            .find(|a| self.shortcut_id(*a) == shortcut_id)
+    }
 }
 
 #[cfg(test)]
@@ -224,6 +283,32 @@ mod tests {
         assert_eq!(schema.reinsert, Keys::DEFAULT_REINSERT);
         let keys = Keys::defaults();
         assert_eq!(keys.chord(Action::PushToTalk).key.name(), "F9");
+    }
+
+    #[test]
+    fn shortcut_ids_carry_the_chord() {
+        let keys = Keys::defaults();
+        let ids: Vec<String> = Action::ALL.iter().map(|a| keys.shortcut_id(*a)).collect();
+        assert_eq!(
+            ids,
+            [
+                "dictation-hold-F9",
+                "dictation-toggle-SUPER_CTRL_X",
+                "dictation-cancel-SUPER_CTRL_ESCAPE",
+                "dictation-reinsert-SUPER_CTRL_SHIFT_X",
+            ]
+        );
+        assert_eq!(
+            keys.action_for("dictation-hold-F9"),
+            Some(Action::PushToTalk)
+        );
+        assert_eq!(keys.action_for("push_to_talk"), None);
+        let rebound = Keys::parse("F10", "SUPER CTRL, X", "F1", "F2").unwrap();
+        assert_eq!(
+            rebound.shortcut_id(Action::PushToTalk),
+            "dictation-hold-F10"
+        );
+        assert_eq!(rebound.action_for("dictation-hold-F9"), None);
     }
 
     #[test]

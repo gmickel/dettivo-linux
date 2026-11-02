@@ -41,6 +41,8 @@ pub struct Engine {
     languages: Option<&'static [&'static str]>,
     /// The tokenizer's pieces, read on the first vocabulary request.
     pieces: OnceCell<Pieces>,
+    /// The load's `threads`; `backend::speech_threads` decides when absent.
+    threads: Cell<Option<u32>>,
 }
 
 impl Engine {
@@ -61,7 +63,7 @@ impl Engine {
         let languages = header.name.as_deref().and_then(align::languages_for);
         let (first, why) = backend::choose(preference, force_cpu, VULKAN_BUILT_IN)
             .map_err(|why| EngineError::new("load_failed", backend::strict_vulkan_refused(&why)))?;
-        ffi::set_num_threads(available_threads());
+        ffi::set_num_threads(backend::speech_threads(None, first));
         let (model, backend_used, reason) = match first {
             Backend::Vulkan => match attempt(path, false) {
                 Ok((model, device)) if device != "cpu" => {
@@ -133,6 +135,7 @@ impl Engine {
             ),
             languages,
             pieces: OnceCell::new(),
+            threads: Cell::new(None),
         })
     }
 
@@ -167,15 +170,11 @@ fn attempt(path: &str, force_cpu: bool) -> Result<(Model, String), FfiError> {
     Ok((model, device))
 }
 
-fn available_threads() -> i32 {
-    std::thread::available_parallelism()
-        .map(|n| n.get().min(8) as i32)
-        .unwrap_or(4)
-}
-
 impl SpeechEngine for Engine {
     fn load(params: &LoadParams, force_cpu: bool) -> Result<Self, EngineError> {
-        Self::load_with(&params.model, params.backend_preference, force_cpu)
+        let engine = Self::load_with(&params.model, params.backend_preference, force_cpu)?;
+        engine.threads.set(params.threads);
+        Ok(engine)
     }
 
     fn loaded(&self) -> LoadedResult {
@@ -215,6 +214,10 @@ impl Engine {
     ) -> Result<RecognizeResult, EngineError> {
         align::check_language(&params.language, self.languages)
             .map_err(|m| EngineError::new("bad_request", m))?;
+        ffi::set_num_threads(backend::speech_threads(
+            self.threads.get(),
+            self.backend.get(),
+        ));
         let duration_ms = (pcm.len() as u64 * 1000) / 16_000;
         let language = if params.language != "auto" {
             params.language.clone()

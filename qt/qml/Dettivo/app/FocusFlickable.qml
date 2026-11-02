@@ -11,21 +11,31 @@ Flickable {
     Accessible.role: Accessible.Pane
     Accessible.name: qsTr("Scrollable content")
 
-    function reveal(item) {
-        let ancestor = item;
-        while (ancestor && ancestor !== root.contentItem)
+    // An ancestor that declares revealMargin is revealed whole, with that
+    // margin around it, in place of the focused control inside it.
+    function reveal(focused) {
+        let item = focused;
+        let margin = 0;
+        let ancestor = focused;
+        while (ancestor && ancestor !== root.contentItem) {
+            if (ancestor.revealMargin !== undefined) {
+                item = ancestor;
+                margin = ancestor.revealMargin;
+            }
             ancestor = ancestor.parent;
+        }
         if (!ancestor || !item || !item.mapToItem)
             return;
-        const at = item.mapToItem(root.contentItem, 0, 0);
-        if (at.x < root.contentX || item.width > root.width)
+        const corner = item.mapToItem(root.contentItem, 0, 0);
+        const at = Qt.rect(corner.x - margin, corner.y - margin, item.width + 2 * margin, item.height + 2 * margin);
+        if (at.x < root.contentX || at.width > root.width)
             root.contentX = at.x;
-        else if (at.x + item.width > root.contentX + root.width)
-            root.contentX = at.x + item.width - root.width;
-        if (at.y < root.contentY || item.height > root.height)
+        else if (at.x + at.width > root.contentX + root.width)
+            root.contentX = at.x + at.width - root.width;
+        if (at.y < root.contentY || at.height > root.height)
             root.contentY = at.y;
-        else if (at.y + item.height > root.contentY + root.height)
-            root.contentY = at.y + item.height - root.height;
+        else if (at.y + at.height > root.contentY + root.height)
+            root.contentY = at.y + at.height - root.height;
         root.contentX = Math.max(0, Math.min(root.contentX, root.contentWidth - root.width));
         root.contentY = Math.max(0, Math.min(root.contentY, root.contentHeight - root.height));
     }

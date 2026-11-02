@@ -1,0 +1,18 @@
+{
+  "capabilities": {},
+  "method": "dictation.release",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "dictation.release",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "action": "none",
+      "hold": "idle"
+    }
+  }
+}

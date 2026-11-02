@@ -1,8 +1,10 @@
 //! The portal backend (FR-H3): `org.freedesktop.portal.GlobalShortcuts`
-//! through `ashpd`. One session, the four actions bound with their
-//! preferred triggers, `Activated` mapped to a press and `Deactivated` to
-//! a release. A desktop without the interface, or one that refuses the
-//! request, is reported once with its reason and never retried here.
+//! through `ashpd`. The connection registers the app id first (ADR 0083),
+//! then one session binds the four actions under ids that carry their
+//! chords, with the chords as preferred triggers; `Activated` maps to a
+//! press and `Deactivated` to a release. A desktop without the interface,
+//! or one that refuses the request, is reported once with its reason and
+//! never retried here.
 
 use std::future::Future;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -13,6 +15,7 @@ use ashpd::desktop::CreateSessionOptions;
 use ashpd::desktop::global_shortcuts::{BindShortcutsOptions, GlobalShortcuts, NewShortcut};
 use futures_util::StreamExt;
 
+use crate::identity::{FIX, register};
 use crate::{Action, Availability, Handler, HotkeyBackend, HotkeyEvent, Keys, Registration};
 
 /// `Activated` and `Deactivated`: session, shortcut id, timestamp, options.
@@ -66,11 +69,8 @@ pub(crate) async fn connect(address: Option<&str>) -> Result<zbus::Connection, S
     }
 }
 
-/// The interface, or why it cannot be reached: no bus, no portal on the
-/// bus, or a portal without the interface (its `version` property is the
-/// probe, as `xdg-desktop-portal` answers `InvalidArgs` for an interface
-/// it does not implement).
-async fn proxy(address: Option<&str>) -> Result<GlobalShortcuts, String> {
+/// A connection to the bus with a portal on it, or why there is none.
+async fn portal_connection(address: Option<&str>) -> Result<zbus::Connection, String> {
     let connection = connect(address).await?;
     let owned = zbus::fdo::DBusProxy::new(&connection)
         .await
@@ -84,6 +84,13 @@ async fn proxy(address: Option<&str>) -> Result<GlobalShortcuts, String> {
     if !owned {
         return Err(NO_PORTAL.to_string());
     }
+    Ok(connection)
+}
+
+/// The interface on `connection`, or a portal without it (its `version`
+/// property is the probe, as `xdg-desktop-portal` answers `InvalidArgs`
+/// for an interface it does not implement).
+async fn shortcuts_on(connection: zbus::Connection) -> Result<GlobalShortcuts, String> {
     let raw = zbus::Proxy::new(
         &connection,
         "org.freedesktop.portal.Desktop",
@@ -110,7 +117,11 @@ pub fn probe() -> Availability {
 
 /// Probes the interface on the bus at `address` (`None`: the session bus).
 pub fn probe_at(address: Option<&str>) -> Availability {
-    match on_own_runtime(|| async { proxy(address).await.map(|_| ()) }) {
+    let reach = || async {
+        let connection = portal_connection(address).await?;
+        shortcuts_on(connection).await.map(|_| ())
+    };
+    match on_own_runtime(reach) {
         Ok(()) => Availability::Available,
         Err(reason) => Availability::Unavailable(reason),
     }
@@ -146,30 +157,43 @@ impl PortalBackend {
         }
     }
 
-    fn shortcuts(&self) -> Vec<NewShortcut> {
+    fn shortcuts(keys: &Keys) -> Vec<NewShortcut> {
         Action::ALL
             .into_iter()
             .map(|a| {
-                let trigger = self.keys.chord(a).portal_trigger();
-                NewShortcut::new(a.id(), a.description()).preferred_trigger(trigger.as_str())
+                let trigger = keys.chord(a).portal_trigger();
+                NewShortcut::new(keys.shortcut_id(a), a.description())
+                    .preferred_trigger(trigger.as_str())
             })
             .collect()
     }
 
-    /// Creates the session, binds, then delivers until `stop`.
+    /// Registers the app id, creates the session, binds, then delivers
+    /// until `stop`. Closing the session on stop drops its shortcuts, so
+    /// a rebind leaves only the new ids bound.
     async fn serve(
         address: Option<String>,
-        shortcuts: Vec<NewShortcut>,
+        keys: Keys,
         handler: Handler,
         stop: Arc<AtomicBool>,
         ready: std::sync::mpsc::Sender<Result<Registration, String>>,
     ) {
+        let shortcuts = Self::shortcuts(&keys);
         let outcome: Result<_, String> = async {
-            let portal = proxy(address.as_deref()).await?;
+            let connection = portal_connection(address.as_deref()).await?;
+            let identity = register(&connection).await?;
+            let portal = shortcuts_on(connection).await?;
             let session = portal
                 .create_session(CreateSessionOptions::default())
                 .await
-                .map_err(|e| format!("portal session refused: {e}"))?;
+                .map_err(|e| {
+                    let refused = format!("portal session refused: {e}");
+                    if refused.contains("app id") {
+                        format!("{refused}; {FIX}")
+                    } else {
+                        refused
+                    }
+                })?;
             // One stream for both signals keeps a press ahead of its release.
             let mut signals = portal
                 .receive_all_signals()
@@ -187,9 +211,22 @@ impl PortalBackend {
             let actions: Vec<Action> = bound
                 .shortcuts()
                 .iter()
-                .filter_map(|s| Action::from_id(s.id()))
+                .filter_map(|s| keys.action_for(s.id()))
                 .collect();
-            Ok((session, actions, async move {
+            // Hyprland's portal assigns no keys: the user binds them in the
+            // compositor's configuration, which the snippet does.
+            let compositor_bound = !bound.shortcuts().is_empty()
+                && bound
+                    .shortcuts()
+                    .iter()
+                    .all(|s| s.trigger_description().is_empty());
+            let registration = Registration {
+                backend: "portal",
+                bound: actions,
+                identity: Some(identity),
+                compositor_bound,
+            };
+            Ok((session, registration, async move {
                 loop {
                     tokio::select! {
                         Some(message) = signals.next() => {
@@ -200,7 +237,7 @@ impl PortalBackend {
                                 .unwrap_or_default();
                             let body = message.body().deserialize::<SignalBody>();
                             let Ok((_, id, _, _)) = body else { continue };
-                            let Some(action) = Action::from_id(&id) else { continue };
+                            let Some(action) = keys.action_for(&id) else { continue };
                             match member.as_str() {
                                 "Activated" => handler(HotkeyEvent::Press(action)),
                                 "Deactivated" => handler(HotkeyEvent::Release(action)),
@@ -218,11 +255,8 @@ impl PortalBackend {
         }
         .await;
         match outcome {
-            Ok((session, actions, deliver)) => {
-                let _ = ready.send(Ok(Registration {
-                    backend: "portal",
-                    bound: actions,
-                }));
+            Ok((session, registration, deliver)) => {
+                let _ = ready.send(Ok(registration));
                 deliver.await;
                 let _ = session.close().await;
             }
@@ -243,7 +277,7 @@ impl HotkeyBackend for PortalBackend {
     }
 
     fn start(&self, handler: Handler) -> Result<Registration, String> {
-        let shortcuts = self.shortcuts();
+        let keys = self.keys.clone();
         let address = self.address.clone();
         let stop = Arc::new(AtomicBool::new(false));
         let (tx, rx) = std::sync::mpsc::channel();
@@ -261,7 +295,7 @@ impl HotkeyBackend for PortalBackend {
                         return;
                     }
                 };
-                runtime.block_on(Self::serve(address, shortcuts, handler, stop_flag, tx));
+                runtime.block_on(Self::serve(address, keys, handler, stop_flag, tx));
             })
             .map_err(|e| format!("portal thread: {e}"))?;
         let registration = rx

@@ -6,11 +6,13 @@ use dettivo_core::config::edit;
 use dettivo_engine_proto::Backend;
 use dettivo_proto::error::{AppCode, ErrorDetails, JsonRpcError};
 use dettivo_proto::methods::speech::{
-    EngineBackend, EngineStatus, EnginesResult, ModelDeleteParams, ModelDeleteResult, ModelParams,
-    ModelReadiness, ModelStatus, ModelsStatusParams, ModelsStatusResult, ProviderDescriptor,
-    ProviderKind, ProviderModel, ProvidersListResult, ResolvedSelection, SelectionResult,
-    SelectionSetParams,
+    EngineBackend, EngineStatus, EnginesResult, LanguageRanking, ModelDeleteParams,
+    ModelDeleteResult, ModelParams, ModelReadiness, ModelStatus, ModelsStatusParams,
+    ModelsStatusResult, ProviderDescriptor, ProviderKind, ProviderModel, ProvidersListResult,
+    RankedModel, ResolvedSelection, SelectionResult, SelectionSetParams,
 };
+use dettivo_speech::catalogue::Catalogue;
+use dettivo_speech::ranking::language_of;
 use serde_json::Value;
 
 use super::{json, params};
@@ -83,6 +85,7 @@ pub fn engines(daemon: &Daemon) -> Result<Value, JsonRpcError> {
             reason: s.reason,
             crashes: s.crashes,
             degraded: s.degraded,
+            warm: s.warm,
             memory_bytes: s.memory_bytes,
         })
         .collect();
@@ -90,8 +93,9 @@ pub fn engines(daemon: &Daemon) -> Result<Value, JsonRpcError> {
 }
 
 /// `speech.providers.list`: every provider with its models and their
-/// readiness from the model service.
-pub fn providers_list(daemon: &Daemon) -> Result<Value, JsonRpcError> {
+/// readiness from the model service, and with `language` the catalogue's
+/// ranking for it (ADR 0085).
+pub fn providers_list(daemon: &Daemon, language: Option<&str>) -> Result<Value, JsonRpcError> {
     let (sel_provider, sel_model) = selected(daemon);
     let store = daemon.models().store();
     let catalogue = store.catalogue();
@@ -166,7 +170,37 @@ pub fn providers_list(daemon: &Daemon) -> Result<Value, JsonRpcError> {
             .default_for("whisper")
             .map(|m| m.id.clone())
             .unwrap_or_default(),
+        language_ranking: language.map(|code| ranking(daemon, catalogue, code)),
     })
+}
+
+fn ranking(daemon: &Daemon, catalogue: &Catalogue, code: &str) -> LanguageRanking {
+    let (sel_provider, sel_model) = selected(daemon);
+    let status = daemon
+        .models()
+        .status(None, None, (&sel_provider, &sel_model));
+    LanguageRanking {
+        language: language_of(code),
+        models: catalogue
+            .ranking(code)
+            .into_iter()
+            .map(|r| RankedModel {
+                provider: r.entry.provider.clone(),
+                model_id: r.entry.id.clone(),
+                display_name: r.entry.display_name.clone(),
+                rank: r.rank,
+                wer: r.wer,
+                is_downloaded: status.iter().any(|m| {
+                    m.provider == r.entry.provider
+                        && m.id == r.entry.id
+                        && matches!(
+                            m.readiness,
+                            ModelReadiness::Ready | ModelReadiness::Unverified
+                        )
+                }),
+            })
+            .collect(),
+    }
 }
 
 fn resolved(provider: &str, model: &str) -> ResolvedSelection {
