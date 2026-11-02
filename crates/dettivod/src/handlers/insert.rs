@@ -61,6 +61,7 @@ pub fn perform(daemon: &Daemon, params_value: Value) -> Result<Value, JsonRpcErr
     let settings = daemon.insert_settings();
     let request = Request {
         text: &text,
+        as_dictated: None,
         mode: p.mode,
         guards: Guards {
             app_id: p.expected_target_bundle_id.as_deref(),

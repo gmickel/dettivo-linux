@@ -141,10 +141,11 @@ impl Inserter for ChainInserter {
             )
         };
         let place = place_of(target);
+        let dictated = text;
         let text = if join {
-            self.joins.text_for(place.as_ref(), text)
+            self.joins.text_for(place.as_ref(), dictated)
         } else {
-            Cow::Borrowed(text)
+            Cow::Borrowed(dictated)
         };
         let pid = target.and_then(|t| t.pid).map(|p| p.to_string());
         // The allowance covers the app's own window ids only: a take whose
@@ -154,6 +155,9 @@ impl Inserter for ChainInserter {
             .is_some_and(|id| APP_IDS.iter().any(|a| a.eq_ignore_ascii_case(id)));
         let request = Request {
             text: &text,
+            // Only a delivery into the verified window joins; a copy
+            // carries the take as dictated.
+            as_dictated: Some(dictated).filter(|d| *d != text),
             mode: mode_for(target),
             guards: Guards {
                 app_id: target.and_then(|t| t.app_id.as_deref()),
@@ -287,5 +291,51 @@ mod tests {
                 "join_continuations = {join}"
             );
         }
+    }
+
+    /// A continuation the chain can only copy is copied as dictated: a
+    /// clipboard-only delivery never joins, so it carries no leading
+    /// space or lowered capital, and it ends the run of joined takes.
+    #[test]
+    fn a_continuation_that_falls_back_to_the_clipboard_is_copied_standalone() {
+        let dir = tempfile::tempdir().unwrap();
+        let file = dir.path().join("inserted.txt");
+        let mock = dettivo_insert::Mock {
+            inserted_file: file.clone(),
+        };
+        let service = Arc::new(Service::new(move || dettivo_insert::Session {
+            mock: Some(mock.clone()),
+            ..dettivo_insert::Session::default()
+        }));
+        let mut loaded = Loaded::load(&dir.path().join("none.toml"), |_| None);
+        loaded.config.dictation.join_continuations = true;
+        let config = Arc::new(RwLock::new(loaded));
+        let joins = Arc::new(Continuation::new(Arc::new(Quiet)));
+        let inserter = ChainInserter::new(
+            service,
+            config.clone(),
+            Arc::new(SelfTargetAllowance::default()),
+            joins.clone(),
+        );
+        let target = SessionTarget {
+            app_id: Some(dettivo_insert::probe::MOCK_APP_ID.into()),
+            pid: Some(dettivo_insert::probe::MOCK_PID),
+            window: Some("mock-window".into()),
+            unverified: false,
+        };
+        inserter.insert("I wrote the report", Some(&target));
+        joins.take_started(std::time::Instant::now());
+        // The typing backends are gone: only the clipboard is left.
+        config.write().unwrap().config.insert.backend = "mock_clipboard".into();
+        let copied = inserter.insert("And then I left.", Some(&target));
+        assert_eq!(copied.outcome, InsertionOutcome::CopiedToClipboard);
+        config.write().unwrap().config.insert.backend = "auto".into();
+        joins.take_started(std::time::Instant::now());
+        inserter.insert("So it goes", Some(&target));
+        let lines = std::fs::read_to_string(&file).unwrap();
+        assert_eq!(
+            lines.lines().collect::<Vec<_>>(),
+            ["I wrote the report", "And then I left.", "So it goes"]
+        );
     }
 }
