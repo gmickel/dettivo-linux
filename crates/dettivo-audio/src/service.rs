@@ -135,7 +135,7 @@ impl Audio {
 impl AudioService {
     /// Starts the audio thread and tries PipeWire once before returning,
     /// so [`connected`](Self::connected) is current. A PipeWire that is
-    /// absent now is tried again every [`RECONNECT`]; meanwhile opens
+    /// absent now is tried again every second; meanwhile opens
     /// fail with `NoPipeWire`. Errs only when the thread cannot start.
     pub fn start() -> Result<Self, CaptureError> {
         let (cmds, rx) = mpsc::channel::<Cmd>();
