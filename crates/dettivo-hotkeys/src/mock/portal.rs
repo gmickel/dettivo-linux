@@ -6,7 +6,11 @@
 //! session is refused (`NotAllowed`) to a connection that registered no
 //! app id, and a registration after the connection's first request is
 //! refused. [`MockOptions`] leaves the registry out (an older portal) or
-//! answers binds with no triggers (Hyprland's portal).
+//! answers binds with no triggers (Hyprland's portal), or leaves a bind
+//! unanswered (a dialog nobody answers); the options can change under a
+//! running portal. The backend's bus name can restart the way
+//! `xdg-desktop-portal-hyprland` does with the compositor, taking its
+//! sessions with it.
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -14,10 +18,16 @@ use std::sync::{Arc, Mutex};
 use serde::Serialize;
 use zbus::message::Header;
 use zbus::object_server::SignalEmitter;
-use zbus::zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Type, Value, as_value};
+use zbus::zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Type, as_value};
 use zbus::{Connection, interface};
 
 use super::Served;
+
+mod control;
+
+/// The bus name of the portal backend behind the mock (the frontend's
+/// `org.freedesktop.impl.portal.desktop.*`).
+const BACKEND: &str = "org.freedesktop.impl.portal.desktop.mock";
 
 /// How the mock portal behaves.
 #[derive(Debug, Clone, Copy)]
@@ -28,6 +38,8 @@ pub struct MockOptions {
     pub registry: bool,
     /// Binds come back with empty trigger descriptions (Hyprland).
     pub empty_triggers: bool,
+    /// Binds are never answered, as a dialog left open.
+    pub stall: bool,
 }
 
 impl Default for MockOptions {
@@ -36,6 +48,7 @@ impl Default for MockOptions {
             deny: false,
             registry: true,
             empty_triggers: false,
+            stall: false,
         }
     }
 }
@@ -263,12 +276,16 @@ impl PortalIface {
             sender_segment(&header),
             token(&options, "handle_token")
         );
-        let (deny, empty) = {
+        let options = {
             let mut s = self.state.lock().unwrap_or_else(|p| p.into_inner());
             s.bind_calls += 1;
-            (s.options().deny, s.options().empty_triggers)
+            s.options()
         };
-        if deny {
+        let empty = options.empty_triggers;
+        if options.stall {
+            return object_path(request);
+        }
+        if options.deny {
             respond(
                 conn,
                 &request,
@@ -385,76 +402,34 @@ impl MockPortal {
             },
             address.to_string(),
         )?;
-        Ok(Self { served, state })
+        let portal = Self { served, state };
+        portal.own_backend(true)?;
+        Ok(portal)
     }
 
-    /// The app ids registered, in order.
-    pub fn registered(&self) -> Vec<String> {
-        self.state
-            .lock()
-            .unwrap_or_else(|p| p.into_inner())
-            .registered
-            .iter()
-            .map(|(_, id)| id.clone())
-            .collect()
-    }
-
-    /// The ids bound across the live sessions; a closed session's ids
-    /// are gone.
-    pub fn bound(&self) -> Vec<String> {
-        self.state
-            .lock()
-            .unwrap_or_else(|p| p.into_inner())
-            .bound
-            .iter()
-            .flat_map(|(_, ids)| ids.iter().cloned())
-            .collect()
-    }
-
-    /// How many bind requests arrived.
-    pub fn bind_calls(&self) -> usize {
-        self.state
-            .lock()
-            .unwrap_or_else(|p| p.into_inner())
-            .bind_calls
-    }
-
-    fn signal(&self, name: &'static str, id: &str) -> Result<(), String> {
-        let session = self
-            .state
-            .lock()
-            .unwrap_or_else(|p| p.into_inner())
-            .sessions
-            .last()
-            .cloned()
-            .ok_or("no portal session")?;
+    /// Takes (`true`) or gives up the backend's bus name.
+    fn own_backend(&self, own: bool) -> Result<(), String> {
         let conn = self.served.connection.clone();
-        let id = id.to_string();
         self.served.run(async move {
-            let stamp = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| d.as_millis() as u64)
-                .unwrap_or(0);
-            let options: HashMap<&str, Value<'_>> = HashMap::new();
-            SignalEmitter::new(&conn, "/org/freedesktop/portal/desktop")
-                .map_err(|e| e.to_string())?
-                .emit(
-                    "org.freedesktop.portal.GlobalShortcuts",
-                    name,
-                    &(session, id, stamp, options),
-                )
-                .await
-                .map_err(|e| e.to_string())
+            if own {
+                conn.request_name(BACKEND).await.map(|_| ())
+            } else {
+                conn.release_name(BACKEND).await.map(|_| ())
+            }
+            .map_err(|e| e.to_string())
         })?
     }
 
-    /// Fires `Activated` for a shortcut id.
-    pub fn press(&self, id: &str) -> Result<(), String> {
-        self.signal("Activated", id)
-    }
-
-    /// Fires `Deactivated` for a shortcut id.
-    pub fn release(&self, id: &str) -> Result<(), String> {
-        self.signal("Deactivated", id)
+    /// The portal backend restarts, as `xdg-desktop-portal-hyprland` does
+    /// with the compositor: its bus name goes away with every session and
+    /// binding, then comes back empty.
+    pub fn restart_backend(&self) -> Result<(), String> {
+        self.own_backend(false)?;
+        {
+            let mut s = self.state.lock().unwrap_or_else(|p| p.into_inner());
+            s.sessions.clear();
+            s.bound.clear();
+        }
+        self.own_backend(true)
     }
 }

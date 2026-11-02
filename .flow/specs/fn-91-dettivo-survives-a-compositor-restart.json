@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-91-dettivo-survives-a-compositor-restart",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-02T10:45:37.612721Z",
   "created_at": "2026-11-02T10:11:36.601996Z",
   "default_impl": null,
   "default_review": null,
@@ -10,15 +10,235 @@
     "fn-81-catch-the-first-and-last-words-of-every"
   ],
   "id": "fn-91-dettivo-survives-a-compositor-restart",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-91-dettivo-survives-a-compositor-restart.1": 0
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "be198b7997fe5b7224cb8bff4fd286d0ca8c9a165278331f7a8bc39358785561",
+      "backend": "codex",
+      "base_sha": "d644e18d2ebed7ff4bb9356bba5748a9442be3c1",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-56c64ea7153302008b44c51821c5ea8a",
+            "classification": "introduced",
+            "findingId": "finding-56c64ea7153302008b44c51821c5ea8a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ef09b610c8788e996aa5512876ce3868",
+            "classification": "introduced",
+            "findingId": "finding-ef09b610c8788e996aa5512876ce3868",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "299d8bdbaa9e20386b7ebfd108609e3bef4455c3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2161,
+      "output_sha256": "ba9c2652d7994c5beab18c7b2c915bd0800b385591e6cda14b4734f6aac8176f",
+      "reservation_id": "cb80316d84e145bc84a7ab5dbf5063f5",
+      "round_consumed": true,
+      "scope": "impl:fn-91-dettivo-survives-a-compositor-restart.1",
+      "superseded_by": null,
+      "task": "fn-91-dettivo-survives-a-compositor-restart.1",
+      "timestamp": "2026-11-02T10:43:07.437525Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "27cfa2cf19d4c5b713660875ed77c21a0b186f83b1676f77bfd57e211cdac57e",
+      "backend": "codex",
+      "base_sha": "d644e18d2ebed7ff4bb9356bba5748a9442be3c1",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-56c64ea7153302008b44c51821c5ea8a",
+            "classification": "introduced",
+            "findingId": "finding-56c64ea7153302008b44c51821c5ea8a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ef09b610c8788e996aa5512876ce3868",
+            "classification": "introduced",
+            "findingId": "finding-ef09b610c8788e996aa5512876ce3868",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3b2b32508e27eaf7d0e463a3b044c502571d7fc2",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1119,
+      "output_sha256": "ccc3193f29ebf24330e1cffdb5f90432d4c90e000a078a351bcdea7597bb62b4",
+      "reservation_id": "1c77b7ebbdae4243912b6db027df7109",
+      "round_consumed": true,
+      "scope": "impl:fn-91-dettivo-survives-a-compositor-restart.1",
+      "superseded_by": null,
+      "task": "fn-91-dettivo-survives-a-compositor-restart.1",
+      "timestamp": "2026-11-02T10:44:53.490065Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "25266af6d9970fb7a61ddadac52541d2c15885bd025a580409980c7e04bb985c",
+      "backend": "codex",
+      "base_sha": "34dac2b0c0313494990abe314c0329cddc305177",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-56c64ea7153302008b44c51821c5ea8a",
+            "classification": "introduced",
+            "findingId": "finding-56c64ea7153302008b44c51821c5ea8a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ef09b610c8788e996aa5512876ce3868",
+            "classification": "introduced",
+            "findingId": "finding-ef09b610c8788e996aa5512876ce3868",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "28ebe77b49cdf795d7220a83dfe60827da8a110c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "d1490da51b3344928eac1701b04b56b7",
+      "round_consumed": true,
+      "scope": "impl:fn-91-dettivo-survives-a-compositor-restart.1",
+      "superseded_by": null,
+      "task": "fn-91-dettivo-survives-a-compositor-restart.1",
+      "timestamp": "2026-11-02T11:07:40.274608Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "0657b7dc69ac61ac2019a9e7ba025a6de35ae04dee76d758211cc221947ce845",
+      "backend": "codex",
+      "base_sha": "cb10bdfa1765d14409c0770cfa9db725a70d7462",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-56c64ea7153302008b44c51821c5ea8a",
+            "classification": "introduced",
+            "findingId": "finding-56c64ea7153302008b44c51821c5ea8a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ef09b610c8788e996aa5512876ce3868",
+            "classification": "introduced",
+            "findingId": "finding-ef09b610c8788e996aa5512876ce3868",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "b391a46d4616ed2b99f35964ab3b95d31c7b19d8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "16ebfb3072fd4084b6177c19074ccd1f",
+      "round_consumed": true,
+      "scope": "impl:fn-91-dettivo-survives-a-compositor-restart.1",
+      "superseded_by": null,
+      "task": "fn-91-dettivo-survives-a-compositor-restart.1",
+      "timestamp": "2026-11-02T11:17:50.292146Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-91-dettivo-survives-a-compositor-restart.1": 3
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-91-dettivo-survives-a-compositor-restart.1": 0
+  },
   "spec_path": ".flow/specs/fn-91-dettivo-survives-a-compositor-restart.md",
-  "status": "open",
+  "status": "done",
   "title": "Dettivo survives a compositor restart",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +251,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-02T10:11:51.922654Z"
+  "updated_at": "2026-11-02T14:49:51.225483Z"
 }

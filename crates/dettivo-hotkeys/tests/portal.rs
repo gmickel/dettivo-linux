@@ -4,7 +4,10 @@
 //! `Activated` and `Deactivated` arrive as presses and releases, a rebind
 //! leaves only the new ids, a portal without the registry or without
 //! triggers is still bound, a denied bind is reported once and never
-//! retried, and an absent portal is unavailable with its reason.
+//! retried, and an absent portal is unavailable with its reason. After the
+//! portal backend restarts the shortcuts are bound again, a denied rebind
+//! is not asked again and is what the backend reports, and a stop ends a
+//! rebind waiting on an unanswered bind.
 
 use std::sync::Arc;
 use std::sync::mpsc;
@@ -179,4 +182,102 @@ fn an_absent_portal_is_unavailable_with_its_reason() {
     assert_eq!(err, NO_PORTAL);
     let nowhere = probe_at(Some("unix:path=/nonexistent/bus"));
     assert!(!nowhere.is_available());
+}
+
+/// fn-91 R3: the portal backend restarts with the compositor
+/// (`xdg-desktop-portal-hyprland` exits with Hyprland) and loses the
+/// session; once its bus name is back, the shortcuts are bound again in a
+/// new session and presses arrive, with no daemon restart.
+#[test]
+fn a_restarted_portal_backend_gets_the_shortcuts_bound_again() {
+    let Some(bus) = bus() else { return };
+    let portal = MockPortal::serve(bus.address(), false).unwrap();
+    let backend = PortalBackend::at(Keys::defaults(), bus.address());
+    let (_, rx) = start(&backend);
+    assert_eq!(portal.bind_calls(), 1);
+    portal.restart_backend().unwrap();
+    let until = std::time::Instant::now() + Duration::from_secs(2);
+    while portal.bound().len() < Action::ALL.len() {
+        assert!(
+            std::time::Instant::now() < until,
+            "the shortcuts were not bound again: {:?}",
+            portal.bound()
+        );
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    assert_eq!(portal.bind_calls(), 2);
+    assert_eq!(portal.registered(), ["dettivo"], "registered once");
+    let until = std::time::Instant::now() + Duration::from_secs(2);
+    while backend.current().is_some_and(|now| now.is_err()) {
+        assert!(std::time::Instant::now() < until, "{:?}", backend.current());
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    assert_eq!(
+        backend.current().unwrap().unwrap().bound,
+        Action::ALL.to_vec()
+    );
+    portal.press("dictation-hold-F9").unwrap();
+    assert_eq!(
+        rx.recv_timeout(Duration::from_secs(5)).unwrap(),
+        HotkeyEvent::Press(Action::PushToTalk)
+    );
+    backend.stop();
+    assert!(portal.bound().is_empty(), "stop closes the new session");
+}
+
+fn wait_for_binds(portal: &MockPortal, calls: usize) {
+    let until = std::time::Instant::now() + Duration::from_secs(5);
+    while portal.bind_calls() < calls {
+        assert!(
+            std::time::Instant::now() < until,
+            "bind {calls} never asked"
+        );
+        std::thread::sleep(Duration::from_millis(20));
+    }
+}
+
+/// A bind the person dismisses or the portal denies after the backend
+/// restarted is their answer: no second dialog follows it.
+#[test]
+fn a_denied_bind_after_a_backend_restart_is_not_asked_again() {
+    let Some(bus) = bus() else { return };
+    let portal = MockPortal::serve(bus.address(), false).unwrap();
+    let backend = PortalBackend::at(Keys::defaults(), bus.address());
+    let _ = start(&backend);
+    portal.set_options(MockOptions {
+        deny: true,
+        ..MockOptions::default()
+    });
+    portal.restart_backend().unwrap();
+    wait_for_binds(&portal, 2);
+    // The retries were 250 ms, 500 ms and 1 s apart.
+    std::thread::sleep(Duration::from_millis(2000));
+    assert_eq!(portal.bind_calls(), 2, "the denied bind was asked again");
+    let now = backend.current().unwrap().unwrap_err();
+    assert!(now.contains("denied"), "{now}");
+    backend.stop();
+}
+
+/// A rebind waiting on a bind nobody answers ends at stop, closing the
+/// session it opened, so a reload never waits out the dialog.
+#[test]
+fn stop_ends_a_rebind_waiting_on_an_unanswered_bind() {
+    let Some(bus) = bus() else { return };
+    let portal = MockPortal::serve(bus.address(), false).unwrap();
+    let backend = PortalBackend::at(Keys::defaults(), bus.address());
+    let _ = start(&backend);
+    portal.set_options(MockOptions {
+        stall: true,
+        ..MockOptions::default()
+    });
+    portal.restart_backend().unwrap();
+    wait_for_binds(&portal, 2);
+    let asked = std::time::Instant::now();
+    backend.stop();
+    assert!(
+        asked.elapsed() < Duration::from_secs(2),
+        "stop took {:?}",
+        asked.elapsed()
+    );
+    assert_eq!(portal.sessions(), 0, "the rebind's session stays open");
 }

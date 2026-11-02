@@ -14,7 +14,7 @@ use dettivo_core::config::schema::Hotkeys as Section;
 use dettivo_hotkeys::evdev::EvdevBackend;
 use dettivo_hotkeys::identity;
 use dettivo_hotkeys::portal::{PortalBackend, probe};
-use dettivo_hotkeys::{Availability, HotkeyBackend, HotkeyEvent, Keys};
+use dettivo_hotkeys::{Availability, HotkeyBackend, HotkeyEvent, Keys, Registration};
 use dettivo_proto::methods::hotkeys::{BackendAvailability, StatusResult};
 
 use crate::daemon::Daemon;
@@ -191,18 +191,12 @@ impl Hotkeys {
                     compositor_bound = registration.compositor_bound,
                     "hotkeys: backend started"
                 );
-                // Keys the compositor binds are not bound here: the
-                // snippet is the path, and onboarding still asks for it.
-                let bound = if registration.compositor_bound {
-                    Vec::new()
-                } else {
-                    registration
-                        .bound
-                        .iter()
-                        .map(|a| a.id().to_string())
-                        .collect()
-                };
-                self.set(registration.backend, bound, None, Some(backend));
+                self.set(
+                    registration.backend,
+                    bound_ids(&registration),
+                    None,
+                    Some(backend),
+                );
                 let mut g = self.inner.lock().unwrap_or_else(|p| p.into_inner());
                 g.identity = registration.identity.map(|i| i.as_str().to_string());
                 g.compositor_bound = registration.compositor_bound;
@@ -231,10 +225,20 @@ impl Hotkeys {
     }
 
     /// The status for `hotkeys.status`; the portal and evdev availability
-    /// are probed now, so the answer is current.
+    /// are probed now, and a running backend says what it delivers now
+    /// (a portal that bound again, or failed to, after its backend
+    /// restarted), so the answer is current.
     pub fn status(&self, loaded: &Loaded) -> StatusResult {
         let section = &loaded.config.hotkeys;
-        let (active, bound, error, last_press_at, identity, compositor_bound) = {
+        let (
+            active,
+            mut bound,
+            mut error,
+            last_press_at,
+            mut identity,
+            mut compositor_bound,
+            backend,
+        ) = {
             let g = self.inner.lock().unwrap_or_else(|p| p.into_inner());
             (
                 g.active.clone(),
@@ -243,8 +247,21 @@ impl Hotkeys {
                 g.last_press_at.clone(),
                 g.identity.clone(),
                 g.compositor_bound,
+                g.backend.clone(),
             )
         };
+        match backend.and_then(|b| b.current()) {
+            Some(Ok(now)) => {
+                bound = bound_ids(&now);
+                identity = now.identity.map(|i| i.as_str().to_string());
+                compositor_bound = now.compositor_bound;
+            }
+            Some(Err(e)) => {
+                bound = Vec::new();
+                error = Some(e);
+            }
+            None => {}
+        }
         let portal = availability(probe());
         let evdev = availability(match keys_of(section) {
             Ok(keys) => EvdevBackend::new(keys, section.evdev_devices.clone()).availability(),
@@ -315,6 +332,19 @@ fn ensure_desktop_entry() {
         Ok(identity::EntryChange::Unchanged) => {}
         Err(e) => tracing::warn!(error = %e, "hotkeys: no desktop entry for the portal identity"),
     }
+}
+
+/// The actions `registration` binds here. Keys the compositor binds are
+/// not: the snippet is the path, and onboarding still asks for it.
+fn bound_ids(registration: &Registration) -> Vec<String> {
+    if registration.compositor_bound {
+        return Vec::new();
+    }
+    registration
+        .bound
+        .iter()
+        .map(|a| a.id().to_string())
+        .collect()
 }
 
 fn keys_of(section: &Section) -> Result<Keys, dettivo_hotkeys::chord::ChordError> {

@@ -98,6 +98,8 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0091](0091-delivery-restores-the-whole-clipboard-joins-continuations-and-ducks-media.md) | Delivery restores the whole clipboard, joins a quiet continuation, prints on request and ducks media past a tap | Accepted 2026-11-01 |
 | [0092](0092-dictation-can-keep-the-microphone-ready-and-it-is-off-by-default.md) | Dictation can keep the microphone ready in a 10 s ring, off by default, closed during a meeting and while the session is locked | Accepted 2026-11-02, amends 0082 |
 | [0093](0093-a-take-runs-from-the-pre-roll-to-the-release-tail-and-a-tap-is-no-take.md) | A take runs from 450 ms before the press to 200 ms after the release, and a press under 300 ms is a tap that reaches no engine | Accepted 2026-11-02, amends 0082 and 0083 |
+| [0099](0099-the-live-hyprland-instance-is-found-again-on-every-refused-connection.md) | The live Hyprland instance is found again on every refused connection, matched by the session's Wayland display | Accepted 2026-11-02 |
+| [0100](0100-every-compositor-connection-comes-back-after-a-compositor-restart.md) | Every compositor connection comes back after a compositor restart, the portal shortcuts included | Accepted 2026-11-02 |
 
 ## Writing a record
 

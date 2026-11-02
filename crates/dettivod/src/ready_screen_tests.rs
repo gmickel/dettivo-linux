@@ -8,7 +8,7 @@ use super::*;
 use std::io::{Read, Write};
 use std::os::unix::net::UnixStream;
 use std::sync::Mutex;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use crate::ready::MicReady;
 
@@ -223,52 +223,109 @@ fn a_session_locked_at_start_never_opens_the_ring() {
     }
 }
 
-/// A compositor connection that drops before its first report keeps the
-/// ring closed while the watcher waits to connect again, and the locked
-/// session the next connection reports keeps it closed; losing that
-/// connection too leaves the ring closed.
+/// A fake compositor serving the first client that connects on `socket`.
+fn compositor_on(socket: &Path, start: Start) -> std::sync::mpsc::Receiver<Arc<Compositor>> {
+    let _ = std::fs::remove_file(socket);
+    let listener = std::os::unix::net::UnixListener::bind(socket).unwrap();
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let (server, _) = listener.accept().unwrap();
+        // One client only: a later connection is refused, as by a
+        // compositor that crashed.
+        drop(listener);
+        let compositor = Arc::new(Compositor {
+            writer: Mutex::new(server.try_clone().unwrap()),
+            notification: Mutex::new(None),
+        });
+        let _ = tx.send(compositor.clone());
+        compositor.serve(server, true, start);
+    });
+    rx
+}
+
+/// fn-91 R3: the compositor restarts on the same display. While it is
+/// down the socket refuses connections; the watcher keeps trying and
+/// follows the new compositor's lock once it is up.
 #[test]
-fn a_connection_lost_before_its_first_report_keeps_the_ring_closed() {
+fn the_lock_is_followed_again_after_a_compositor_restart() {
+    let dir = tempfile::Builder::new()
+        .prefix("dtv")
+        .tempdir_in("/tmp")
+        .unwrap();
+    let socket = dir.path().join("wl");
     let ready = Arc::new(MicReady::default());
     ready.lock_pending(LockSource::Compositor);
-    let compositors = Arc::new(Mutex::new(Vec::new()));
-    let c = compositors.clone();
-    let mut starts = vec![Start::Locked, Start::Drops];
-    let connect = move || match starts.pop() {
-        Some(start) => {
-            let (conn, compositor) = connect(true, start);
-            c.lock().unwrap().push(compositor);
-            Ok(conn)
-        }
-        None => Err(ConnectError::NoCompositor),
-    };
-    let r = ready.clone();
-    let watcher = std::thread::spawn(move || {
-        keep_following(r, |r| r, connect, Duration::from_millis(300));
+    let first = compositor_on(&socket, Start::Unlocked);
+    let (r, s) = (ready.clone(), socket.clone());
+    std::thread::spawn(move || {
+        follow_display(&s, move |locked| r.set_lock(LockSource::Compositor, locked))
     });
-    let until = Instant::now() + Duration::from_secs(3);
-    loop {
+    let first = first.recv_timeout(Duration::from_secs(3)).unwrap();
+    wait_for("the first compositor reports", || !ready.blocked());
+    first.lock(true);
+    wait_for("the first compositor's lock", || ready.blocked());
+
+    // The crash: the connection drops, the socket file stays and refuses.
+    first
+        .writer
+        .lock()
+        .unwrap()
+        .shutdown(std::net::Shutdown::Both)
+        .unwrap();
+    std::thread::sleep(Duration::from_millis(600));
+    assert!(ready.blocked(), "a lost compositor keeps the last lock");
+
+    let second = compositor_on(&socket, Start::Unlocked);
+    second.recv_timeout(Duration::from_secs(3)).unwrap();
+    wait_for("the new compositor's unlock frees the ring", || {
+        !ready.blocked()
+    });
+}
+
+/// A compositor connection that drops before its first report keeps the
+/// ring closed while the watcher waits to connect again, also through
+/// refused connections, and the locked session the next compositor
+/// reports keeps it closed; losing that connection too leaves the ring
+/// closed.
+#[test]
+fn a_connection_lost_before_its_first_report_keeps_the_ring_closed() {
+    let dir = tempfile::Builder::new()
+        .prefix("dtv")
+        .tempdir_in("/tmp")
+        .unwrap();
+    let socket = dir.path().join("wl");
+    let ready = Arc::new(MicReady::default());
+    ready.lock_pending(LockSource::Compositor);
+    let first = compositor_on(&socket, Start::Drops);
+    let (r, s) = (ready.clone(), socket.clone());
+    std::thread::spawn(move || {
+        follow_display(&s, move |locked| r.set_lock(LockSource::Compositor, locked))
+    });
+    first.recv_timeout(Duration::from_secs(3)).unwrap();
+    // The dropped connection and the refusals after it.
+    let until = Instant::now() + Duration::from_millis(600);
+    while Instant::now() < until {
         assert!(
             ready.blocked(),
             "the ring opened before the compositor reported"
         );
-        let reconnected = compositors.lock().unwrap().get(1).cloned();
-        if let Some(second) = reconnected.filter(|c| c.notification.lock().unwrap().is_some()) {
-            // Past the reconnect's `locked`, then lose that connection too.
-            std::thread::sleep(Duration::from_millis(50));
-            assert!(ready.blocked(), "the reported lock closes the ring");
-            second
-                .writer
-                .lock()
-                .unwrap()
-                .shutdown(std::net::Shutdown::Both)
-                .unwrap();
-            break;
-        }
-        assert!(Instant::now() < until, "the watcher connected again");
         std::thread::sleep(Duration::from_millis(1));
     }
-    watcher.join().unwrap();
+
+    let second = compositor_on(&socket, Start::Locked);
+    let second = second.recv_timeout(Duration::from_secs(3)).unwrap();
+    wait_for("the new compositor reports its lock", || {
+        second.notification.lock().unwrap().is_some()
+    });
+    std::thread::sleep(Duration::from_millis(50));
+    assert!(ready.blocked(), "the reported lock closes the ring");
+    second
+        .writer
+        .lock()
+        .unwrap()
+        .shutdown(std::net::Shutdown::Both)
+        .unwrap();
+    std::thread::sleep(Duration::from_millis(300));
     assert!(
         ready.blocked(),
         "a connection lost while locked keeps the ring closed"
