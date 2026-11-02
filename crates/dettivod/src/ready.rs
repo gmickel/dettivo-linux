@@ -127,14 +127,18 @@ impl MicReady {
     }
 
     /// Records what `source` reports: locked, unlocked, or `None` once it
-    /// is no longer followed.
+    /// is no longer followed. A source lost while it reported a lock keeps
+    /// the lock until it reports again: only an unlock it sends opens the
+    /// ring, never its silence.
     pub fn set_lock(&self, source: LockSource, locked: Option<bool>) {
+        let slot = &self.locks[source as usize];
         let state = match locked {
+            None if slot.load(Ordering::Relaxed) == LOCKED => return,
             None => UNFOLLOWED,
             Some(false) => UNLOCKED,
             Some(true) => LOCKED,
         };
-        if self.locks[source as usize].swap(state, Ordering::Relaxed) != state {
+        if slot.swap(state, Ordering::Relaxed) != state {
             tracing::info!(?source, ?locked, "microphone ready: session lock changed");
         }
     }

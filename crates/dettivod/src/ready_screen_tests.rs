@@ -123,7 +123,7 @@ fn wait_for(what: &str, mut done: impl FnMut() -> bool) {
 
 /// An Omarchy lock (Hyprland's lock notification) blocks the ring and an
 /// unlock frees it, also when the session was locked before the daemon
-/// connected; a lost compositor leaves the lock to logind.
+/// connected; a compositor lost while locked keeps the ring blocked.
 #[test]
 fn the_compositor_lock_blocks_the_ring() {
     for starts_locked in [false, true] {
@@ -145,6 +145,8 @@ fn the_compositor_lock_blocks_the_ring() {
         wait_for("a lock blocks the ring", || ready.blocked());
         compositor.lock(false);
         wait_for("an unlock frees it", || !ready.blocked());
+        compositor.lock(true);
+        wait_for("locked again", || ready.blocked());
 
         compositor
             .writer
@@ -153,6 +155,9 @@ fn the_compositor_lock_blocks_the_ring() {
             .shutdown(std::net::Shutdown::Both)
             .unwrap();
         assert!(matches!(following.join().unwrap(), Err(Stop::Lost(_))));
+        // What the production watcher does once the connection is gone.
+        ready.set_lock(LockSource::Compositor, None);
+        assert!(ready.blocked(), "a lost watcher keeps the lock it last saw");
     }
 }
 
