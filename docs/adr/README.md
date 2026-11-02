@@ -92,7 +92,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0087](0087-the-term-recall-benchmark-scores-a-vocabulary-on-synthetic-clips.md) | The term-recall benchmark scores a vocabulary on synthetic clips, with the vocabulary off and on | Accepted 2026-11-01 |
 | [0092](0092-dictation-can-keep-the-microphone-ready-and-it-is-off-by-default.md) | Dictation can keep the microphone ready in a 10 s ring, off by default, closed during a meeting and while the session is locked | Accepted 2026-11-02, amends 0082 |
 | [0093](0093-a-take-runs-from-the-pre-roll-to-the-release-tail-and-a-tap-is-no-take.md) | A take runs from 450 ms before the press to 200 ms after the release, and a press under 300 ms is a tap that reaches no engine | Accepted 2026-11-02, amends 0082 and 0083 |
-| [0094](0094-dictation-stays-whole-take-because-long-parakeet-takes-already-reach-text-within-a-second.md) | Dictation stays whole-take, because a 60 s Parakeet take on the reference GPU reaches text 0.68 s after the release, and two-minute takes wait on the speech gate | Accepted 2026-11-02 |
+| [0094](0094-streaming-dictation-passes-its-gate-only-for-two-minute-takes.md) | Streaming dictation passes its gate only for two-minute takes: a 60 s Parakeet take reaches text 0.68 s after the release, a 120 s take 1.16 s, and parakeet.cpp cannot stream the dictation models | Proposed 2026-11-02 |
 
 ## Writing a record
 

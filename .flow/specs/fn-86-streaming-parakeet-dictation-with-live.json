@@ -10,13 +10,75 @@
     "fn-81-catch-the-first-and-last-words-of-every"
   ],
   "id": "fn-86-streaming-parakeet-dictation-with-live",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-86-streaming-parakeet-dictation-with-live.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "35355425fb09d67a6865d2b9646ab418c3a61a03d56a62d7a0789c34613b7a63",
+      "backend": "codex",
+      "base_sha": "ae3e5e09b3d872038cdf885d2644e7fb238e56ac",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e07e7ab53f72c5856bc3b0260f7bb569",
+            "classification": "introduced",
+            "findingId": "finding-e07e7ab53f72c5856bc3b0260f7bb569",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7b8eb8903b43e7b609362917c3d63c8e",
+            "classification": "introduced",
+            "findingId": "finding-7b8eb8903b43e7b609362917c3d63c8e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6917dcf6906de1d4552acf0773ff9eeb91be79db",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1878,
+      "output_sha256": "5264ba651fb1e74749f973e1baf987bd26b0a706e878338b46ed5bc0105a81d2",
+      "reservation_id": "6e8c56216adc499198ac15798822750d",
+      "round_consumed": true,
+      "scope": "impl:fn-86-streaming-parakeet-dictation-with-live.1",
+      "superseded_by": null,
+      "task": "fn-86-streaming-parakeet-dictation-with-live.1",
+      "timestamp": "2026-11-02T01:16:20.258850Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-86-streaming-parakeet-dictation-with-live.1": 0
+  },
   "spec_path": ".flow/specs/fn-86-streaming-parakeet-dictation-with-live.md",
   "status": "open",
   "title": "Streaming Parakeet dictation with live text",
@@ -31,5 +93,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T11:53:03.482659Z"
+  "updated_at": "2026-11-02T01:16:20.262373Z"
 }
