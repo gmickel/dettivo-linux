@@ -6,7 +6,8 @@
 //! duration) returns the key to idle before the next event is read, so
 //! the machine never acts on a take it no longer has.
 
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Condvar, Mutex, MutexGuard};
 use std::time::Instant;
 
 use dettivo_hotkeys::hold::{HoldAction, HoldState, on_press, on_release};
@@ -84,10 +85,22 @@ pub struct Outcome {
     pub stop: Option<String>,
 }
 
+/// The key's state and the edge whose turn it is.
+#[derive(Default)]
+struct Queue {
+    /// The ticket of the edge acting now.
+    serving: u64,
+    inner: Inner,
+}
+
 /// The hold key.
 #[derive(Default)]
 pub struct HoldKey {
-    inner: Mutex<Inner>,
+    inner: Mutex<Queue>,
+    /// Wakes the edges waiting for their turn.
+    turn: Condvar,
+    /// The next edge's ticket, taken on arrival.
+    tickets: AtomicU64,
     /// The take a double tap locked, for `dictation.status`; apart from
     /// `inner` so a status never waits behind a start.
     locked: Mutex<Option<String>>,
@@ -95,13 +108,29 @@ pub struct HoldKey {
 
 impl HoldKey {
     /// Feeds one edge that arrived `at` and acts on it. Edges are
-    /// serialized: the lock is held through a start and a discard, so a
-    /// release that arrives meanwhile sees the take. Every edge counts
-    /// from its arrival, so one that waited behind a slow start or
-    /// discard (a cold engine, `pause_media`) is timed as the person
-    /// pressed it.
+    /// serialized in the order they arrived: the lock is held through a
+    /// start and a discard, so a release that arrives meanwhile sees the
+    /// take, and edges queued behind it act in turn (a mutex alone lets
+    /// a later edge overtake). Every edge counts from its arrival, so one
+    /// that waited behind a slow start or discard (a cold engine,
+    /// `pause_media`) is timed as the person pressed it.
     pub fn on(&self, takes: &impl Takes, edge: Edge, at: Instant) -> Result<Outcome, JsonRpcError> {
-        let mut g = self.inner.lock().unwrap_or_else(|p| p.into_inner());
+        let ticket = self.tickets.fetch_add(1, Ordering::SeqCst);
+        let mut q = self.inner.lock().unwrap_or_else(|p| p.into_inner());
+        while q.serving != ticket {
+            q = self.turn.wait(q).unwrap_or_else(|p| p.into_inner());
+        }
+        let mut turn = Turn { q, key: self };
+        self.step(&mut turn.q.inner, takes, edge, at)
+    }
+
+    fn step(
+        &self,
+        g: &mut Inner,
+        takes: &impl Takes,
+        edge: Edge,
+        at: Instant,
+    ) -> Result<Outcome, JsonRpcError> {
         // The take is still the key's only while it records: a take that
         // was stopped, cancelled or replaced elsewhere frees the key.
         if g.state.records() && (g.job.is_none() || g.job != takes.recording()) {
@@ -175,6 +204,19 @@ impl HoldKey {
             .unwrap_or_else(|p| p.into_inner())
             .as_deref()
             == Some(job)
+    }
+}
+
+/// One edge's turn: ending it, also by a panic, passes the key on.
+struct Turn<'a> {
+    q: MutexGuard<'a, Queue>,
+    key: &'a HoldKey,
+}
+
+impl Drop for Turn<'_> {
+    fn drop(&mut self) {
+        self.q.serving += 1;
+        self.key.turn.notify_all();
     }
 }
 

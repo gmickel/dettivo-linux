@@ -100,3 +100,33 @@ fn a_lock_for_a_take_that_ended_meanwhile_leaves_the_key_idle() {
     assert_eq!((r.action.as_str(), r.hold.as_str()), ("none", "idle"));
     assert!(!key.locked("job_2"));
 }
+
+/// Edges from separate `dictation press` and `release` calls that wait
+/// behind a slow start act in the order they arrived, so a double tap
+/// made while the first take starts still locks the second.
+#[test]
+fn edges_queued_behind_a_slow_start_act_in_arrival_order() {
+    let takes = Fake::new(ms(400));
+    let key = HoldKey::default();
+    let t0 = Instant::now();
+    let edges = [
+        (Edge::Press, 0),
+        (Edge::Release, 100),
+        (Edge::Press, 200),
+        (Edge::Release, 300),
+    ];
+    let actions: Vec<String> = std::thread::scope(|s| {
+        let handles: Vec<_> = edges
+            .iter()
+            .map(|&(edge, at)| {
+                let (key, takes) = (&key, &takes);
+                let handle = s.spawn(move || action(key, takes, edge, t0 + ms(at)));
+                // Each arrives, and waits, before the next.
+                std::thread::sleep(ms(40));
+                handle
+            })
+            .collect();
+        handles.into_iter().map(|h| h.join().unwrap()).collect()
+    });
+    assert_eq!(actions, ["started", "discarded", "started", "locked"]);
+}
