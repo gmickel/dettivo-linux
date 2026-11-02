@@ -3,7 +3,8 @@
 //! (the default source, or the default sink's monitor for a meeting's
 //! system track) reported as `DeviceChanged`, and a pinned device that
 //! vanishes reported as `Ended { DeviceLost }` the moment its node leaves
-//! the graph.
+//! the graph. A capture whose PipeWire went away ends with
+//! `Ended { Error }` naming it.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Receiver, Sender};
@@ -16,7 +17,7 @@ use pw::stream::{StreamFlags, StreamListener, StreamRc, StreamState};
 use spa::param::audio::{AudioFormat, AudioInfoRaw};
 use spa::pod::Pod;
 
-use crate::graph::Graph;
+use crate::graph::{Graph, LOST};
 use crate::level::Meter;
 use crate::{CaptureError, EndReason, Event, SAMPLE_RATE, Target};
 
@@ -134,6 +135,7 @@ impl Capture {
                     Target::Node(name) => Some(name.clone()),
                     Target::Default | Target::SystemMonitor => None,
                 };
+                let alive = graph.alive.clone();
                 let listener = stream
                     .add_local_listener_with_user_data(data)
                     .state_changed(move |_stream, data, _old, new| {
@@ -153,6 +155,7 @@ impl Capture {
                         {
                             *ended = true;
                             let reason = match &pinned_name {
+                                _ if !alive.load(Ordering::SeqCst) => EndReason::Error(LOST.into()),
                                 Some(name) => EndReason::DeviceLost(name.clone()),
                                 None => EndReason::NoSource,
                             };
@@ -285,6 +288,12 @@ impl Capture {
 
     /// Stops the stream; the event stream ends with `Stopped`.
     pub fn stop(&mut self) {
+        self.end(EndReason::Stopped);
+    }
+
+    /// Stops the stream; the event stream ends with `reason` unless it
+    /// already ended.
+    pub fn end(&mut self, reason: EndReason) {
         if self.stopped.swap(true, Ordering::Relaxed) {
             return;
         }
@@ -299,9 +308,7 @@ impl Capture {
         let mut ended = self.ended_sent.lock().unwrap_or_else(|p| p.into_inner());
         if !*ended {
             *ended = true;
-            let _ = self.tx.send(Event::Ended {
-                reason: EndReason::Stopped,
-            });
+            let _ = self.tx.send(Event::Ended { reason });
         }
     }
 }
