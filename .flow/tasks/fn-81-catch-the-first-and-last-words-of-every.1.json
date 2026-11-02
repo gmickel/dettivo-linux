@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-81-catch-the-first-and-last-words-of-every",
   "spec_path": ".flow/tasks/fn-81-catch-the-first-and-last-words-of-every.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Catch the first and last words of every take",
   "updated_at": "2026-11-01T23:47:44.367435Z"
 }

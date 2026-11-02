@@ -9,7 +9,7 @@ mod common;
 
 use std::time::{Duration, Instant};
 
-use common::{Daemon, local_model, tree_with_tiny, wait_for};
+use common::{Daemon, Tree, local_model, tree_with_tiny, wait_for};
 use serde_json::{Value, json};
 
 const READY: &str =
@@ -17,6 +17,13 @@ const READY: &str =
 
 fn ready_state(daemon: &Daemon) -> Value {
     daemon.result("audio.devices", json!({}))["microphone_ready"].clone()
+}
+
+/// The ring's state and reason; its lock signal depends on the host.
+fn state_and_reason(daemon: &Daemon) -> (Option<String>, Option<String>) {
+    let ready = ready_state(daemon);
+    let text = |key: &str| ready[key].as_str().map(str::to_string);
+    (text("state"), text("reason"))
 }
 
 fn wait_ready(daemon: &Daemon, state: &str) {
@@ -135,8 +142,8 @@ fn a_meeting_takes_the_microphone_over_from_the_ring_and_hands_it_back() {
     let started = daemon.result("meetings.start", start_params("Handoff"));
     let id = started["ref"]["id"].as_str().unwrap().to_string();
     assert_eq!(
-        ready_state(&daemon),
-        json!({"state": "closed", "reason": "a meeting is capturing"})
+        state_and_reason(&daemon),
+        (Some("closed".into()), Some("a meeting is capturing".into()))
     );
     std::thread::sleep(Duration::from_millis(1_000));
     assert_eq!(
@@ -161,4 +168,72 @@ fn a_meeting_takes_the_microphone_over_from_the_ring_and_hands_it_back() {
         ended < reopened,
         "reopened after the meeting's capture ended"
     );
+}
+
+/// Ten seconds of 16 kHz mono silence for the mock microphone.
+fn silent_wav(path: &std::path::Path) {
+    let data: u32 = 16_000 * 2 * 10;
+    let mut wav = b"RIFF".to_vec();
+    wav.extend((36 + data).to_le_bytes());
+    wav.extend(b"WAVEfmt ");
+    for (value, width) in [
+        (16, 4),
+        (1, 2),
+        (1, 2),
+        (16_000, 4),
+        (32_000, 4),
+        (2, 2),
+        (16, 2),
+    ] {
+        wav.extend(&u32::to_le_bytes(value)[..width]);
+    }
+    wav.extend(b"data");
+    wav.extend(data.to_le_bytes());
+    wav.resize(wav.len() + data as usize, 0);
+    std::fs::write(path, wav).unwrap();
+}
+
+/// QA81-2 (R5 "pause"): `dictation.pause` closes the always-ready
+/// microphone before it answers and keeps it closed until
+/// `dictation.resume`; both are idempotent.
+#[test]
+fn pause_closes_the_ready_microphone_until_resume() {
+    let tree = Tree::new();
+    let wav = tree.root().join("silence.wav");
+    silent_wav(&wav);
+    tree.write_config(READY);
+    let daemon = Daemon::spawn(
+        tree,
+        &[
+            ("DETTIVO_QA_MODE", "1"),
+            ("DETTIVO_MOCK_MIC", wav.to_str().unwrap()),
+        ],
+    );
+    wait_ready(&daemon, "open");
+    for _ in 0..2 {
+        assert_eq!(
+            daemon.result("dictation.pause", json!({})),
+            json!({"paused": true})
+        );
+        assert_eq!(
+            state_and_reason(&daemon),
+            (
+                Some("closed".into()),
+                Some("paused until dettivo dictation resume".into())
+            )
+        );
+    }
+    std::thread::sleep(Duration::from_millis(600));
+    assert_eq!(
+        ready_state(&daemon)["state"],
+        "closed",
+        "no reopen while paused"
+    );
+    for _ in 0..2 {
+        assert_eq!(
+            daemon.result("dictation.resume", json!({})),
+            json!({"paused": false})
+        );
+    }
+    wait_ready(&daemon, "open");
 }

@@ -102,7 +102,7 @@ fn audio_a_source_sends_after_its_end_never_counts() {
         )
         .unwrap();
     std::thread::sleep(Duration::from_millis(50));
-    assert_eq!(session.stop().unwrap_err(), SessionError::Cancelled);
+    assert_eq!(session.stop().unwrap_err(), SessionError::NoSpeech);
     assert_eq!(engine.calls.load(std::sync::atomic::Ordering::Relaxed), 0);
 }
 
@@ -180,7 +180,7 @@ fn a_stalled_tail_closes_after_the_grace_and_a_later_sound_never_counts() {
         late.send(Event::pcm(tone(320)));
     });
     let released = Instant::now();
-    assert_eq!(session.stop().unwrap_err(), SessionError::Cancelled);
+    assert_eq!(session.stop().unwrap_err(), SessionError::NoSpeech);
     let waited = released.elapsed();
     assert!(
         waited >= TAIL_STALL_GRACE && waited < Duration::from_millis(350),

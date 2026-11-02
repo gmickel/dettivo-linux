@@ -42,6 +42,10 @@ pub const STATEFUL: &[(&str, &str)] = &[
     ("llm/engine.status.json", "the engine is per machine"),
     ("dictation/status.json", "needs an active dictation session"),
     ("dictation/stop.json", "needs an active dictation session"),
+    (
+        "dictation/stop.error-no-speech.json",
+        "needs an active dictation session whose take held no speech; covered by a_take_without_speech_exits_no_speech_from_stop_and_stop_print",
+    ),
     ("dictation/reinsert_last.json", "needs a previous insertion"),
     (
         "dictation/reinsert_last.error-not-found.json",

@@ -15,6 +15,10 @@ pub const MAX_ENTRIES: usize = 500;
 pub const MAX_TERM_CHARS: usize = 64;
 /// The most `sounds_like` spellings one term carries.
 pub const MAX_ALIASES: usize = 16;
+/// The most bytes the vocabulary takes as JSON: an engine request carries
+/// it whole in a header of at most 1 MiB, so every list the limits accept
+/// reaches the engine.
+pub const MAX_VOCABULARY_BYTES: usize = 256 * 1024;
 
 /// One vocabulary entry.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -130,7 +134,41 @@ pub fn limit_error(entries: &[VocabularyEntry]) -> Option<String> {
             ));
         }
     }
+    let bytes = serde_json::to_vec(entries).map_or(usize::MAX, |json| json.len());
+    if bytes > MAX_VOCABULARY_BYTES {
+        return Some(format!(
+            "dictation.vocabulary is {bytes} bytes; it holds at most {MAX_VOCABULARY_BYTES}"
+        ));
+    }
     None
+}
+
+/// `[dictation] vocabulary_boost`: how strongly Parakeet's transcript
+/// leans towards the vocabulary (ADR 0088).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VocabularyBoost {
+    /// No rescoring.
+    Off,
+    /// A small lean.
+    Light,
+    /// The default lean.
+    #[default]
+    Normal,
+    /// A strong lean.
+    Strong,
+}
+
+impl VocabularyBoost {
+    /// The level's name in `config.toml`.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Off => "off",
+            Self::Light => "light",
+            Self::Normal => "normal",
+            Self::Strong => "strong",
+        }
+    }
 }
 
 #[cfg(test)]
@@ -218,6 +256,29 @@ mod tests {
             Some(
                 "dictation.vocabulary: \"Clef\" has 17 sounds_like spellings; a term takes at most 16"
             )
+        );
+    }
+
+    /// Every accepted vocabulary fits the engine request it travels in:
+    /// the longest terms are accepted, a list whose spellings overrun the
+    /// budget is refused before any dictation sends it.
+    #[test]
+    fn a_vocabulary_too_large_to_send_is_refused() {
+        let longest: Vec<VocabularyEntry> = (0..MAX_ENTRIES)
+            .map(|_| "\u{1}".repeat(MAX_TERM_CHARS).as_str().into())
+            .collect();
+        assert_eq!(limit_error(&longest), None);
+        let spelt: Vec<VocabularyEntry> = (0..MAX_ENTRIES)
+            .map(|i| VocabularyEntry::Entry {
+                term: format!("t{i}"),
+                sounds_like: vec!["x".repeat(160); MAX_ALIASES],
+            })
+            .collect();
+        let err = limit_error(&spelt).unwrap();
+        assert!(
+            err.starts_with("dictation.vocabulary is ")
+                && err.ends_with(&format!("bytes; it holds at most {MAX_VOCABULARY_BYTES}")),
+            "{err}"
         );
     }
 }

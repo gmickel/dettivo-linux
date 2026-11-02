@@ -79,6 +79,7 @@ fn main() -> ExitCode {
                 language: cli.language,
                 prompt: cli.prompt,
                 timestamps: true,
+                vocabulary: None,
             };
             match host::run_cli::<engine::Engine>(&wav, &load, &params, force_cpu) {
                 Ok(json) => {

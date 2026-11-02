@@ -20,6 +20,7 @@ pub mod llm;
 pub mod models;
 pub mod preload;
 pub mod process;
+pub mod ranking;
 pub mod supervisor;
 mod supervisor_types;
 pub mod tier;
@@ -53,16 +54,18 @@ pub struct Capabilities {
 }
 
 /// What a session asks a recognizer for.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RecognizeRequest {
     /// 16 kHz mono samples.
     pub pcm: Vec<i16>,
     /// Language code or `auto`.
     pub language: String,
-    /// Vocabulary prompt.
+    /// Vocabulary prompt (Whisper).
     pub prompt: Option<String>,
     /// Segment timestamps wanted.
     pub timestamps: bool,
+    /// The vocabulary Parakeet rescores its transcript towards.
+    pub vocabulary: Option<dettivo_engine_proto::VocabularyBias>,
 }
 
 /// The longest vocabulary prompt, in characters. Whisper keeps the end of

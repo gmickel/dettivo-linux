@@ -9,7 +9,9 @@ use dettivo_proto::capabilities::IpcMode;
 use serde::{Deserialize, Serialize};
 
 pub use crate::config::app_schema::{App, AppRenderer};
-pub use crate::config::audio_schema::{Audio, Diarization, MeetingAnalysis, Meetings};
+pub use crate::config::audio_schema::{
+    Audio, Diarization, MeetingAnalysis, Meetings, WhileDictating,
+};
 pub use crate::config::import_schema::{Transcribe, Transfer};
 pub use crate::config::omarchy_schema::{Omarchy, OmarchyGlyph, OmarchyOsd};
 pub use crate::config::polish_schema::{Llm, LlmProviderChoice, Polish};
@@ -187,7 +189,7 @@ impl Default for Insert {
             self_app_ids: text(&["dettivo", "dettivo-app", "dettivo-osd", "dettivo-sheet"]),
             inter_key_delay_ms: 2,
             restore_clipboard: true,
-            clipboard_restore_delay_ms: 300,
+            clipboard_restore_delay_ms: 500,
             undo_window_ms: 5000,
         }
     }
@@ -330,6 +332,8 @@ pub struct Dictation {
     /// Terms the engine is primed with (names, products), each a string
     /// or a `{ term, sounds_like }` table.
     pub vocabulary: Vec<super::vocabulary_schema::VocabularyEntry>,
+    /// How strongly Parakeet's transcript leans towards the vocabulary.
+    pub vocabulary_boost: super::vocabulary_schema::VocabularyBoost,
     /// Whole-word replacements applied after recognition (`{ from = "to" }`).
     pub replacements: std::collections::BTreeMap<String, String>,
     /// Spoken punctuation (`comma`, `period`, `new line`) becomes marks.
@@ -348,6 +352,9 @@ pub struct Dictation {
     /// loads; never written or listed.
     #[serde(skip_serializing)]
     pub silence_peak_threshold: serde::de::IgnoredAny,
+    /// A dictation into the window the previous one landed in, within
+    /// 30 s and with no input between them, continues it (ADR 0091).
+    pub join_continuations: bool,
 }
 
 impl Default for Dictation {
@@ -356,12 +363,14 @@ impl Default for Dictation {
             language: "auto".into(),
             mode: "raw".into(),
             vocabulary: Vec::new(),
+            vocabulary_boost: Default::default(),
             replacements: std::collections::BTreeMap::new(),
             spoken_punctuation: true,
             protect_tokens: true,
             max_duration_seconds: 300,
             silence_dbfs: -50.0,
             silence_peak_threshold: serde::de::IgnoredAny,
+            join_continuations: true,
         }
     }
 }

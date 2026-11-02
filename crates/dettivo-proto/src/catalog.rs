@@ -155,10 +155,12 @@ catalog! {
         "dictation.toggle" => (NoParams, dictation::ToggleResult), linux: true;
         "dictation.press" => (NoParams, dictation::HoldResult), linux: true;
         "dictation.release" => (NoParams, dictation::HoldResult), linux: true;
-        "dictation.stop" => (NoParams, dictation::StopResult);
+        "dictation.stop" => (dictation::StopParams, dictation::StopResult);
         "dictation.cancel" => (dictation::CancelParams, dictation::CancelResult);
         "dictation.status" => (NoParams, dictation::StatusResult);
         "dictation.reinsert_last" => (NoParams, dictation::ReinsertLastResult), linux: true;
+        "dictation.pause" => (NoParams, dictation::PauseResult), linux: true;
+        "dictation.resume" => (NoParams, dictation::PauseResult), linux: true;
         "meetings.start" => (meetings::StartParams, meetings::StartResult);
         "meetings.stop" => (meetings::MeetingIdParams, meetings::StopResult);
         "meetings.cancel" => (meetings::MeetingIdParams, meetings::CancelResult);
@@ -221,7 +223,7 @@ catalog! {
         "transfer.pull" => (transfer::PullParams, transfer::PullResult);
         "transfer.commit" => (transfer::CommitParams, transfer::CommitResult);
         "transfer.cancel" => (transfer::CancelParams, transfer::CancelResult);
-        "speech.providers.list" => (NoParams, speech::ProvidersListResult), linux: true;
+        "speech.providers.list" => (speech::ProvidersListParams, speech::ProvidersListResult), linux: true;
         "speech.selection.get" => (NoParams, speech::SelectionResult), linux: true;
         "speech.selection.set" => (speech::SelectionSetParams, speech::SelectionResult), linux: true;
         "speech.engines" => (NoParams, speech::EnginesResult), linux: true;

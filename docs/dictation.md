@@ -9,14 +9,17 @@ dettivo dictation press                    # push to talk: bind to a key press
 dettivo dictation release                  # bind to the release
 dettivo dictation start --language en     # start a take from a script
 dettivo dictation stop                     # finish it
+dettivo dictation stop --print             # finish it and print the text instead of inserting it
 dettivo dictation toggle                   # one binding for both
 dettivo dictation cancel                   # drop the take
 dettivo dictation status                   # is a session active, what is it doing
 dettivo dictation reinsert-last            # hand the last transcript over again
+dettivo dictation pause                    # close the always-ready microphone until resume
+dettivo dictation resume                   # let it open again
 dettivo events --follow --topic dictation.state --topic audio.level
 ```
 
-`press`, `release`, `toggle` and `reinsert-last` are Linux additions; the other verbs map one to one to `dictation.start`, `stop`, `cancel` and `status`. `press` and `release` feed the daemon's hold key, which finishes a take whose release the compositor dropped, ignores a repeating key and locks recording after a double tap ([docs/hotkeys.md](hotkeys.md#what-a-press-does)); `start` and `stop` act on the session directly. `dettivo setup hyprland` (or `sway`, `niri`) writes these bindings for you with the chords from `[hotkeys]`, and on GNOME and KDE the daemon binds the same actions through the portal ([docs/hotkeys.md](hotkeys.md)). `events --follow` subscribes and prints one JSON line per notification (`--json` prints the raw `params` object; `--count N` stops after N events).
+`press`, `release`, `toggle`, `reinsert-last`, `pause` and `resume` are Linux additions; the other verbs map one to one to `dictation.start`, `stop`, `cancel` and `status`. `press` and `release` feed the daemon's hold key, which finishes a take whose release the compositor dropped, ignores a repeating key and locks recording after a double tap ([docs/hotkeys.md](hotkeys.md#what-a-press-does)); `start` and `stop` act on the session directly. `dettivo setup hyprland` (or `sway`, `niri`) writes these bindings for you with the chords from `[hotkeys]`, and on GNOME and KDE the daemon binds the same actions through the portal ([docs/hotkeys.md](hotkeys.md)). `events --follow` subscribes and prints one JSON line per notification (`--json` prints the raw `params` object; `--count N` stops after N events).
 
 ## The session
 
@@ -30,6 +33,9 @@ idle ──start──▶ recording ──stop──▶ transcribing ──▶ i
 - **recording** captures 16 kHz mono through PipeWire (a pinned `[audio] input_device` or the default source), meters it onto `audio.level`, and writes the take under `$XDG_STATE_HOME/dettivo/sessions/<job>/`. The session stops itself at `[dictation] max_duration_seconds`. A default source that moves or a pinned device that vanishes ends the session `failed` with the reason; the next start records on the new device.
 - **transcribing** passes the take through the speech gate, then sends it to the engine with the frozen language and vocabulary (see [The speech gate](#the-speech-gate)). A take the gate finds silent never reaches the engine and ends `cancelled` with `reason` `silence: level` or `silence: voice`, and the pill says "Nothing heard". An engine crash fails the session (the reason names the engine, never the audio) and the supervisor restarts the engine on the next use.
 - **inserting** runs the mode step (the raw layer, then Polish and the model rewrite when the mode asks for them, [docs/polish.md](polish.md)) and hands the text to the insertion chain ([docs/insertion.md](insertion.md)) in raw mode with the window captured at start as the guard; the result names the backend that typed or pasted it. A focus that moved to another window meanwhile refuses the insertion with `CONFLICT` (checked again right before the backend types), an origin the probe could not name at start sends the text to the clipboard with reason `origin_unverified`, a backend that may have typed a prefix ends the insertion as `failed` with reason `partial_delivery` and the text is never typed twice, and when no backend is available it reports `failed` with the reason; the transcript is kept either way, and `dictation.stop` reports the outcome in its `insertion` block.
+- **stop --print** finishes the take and runs the mode step like `stop`, then prints the text on standard output and inserts nothing; the history item records the insertion as `printed` and the pill shows the take as done with no window named. It waits up to 60 s for the transcription. It exits 0 with text and 6 (`NoSpeech`) when no speech was heard, so a script or a terminal agent can read a dictation with `text=$(dettivo dictation stop --print)`. `--json` prints the whole result with the text in `text`.
+- **A printing stop that comes too late**, once the take's text was already handed to the inserter by another stop, is refused with `CONFLICT` kind `sessionDelivering` instead of printing a take that was typed.
+- **A silent take** answers `stop` and `stop --print` alike with `CONFLICT` kind `noSpeech` ("no speech was heard"), and the CLI exits 6.
 - **idle** is published after the item is in the history store ([docs/history.md](history.md)) with the transcript, the insertion result, the app, the engine and model and, when `[history] keep_audio` is on, the take moved into the item's directory; the session keeps the last transcript for `reinsert-last` too, and after a restart `reinsert-last` reads the newest item from the store. A store that fails puts `history: <why>` on this state's `reason` and the insertion stands.
 
 ## First and last words
@@ -49,9 +55,11 @@ Both the tail and the tap rule apply whatever the setting says.
 - **The microphone indicator stays lit** whenever the daemon runs, the session is unlocked and no meeting records.
 - The ten seconds never leave the daemon. No event, method or file carries them, and the daemon overwrites them continuously. Only the take, from 450 ms before the press to 200 ms after the release, is written, and History keeps it under `[history] keep_audio` and `audio_retention_days` as before.
 
-The daemon closes the capture when you turn the setting off, while logind reports your session locked or switched away, and while a meeting records. A meeting start closes it before the meeting opens the microphone, and it reopens once the meeting's capture has ended, so the microphone is never captured twice. A locker that does not report the lock to logind (`LockedHint`) leaves the capture open while the screen is locked.
+The daemon closes the capture when you turn the setting off, while the screen is locked or your session is switched away, while a meeting records, and while you pause it. `dettivo dictation pause` closes it before it returns and keeps it closed until `dettivo dictation resume` or the daemon restarts; the configuration stays as it is, and a key press still dictates, opening the microphone for that take only. A meeting start closes it before the meeting opens the microphone, and it reopens once the meeting's capture has ended, so the microphone is never captured twice.
 
-A moved default source or a lost device reopens the capture on the new default within a quarter second. A pinned `[audio] input_device` that disappears leaves the capture on the default until the pinned device returns, and a changed `input_device` moves the capture to it. When it cannot open, `dettivo doctor` shows `microphone ready failed: <why>` and the daemon retries every two seconds; dictation meanwhile opens the microphone on press. `dettivo audio` and `audio.devices` report the same state in `microphone_ready` (`off`, `open`, `closed` with the reason, or `failed` with the reason). The switch is under Settings / General, Microphone.
+The daemon hears of a lock from Hyprland, which reports every locker, Omarchy's lock screen included, and from logind's `LockedHint`, which GNOME and KDE set. On another desktop whose locker leaves logind alone, the capture stays open while the screen is locked. `dettivo doctor` shows which one the daemon follows: `closes when the screen locks` on Hyprland, a warning that only lockers setting `LockedHint` count, or `no lock signal` when it has neither.
+
+A moved default source or a lost device reopens the capture on the new default within a quarter second. A pinned `[audio] input_device` that disappears leaves the capture on the default until the pinned device returns, and a changed `input_device` moves the capture to it. When it cannot open, `dettivo doctor` shows `microphone ready failed: <why>` and the daemon retries every two seconds; dictation meanwhile opens the microphone on press. A PipeWire restart ends the capture with `PipeWire went away`: until PipeWire is back a press fails with that reason, and within a second of its return the daemon reconnects and the capture reopens on its own. A daemon started before PipeWire connects the same way once PipeWire starts; until then a press fails with `PipeWire is not running`. `dettivo audio` and `audio.devices` report the same state in `microphone_ready` (`off`, `open`, `closed` with the reason, or `failed` with the reason) and the lock source in `lock_signal` (`compositor`, `logind` or `none`). The switch is under Settings / General, Microphone.
 
 `dictation.status` reports `is_active`, the job (`listening with whisper/large-v3-turbo`, progress as a fraction of the maximum duration) and the `target` captured at start; `system.health` reports `recording_state = dictation` and one active job while a session runs.
 
@@ -97,6 +105,7 @@ vocabulary = [
 ```
 
 - **Whisper** is primed with the terms only, joined by commas and closed with a full stop, up to 500 characters of whole terms ([docs/engines.md](engines.md)). The `sounds_like` spellings never reach the engine, so it never learns a misspelling.
+- **Parakeet** gets each term with its spellings. After it decodes a take, it looks for heard words that could be a term (a listed spelling, most of the letters, a few edits, or one consonant sound off) and asks the model whether the term explains the same stretch of audio about as well as the heard words do. The term replaces them only then, so `clay` in "she shaped the clay" stays `clay`. `[dictation] vocabulary_boost` sets how far the model may be overruled: `off`, `light`, `normal` (the default) or `strong` add 0, 4.0, 5.0 or 6.0 nats per token piece of the term. A case-only difference, a plural or possessive of the term, and anything inside a path, URL or email address stay as heard, and a term under five letters needs a `sounds_like` spelling ([docs/engines.md](engines.md#parakeet)). On the benchmark clips, padded as dictation pads a take, `light` brings back 7 of the 12 terms Parakeet misses and `normal` and `strong` 10 each, with no term written into any of 25 sound-alike sentences or 7 ordinary ones. `strong` sits closest to the edge: less than half a nat more per piece turns "hyper landing" into Hyprland.
 - **Enhanced** gets each term with its spellings in the last line of its system prompt, so the rewrite can correct `clay` to `Clef` when the sentence means the product: `Vocabulary (spell these exactly when the speaker means them): Clef (may be transcribed as clay, cleff); SapienXT (may be transcribed as sapient x t); Dettivo`. The first 50 entries go in.
 - **Raw and Polish** take nothing from the spellings. A `sounds_like` spelling never rewrites text by itself; `[dictation] replacements` is the tool for a substitution you always want.
 
@@ -115,10 +124,25 @@ A vocabulary holds at most 500 entries, a term at most 64 characters and 16 `sou
 | `[dictation] max_duration_seconds` | `300` | The longest take. |
 | `[dictation] silence_dbfs` | `-50.0` | Under this level, over the loudest 30 ms, the take is silence. |
 | `[history] keep_audio` | `true` | Keep the take with the stored item. |
+| `[dictation] join_continuations` | `true` | A take into the window the previous one landed in, within 30 s and with no input in between, continues it ([docs/insertion.md](insertion.md#consecutive-dictations-join)). |
 | `[audio] input_device` | `""` | A pinned PipeWire node; empty follows the default. |
 | `[audio] keep_microphone_ready` | `false` | Keep the microphone open while idle so a take starts 450 ms before the press; the microphone indicator stays lit ([Keeping the microphone ready](#keeping-the-microphone-ready)). |
+| `[audio] while_dictating` | `"nothing"` | What a take does to playing media (see [Media while dictating](#media-while-dictating)). |
 
 If your `config.toml` still sets `[dictation] silence_peak_threshold`, it keeps loading and the daemon ignores that value, because `silence_dbfs` replaced it ([ADR 0081](adr/0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md)). Delete the line when convenient. Its value does not carry over, since the old key measured the single loudest sample and `silence_dbfs` measures the loudest 30 ms window in dBFS; [docs/config.md](config.md) has the full migration note.
+
+## Media while dictating
+
+`[audio] while_dictating` decides what a dictation does to playing music or video ([ADR 0091](adr/0091-delivery-restores-the-whole-clipboard-joins-continuations-and-ducks-media.md)):
+
+| Value | While the take records | After it |
+|---|---|---|
+| `"nothing"` | Media plays on. | Nothing. |
+| `"pause"` | The playing MPRIS players pause. | The players Dettivo paused resume. |
+| `"duck"` | The default output falls to 20 % volume along a smoothstep curve in steps of at most 4 points, about 0.75 s from 80 %; a quieter output stays as it is. | The volume rises back the same way. |
+| `"mute"` | The default output mutes. | It unmutes. |
+
+Media changes only once a take has recorded for 300 ms, the hold key's minimum hold, so a tap never touches it, whether the hold key throws it away or it is stopped and transcribed. Dettivo puts back only what it changed, also when a `wpctl` call fails partway through the duck. When you change the volume during the duck ramp or its rise back, the ramp stops, nothing is put back over your volume, and a step already on its way moves it by at most 4 points; a volume or a mute you set during the take stays after it. One case remains: `wpctl` reads and sets the volume inside one call, and PipeWire offers no compare-and-set, so a volume you set during the few milliseconds of that call can be replaced by the ramp. Short steps keep that window small. The volume goes through `wpctl` on `@DEFAULT_AUDIO_SINK@`, the pause through MPRIS on the session bus, all on a thread of its own, so the microphone never waits for it. Nothing changes during a meeting: a meeting and a dictation never run at once, and a take's end waits until media is back before its slot frees. Dettivo changes and restores the sink that was the default when the take started, so switching outputs mid-take leaves the new one alone, and volumes move in hundredths, the precision `wpctl` reports, so a change of one point is yours and stays. `[hotkeys] pause_media = true` with `while_dictating` left at `"nothing"` reads as `"pause"`.
 
 ## Testing without a microphone
 

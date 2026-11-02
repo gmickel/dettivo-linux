@@ -15,7 +15,7 @@ use dettivo_audio::takes::TakeWriter;
 use dettivo_audio::{EndReason, Event};
 
 use super::{Worker, elapsed_ms};
-use crate::machine::{Exit, SharedState};
+use crate::finish::{Exit, SharedState};
 use crate::source::Source;
 use crate::{Level, TAIL_STALL_GRACE};
 
@@ -29,6 +29,8 @@ pub(super) struct Recorded {
     pub(super) exit: Option<Exit>,
     /// From the stop being observed to the take being final.
     pub(super) capture_ms: u64,
+    /// When the stop was observed.
+    pub(super) stopped: Instant,
 }
 
 /// The release tail once a stop was seen.
@@ -66,6 +68,7 @@ impl Worker {
                     duration_ms: 0,
                     exit: Some(self.cancelled()),
                     capture_ms: 0,
+                    stopped: Instant::now(),
                 });
             }
             if tail.is_none() && self.stop.load(Ordering::Relaxed) {
@@ -183,6 +186,7 @@ impl Worker {
             duration_ms,
             exit,
             capture_ms: elapsed_ms(released),
+            stopped: released,
         })
     }
 }

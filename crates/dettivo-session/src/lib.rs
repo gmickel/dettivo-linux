@@ -7,10 +7,15 @@
 //! to a publisher so the event stream, the OSD and the bar see the same
 //! state.
 
+mod bias;
+mod deliver;
+mod finish;
 mod guards;
 pub mod machine;
 pub mod ready;
 pub mod source;
+
+pub use deliver::MODIFIER_SETTLE;
 mod worker;
 
 use std::path::PathBuf;
@@ -74,6 +79,9 @@ pub struct Policy {
     /// The vocabulary: the terms prime the engine, the aliases inform
     /// the Enhanced prompt.
     pub vocabulary: Vec<dettivo_core::config::vocabulary_schema::VocabularyEntry>,
+    /// How strongly Parakeet leans towards the vocabulary.
+    #[serde(default)]
+    pub vocabulary_boost: dettivo_core::config::vocabulary_schema::VocabularyBoost,
     /// Replacement pairs applied after recognition.
     pub replacements: Vec<(String, String)>,
     /// Spoken punctuation is converted.
@@ -279,6 +287,12 @@ pub enum SessionError {
     Failed(String),
     /// The session was cancelled meanwhile (`stop` reports it).
     Cancelled,
+    /// The speech gate found the take silent: nothing was transcribed
+    /// (`stop` reports it).
+    NoSpeech,
+    /// A printing stop came after the take's text was handed to the
+    /// inserter.
+    Delivering,
 }
 
 impl std::fmt::Display for SessionError {
@@ -299,6 +313,8 @@ impl std::fmt::Display for SessionError {
             Self::Audio(e) => write!(f, "capture failed: {e}"),
             Self::Failed(r) => write!(f, "the session failed: {r}"),
             Self::Cancelled => write!(f, "the session was cancelled"),
+            Self::NoSpeech => write!(f, "no speech was heard"),
+            Self::Delivering => write!(f, "the take is already being inserted"),
         }
     }
 }

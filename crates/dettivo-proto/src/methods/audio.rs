@@ -61,6 +61,10 @@ pub struct MicrophoneReady {
     pub state: String,
     /// Why it is closed or failed; null when off or open.
     pub reason: Option<String>,
+    /// What closes it when the screen locks: `compositor` (the
+    /// compositor's lock notifications, sent for every locker), `logind`
+    /// (only lockers that set logind's `LockedHint`) or `none`.
+    pub lock_signal: String,
 }
 
 #[cfg(test)]

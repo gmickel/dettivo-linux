@@ -28,6 +28,7 @@
         }
       ],
       "microphone_ready": {
+        "lock_signal": "compositor",
         "reason": null,
         "state": "off"
       },

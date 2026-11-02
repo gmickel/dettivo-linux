@@ -14,8 +14,14 @@ use crate::{Cli, output};
 pub enum SpeechCmd {
     /// speech.engines: every engine binary, found or not, running or not.
     Engines,
-    /// speech.providers.list: providers, their models and readiness.
-    Providers,
+    /// speech.providers.list: providers, their models and readiness;
+    /// with --language, the speech models ranked for that language by
+    /// word error rate.
+    Providers {
+        /// A language code (de, fr, en) to rank the speech models for.
+        #[arg(long)]
+        language: Option<String>,
+    },
     /// speech.selection.get / set: the dictation and meeting model.
     Selection {
         /// get (default) or set.
@@ -55,7 +61,8 @@ pub enum SpeechCmd {
         #[arg(long)]
         force: bool,
     },
-    /// speech.models.status: every model's readiness.
+    /// speech.models.status: every model's readiness, then whether each
+    /// speech engine is cold, loaded or warm.
     Status {
         /// Only this provider.
         #[arg(long)]
@@ -92,7 +99,19 @@ pub enum SelectionCmd {
 pub fn run(cli: &Cli, client: &Client, what: &SpeechCmd) -> Result<(), Failure> {
     let (method, params) = match what {
         SpeechCmd::Engines => ("speech.engines", json!({})),
-        SpeechCmd::Providers => ("speech.providers.list", json!({})),
+        SpeechCmd::Providers { language } => {
+            let result = client.call(
+                "speech.providers.list",
+                strip_null_key(json!({ "language": language })),
+            )?;
+            match result.get("language_ranking") {
+                Some(ranking) if !cli.json && !cli.quiet => {
+                    print!("{}", crate::speech_lines::ranking(ranking));
+                }
+                _ => output::result(cli, "speech.providers.list", &result),
+            }
+            return Ok(());
+        }
         SpeechCmd::Selection { what: None }
         | SpeechCmd::Selection {
             what: Some(SelectionCmd::Get),
@@ -144,7 +163,13 @@ pub fn run(cli: &Cli, client: &Client, what: &SpeechCmd) -> Result<(), Failure> 
             if *follow {
                 return follow_status(cli, client, params);
             }
-            ("speech.models.status", params)
+            let result = client.call("speech.models.status", params)?;
+            output::result(cli, "speech.models.status", &result);
+            if !cli.json && !cli.quiet {
+                let engines = client.call("speech.engines", json!({}))?;
+                print!("{}", crate::speech_lines::engine_states(&engines));
+            }
+            return Ok(());
         }
     };
     let result = client.call(method, params)?;

@@ -10,7 +10,9 @@
     "fn-84-vocabulary-on-parakeet",
     "fn-85-delivery-that-leaves-the-desktop-as-it",
     "fn-86-streaming-parakeet-dictation-with-live",
-    "fn-89-whisper-vocabulary-without-false"
+    "fn-89-whisper-vocabulary-without-false",
+    "fn-90-the-speech-check-runs-during-the-take",
+    "fn-91-dettivo-survives-a-compositor-restart"
   ],
   "id": "fn-88-better-dictation-shipped-as-one-release",
   "next_task": 1,
@@ -30,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T23:42:58.601894Z"
+  "updated_at": "2026-11-02T10:11:52.522518Z"
 }

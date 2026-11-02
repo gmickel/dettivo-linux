@@ -86,6 +86,12 @@ pub fn normalise(method: &str, mut value: Value, fixture: &Value) -> Value {
                 "devices: {}",
                 result["devices"]
             );
+            let lock_signal = &mut result["microphone_ready"]["lock_signal"];
+            assert!(
+                ["compositor", "logind", "none"].contains(&lock_signal.as_str().unwrap_or("")),
+                "microphone_ready.lock_signal: {lock_signal}"
+            );
+            *lock_signal = Value::String("compositor".into());
             result.insert("devices".into(), Value::Array(Vec::new()));
             result.insert("default_source".into(), Value::Null);
             result.insert("default_sink".into(), Value::Null);

@@ -1,14 +1,17 @@
 //! The always-ready microphone (ADR 0092): with `[audio]
 //! keep_microphone_ready` on, dictation keeps one capture open into the
 //! session's ring while it is idle, the graphical session is active and
-//! unlocked, and no meeting captures. Every change happens under the
+//! unlocked, and no meeting captures. The lock comes from logind
+//! (`ready_session.rs`) and from the compositor (`ready_screen.rs`); either
+//! one reporting a lock closes the ring. `dettivo dictation pause` closes
+//! it until `resume`. Every change happens under the
 //! capture reservation, so the ring never runs beside another capture of
 //! the microphone: a meeting start closes it before the meeting opens its
 //! streams, and it reopens once the meeting's capture ended. A ring that
 //! cannot open is reported by `audio.devices` and `dettivo doctor`; a
 //! dictation then opens the microphone on press, as with the setting off.
 
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{Duration, Instant};
 
@@ -39,8 +42,8 @@ pub enum Status {
 }
 
 impl Status {
-    /// The wire form.
-    pub fn wire(&self) -> MicrophoneReady {
+    /// The wire form, with the lock signal the ring follows.
+    pub fn wire(&self, lock_signal: &str) -> MicrophoneReady {
         let (state, reason) = match self {
             Self::Off => ("off", None),
             Self::Open => ("open", None),
@@ -50,6 +53,7 @@ impl Status {
         MicrophoneReady {
             state: state.into(),
             reason,
+            lock_signal: lock_signal.into(),
         }
     }
 }
@@ -63,12 +67,30 @@ struct Inner {
     retry_at: Option<Instant>,
 }
 
+/// What tells the ring the screen locked.
+#[derive(Debug, Clone, Copy)]
+pub enum LockSource {
+    /// logind's `LockedHint` and `Active`, which only some lockers set.
+    Logind,
+    /// The compositor's lock notifications, sent for every locker.
+    Compositor,
+}
+
+/// A [`LockSource`] that is not followed (absent, or its connection ended).
+const UNFOLLOWED: u8 = 0;
+const UNLOCKED: u8 = 1;
+const LOCKED: u8 = 2;
+/// Followed, but nothing reported yet: the ring stays closed.
+const PENDING: u8 = 3;
+
 /// The ring's owner.
 #[derive(Default)]
 pub struct MicReady {
     inner: Mutex<Inner>,
-    /// logind reports the graphical session locked or inactive.
-    blocked: AtomicBool,
+    /// What each [`LockSource`] last reported, by its index.
+    locks: [AtomicU8; 2],
+    /// `dictation.pause` until `dictation.resume`; never persisted.
+    paused: AtomicBool,
 }
 
 impl MicReady {
@@ -106,16 +128,64 @@ impl MicReady {
         }
     }
 
-    /// Records whether logind reports the session locked or inactive.
-    pub fn set_blocked(&self, blocked: bool) {
-        if self.blocked.swap(blocked, Ordering::Relaxed) != blocked {
-            tracing::info!(blocked, "microphone ready: session lock changed");
+    /// Records what `source` reports: locked, unlocked, or `None` once it
+    /// is no longer followed. A source lost while it reported a lock keeps
+    /// the lock until it reports again: only an unlock it sends opens the
+    /// ring, never its silence.
+    pub fn set_lock(&self, source: LockSource, locked: Option<bool>) {
+        let slot = &self.locks[source as usize];
+        let state = match locked {
+            None if slot.load(Ordering::Relaxed) == LOCKED => return,
+            None => UNFOLLOWED,
+            Some(false) => UNLOCKED,
+            Some(true) => LOCKED,
+        };
+        if slot.swap(state, Ordering::Relaxed) != state {
+            tracing::info!(?source, ?locked, "microphone ready: session lock changed");
+        }
+    }
+
+    /// Marks `source` as followed before its first report: the ring
+    /// stays closed until it reports an unlock or is no longer followed.
+    pub fn lock_pending(&self, source: LockSource) {
+        self.locks[source as usize].store(PENDING, Ordering::Relaxed);
+    }
+
+    /// Pauses (`true`) or resumes the ring; the next tick applies it.
+    pub fn set_paused(&self, paused: bool) {
+        if self.paused.swap(paused, Ordering::Relaxed) != paused {
+            tracing::info!(paused, "microphone ready: pause changed");
+        }
+    }
+
+    /// True while any source reports the session locked or has not
+    /// reported yet.
+    pub fn blocked(&self) -> bool {
+        self.locks
+            .iter()
+            .any(|l| matches!(l.load(Ordering::Relaxed), LOCKED | PENDING))
+    }
+
+    /// The source that catches every lock: `compositor`, else `logind`
+    /// (a locker that leaves logind alone goes unseen), else `none`.
+    pub fn lock_signal(&self) -> &'static str {
+        let followed = |s: LockSource| self.locks[s as usize].load(Ordering::Relaxed) != UNFOLLOWED;
+        match () {
+            _ if followed(LockSource::Compositor) => "compositor",
+            _ if followed(LockSource::Logind) => "logind",
+            _ => "none",
         }
     }
 
     /// Where the ring stands.
     pub fn status(&self) -> Status {
         self.lock().status.clone()
+    }
+
+    /// Where the ring stands and what tells it of a lock, for
+    /// `audio.devices`.
+    pub fn wire(&self) -> MicrophoneReady {
+        self.status().wire(self.lock_signal())
     }
 
     /// Brings the ring to what the daemon wants. A ring a take still uses
@@ -192,11 +262,20 @@ pub struct Want {
     pub device: String,
 }
 
+/// Why the ring is closed while Dettivo is paused.
+pub const PAUSED: &str = "paused until dettivo dictation resume";
+
 /// Why the ring should be closed, if it should: `None` inside the error
 /// means the setting is off.
-fn closed_because(setting: bool, blocked: bool, meeting: bool) -> Result<(), Option<String>> {
+fn closed_because(
+    setting: bool,
+    paused: bool,
+    blocked: bool,
+    meeting: bool,
+) -> Result<(), Option<String>> {
     let why = match () {
         _ if !setting => return Err(None),
+        _ if paused => PAUSED,
         _ if blocked => "the session is locked",
         _ if meeting => "a meeting is capturing",
         _ => return Ok(()),
@@ -217,7 +296,8 @@ pub fn tick(daemon: &Daemon) {
     let want = Want {
         open: closed_because(
             audio.keep_microphone_ready,
-            ready.blocked.load(Ordering::Relaxed),
+            ready.paused.load(Ordering::Relaxed),
+            ready.blocked(),
             daemon.meetings().snapshot().is_some(),
         ),
         may_open: daemon.dictation().snapshot().is_none(),

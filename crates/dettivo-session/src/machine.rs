@@ -18,12 +18,9 @@ use dettivo_language::provider::LocalEngine;
 use dettivo_speech::SttEngine;
 use dettivo_speech::gate::VoiceDetector;
 
-mod finish;
-mod while_recording;
+pub(crate) mod while_recording;
 
-use finish::Completion;
-pub(crate) use finish::{Exit, Outcome, SharedState, finish_shared};
-
+use crate::finish::{Completion, Exit, Outcome, SharedState, finish_shared};
 use crate::source::SourceFactory;
 use crate::worker::Worker;
 use crate::{
@@ -55,6 +52,9 @@ pub(crate) struct Active {
     pub(crate) snapshot: Snapshot,
     pub(crate) stop: Arc<AtomicBool>,
     pub(crate) cancel: Arc<AtomicBool>,
+    /// The stop asked for the text alone (`dictation stop --print`):
+    /// nothing is inserted.
+    pub(crate) route: Arc<crate::deliver::Route>,
     pub(crate) engine: Arc<dyn SttEngine>,
     pub(crate) worker: Option<std::thread::JoinHandle<()>>,
     pub(crate) completion: Arc<Completion>,
@@ -172,6 +172,7 @@ impl Session {
         };
         let stop = Arc::new(AtomicBool::new(false));
         let cancel = Arc::new(AtomicBool::new(false));
+        let route = Arc::new(crate::deliver::Route::default());
         let completion = Arc::new(Completion::default());
         let released = Arc::new(OnceLock::new());
         let tap = Arc::new(AtomicBool::new(false));
@@ -181,6 +182,7 @@ impl Session {
             snapshot: snapshot.clone(),
             stop: stop.clone(),
             cancel: cancel.clone(),
+            route: route.clone(),
             engine: engine.clone(),
             worker: None,
             completion: completion.clone(),
@@ -221,6 +223,7 @@ impl Session {
             cancel,
             released,
             tap,
+            route,
             dir: self.sessions_dir.join(&job_id),
             publisher: self.publisher.clone(),
             inserter: self.inserter.clone(),
@@ -282,6 +285,22 @@ impl Session {
         expected_job_id: Option<&str>,
         released_at: Instant,
     ) -> Result<Transcript, SessionError> {
+        self.stop_with(expected_job_id, released_at, false)
+    }
+
+    /// Stops the take as [`stop_expected`](Self::stop_expected) does and
+    /// finishes it without inserting: the transcript carries the text and
+    /// an insertion of outcome `printed` (`dictation stop --print`).
+    pub fn stop_print(&self, released_at: Instant) -> Result<Transcript, SessionError> {
+        self.stop_with(None, released_at, true)
+    }
+
+    fn stop_with(
+        &self,
+        expected_job_id: Option<&str>,
+        released_at: Instant,
+        print: bool,
+    ) -> Result<Transcript, SessionError> {
         let (worker, completion) = {
             let mut g = self.active.lock().unwrap_or_else(|p| p.into_inner());
             let Some(a) = g.as_mut() else {
@@ -289,6 +308,9 @@ impl Session {
             };
             if expected_job_id.is_some_and(|id| id != a.snapshot.job_id) {
                 return Err(SessionError::NoSession);
+            }
+            if print && !a.route.print() {
+                return Err(SessionError::Delivering);
             }
             let held = released_at.saturating_duration_since(a.snapshot.started);
             if held < a.snapshot.policy.min_hold {
@@ -304,6 +326,7 @@ impl Session {
         match completion.wait() {
             Outcome::Completed(t) => Ok(*t),
             Outcome::Cancelled => Err(SessionError::Cancelled),
+            Outcome::Silence => Err(SessionError::NoSpeech),
             Outcome::Failed(r) => Err(SessionError::Failed(r)),
         }
     }
@@ -390,5 +413,15 @@ impl Session {
         t.insertion = Some(result);
         *self.last.lock().unwrap_or_else(|p| p.into_inner()) = Some(t.clone());
         Ok(t)
+    }
+}
+
+impl Session {
+    fn shared(&self, completion: Arc<Completion>) -> SharedState {
+        SharedState {
+            active: self.active.clone(),
+            last: self.last.clone(),
+            completion,
+        }
     }
 }

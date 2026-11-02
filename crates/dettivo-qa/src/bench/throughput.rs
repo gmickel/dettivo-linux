@@ -141,6 +141,7 @@ pub(super) struct CliRun {
     pub(super) result: Value,
     pub(super) wall_ms: u64,
     pub(super) reason: String,
+    pub(super) stderr: String,
 }
 
 pub(super) fn cli(binary: &Path, args: &[&str], cpu: bool) -> Result<CliRun, String> {
@@ -169,6 +170,7 @@ pub(super) fn cli(binary: &Path, args: &[&str], cpu: bool) -> Result<CliRun, Str
         result,
         wall_ms,
         reason: loaded_reason(&stderr),
+        stderr: stderr.into_owned(),
     })
 }
 

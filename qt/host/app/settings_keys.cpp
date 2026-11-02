@@ -47,6 +47,7 @@ constexpr RouteKey kRouteKeys[] = {
     {"hotkeys", "hotkeys.reinsert"},
     {"hotkeys", "hotkeys.backend"},
     {"hotkeys", "hotkeys.pause_media"},
+    {"hotkeys", "audio.while_dictating"},
     {"hotkeys", "hotkeys.sounds"},
     {"hotkeys", "hotkeys.evdev_devices"},
     {"models", "speech.provider"},
@@ -93,6 +94,7 @@ constexpr RouteKey kRouteKeys[] = {
     {"insertion", "insert.restore_clipboard"},
     {"insertion", "insert.clipboard_restore_delay_ms"},
     {"insertion", "insert.undo_window_ms"},
+    {"insertion", "dictation.join_continuations"},
     {"meetings", "speech.meeting_model"},
     {"meetings", "llm.analysis_model"},
     {"meetings", "history.keep_audio"},
@@ -163,6 +165,7 @@ constexpr Excluded kExcluded[] = {
     {"polish.rules", "an array of tables edited through `dettivo polish rules` and the Polish route's rule list"},
     {"polish.apps", "a table of tables edited through `dettivo polish apps` and the Polish route's app list"},
     {"polish.presets", "a table of tables with nested lists; edited in the file"},
+    {"dictation.vocabulary_boost", "Parakeet's vocabulary lean (off, light, normal, strong); set in the file or with `dettivo config set`"},
 };
 // excluded:end
 
