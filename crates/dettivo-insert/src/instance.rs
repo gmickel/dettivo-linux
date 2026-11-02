@@ -79,7 +79,7 @@ fn live_candidates(session: &Session, skip: Option<&str>) -> Vec<(String, PathBu
             socket.exists().then_some((modified, signature, socket))
         })
         .collect();
-    found.sort_by(|a, b| b.0.cmp(&a.0));
+    found.sort_by_key(|a| std::cmp::Reverse(a.0));
     found.into_iter().map(|(_, s, p)| (s, p)).collect()
 }
 
