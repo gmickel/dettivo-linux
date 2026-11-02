@@ -1,11 +1,14 @@
 //! The run behind `dettivo-qa bench vocabulary`: every clip of the fixture
 //! set through each speech engine's CLI mode, once with the vocabulary off
 //! and once on, scored and written as one report. Each clip reaches the
-//! engine padded as a dictation take is. `--out <dir>` also files it as
+//! engine padded as a dictation take is, and its text passes the output
+//! guards a take's text passes (ADR 0096). `--out <dir>` also files it as
 //! `vocabulary-<date>-<host>.json` with a Markdown table beside it.
 
 use std::path::{Path, PathBuf};
 
+use dettivo_engine_proto::RecognizeResult;
+use dettivo_transcribe::guards;
 use serde::{Deserialize, Serialize};
 
 use super::vocabulary::{Entry, FIXTURE_DIR, Set, VocabularyScore, prompt_args, rescoring, score};
@@ -23,10 +26,11 @@ pub struct Transcript {
     pub id: String,
     /// What the engine returned.
     pub text: String,
-    /// Candidate spans Parakeet rescored in the clip.
+    /// Candidate spans the engine weighed in the clip: those Parakeet
+    /// rescored (ADR 0088), the listed terms Whisper wrote (ADR 0095).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub candidates: Option<u32>,
-    /// Milliseconds rescoring added to the clip (ADR 0088).
+    /// Milliseconds the vocabulary added to the clip.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rescore_ms: Option<f64>,
 }
@@ -188,6 +192,13 @@ fn pass(
     } else {
         Vec::new()
     };
+    // Dictation's prompt-echo guard reads the terms of an engine it primed
+    // with a prompt.
+    let echo_terms: Vec<String> = if on && provider == "whisper" {
+        set.vocabulary.iter().map(|e| e.term.clone()).collect()
+    } else {
+        Vec::new()
+    };
     let dir = opts.repo_root.join(FIXTURE_DIR);
     let model_arg = model.path.to_string_lossy().into_owned();
     let mut row = Row::without(provider, &model.id, on, Status::Measured, String::new());
@@ -213,11 +224,16 @@ fn pass(
             run.wall_ms += wall_ms;
             Ok(run)
         });
+        let outcome = outcome.and_then(|run| {
+            let result: RecognizeResult = serde_json::from_value(run.result.clone())
+                .map_err(|e| format!("engine answer: {e}"))?;
+            Ok((guards::clean(&result, &echo_terms), run))
+        });
         match outcome {
-            Ok(run) => {
+            Ok((text, run)) => {
                 row.wall_ms += run.wall_ms;
                 row.backend = run.result["backend"].as_str().unwrap_or("").to_string();
-                let text = run.result["text"].as_str().unwrap_or("").trim().to_string();
+                let text = text.trim().to_string();
                 let rescored = rescoring(&run.stderr);
                 row.transcripts.push(Transcript {
                     id: clip.id.clone(),
@@ -313,7 +329,7 @@ pub fn run(opts: &Options) -> Result<(VocabularyReport, PathBuf), String> {
 /// The table a person reads: one line per row.
 pub fn markdown(report: &VocabularyReport) -> String {
     let mut out = format!(
-        "# Vocabulary term recall, {} on {}\n\n`dettivo-qa bench vocabulary` at `{}`{}. Term recall counts target clips whose term came back spelt exactly; false insertions count terms in distractor and guard clips; guard WER is the word error rate over the guard clips; rescoring is the time Parakeet's vocabulary rescoring added, the median over clips with a candidate span and the most on a clip without one.\n\n| Engine | Model | Backend | Vocabulary | Term recall | False insertions | Guard WER | Rescoring |\n|---|---|---|---|---|---|---|---|\n",
+        "# Vocabulary term recall, {} on {}\n\n`dettivo-qa bench vocabulary` at `{}`{}. Each clip's text has passed dictation's output guards. Term recall counts target clips whose term came back spelt exactly; false insertions count terms in distractor and guard clips; guard WER is the word error rate over the guard clips; time added is what Parakeet's rescoring or Whisper's term check added, the median over clips with a candidate span and the most on a clip without one.\n\n| Engine | Model | Backend | Vocabulary | Term recall | False insertions | Guard WER | Time added |\n|---|---|---|---|---|---|---|---|\n",
         report.date,
         report.hostname,
         report.git_sha.get(..12).unwrap_or(&report.git_sha),

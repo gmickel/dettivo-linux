@@ -222,8 +222,10 @@ fn a_prompt_echo_never_pastes_the_vocabulary() {
     );
 }
 
-/// The scripted engine, keeping the prompt it was primed with.
-struct Prompted(Arc<FakeEngine>, std::sync::Mutex<Option<String>>);
+/// The scripted engine, keeping the prompt it was primed with and the
+/// vocabulary it was handed.
+type Primed = (Option<String>, Option<dettivo_engine_proto::VocabularyBias>);
+struct Prompted(Arc<FakeEngine>, std::sync::Mutex<Primed>);
 
 impl SttEngine for Prompted {
     fn provider(&self) -> &str {
@@ -240,7 +242,7 @@ impl SttEngine for Prompted {
         request: RecognizeRequest,
         timeout: Duration,
     ) -> Result<dettivo_engine_proto::RecognizeResult, EngineError> {
-        *self.1.lock().unwrap() = request.prompt.clone();
+        *self.1.lock().unwrap() = (request.prompt.clone(), request.vocabulary.clone());
         self.0.recognize(request, timeout)
     }
     fn cancel(&self) {
@@ -251,11 +253,12 @@ impl SttEngine for Prompted {
     }
 }
 
-/// fn-83 R4: the engine is primed with the terms, never their aliases.
+/// fn-83 R4: the engine is primed with the terms, never their aliases;
+/// fn-89: Whisper gets the prompt's terms to check its output against.
 #[test]
 fn the_engine_prompt_carries_terms_and_never_aliases() {
     let (dir, _rec, session, engine, feed) = rig("Ship the Clef build.");
-    let prompted = Arc::new(Prompted(engine, std::sync::Mutex::new(None)));
+    let prompted = Arc::new(Prompted(engine, std::sync::Mutex::new((None, None))));
     let mut p = policy(dir.path(), false);
     p.vocabulary = vec![
         dettivo_core::config::vocabulary_schema::VocabularyEntry::Entry {
@@ -270,8 +273,12 @@ fn the_engine_prompt_carries_terms_and_never_aliases() {
     feed.speak(400);
     std::thread::sleep(Duration::from_millis(50));
     assert_eq!(session.stop().unwrap().text, "Ship the Clef build.");
+    let (prompt, vocabulary) = prompted.1.lock().unwrap().clone();
+    assert_eq!(prompt.as_deref(), Some("Clef, Dettivo."));
+    let terms: Vec<_> = vocabulary.unwrap().terms;
     assert_eq!(
-        prompted.1.lock().unwrap().as_deref(),
-        Some("Clef, Dettivo.")
+        terms.iter().map(|t| t.term.as_str()).collect::<Vec<_>>(),
+        ["Clef", "Dettivo"]
     );
+    assert!(terms.iter().all(|t| t.aliases.is_empty()));
 }

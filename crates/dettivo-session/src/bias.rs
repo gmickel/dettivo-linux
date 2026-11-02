@@ -1,5 +1,7 @@
-//! The vocabulary as Parakeet takes it (ADR 0088): every term with its
-//! `sounds_like` spellings and the boost of the configured level.
+//! The vocabulary as the engines take it: for Parakeet every term with its
+//! `sounds_like` spellings and the boost of the configured level (ADR
+//! 0088), for Whisper the prompt's terms its output is checked against
+//! (ADR 0095).
 
 use dettivo_core::config::vocabulary_schema::{VocabularyBoost, VocabularyEntry};
 use dettivo_engine_proto::{BiasTerm, VocabularyBias};
@@ -23,6 +25,22 @@ pub(crate) fn vocabulary_bias(
             })
             .collect(),
         boost: nats,
+    })
+}
+
+/// The terms a Whisper request checks its prompted output against: the
+/// prompt's own, since only a term in the prompt can be read back from it.
+/// Whisper reads neither the aliases nor the boost; `None` without terms.
+pub(crate) fn checked_terms(prompt_terms: &[String]) -> Option<VocabularyBias> {
+    (!prompt_terms.is_empty()).then(|| VocabularyBias {
+        terms: prompt_terms
+            .iter()
+            .map(|t| BiasTerm {
+                term: t.clone(),
+                aliases: Vec::new(),
+            })
+            .collect(),
+        boost: 0.0,
     })
 }
 

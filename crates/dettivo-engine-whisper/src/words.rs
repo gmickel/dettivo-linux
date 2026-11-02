@@ -24,6 +24,8 @@ pub struct Token {
     pub dtw: i64,
     /// Probability.
     pub p: f32,
+    /// Log probability.
+    pub plog: f32,
 }
 
 /// Where word times come from.
@@ -201,6 +203,7 @@ mod tests {
             t1: spec.2,
             dtw: spec.3,
             p: spec.4,
+            plog: spec.4.ln(),
         }
     }
 

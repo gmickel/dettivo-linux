@@ -157,14 +157,11 @@ impl Worker {
             language: self.policy.language.clone(),
             prompt: vocabulary_prompt(&terms),
             timestamps: true,
-            vocabulary: parakeet
-                .then(|| {
-                    crate::bias::vocabulary_bias(
-                        &self.policy.vocabulary,
-                        self.policy.vocabulary_boost,
-                    )
-                })
-                .flatten(),
+            vocabulary: if parakeet {
+                crate::bias::vocabulary_bias(&self.policy.vocabulary, self.policy.vocabulary_boost)
+            } else {
+                crate::bias::checked_terms(echo_terms)
+            },
         };
         let padded = gate::pad_for_engine(samples.clone(), parakeet, gate::SAMPLE_RATE);
         let was_padded = padded.len() != samples.len();
@@ -178,7 +175,12 @@ impl Worker {
         {
             recognized = self.engine.recognize(request(samples), timeout);
         }
-        let recognized = recognized.map(|r| (crate::guards::clean(&r, echo_terms), r.language));
+        let recognized = recognized.map(|r| {
+            (
+                dettivo_transcribe::guards::clean(&r, echo_terms),
+                r.language,
+            )
+        });
         if self.cancel.load(Ordering::Relaxed) {
             self.cleanup();
             finish_shared(

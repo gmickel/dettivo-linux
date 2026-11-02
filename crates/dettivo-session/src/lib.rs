@@ -10,7 +10,6 @@
 mod bias;
 mod deliver;
 mod finish;
-mod guards;
 pub mod machine;
 pub mod source;
 
