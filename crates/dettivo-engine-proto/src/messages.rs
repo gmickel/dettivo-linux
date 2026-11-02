@@ -1,7 +1,7 @@
 //! Typed payloads for every message and event, and the catalogue that
 //! names them. Segments carry word timestamps with confidence when the
 //! engine aligns words. Requests: `load`, `unload`, `recognize`,
-//! `detect_speech`, `generate`, `diarize`, `embed`, `cancel`, `status`.
+//! `detect_speech`, `feed_speech`, `generate`, `diarize`, `embed`, `cancel`, `status`.
 //! Events: `progress`, `partial`, `loaded`, `error`.
 
 use serde::{Deserialize, Serialize};
@@ -183,24 +183,9 @@ pub struct RecognizeResult {
     pub backend: Backend,
 }
 
-/// `detect_speech` (with one `pcm16k` attachment): the Silero voice
-/// activity pass a dictation take goes through before a recognizer hears it.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct DetectSpeechParams {
-    /// The probability from which a frame is speech.
-    pub threshold: f64,
-    /// The shortest stretch that counts as speech, in milliseconds.
-    pub min_speech_ms: u32,
-}
-
-/// `detect_speech` result.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct DetectSpeechResult {
-    /// Milliseconds of speech found; 0 means none.
-    pub speech_ms: u64,
-}
+pub use crate::speech_messages::{
+    DetectSpeechParams, DetectSpeechResult, FeedSpeechParams, FeedSpeechResult,
+};
 
 /// How the LLM engine turns a `generate` request into model input.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -436,6 +421,7 @@ pub const REQUESTS: &[&str] = &[
     "unload",
     "recognize",
     "detect_speech",
+    "feed_speech",
     "generate",
     "diarize",
     "embed",
@@ -456,6 +442,7 @@ pub fn check_request(name: &str, payload: &Value) -> Result<Value, String> {
         "unload" | "status" => rt::<Empty>(payload),
         "recognize" => rt::<RecognizeParams>(payload),
         "detect_speech" => rt::<DetectSpeechParams>(payload),
+        "feed_speech" => rt::<FeedSpeechParams>(payload),
         "generate" => rt::<GenerateParams>(payload),
         "diarize" => rt::<DiarizeParams>(payload),
         "embed" => rt::<EmbedParams>(payload),
@@ -475,6 +462,7 @@ pub fn check_response(name: &str, payload: &Value) -> Result<Value, String> {
         "unload" | "cancel" => rt::<Empty>(payload),
         "recognize" => rt::<RecognizeResult>(payload),
         "detect_speech" => rt::<DetectSpeechResult>(payload),
+        "feed_speech" => rt::<FeedSpeechResult>(payload),
         "generate" => rt::<GenerateResult>(payload),
         "diarize" => rt::<DiarizeResult>(payload),
         "embed" => rt::<EmbedResult>(payload),

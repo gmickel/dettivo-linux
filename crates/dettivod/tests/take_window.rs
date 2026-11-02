@@ -26,6 +26,26 @@ fn state_and_reason(daemon: &Daemon) -> (Option<String>, Option<String>) {
     (text("state"), text("reason"))
 }
 
+/// How long the engine may take on a take or a meeting's live tail: a
+/// debug engine on a loaded runner needs seconds where a release build
+/// needs milliseconds, and a hang still fails well inside the job timeout.
+const ENGINE: Duration = Duration::from_secs(60);
+
+/// The daemon's log once it holds `needle`. A line the daemon wrote before
+/// it answered still has to cross the stderr pipe to the test's reader.
+fn logged(daemon: &Daemon, needle: &str, budget: Duration) -> String {
+    assert!(
+        wait_for(budget, || daemon.log().contains(needle)),
+        "{needle} never logged:\n{}",
+        daemon.log()
+    );
+    daemon.log()
+}
+
+fn idle(daemon: &Daemon) -> bool {
+    daemon.result("dictation.status", json!({}))["is_active"] == false
+}
+
 fn wait_ready(daemon: &Daemon, state: &str) {
     assert!(
         wait_for(Duration::from_secs(10), || ready_state(daemon)["state"]
@@ -76,6 +96,7 @@ fn a_held_take_spans_the_pre_roll_and_the_tail_and_a_tap_is_dropped() {
     // A second of speech in the ring before the press.
     std::thread::sleep(Duration::from_millis(1_000));
     let before = dictations(&daemon);
+    let finished = daemon.log().matches("dictation finished").count();
 
     // The press answers once the take started (a cold engine takes a
     // while); the take counts from when the press arrived.
@@ -89,6 +110,21 @@ fn a_held_take_spans_the_pre_roll_and_the_tail_and_a_tap_is_dropped() {
     assert_eq!(
         daemon.result("dictation.release", json!({}))["action"],
         "stopped"
+    );
+    // The release answers once the take stopped; the engine transcribes
+    // it after that, and the take is stored and logged before it idles.
+    assert!(
+        wait_for(ENGINE, || idle(&daemon)),
+        "the held take never ended"
+    );
+    assert!(
+        wait_for(Duration::from_secs(10), || daemon
+            .log()
+            .matches("dictation finished")
+            .count()
+            > finished),
+        "the held take was not logged:\n{}",
+        daemon.log()
     );
     let lengths = take_lengths(&daemon.log());
     let length = *lengths.last().expect("a finished take");
@@ -114,14 +150,9 @@ fn a_held_take_spans_the_pre_roll_and_the_tail_and_a_tap_is_dropped() {
         daemon.result("dictation.release", json!({}))["action"],
         "discarded"
     );
-    assert!(wait_for(Duration::from_secs(5), || daemon
-        .result("dictation.status", json!({}))["is_active"]
-        == false));
-    let log = daemon.log();
-    assert!(
-        log.contains("reason=\"tap\""),
-        "the tap ends with reason tap"
-    );
+    assert!(wait_for(Duration::from_secs(10), || idle(&daemon)));
+    // The tap ends with reason tap.
+    let log = logged(&daemon, "reason=\"tap\"", Duration::from_secs(10));
     assert_eq!(log.matches("dictation text step").count(), steps);
     assert_eq!(dictations(&daemon), before + 1);
     let sounds = std::fs::read_to_string(daemon.tree.root().join("state/dettivo/qa/sounds.txt"))
@@ -152,8 +183,25 @@ fn a_meeting_takes_the_microphone_over_from_the_ring_and_hands_it_back() {
         "no reopen mid-meeting"
     );
     daemon.result("meetings.stop", json!({"meeting_id": id}));
+    // The meeting's capture ends once its live path has transcribed the
+    // tails of both tracks, engine work that takes seconds on a loaded
+    // runner; the handoff under test is what follows that end.
+    logged(&daemon, "meeting capture ended", ENGINE);
     wait_ready(&daemon, "open");
 
+    // The reopen is logged before `audio.devices` reports it, but its line
+    // may still be crossing the pipe: wait for an open after the end.
+    let reopened_after_end = |log: &str| {
+        log.split_once("meeting capture ended")
+            .is_some_and(|(_, after)| after.contains("microphone ready: open"))
+    };
+    assert!(
+        wait_for(Duration::from_secs(10), || reopened_after_end(
+            &daemon.log()
+        )),
+        "reopened after the meeting's capture ended:\n{}",
+        daemon.log()
+    );
     let log = daemon.log();
     let at = |needle: &str| {
         log.find(needle)
@@ -161,13 +209,7 @@ fn a_meeting_takes_the_microphone_over_from_the_ring_and_hands_it_back() {
     };
     let closed = at("microphone ready: closed why=\"a meeting is capturing\"");
     let recording = at("state=\"recording\" previous=\"idle\"");
-    let ended = at("meeting capture ended");
-    let reopened = log.rfind("microphone ready: open").unwrap();
     assert!(closed < recording, "closed before the meeting recorded");
-    assert!(
-        ended < reopened,
-        "reopened after the meeting's capture ended"
-    );
 }
 
 /// Ten seconds of 16 kHz mono silence for the mock microphone.

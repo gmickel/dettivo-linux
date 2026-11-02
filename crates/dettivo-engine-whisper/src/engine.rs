@@ -8,8 +8,9 @@
 use std::path::Path;
 
 use dettivo_engine_proto::{
-    Backend, BackendPreference, DetectSpeechParams, DetectSpeechResult, EngineError, LoadParams,
-    LoadedResult, RecognizeParams, RecognizeResult, Segment, SpeechEngine, backend,
+    Backend, BackendPreference, DetectSpeechParams, DetectSpeechResult, EngineError,
+    FeedSpeechParams, FeedSpeechResult, LoadParams, LoadedResult, RecognizeParams, RecognizeResult,
+    Segment, SpeechEngine, backend,
 };
 use whisper_rs::{
     DtwMode, DtwParameters, FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters,
@@ -377,6 +378,22 @@ impl SpeechEngine for Engine {
                 )
             })?
             .detect(pcm, params)
+    }
+
+    fn feed_speech(
+        &self,
+        pcm: &[i16],
+        params: &FeedSpeechParams,
+    ) -> Result<FeedSpeechResult, EngineError> {
+        self.vad
+            .as_ref()
+            .ok_or_else(|| {
+                EngineError::new(
+                    "bad_request",
+                    "no voice activity model is loaded; load one with only vad_model",
+                )
+            })?
+            .feed(pcm, params)
     }
 }
 

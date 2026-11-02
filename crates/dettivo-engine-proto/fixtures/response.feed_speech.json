@@ -1,0 +1,9 @@
+{
+  "id": 5,
+  "kind": "response",
+  "name": "feed_speech",
+  "payload": {
+    "samples": 8192
+  },
+  "v": 1
+}

@@ -35,7 +35,8 @@ pub struct WarmRow {
     pub loaded_take_ms: u64,
     /// A take on an engine nothing ran: `load_ms + loaded_take_ms`.
     pub cold_take_ms: u64,
-    /// The warm-up itself (30 s of silence) in a second process.
+    /// The warm-up itself (the supervisor's silence for this engine) in a
+    /// second process.
     pub warm_up_ms: u64,
     /// The first take after the warm-up.
     pub warmed_take_ms: u64,

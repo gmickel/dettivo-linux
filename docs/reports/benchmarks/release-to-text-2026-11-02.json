@@ -1,0 +1,1456 @@
+{
+ "schema": "fn-90 release-to-text, one row per take",
+ "date": "2026-11-02",
+ "host": {
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "driver": "615.78.08",
+  "cpu": "AMD Ryzen 9 7950X3D (32 threads)"
+ },
+ "builds": {
+  "before": "1dbe657",
+  "after": "159cdc2",
+  "how": "cargo build --release -p dettivod -p dettivo-cli -p dettivo-engine-whisper -p dettivo-engine-parakeet --features dettivo-engine-parakeet/vulkan"
+ },
+ "method": "dettivod in an isolated profile under scripts/qa/xvfb-session.sh, Parakeet Ultra on Vulkan, mode raw, silero-vad present, DETTIVO_MOCK_MIC playing jfk.wav repeated to length; release_to_text_ms is dictation.stop sent to the inserting state event; the driver shader cache was filled before both runs",
+ "contention": "GPU shared with another agent's Whisper engine; 1-minute load average 3 to 22 during the runs",
+ "runs": {
+  "warm": {
+   "before": [
+    {
+     "take_s": 5.0,
+     "run": 0,
+     "release_to_text_ms": 320,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 79
+     },
+     "engine_events_ms_after_start": [
+      [
+       83,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       185,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 5.0,
+     "run": 1,
+     "release_to_text_ms": 333,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 92
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 30.0,
+     "run": 0,
+     "release_to_text_ms": 570,
+     "timings": {
+      "capture_ms": 222,
+      "insert_ms": 0,
+      "transcribe_ms": 327
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 30.0,
+     "run": 1,
+     "release_to_text_ms": 15589,
+     "timings": {
+      "capture_ms": 224,
+      "insert_ms": 0,
+      "transcribe_ms": 15344
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 30.0,
+     "run": 2,
+     "release_to_text_ms": 14957,
+     "timings": {
+      "capture_ms": 222,
+      "insert_ms": 0,
+      "transcribe_ms": 14716
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 30.0,
+     "run": 3,
+     "release_to_text_ms": 489,
+     "timings": {
+      "capture_ms": 222,
+      "insert_ms": 0,
+      "transcribe_ms": 246
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 30.0,
+     "run": 4,
+     "release_to_text_ms": 455,
+     "timings": {
+      "capture_ms": 221,
+      "insert_ms": 0,
+      "transcribe_ms": 213
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 60.0,
+     "run": 0,
+     "release_to_text_ms": 711,
+     "timings": {
+      "capture_ms": 222,
+      "insert_ms": 0,
+      "transcribe_ms": 468
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 60.0,
+     "run": 1,
+     "release_to_text_ms": 730,
+     "timings": {
+      "capture_ms": 223,
+      "insert_ms": 0,
+      "transcribe_ms": 486
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 60.0,
+     "run": 2,
+     "release_to_text_ms": 767,
+     "timings": {
+      "capture_ms": 224,
+      "insert_ms": 0,
+      "transcribe_ms": 526
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 60.0,
+     "run": 3,
+     "release_to_text_ms": 722,
+     "timings": {
+      "capture_ms": 223,
+      "insert_ms": 0,
+      "transcribe_ms": 478
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 60.0,
+     "run": 4,
+     "release_to_text_ms": 717,
+     "timings": {
+      "capture_ms": 223,
+      "insert_ms": 0,
+      "transcribe_ms": 473
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 120.0,
+     "run": 0,
+     "release_to_text_ms": 1178,
+     "timings": {
+      "capture_ms": 226,
+      "insert_ms": 0,
+      "transcribe_ms": 932
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 120.0,
+     "run": 1,
+     "release_to_text_ms": 1389,
+     "timings": {
+      "capture_ms": 226,
+      "insert_ms": 0,
+      "transcribe_ms": 1142
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 120.0,
+     "run": 2,
+     "release_to_text_ms": 1271,
+     "timings": {
+      "capture_ms": 225,
+      "insert_ms": 0,
+      "transcribe_ms": 1024
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 120.0,
+     "run": 3,
+     "release_to_text_ms": 1313,
+     "timings": {
+      "capture_ms": 226,
+      "insert_ms": 0,
+      "transcribe_ms": 1067
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 120.0,
+     "run": 4,
+     "release_to_text_ms": 1221,
+     "timings": {
+      "capture_ms": 225,
+      "insert_ms": 0,
+      "transcribe_ms": 975
+     },
+     "engine_events_ms_after_start": []
+    }
+   ],
+   "after": [
+    {
+     "take_s": 5.0,
+     "run": 0,
+     "release_to_text_ms": 296,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 55
+     },
+     "engine_events_ms_after_start": [
+      [
+       424,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       727,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 5.0,
+     "run": 1,
+     "release_to_text_ms": 296,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 55
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 30.0,
+     "run": 0,
+     "release_to_text_ms": 426,
+     "timings": {
+      "capture_ms": 222,
+      "insert_ms": 0,
+      "transcribe_ms": 183
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 30.0,
+     "run": 1,
+     "release_to_text_ms": 388,
+     "timings": {
+      "capture_ms": 221,
+      "insert_ms": 0,
+      "transcribe_ms": 145
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 30.0,
+     "run": 2,
+     "release_to_text_ms": 502,
+     "timings": {
+      "capture_ms": 225,
+      "insert_ms": 0,
+      "transcribe_ms": 256
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 30.0,
+     "run": 3,
+     "release_to_text_ms": 511,
+     "timings": {
+      "capture_ms": 222,
+      "insert_ms": 2,
+      "transcribe_ms": 267
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 30.0,
+     "run": 4,
+     "release_to_text_ms": 489,
+     "timings": {
+      "capture_ms": 221,
+      "insert_ms": 0,
+      "transcribe_ms": 247
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 60.0,
+     "run": 0,
+     "release_to_text_ms": 583,
+     "timings": {
+      "capture_ms": 223,
+      "insert_ms": 0,
+      "transcribe_ms": 339
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 60.0,
+     "run": 1,
+     "release_to_text_ms": 645,
+     "timings": {
+      "capture_ms": 223,
+      "insert_ms": 0,
+      "transcribe_ms": 401
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 60.0,
+     "run": 2,
+     "release_to_text_ms": 639,
+     "timings": {
+      "capture_ms": 223,
+      "insert_ms": 0,
+      "transcribe_ms": 396
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 60.0,
+     "run": 3,
+     "release_to_text_ms": 507,
+     "timings": {
+      "capture_ms": 222,
+      "insert_ms": 0,
+      "transcribe_ms": 263
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 60.0,
+     "run": 4,
+     "release_to_text_ms": 549,
+     "timings": {
+      "capture_ms": 222,
+      "insert_ms": 0,
+      "transcribe_ms": 306
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 120.0,
+     "run": 0,
+     "release_to_text_ms": 747,
+     "timings": {
+      "capture_ms": 225,
+      "insert_ms": 0,
+      "transcribe_ms": 502
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 120.0,
+     "run": 1,
+     "release_to_text_ms": 961,
+     "timings": {
+      "capture_ms": 226,
+      "insert_ms": 0,
+      "transcribe_ms": 714
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 120.0,
+     "run": 2,
+     "release_to_text_ms": 587,
+     "timings": {
+      "capture_ms": 225,
+      "insert_ms": 0,
+      "transcribe_ms": 341
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 120.0,
+     "run": 3,
+     "release_to_text_ms": 958,
+     "timings": {
+      "capture_ms": 225,
+      "insert_ms": 0,
+      "transcribe_ms": 712
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 120.0,
+     "run": 4,
+     "release_to_text_ms": 890,
+     "timings": {
+      "capture_ms": 226,
+      "insert_ms": 0,
+      "transcribe_ms": 643
+     },
+     "engine_events_ms_after_start": []
+    }
+   ]
+  },
+  "idle_unload_61s": {
+   "before": [
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 287,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 46
+     },
+     "engine_events_ms_after_start": [
+      [
+       84,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       174,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 275,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 34
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 350,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 109
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 278,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 38
+     },
+     "engine_events_ms_after_start": [
+      [
+       -2,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       659,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       737,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 461,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 220
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 401,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 160
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 278,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 37
+     },
+     "engine_events_ms_after_start": [
+      [
+       -2,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       653,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       738,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 456,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 215
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 439,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 198
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 277,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 36
+     },
+     "engine_events_ms_after_start": [
+      [
+       -2,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       652,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       729,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 434,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 193
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 462,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 221
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 275,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 34
+     },
+     "engine_events_ms_after_start": [
+      [
+       -2,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       627,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       707,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 378,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 138
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 476,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 236
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 279,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 38
+     },
+     "engine_events_ms_after_start": [
+      [
+       -2,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       586,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       663,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 442,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 201
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 314,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 73
+     },
+     "engine_events_ms_after_start": []
+    }
+   ],
+   "after": [
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 293,
+     "timings": {
+      "capture_ms": 221,
+      "insert_ms": 0,
+      "transcribe_ms": 49
+     },
+     "engine_events_ms_after_start": [
+      [
+       22,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       272,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 385,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 145
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 396,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 155
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 266,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 4,
+      "transcribe_ms": 25
+     },
+     "engine_events_ms_after_start": [
+      [
+       -2,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       587,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       826,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 458,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 217
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 393,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 152
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 267,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 2,
+      "transcribe_ms": 26
+     },
+     "engine_events_ms_after_start": [
+      [
+       -2,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       638,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       882,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 379,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 137
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 361,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 120
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 266,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 3,
+      "transcribe_ms": 25
+     },
+     "engine_events_ms_after_start": [
+      [
+       -2,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       623,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       864,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 385,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 144
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 358,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 117
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 266,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 4,
+      "transcribe_ms": 25
+     },
+     "engine_events_ms_after_start": [
+      [
+       -1,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       573,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       817,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 388,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 147
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 389,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 147
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 266,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 4,
+      "transcribe_ms": 25
+     },
+     "engine_events_ms_after_start": [
+      [
+       -1,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       682,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       927,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 481,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 240
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 268,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 2,
+      "transcribe_ms": 27
+     },
+     "engine_events_ms_after_start": []
+    }
+   ]
+  },
+  "idle_unload_5s_no_warm_up": {
+   "before": [
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 324,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 83
+     },
+     "engine_events_ms_after_start": [
+      [
+       739,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       825,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 2751,
+     "timings": {
+      "capture_ms": 222,
+      "insert_ms": 0,
+      "transcribe_ms": 2508
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 1993,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 1752
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 3,
+     "release_to_text_ms": 2370,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 2129
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 304,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 63
+     },
+     "engine_events_ms_after_start": [
+      [
+       -2,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       1697,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       3304,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 2107,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 1866
+     },
+     "engine_events_ms_after_start": [
+      [
+       -1,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       1006,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       5107,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 308,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 67
+     },
+     "engine_events_ms_after_start": [
+      [
+       -1,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       1019,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       3308,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 290,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 49
+     },
+     "engine_events_ms_after_start": [
+      [
+       -1,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       609,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       3290,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 290,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 49
+     },
+     "engine_events_ms_after_start": [
+      [
+       -2,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       611,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       3290,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 468,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 227
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 467,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 226
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 450,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 209
+     },
+     "engine_events_ms_after_start": []
+    }
+   ],
+   "after": [
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 268,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 1,
+      "transcribe_ms": 28
+     },
+     "engine_events_ms_after_start": [
+      [
+       23,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       263,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 339,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 99
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 372,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 131
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 3,
+     "release_to_text_ms": 311,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 70
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 276,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 35
+     },
+     "engine_events_ms_after_start": [
+      [
+       -2,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       648,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       3276,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 501,
+     "timings": {
+      "capture_ms": 224,
+      "insert_ms": 1,
+      "transcribe_ms": 254
+     },
+     "engine_events_ms_after_start": [
+      [
+       -1,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       638,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       3499,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 278,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 37
+     },
+     "engine_events_ms_after_start": [
+      [
+       -1,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       671,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       3278,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 284,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 43
+     },
+     "engine_events_ms_after_start": [
+      [
+       -2,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       595,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       3284,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 277,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 36
+     },
+     "engine_events_ms_after_start": [
+      [
+       -1,
+       "dettivo-engine-parakeet",
+       "spawned"
+      ],
+      [
+       588,
+       "dettivo-engine-parakeet",
+       "loaded"
+      ],
+      [
+       3277,
+       "dettivo-engine-parakeet",
+       "warm"
+      ]
+     ]
+    },
+    {
+     "take_s": 3.0,
+     "run": 0,
+     "release_to_text_ms": 264,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 5,
+      "transcribe_ms": 23
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 1,
+     "release_to_text_ms": 285,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 44
+     },
+     "engine_events_ms_after_start": []
+    },
+    {
+     "take_s": 3.0,
+     "run": 2,
+     "release_to_text_ms": 282,
+     "timings": {
+      "capture_ms": 220,
+      "insert_ms": 0,
+      "transcribe_ms": 41
+     },
+     "engine_events_ms_after_start": []
+    }
+   ]
+  }
+ }
+}

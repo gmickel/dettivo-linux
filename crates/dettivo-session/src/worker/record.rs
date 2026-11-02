@@ -14,6 +14,7 @@ use std::time::{Duration, Instant};
 use dettivo_audio::takes::TakeWriter;
 use dettivo_audio::{EndReason, Event};
 
+use super::check::SpeechCheck;
 use super::{Worker, elapsed_ms};
 use crate::finish::{Exit, SharedState};
 use crate::source::Source;
@@ -31,6 +32,8 @@ pub(super) struct Recorded {
     pub(super) capture_ms: u64,
     /// When the stop was observed.
     pub(super) stopped: Instant,
+    /// The speech check that ran during the take, when the detector streams.
+    pub(super) check: Option<SpeechCheck>,
 }
 
 /// The release tail once a stop was seen.
@@ -61,6 +64,13 @@ impl Worker {
         let mut tail: Option<Tail> = None;
         let mut ended: Option<EndReason> = None;
         let mut terminal = false;
+        // The check starts once the press qualifies as a take, with what
+        // was captured until then: a tap never reaches the detector (ADR
+        // 0093). `fed` counts the samples sent to it.
+        let qualifies = self.pressed + self.policy.min_hold;
+        let mut detector = self.vad.as_deref();
+        let mut check: Option<SpeechCheck> = None;
+        let mut fed = 0;
         loop {
             if self.cancel.load(Ordering::Relaxed) {
                 return Ok(Recorded {
@@ -69,6 +79,7 @@ impl Worker {
                     exit: Some(self.cancelled()),
                     capture_ms: 0,
                     stopped: Instant::now(),
+                    check: None,
                 });
             }
             if tail.is_none() && self.stop.load(Ordering::Relaxed) {
@@ -95,6 +106,21 @@ impl Worker {
                     (heard, arrived) = (Some(at), Instant::now());
                     samples.extend_from_slice(&chunk);
                     stamps.push((samples.len(), at));
+                    // Audio that arrives after the stop is seen may be cut
+                    // from the take, so the check runs it at the release.
+                    if tail.is_none() {
+                        if check.is_none()
+                            && arrived >= qualifies
+                            && !self.cancel.load(Ordering::Relaxed)
+                            && let Some(vad) = detector.take()
+                        {
+                            check = vad.stream().map(SpeechCheck::start);
+                        }
+                        if let Some(c) = &check {
+                            c.feed(&samples[fed..]);
+                            fed = samples.len();
+                        }
+                    }
                     let progress = (started.elapsed().as_secs_f64()
                         / self.policy.max_duration.as_secs_f64())
                     .min(1.0);
@@ -187,6 +213,7 @@ impl Worker {
             exit,
             capture_ms: elapsed_ms(released),
             stopped: released,
+            check,
         })
     }
 }
