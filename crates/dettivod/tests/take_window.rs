@@ -183,8 +183,25 @@ fn a_meeting_takes_the_microphone_over_from_the_ring_and_hands_it_back() {
         "no reopen mid-meeting"
     );
     daemon.result("meetings.stop", json!({"meeting_id": id}));
+    // The meeting's capture ends once its live path has transcribed the
+    // tails of both tracks, engine work that takes seconds on a loaded
+    // runner; the handoff under test is what follows that end.
+    logged(&daemon, "meeting capture ended", ENGINE);
     wait_ready(&daemon, "open");
 
+    // The reopen is logged before `audio.devices` reports it, but its line
+    // may still be crossing the pipe: wait for an open after the end.
+    let reopened_after_end = |log: &str| {
+        log.split_once("meeting capture ended")
+            .is_some_and(|(_, after)| after.contains("microphone ready: open"))
+    };
+    assert!(
+        wait_for(Duration::from_secs(10), || reopened_after_end(
+            &daemon.log()
+        )),
+        "reopened after the meeting's capture ended:\n{}",
+        daemon.log()
+    );
     let log = daemon.log();
     let at = |needle: &str| {
         log.find(needle)
@@ -192,13 +209,7 @@ fn a_meeting_takes_the_microphone_over_from_the_ring_and_hands_it_back() {
     };
     let closed = at("microphone ready: closed why=\"a meeting is capturing\"");
     let recording = at("state=\"recording\" previous=\"idle\"");
-    let ended = at("meeting capture ended");
-    let reopened = log.rfind("microphone ready: open").unwrap();
     assert!(closed < recording, "closed before the meeting recorded");
-    assert!(
-        ended < reopened,
-        "reopened after the meeting's capture ended"
-    );
 }
 
 /// Ten seconds of 16 kHz mono silence for the mock microphone.
