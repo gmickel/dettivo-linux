@@ -67,6 +67,26 @@ fn a_recent_take_skips_the_warm_up_after_a_reload() {
     supervisor.shutdown();
 }
 
+/// R1: the 60 s skip counts recognitions by the running engine process.
+/// A take, an idle unload and a reload inside that minute respawn the
+/// engine, and the new process has recognised nothing, so it warms.
+#[test]
+fn a_reload_after_an_idle_unload_warms_despite_a_recent_take() {
+    let dir = fake_engine_dir(WHISPER_BINARY);
+    std::fs::write(dir.path().join("gpu-has-room"), "").unwrap();
+    let supervisor = Supervisor::new(Settings {
+        force_cpu: false,
+        ..settings(dir.path(), Duration::from_millis(200))
+    });
+    let engine = whisper(&supervisor, "/models/fake.bin");
+    take(&engine);
+    std::thread::sleep(Duration::from_millis(300));
+    assert_eq!(supervisor.reap_idle(), 1, "idle engine unloaded");
+    engine.preload(PreloadSource::SessionStart).unwrap();
+    assert!(warm(&supervisor), "the reloaded engine ran its warm-up");
+    supervisor.shutdown();
+}
+
 /// R1: a reload of the same model path on another backend is a new
 /// instance that never inferred: the earlier take does not make it warm.
 #[test]

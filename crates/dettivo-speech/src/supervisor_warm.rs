@@ -17,11 +17,6 @@ use crate::process::EngineProcess;
 /// No warm-up when the engine recognised this recently.
 pub const WARM_UP_SKIP: Duration = Duration::from_secs(60);
 
-/// The warm-up's silence: 30 s at 16 kHz, the longest window Whisper
-/// decodes at once; a shorter one leaves Parakeet's long-input kernels
-/// to the first take (ADR 0084).
-pub const WARM_UP_SAMPLES: usize = 480_000;
-
 /// Why an inference's backend differs from the one the model loaded on.
 const INFERENCE_FALLBACK: &str = "the GPU had no room for an inference, CPU fallback";
 
