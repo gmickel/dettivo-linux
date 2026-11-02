@@ -3,22 +3,23 @@
 //! Wayland and XWayland windows alike.
 
 use std::io::{Read, Write};
-use std::os::unix::net::UnixStream;
-use std::path::PathBuf;
 use std::time::Duration;
 
 use super::{FocusProbe, RawWindow};
+use crate::instance::Instances;
+use crate::session::Session;
 
 /// The probe.
-pub struct HyprlandProbe {
-    /// `$XDG_RUNTIME_DIR/hypr/<signature>/.socket.sock`.
-    pub socket: PathBuf,
+pub struct HyprlandProbe<'a> {
+    /// The instance in use, found again when it refuses (ADR 0099).
+    pub instances: &'a Instances,
+    /// The session the probe runs in.
+    pub session: &'a Session,
 }
 
-impl HyprlandProbe {
+impl HyprlandProbe<'_> {
     fn query(&self, command: &str) -> Result<String, String> {
-        let mut stream = UnixStream::connect(&self.socket)
-            .map_err(|e| format!("hyprland socket {}: {e}", self.socket.display()))?;
+        let mut stream = self.instances.connect(self.session)?;
         stream
             .set_read_timeout(Some(Duration::from_millis(500)))
             .map_err(|e| e.to_string())?;
@@ -77,7 +78,7 @@ pub fn parse_active_window(json: &str) -> Result<Option<RawWindow>, String> {
     }))
 }
 
-impl FocusProbe for HyprlandProbe {
+impl FocusProbe for HyprlandProbe<'_> {
     fn name(&self) -> &'static str {
         "hyprland"
     }

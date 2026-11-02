@@ -7,14 +7,18 @@
 //! guess (ADR 0091).
 
 use std::collections::VecDeque;
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use wayland_client::protocol::{wl_registry, wl_seat};
 use wayland_client::{Connection, Dispatch, QueueHandle, delegate_noop};
+
 use wayland_protocols::ext::idle_notify::v1::client::{
     ext_idle_notification_v1, ext_idle_notifier_v1,
 };
+
+use crate::display::Ended;
 
 /// Input after this long without any counts as new activity.
 pub const IDLE_AFTER: Duration = Duration::from_millis(100);
@@ -31,8 +35,9 @@ pub trait InputActivity: Send + Sync {
 
 #[derive(Default)]
 struct Seen {
-    /// The compositor answered with a notification.
-    watching: bool,
+    /// Since when the current connection has watched without a gap; input
+    /// before it went unseen.
+    watching_since: Option<Instant>,
     resumed: VecDeque<Instant>,
 }
 
@@ -45,8 +50,9 @@ pub struct IdleMonitor {
 impl InputActivity for IdleMonitor {
     fn active_between(&self, from: Instant, until: Instant) -> Option<bool> {
         let seen = self.seen.lock().unwrap_or_else(|p| p.into_inner());
-        seen.watching
-            .then(|| seen.resumed.iter().any(|&r| r > from && r < until))
+        seen.watching_since
+            .filter(|&since| since <= from)
+            .map(|_| seen.resumed.iter().any(|&r| r > from && r < until))
     }
 }
 
@@ -111,14 +117,42 @@ impl IdleMonitor {
     /// Starts watching on the session's Wayland display. Without one, or
     /// without the notifier, the monitor answers `None`.
     pub fn start() -> Self {
+        match crate::Session::from_env(None, false).wayland_socket() {
+            Some(socket) => Self::on(socket),
+            None => {
+                tracing::info!(
+                    "no input-idle signal: no Wayland display, consecutive dictations are not joined"
+                );
+                Self::default()
+            }
+        }
+    }
+
+    /// Starts watching the compositor on the display `socket`, again
+    /// whenever it comes back after going away (ADR 0100).
+    pub fn on(socket: PathBuf) -> Self {
         let monitor = Self::default();
         let seen = monitor.seen.clone();
         let spawned = std::thread::Builder::new()
             .name("input-idle".into())
             .spawn(move || {
-                if let Err(e) = watch(seen) {
-                    tracing::info!(reason = %e, "no input-idle signal: consecutive dictations are not joined");
-                }
+                let mut last = String::new();
+                crate::display::reconnecting(
+                    &socket,
+                    |conn| match watch(&conn, &seen) {
+                        Watched::Lost(why) => Ended::Lost(why),
+                        Watched::NotOffered(why) => {
+                            tracing::info!(reason = %why, "no input-idle signal: consecutive dictations are not joined");
+                            Ended::Done
+                        }
+                    },
+                    |why| {
+                        if why != last {
+                            tracing::info!(reason = %why, "input-idle signal lost; following the compositor again when it is back");
+                            last = why.to_string();
+                        }
+                    },
+                );
             });
         if let Err(e) = spawned {
             tracing::warn!(error = %e, "input-idle thread not started");
@@ -127,8 +161,13 @@ impl IdleMonitor {
     }
 }
 
-fn watch(seen: Arc<Mutex<Seen>>) -> Result<(), String> {
-    let conn = Connection::connect_to_env().map_err(|e| format!("wayland: {e}"))?;
+/// How watching one connection ended.
+enum Watched {
+    Lost(String),
+    NotOffered(String),
+}
+
+fn watch(conn: &Connection, seen: &Arc<Mutex<Seen>>) -> Watched {
     let mut queue = conn.new_event_queue();
     let qh = queue.handle();
     let _registry = conn.display().get_registry(&qh, ());
@@ -137,22 +176,28 @@ fn watch(seen: Arc<Mutex<Seen>>) -> Result<(), String> {
         notifier: None,
         seen: seen.clone(),
     };
-    queue
-        .roundtrip(&mut state)
-        .map_err(|e| format!("wayland roundtrip: {e}"))?;
+    if let Err(e) = queue.roundtrip(&mut state) {
+        return Watched::Lost(format!("wayland roundtrip: {e}"));
+    }
     let (Some(seat), Some(notifier)) = (state.seat.clone(), state.notifier.clone()) else {
-        return Err("the compositor offers no ext_idle_notifier_v1 version 2".into());
+        return Watched::NotOffered(
+            "the compositor offers no ext_idle_notifier_v1 version 2".into(),
+        );
     };
     let timeout = u32::try_from(IDLE_AFTER.as_millis()).unwrap_or(u32::MAX);
     let _notification = notifier.get_input_idle_notification(timeout, &seat, &qh, ());
-    seen.lock().unwrap_or_else(|p| p.into_inner()).watching = true;
+    seen.lock()
+        .unwrap_or_else(|p| p.into_inner())
+        .watching_since = Some(Instant::now());
     let ended = loop {
         if let Err(e) = queue.blocking_dispatch(&mut state) {
             break format!("wayland dispatch: {e}");
         }
     };
-    seen.lock().unwrap_or_else(|p| p.into_inner()).watching = false;
-    Err(ended)
+    seen.lock()
+        .unwrap_or_else(|p| p.into_inner())
+        .watching_since = None;
+    Watched::Lost(ended)
 }
 
 #[cfg(test)]
@@ -167,11 +212,50 @@ mod tests {
         assert_eq!(monitor.active_between(t0, t(100)), None, "no source");
         {
             let mut seen = monitor.seen.lock().unwrap();
-            seen.watching = true;
+            seen.watching_since = Some(t0);
             seen.resumed.push_back(t(50));
         }
         assert_eq!(monitor.active_between(t0, t(100)), Some(true));
         assert_eq!(monitor.active_between(t(50), t(100)), Some(false));
         assert_eq!(monitor.active_between(t0, t(50)), Some(false));
+    }
+
+    fn watching(monitor: &IdleMonitor) -> bool {
+        let now = Instant::now();
+        monitor.active_between(now, now).is_some()
+    }
+
+    fn wait_for(what: &str, done: impl Fn() -> bool) {
+        let until = Instant::now() + Duration::from_secs(3);
+        while !done() {
+            assert!(Instant::now() < until, "{what}");
+            std::thread::sleep(Duration::from_millis(10));
+        }
+    }
+
+    /// fn-91 R3: the compositor restarts on the same display; the watch
+    /// drops with the old one and follows the new one, so joins come
+    /// back without a daemon restart.
+    #[test]
+    fn the_input_idle_watch_follows_a_restarted_compositor() {
+        use crate::stand_in::{Global, WaylandStandIn};
+        let dir = tempfile::Builder::new()
+            .prefix("dtv")
+            .tempdir_in("/tmp")
+            .unwrap();
+        let socket = dir.path().join("wl");
+        let globals = [Global::Seat, Global::IdleNotifier];
+        let mut first = WaylandStandIn::start(&socket, &globals).unwrap();
+        let monitor = IdleMonitor::on(socket.clone());
+        wait_for("the first compositor is watched", || watching(&monitor));
+        first.crash();
+        wait_for("a lost compositor gives no answer", || !watching(&monitor));
+        let outage = Instant::now();
+        std::thread::sleep(Duration::from_millis(300));
+        let _second = WaylandStandIn::start(&socket, &globals).unwrap();
+        wait_for("the new compositor is watched", || watching(&monitor));
+        // Input during the outage went unseen: a span across it has no
+        // answer, so it never reads as a quiet continuation.
+        assert_eq!(monitor.active_between(outage, Instant::now()), None);
     }
 }

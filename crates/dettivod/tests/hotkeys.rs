@@ -6,15 +6,16 @@
 //! its new id after a reload, toggle and cancel work, playing MPRIS players are paused and
 //! resumed while a paused one is left alone, the cues are logged through
 //! the mock audio path, a caller-supplied target that moved is refused
-//! with `CONFLICT` at insertion time, and a desktop without a portal
-//! leaves the daemon running with the reason in `hotkeys.status`.
+//! with `CONFLICT` at insertion time, a desktop without a portal
+//! leaves the daemon running with the reason in `hotkeys.status`, and a
+//! rebind after the portal backend restarted that fails shows there too.
 
 mod common;
 
 use std::time::Duration;
 
 use common::{Daemon, Tree, local_model, tree_with_tiny, wait_for};
-use dettivo_hotkeys::mock::{MockPlayer, MockPortal, PrivateBus};
+use dettivo_hotkeys::mock::{MockOptions, MockPlayer, MockPortal, PrivateBus};
 use dettivo_hotkeys::portal::NO_PORTAL;
 use serde_json::{Value, json};
 
@@ -405,5 +406,62 @@ fn snippet_and_setup_match_the_cli_and_write_idempotently() {
         json!({"compositor": "gnome", "write": true}),
     );
     assert_eq!(refused["error"]["data"]["app_code"], "INVALID_PARAMS");
+    daemon.stop();
+}
+
+/// fn-91 R3: a rebind after the portal backend restarted that the portal
+/// denies leaves `hotkeys.status` (and so `dettivo doctor`) naming the
+/// failure with nothing bound, and a reload while a rebind waits on an
+/// unanswered bind does not wait for it.
+#[test]
+fn a_failed_rebind_after_a_portal_restart_shows_in_the_status() {
+    let Some(bus) = private_bus() else { return };
+    let portal = MockPortal::serve(bus.address(), false).unwrap();
+    let tree = Tree::new();
+    tree.write_config("[hotkeys]\nbackend = \"portal\"\n");
+    let daemon = Daemon::spawn(tree, &[("DBUS_SESSION_BUS_ADDRESS", bus.address())]);
+    assert!(
+        wait_for(Duration::from_secs(15), || {
+            daemon.result("hotkeys.status", json!({}))["bound"]
+                .as_array()
+                .is_some_and(|b| b.len() == 4)
+        }),
+        "never bound: {}",
+        daemon.log()
+    );
+    portal.set_options(MockOptions {
+        deny: true,
+        ..MockOptions::default()
+    });
+    portal.restart_backend().unwrap();
+    assert!(
+        wait_for(Duration::from_secs(10), || {
+            daemon.result("hotkeys.status", json!({}))["error"]
+                .as_str()
+                .is_some_and(|e| e.contains("denied"))
+        }),
+        "the failed rebind is not in the status: {}",
+        daemon.result("hotkeys.status", json!({}))
+    );
+    assert_eq!(
+        daemon.result("hotkeys.status", json!({}))["bound"],
+        json!([])
+    );
+
+    portal.set_options(MockOptions {
+        stall: true,
+        ..MockOptions::default()
+    });
+    portal.restart_backend().unwrap();
+    assert!(wait_for(Duration::from_secs(5), || portal.bind_calls() == 3));
+    std::fs::write(daemon.tree.config_file(), "[hotkeys]\nbackend = \"none\"\n").unwrap();
+    assert!(
+        wait_for(Duration::from_secs(5), || {
+            daemon.result("hotkeys.status", json!({}))["requested"] == "none"
+                && daemon.result("hotkeys.status", json!({}))["backend"] == "none"
+        }),
+        "the reload waited on the rebind: {}",
+        daemon.result("hotkeys.status", json!({}))
+    );
     daemon.stop();
 }

@@ -29,5 +29,10 @@ zbus.workspace = true
 [dev-dependencies]
 tempfile.workspace = true
 
+[features]
+# Stand-in Wayland compositor and Hyprland instance on private sockets,
+# for this crate's tests and the daemon's; never in a release build.
+stand-in = []
+
 [lints]
 workspace = true
