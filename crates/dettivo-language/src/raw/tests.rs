@@ -63,7 +63,10 @@ fn a_spoken_mark_beside_a_written_one_leaves_one_mark() {
             "Send me the report period, then go home.",
             "Send me the report. Then go home.",
         ),
-        ("Is it done, question mark, then go.", "Is it done? Then go."),
+        (
+            "Is it done, question mark, then go.",
+            "Is it done? Then go.",
+        ),
         (
             "Meet me at nine, comma, then we go.",
             "Meet me at nine, then we go.",
