@@ -391,10 +391,86 @@
       "task": "fn-84-vocabulary-on-parakeet.1",
       "timestamp": "2026-11-01T23:37:04.934008Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4cf58c31a40c3384936ee621cda8570562f0b11ba369582097846c50d3fcbdd3",
+      "backend": "codex",
+      "base_sha": "8aab6f103493852f870c85d430bc4bdb49a0a94a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-67b6530558e8c9626699384e841e9377",
+            "classification": "introduced",
+            "findingId": "finding-67b6530558e8c9626699384e841e9377",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4915ddb0df3d9ee3c92e7437e7b2d104",
+            "classification": "introduced",
+            "findingId": "finding-4915ddb0df3d9ee3c92e7437e7b2d104",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0a301861bc05cd07a0f7300df69b5dea",
+            "classification": "introduced",
+            "findingId": "finding-0a301861bc05cd07a0f7300df69b5dea",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-eda2326bceda69209946a64ee76c3d76",
+            "classification": "introduced",
+            "findingId": "finding-eda2326bceda69209946a64ee76c3d76",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e41c33fbfeabe091da5cb66e0e5200aa",
+            "classification": "introduced",
+            "findingId": "finding-e41c33fbfeabe091da5cb66e0e5200aa",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 4,
+      "head_sha": "5c448491ec139e5a4e7f0f1440ba19328c7dd397",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "83c3b1aa0c7d482da28a5e867fcbf1ef",
+      "round_consumed": true,
+      "scope": "impl:fn-84-vocabulary-on-parakeet.1",
+      "superseded_by": null,
+      "task": "fn-84-vocabulary-on-parakeet.1",
+      "timestamp": "2026-11-02T00:45:10.176378Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-84-vocabulary-on-parakeet.1": 4
+    "impl:fn-84-vocabulary-on-parakeet.1": 5
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -415,5 +491,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T23:37:04.937967Z"
+  "updated_at": "2026-11-02T00:45:10.180040Z"
 }
