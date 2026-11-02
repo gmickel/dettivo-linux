@@ -9,6 +9,11 @@
     "default_sink": null,
     "default_source": null,
     "devices": [],
+    "microphone_ready": {
+      "lock_signal": "compositor",
+      "reason": null,
+      "state": "off"
+    },
     "pinned": "",
     "pipewire": false
   },

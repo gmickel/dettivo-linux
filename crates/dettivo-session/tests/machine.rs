@@ -7,7 +7,7 @@ mod support;
 
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Barrier, Mutex};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use dettivo_audio::{EndReason, Event};
 use dettivo_proto::runtime::InsertionOutcome;
@@ -25,6 +25,7 @@ fn a_full_session_runs_every_state_and_keeps_the_transcript() {
             engine.clone(),
             feed.clone(),
             None,
+            Instant::now(),
         )
         .unwrap();
     assert_eq!(started.state, State::Recording);
@@ -94,10 +95,11 @@ fn silence_is_read_from_the_samples_not_the_meter() {
             engine.clone(),
             feed.clone(),
             None,
+            Instant::now(),
         )
         .unwrap();
     // 40 ms at 0.09 of full scale and no level event at all.
-    feed.send(Event::Pcm(support::tone(640)));
+    feed.send(Event::pcm(support::tone(640)));
     std::thread::sleep(Duration::from_millis(50));
     let t = session.stop().unwrap();
     assert_eq!(t.text, "Short take");
@@ -112,9 +114,10 @@ fn silence_is_read_from_the_samples_not_the_meter() {
             engine.clone(),
             feed.clone(),
             None,
+            Instant::now(),
         )
         .unwrap();
-    feed.send(Event::Pcm(vec![0i16; 3_200]));
+    feed.send(Event::pcm(vec![0i16; 3_200]));
     feed.send(Event::Level {
         rms: 0.5,
         peak: 0.9,
@@ -134,10 +137,16 @@ fn silence_is_read_from_the_samples_not_the_meter() {
 fn unarchived_staging_is_discarded_and_silence_skips_the_engine() {
     let (dir, rec, session, engine, feed) = rig("never used");
     session
-        .start(policy(dir.path(), true), engine.clone(), feed.clone(), None)
+        .start(
+            policy(dir.path(), true),
+            engine.clone(),
+            feed.clone(),
+            None,
+            Instant::now(),
+        )
         .unwrap();
     for _ in 0..10 {
-        feed.send(Event::Pcm(vec![0i16; 320]));
+        feed.send(Event::pcm(vec![0i16; 320]));
     }
     feed.send(Event::Level {
         rms: 0.0,
@@ -183,12 +192,16 @@ fn concurrent_starts_let_exactly_one_win() {
     let mut handles = Vec::new();
     for _ in 0..4 {
         let (s, p, e, f) = (session.clone(), p.clone(), engine.clone(), feed.clone());
-        handles.push(std::thread::spawn(move || s.start(p, e, f, None).is_ok()));
+        handles.push(std::thread::spawn(move || {
+            s.start(p, e, f, None, Instant::now()).is_ok()
+        }));
     }
     let wins: Vec<bool> = handles.into_iter().map(|h| h.join().unwrap()).collect();
     assert_eq!(wins.iter().filter(|w| **w).count(), 1, "{wins:?}");
     assert_eq!(
-        session.start(p, engine, feed.clone(), None).unwrap_err(),
+        session
+            .start(p, engine, feed.clone(), None, Instant::now())
+            .unwrap_err(),
         SessionError::Active
     );
     session.cancel().unwrap();
@@ -229,7 +242,7 @@ fn every_stopper_of_a_take_gets_that_takes_result() {
     });
     let starter = {
         let (s, p, e) = (session.clone(), policy(dir.path(), false), engine.clone());
-        std::thread::spawn(move || s.start(p, e, gated, None))
+        std::thread::spawn(move || s.start(p, e, gated, None, Instant::now()))
     };
     entered.wait();
     // The slot is reserved, the source is opening: two stoppers arrive.
@@ -256,7 +269,13 @@ fn every_stopper_of_a_take_gets_that_takes_result() {
     wait_idle(&session);
     // The next take starts at once and its own stop answers for it.
     let next = session
-        .start(policy(dir.path(), false), engine, Feed::new(), None)
+        .start(
+            policy(dir.path(), false),
+            engine,
+            Feed::new(),
+            None,
+            Instant::now(),
+        )
         .unwrap();
     assert_eq!(next.state, State::Recording);
     assert_ne!(session.stop().map(|t| t.text), Err(SessionError::NoSession));
@@ -276,13 +295,22 @@ fn stop_and_cancel_without_a_session_are_not_found_and_modes_are_gated() {
     p.mode = "meeting".into();
     assert_eq!(
         session
-            .start(p.clone(), engine.clone(), feed.clone(), None)
+            .start(
+                p.clone(),
+                engine.clone(),
+                feed.clone(),
+                None,
+                Instant::now()
+            )
             .unwrap_err(),
         SessionError::ModeUnknown("meeting".into())
     );
     p.mode = "raw".into();
     p.model_path = dir.path().join("absent.bin");
-    match session.start(p, engine, feed, None).unwrap_err() {
+    match session
+        .start(p, engine, feed, None, Instant::now())
+        .unwrap_err()
+    {
         SessionError::ModelMissing {
             model,
             recommended_action,
@@ -309,6 +337,7 @@ fn the_target_captured_at_start_reaches_the_snapshot_and_the_inserter() {
             engine.clone(),
             feed.clone(),
             Some(target.clone()),
+            Instant::now(),
         )
         .unwrap();
     assert_eq!(started.target.as_ref(), Some(&target));

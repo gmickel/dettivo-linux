@@ -171,6 +171,17 @@ pub struct ReinsertLastResult {
     pub insertion: crate::runtime::InsertionResult,
 }
 
+/// `dictation.pause` and `dictation.resume` result (Linux addition, ADR
+/// 0092): whether Dettivo is paused now. Paused, the always-ready
+/// microphone stays closed until `dictation.resume` or a daemon restart; a
+/// press still dictates on a capture of its own.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PauseResult {
+    /// True after `dictation.pause`, false after `dictation.resume`.
+    pub paused: bool,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

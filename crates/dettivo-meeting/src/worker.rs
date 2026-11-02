@@ -283,7 +283,7 @@ impl Worker {
             };
             busy = true;
             match event {
-                Event::Pcm(samples) => {
+                Event::Pcm { pcm: samples, .. } => {
                     if let Err(e) = t.writer.write(&samples) {
                         let reason = format!("{} take: {e}", t.track.prefix());
                         journal.record("error", Some(t.track), None, Some(reason.clone()));

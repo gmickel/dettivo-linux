@@ -62,6 +62,8 @@ pub(crate) enum Exit {
     /// Finished; a warning (the archive failed) rides on the final state.
     Completed(Option<String>),
     Cancelled,
+    /// The press was shorter than the minimum hold: a tap, not a take.
+    Tap,
     /// The speech gate found the take silent; it never reached the engine.
     Silence(SilenceReason),
     Failed(String),
@@ -78,6 +80,7 @@ pub(crate) fn finish_shared(
     let (state, reason) = match &exit {
         Exit::Completed(warning) => (State::Idle, warning.clone()),
         Exit::Cancelled => (State::Cancelled, Some("cancelled".to_string())),
+        Exit::Tap => (State::Cancelled, Some(crate::TAP.to_string())),
         Exit::Silence(stage) => (
             State::Cancelled,
             Some(format!("silence: {}", stage.as_str())),
@@ -90,7 +93,7 @@ pub(crate) fn finish_shared(
             Outcome::Completed(Box::new(t))
         }
         (Exit::Completed(_), None) => Outcome::Failed("no transcript".into()),
-        (Exit::Cancelled, _) => Outcome::Cancelled,
+        (Exit::Cancelled | Exit::Tap, _) => Outcome::Cancelled,
         (Exit::Silence(_), _) => Outcome::Silence,
         (Exit::Failed(r), _) => Outcome::Failed(r.clone()),
     };

@@ -37,6 +37,9 @@ mod meetings;
 mod meetings_archive;
 mod models;
 mod platform;
+mod ready;
+mod ready_screen;
+mod ready_session;
 mod rest;
 mod router;
 mod self_target;
@@ -179,6 +182,10 @@ fn main() -> ExitCode {
         let reaper = tokio::spawn(reap_idle_engines(daemon.clone()));
         let maintenance = tokio::spawn(maintain_history(daemon.clone()));
         let downloads = tokio::spawn(publish_downloads(daemon.clone()));
+        // Before the first reconcile, so the ring waits for both lock sources.
+        ready_screen::watch(daemon.clone());
+        let session_lock = tokio::spawn(ready_session::watch(daemon.clone()));
+        let ready = tokio::spawn(ready::supervise(daemon.clone()));
         // One deadline from the signal: the drain, the listener release
         // and every stop below share `[daemon] shutdown_timeout_ms`.
         let deadline = server::run(daemon.clone(), acquired).await;
@@ -191,6 +198,12 @@ fn main() -> ExitCode {
         reaper.abort();
         maintenance.abort();
         downloads.abort();
+        ready.abort();
+        session_lock.abort();
+        let d = daemon.clone();
+        shutdown::within(deadline, "microphone ready", move || {
+            d.dictation().ready().close("the daemon stops")
+        });
         let d = daemon.clone();
         shutdown::within(deadline, "hotkeys", move || d.hotkeys().shutdown());
         let d = daemon.clone();

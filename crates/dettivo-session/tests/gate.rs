@@ -8,7 +8,7 @@ mod support;
 
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use dettivo_proto::runtime::InsertionOutcome;
 use dettivo_session::SessionError;
@@ -36,7 +36,9 @@ fn take(
     let dir = tempfile::tempdir().unwrap();
     let mut p = policy(dir.path(), false);
     p.vocabulary = vocabulary.iter().map(|w| (*w).into()).collect();
-    session.start(p, engine, feed.clone(), None).unwrap();
+    session
+        .start(p, engine, feed.clone(), None, Instant::now())
+        .unwrap();
     feed.speak(400);
     std::thread::sleep(Duration::from_millis(50));
     session.stop()
@@ -82,6 +84,7 @@ fn a_cancel_during_the_voice_pass_never_reaches_the_engine() {
             engine.clone(),
             feed.clone(),
             None,
+            Instant::now(),
         )
         .unwrap();
     feed.speak(400);
@@ -140,6 +143,7 @@ fn a_parakeet_take_reaches_the_engine_with_trailing_silence() {
             Arc::new(Parakeet(engine.clone())),
             feed.clone(),
             None,
+            Instant::now(),
         )
         .unwrap();
     feed.speak(2_000);
@@ -195,6 +199,7 @@ fn padding_never_empties_a_take() {
             Arc::new(EmptyWhenPadded(engine.clone(), 32_000)),
             feed.clone(),
             None,
+            Instant::now(),
         )
         .unwrap();
     feed.speak(2_000);
@@ -265,7 +270,7 @@ fn the_engine_prompt_carries_terms_and_never_aliases() {
         "Dettivo".into(),
     ];
     session
-        .start(p, prompted.clone(), feed.clone(), None)
+        .start(p, prompted.clone(), feed.clone(), None, Instant::now())
         .unwrap();
     feed.speak(400);
     std::thread::sleep(Duration::from_millis(50));

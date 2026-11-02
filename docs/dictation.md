@@ -14,10 +14,12 @@ dettivo dictation toggle                   # one binding for both
 dettivo dictation cancel                   # drop the take
 dettivo dictation status                   # is a session active, what is it doing
 dettivo dictation reinsert-last            # hand the last transcript over again
+dettivo dictation pause                    # close the always-ready microphone until resume
+dettivo dictation resume                   # let it open again
 dettivo events --follow --topic dictation.state --topic audio.level
 ```
 
-`press`, `release`, `toggle` and `reinsert-last` are Linux additions; the other verbs map one to one to `dictation.start`, `stop`, `cancel` and `status`. `press` and `release` feed the daemon's hold key, which finishes a take whose release the compositor dropped, ignores a repeating key and locks recording after a double tap ([docs/hotkeys.md](hotkeys.md#what-a-press-does)); `start` and `stop` act on the session directly. `dettivo setup hyprland` (or `sway`, `niri`) writes these bindings for you with the chords from `[hotkeys]`, and on GNOME and KDE the daemon binds the same actions through the portal ([docs/hotkeys.md](hotkeys.md)). `events --follow` subscribes and prints one JSON line per notification (`--json` prints the raw `params` object; `--count N` stops after N events).
+`press`, `release`, `toggle`, `reinsert-last`, `pause` and `resume` are Linux additions; the other verbs map one to one to `dictation.start`, `stop`, `cancel` and `status`. `press` and `release` feed the daemon's hold key, which finishes a take whose release the compositor dropped, ignores a repeating key and locks recording after a double tap ([docs/hotkeys.md](hotkeys.md#what-a-press-does)); `start` and `stop` act on the session directly. `dettivo setup hyprland` (or `sway`, `niri`) writes these bindings for you with the chords from `[hotkeys]`, and on GNOME and KDE the daemon binds the same actions through the portal ([docs/hotkeys.md](hotkeys.md)). `events --follow` subscribes and prints one JSON line per notification (`--json` prints the raw `params` object; `--count N` stops after N events).
 
 ## The session
 
@@ -36,11 +38,34 @@ idle ──start──▶ recording ──stop──▶ transcribing ──▶ i
 - **A silent take** answers `stop` and `stop --print` alike with `CONFLICT` kind `noSpeech` ("no speech was heard"), and the CLI exits 6.
 - **idle** is published after the item is in the history store ([docs/history.md](history.md)) with the transcript, the insertion result, the app, the engine and model and, when `[history] keep_audio` is on, the take moved into the item's directory; the session keeps the last transcript for `reinsert-last` too, and after a restart `reinsert-last` reads the newest item from the store. A store that fails puts `history: <why>` on this state's `reason` and the insertion stands.
 
+## First and last words
+
+A take keeps the word you started as the key went down and the word you were finishing as you let go ([ADR 0093](adr/0093-a-take-runs-from-the-pre-roll-to-the-release-tail-and-a-tap-is-no-take.md)).
+
+- **Release tail.** Recording continues for 200 ms after the release, then the take closes. If the microphone stops delivering audio meanwhile, the take closes 100 ms after the last audio. `dettivo dictation release` and `stop` answer once the take has settled, so they return at least 200 ms after the key came up.
+- **Taps.** A press released within 300 ms is a tap. It never reaches the engine, plays no stop cue, leaves nothing in History, and the session ends `cancelled` with `reason` `tap`. `release` answers `discarded`; `stop` and `toggle` answer `CONFLICT` with `kind = sessionCancelled`. The hold key uses the same 300 ms for its double tap ([docs/hotkeys.md](hotkeys.md#what-a-press-does)).
+- **Pre-roll.** With `[audio] keep_microphone_ready = true`, the take starts 450 ms before the press. The daemon times the press from when the binding's call reached it, so a press that waits behind a loading engine keeps its moment. With the setting off, which is the default, the microphone opens on the press and the take starts with the first audio the stream delivers.
+
+Both the tail and the tap rule apply whatever the setting says.
+
+### Keeping the microphone ready
+
+`keep_microphone_ready = true` keeps one capture of the microphone open while dictation is idle and holds the last 10 seconds in memory ([ADR 0092](adr/0092-dictation-can-keep-the-microphone-ready-and-it-is-off-by-default.md)). What it costs:
+
+- **The microphone indicator stays lit** whenever the daemon runs, the session is unlocked and no meeting records.
+- The ten seconds never leave the daemon. No event, method or file carries them, and the daemon overwrites them continuously. Only the take, from 450 ms before the press to 200 ms after the release, is written, and History keeps it under `[history] keep_audio` and `audio_retention_days` as before.
+
+The daemon closes the capture when you turn the setting off, while the screen is locked or your session is switched away, while a meeting records, and while you pause it. `dettivo dictation pause` closes it before it returns and keeps it closed until `dettivo dictation resume` or the daemon restarts; the configuration stays as it is, and a key press still dictates, opening the microphone for that take only. A meeting start closes it before the meeting opens the microphone, and it reopens once the meeting's capture has ended, so the microphone is never captured twice.
+
+The daemon hears of a lock from Hyprland, which reports every locker, Omarchy's lock screen included, and from logind's `LockedHint`, which GNOME and KDE set. On another desktop whose locker leaves logind alone, the capture stays open while the screen is locked. `dettivo doctor` shows which one the daemon follows: `closes when the screen locks` on Hyprland, a warning that only lockers setting `LockedHint` count, or `no lock signal` when it has neither.
+
+A moved default source or a lost device reopens the capture on the new default within a quarter second. A pinned `[audio] input_device` that disappears leaves the capture on the default until the pinned device returns, and a changed `input_device` moves the capture to it. When it cannot open, `dettivo doctor` shows `microphone ready failed: <why>` and the daemon retries every two seconds; dictation meanwhile opens the microphone on press. A PipeWire restart ends the capture with `PipeWire went away`: until PipeWire is back a press fails with that reason, and within a second of its return the daemon reconnects and the capture reopens on its own. A daemon started before PipeWire connects the same way once PipeWire starts; until then a press fails with `PipeWire is not running`. `dettivo audio` and `audio.devices` report the same state in `microphone_ready` (`off`, `open`, `closed` with the reason, or `failed` with the reason) and the lock source in `lock_signal` (`compositor`, `logind` or `none`). The switch is under Settings / General, Microphone.
+
 `dictation.status` reports `is_active`, the job (`listening with whisper/large-v3-turbo`, progress as a fraction of the maximum duration) and the `target` captured at start; `system.health` reports `recording_state = dictation` and one active job while a session runs.
 
 ## The speech gate
 
-The gate keeps an empty or noisy take from pasting the filler an engine invents for silence ([ADR 0081](adr/0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md)). The stop ends the capture at once, so the take holds what you recorded up to the release plus at most one capture quantum (about 21 ms) that PipeWire may deliver before the stop runs; the stop cue plays after that and never counts ([ADR 0082](adr/0082-a-take-ends-at-the-stop-within-one-capture-quantum.md)). The gate never trims a take that passes.
+The gate keeps an empty or noisy take from pasting the filler an engine invents for silence ([ADR 0081](adr/0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md)). The take holds what you recorded up to 200 ms after the release plus at most one capture quantum (about 21 ms) that PipeWire may deliver before the stop runs, so a sound in that tail does count; the stop cue plays after the take closed and never counts ([ADR 0082](adr/0082-a-take-ends-at-the-stop-within-one-capture-quantum.md), [ADR 0093](adr/0093-a-take-runs-from-the-pre-roll-to-the-release-tail-and-a-tap-is-no-take.md)). The gate never trims a take that passes.
 
 1. **Level.** The loudest 30 ms window of the take, with its DC offset removed, must reach `[dictation] silence_dbfs` (-50 dBFS). A click or keyboard thump stays under it, and a quiet word at -45 dBFS passes. A take shorter than 30 ms is silence.
 2. **Voice.** When `whisper/silero-vad` is downloaded, the Silero model looks for speech in the take on the CPU (threshold 0.4, at least 160 ms of speech), so a fan, a music bed or breathing is silence while a whisper and a single "Ok" are not. `speech.models.download` fetches it with any speech model, and `dettivo speech download --model silero-vad` fetches it alone. Without it the level decides alone, and `dettivo doctor` names the model and that command on its `voice gate` row. Right after the daemon starts, a model on disk that has not been hashed yet shows as `unverified` on that row; the daemon checks it before the first take that uses it, so no download is needed.
@@ -101,6 +126,7 @@ A vocabulary holds at most 500 entries, a term at most 64 characters and 16 `sou
 | `[history] keep_audio` | `true` | Keep the take with the stored item. |
 | `[dictation] join_continuations` | `true` | A take into the window the previous one landed in, within 30 s and with no input in between, continues it ([docs/insertion.md](insertion.md#consecutive-dictations-join)). |
 | `[audio] input_device` | `""` | A pinned PipeWire node; empty follows the default. |
+| `[audio] keep_microphone_ready` | `false` | Keep the microphone open while idle so a take starts 450 ms before the press; the microphone indicator stays lit ([Keeping the microphone ready](#keeping-the-microphone-ready)). |
 | `[audio] while_dictating` | `"nothing"` | What a take does to playing media (see [Media while dictating](#media-while-dictating)). |
 
 If your `config.toml` still sets `[dictation] silence_peak_threshold`, it keeps loading and the daemon ignores that value, because `silence_dbfs` replaced it ([ADR 0081](adr/0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md)). Delete the line when convenient. Its value does not carry over, since the old key measured the single loudest sample and `silence_dbfs` measures the loudest 30 ms window in dBFS; [docs/config.md](config.md) has the full migration note.

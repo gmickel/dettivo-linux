@@ -37,6 +37,13 @@
           "section": "audio"
         },
         {
+          "default": false,
+          "doc": "Keep the microphone open while dictation is idle, so a take starts 450 ms before the key went down. The desktop's microphone indicator stays lit.",
+          "key": "audio.keep_microphone_ready",
+          "kind": "boolean",
+          "section": "audio"
+        },
+        {
           "default": 50,
           "doc": "How often a level sample (RMS and peak) is published, in milliseconds.",
           "key": "audio.level_interval_ms",

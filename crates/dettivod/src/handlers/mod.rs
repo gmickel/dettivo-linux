@@ -75,10 +75,14 @@ pub type Handler = fn(&Daemon, &Ctx, Value) -> Result<Value, JsonRpcError>;
 /// Finds the handler without executing it.
 pub fn resolve(method: &str) -> Option<Handler> {
     Some(match method {
-        "dictation.start" => |daemon, _ctx, value| dictation::start(daemon, value),
+        "dictation.start" => |daemon, _ctx, value| {
+            let at = std::time::Instant::now();
+            dictation::start(daemon, value, at)
+        },
         "dictation.toggle" => |daemon, _ctx, value| {
+            let at = std::time::Instant::now();
             let _: dettivo_proto::catalog::NoParams = params(value)?;
-            dictation::toggle(daemon)
+            dictation::toggle(daemon, at)
         },
         "dictation.press" => |daemon, _ctx, value| {
             let at = std::time::Instant::now();
@@ -90,7 +94,10 @@ pub fn resolve(method: &str) -> Option<Handler> {
             let _: dettivo_proto::catalog::NoParams = params(value)?;
             dictation::hold(daemon, crate::hold::Edge::Release, at)
         },
-        "dictation.stop" => |daemon, _ctx, value| dictation::stop(daemon, value),
+        "dictation.stop" => |daemon, _ctx, value| {
+            let at = std::time::Instant::now();
+            dictation::stop(daemon, value, at)
+        },
         "dictation.cancel" => |daemon, _ctx, value| dictation::cancel(daemon, value),
         "dictation.status" => |daemon, _ctx, value| {
             let _: dettivo_proto::catalog::NoParams = params(value)?;
@@ -99,6 +106,14 @@ pub fn resolve(method: &str) -> Option<Handler> {
         "dictation.reinsert_last" => |daemon, _ctx, value| {
             let _: dettivo_proto::catalog::NoParams = params(value)?;
             dictation::reinsert_last(daemon)
+        },
+        "dictation.pause" => |daemon, _ctx, value| {
+            let _: dettivo_proto::catalog::NoParams = params(value)?;
+            dictation::pause(daemon, true)
+        },
+        "dictation.resume" => |daemon, _ctx, value| {
+            let _: dettivo_proto::catalog::NoParams = params(value)?;
+            dictation::pause(daemon, false)
         },
         "meetings.start" => |daemon, _ctx, value| meetings::start(daemon, value),
         "meetings.stop" => |daemon, _ctx, value| meetings::stop(daemon, value),
