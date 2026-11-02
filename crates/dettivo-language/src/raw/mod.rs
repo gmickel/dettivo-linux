@@ -292,15 +292,15 @@ fn ends_sentence(c: char) -> bool {
 enum Mark {
     Push,
     Drop,
-    /// The mark takes the place of the written sentence ends before it.
+    /// The mark takes the place of the written marks of its kind before it.
     Replace,
 }
 
 /// A spoken mark beside one the engine wrote ("done? question mark.",
 /// "report, period, then") leaves one: the spoken one wins a sentence
 /// end, a stop the engine wrote twice is one, a comma before a stop gives
-/// way and so does one the engine wrote after a spoken stop, and two
-/// commas are one. An ellipsis keeps its three dots.
+/// way and so does one the engine wrote after a spoken stop, and a spoken
+/// comma beside a written one is one. An ellipsis keeps its three dots.
 fn settle(result: &mut Vec<(char, bool)>, c: char, spoken: bool, next: Option<char>) -> Mark {
     if ends_sentence(c)
         && result
@@ -324,10 +324,14 @@ fn settle(result: &mut Vec<(char, bool)>, c: char, spoken: bool, next: Option<ch
         };
     }
     let written_after_stop = ends_sentence(prev) && prev_spoken && !spoken;
-    if (matches!(c, ',' | ';' | ':') && written_after_stop) || (c == ',' && prev == ',') {
+    if matches!(c, ',' | ';' | ':') && written_after_stop {
         return Mark::Drop;
     }
-    Mark::Push
+    match (c == ',' && prev == ',', spoken, prev_spoken) {
+        (true, true, false) => Mark::Replace,
+        (true, false, true) => Mark::Drop,
+        _ => Mark::Push,
+    }
 }
 
 /// Glues marks to the word before, settles marks that meet and
@@ -345,7 +349,9 @@ fn glue(chars: &[(char, bool)]) -> String {
                 Mark::Push => result.push((c, spoken)),
                 Mark::Drop => {}
                 Mark::Replace => {
-                    while result.last().is_some_and(|&(p, s)| ends_sentence(p) && !s) {
+                    while result.last().is_some_and(|&(p, s)| {
+                        !s && (p == c || ends_sentence(p) && ends_sentence(c))
+                    }) {
                         result.pop();
                     }
                     result.push((c, spoken));

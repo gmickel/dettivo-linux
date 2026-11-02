@@ -79,6 +79,7 @@ fn a_spoken_mark_beside_a_written_one_leaves_one_mark() {
         ("Really?! Period.", "Really."),
         ("Really? Yes, I think so.", "Really? Yes, I think so."),
         ("One, two, three.", "One, two, three."),
+        ("Values one,, three.", "Values one,, three."),
     ];
     for (input, want) in cases {
         assert_eq!(raw(input), want, "{input}");
