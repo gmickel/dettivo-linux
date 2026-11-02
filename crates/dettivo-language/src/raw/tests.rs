@@ -247,3 +247,10 @@ fn replacements_stay_out_of_protected_spans() {
         "Open index.tsx now"
     );
 }
+
+/// Text that already carries a character the spoken-mark tag uses keeps
+/// it: the tag is only read back where the pass wrote it.
+#[test]
+fn a_tag_character_in_the_text_stays_as_it_is() {
+    assert_eq!(raw("hello\u{f002e} comma world"), "Hello\u{f002e}, world");
+}

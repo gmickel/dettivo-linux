@@ -276,7 +276,10 @@ fn punctuate(text: &str) -> String {
     }
     let marks: Vec<(char, bool)> = out
         .chars()
-        .map(|c| untag(c).map_or((c, false), |m| (m, true)))
+        .map(|c| match untag(c) {
+            Some(m) if tagging => (m, true),
+            _ => (c, false),
+        })
         .collect();
     glue(&marks)
 }
