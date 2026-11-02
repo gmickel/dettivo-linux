@@ -2,7 +2,7 @@
   "branch": "fn-84-vocabulary-on-parakeet",
   "findings": {
     "backend": "interactive",
-    "headSha": "87d6a52c0cacbcce7dd04cf108b78724c94ce19b",
+    "headSha": "1ded7ccb7ca64b1748c96331acc14823c4d16033",
     "items": [
       {
         "body": "Real dictation path at normal recovers 7 of 12 missed terms (10/15) vs the benchmark's 8 of 12 (11/15): the session's 400 ms trailing pad moves target-hyprland-1 from margin +0.10 to -0.76 nats, reproduced in two daemon runs. R2 as written (on the benchmark) is met; the benchmark does not feed clips the way dictation does. Filed .flow/memory/bug/runtime-errors/parakeet-dictation-user-gets-fewer-2026-11-01.md (surface: crates/dettivo-qa/src/bench/vocabulary_run.rs)",
@@ -10,22 +10,36 @@
         "confidence": 100,
         "firstSeenReceiptId": "review-8024875a2af6d8142c0bdf122e8a65596c72d5461dd9b47ec44ec12271663109",
         "id": "finding-a6b1610f14ef02a1c10c44d9d3200c3b",
-        "lastSeenReceiptId": "review-8024875a2af6d8142c0bdf122e8a65596c72d5461dd9b47ec44ec12271663109",
+        "lastSeenReceiptId": "review-de0b94c925ac32dc52807870ed30a1e69acde414b0c74f0e93f8797325675b49",
         "ordinal": 1,
         "rIds": [
           "R2"
         ],
         "severity": "P2",
-        "status": "open",
+        "status": "fixed",
         "title": "S2b-daemon-normal-recall-below-bench"
+      },
+      {
+        "body": "At vocabulary_boost strong (6.0) a dictated possessive of a term loses its s: \"Hyper land's config is short.\" inserts \"Hyprland config is short.\" (twice through the daemon; engine margin +1.42 padded). normal and off keep \"Hyperlans config is short.\" (margin -2.58). Parakeet hears the possessive as \"Hyperlans\", which the term-plus-s rule does not catch; the old strong (5.0) did not replace it. Paths, URLs, email, case, plural and short terms all held at strong. Filed .flow/memory/bug/runtime-errors/parakeet-user-at-strong-loses-the-2026-11-02.md (surface: crates/dettivo-engine-parakeet (vocabulary rescoring))",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-de0b94c925ac32dc52807870ed30a1e69acde414b0c74f0e93f8797325675b49",
+        "id": "finding-94efc0852a189e9c7bcede7eb61e3b11",
+        "lastSeenReceiptId": "review-de0b94c925ac32dc52807870ed30a1e69acde414b0c74f0e93f8797325675b49",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "S5-possessive-rewritten-at-strong"
       }
     ],
     "reviewKind": "qa",
-    "round": 1,
+    "round": 2,
     "schemaVersion": 1,
-    "sourceReceiptId": "review-8024875a2af6d8142c0bdf122e8a65596c72d5461dd9b47ec44ec12271663109"
+    "sourceReceiptId": "review-de0b94c925ac32dc52807870ed30a1e69acde414b0c74f0e93f8797325675b49",
+    "supersedesReceiptId": "review-8024875a2af6d8142c0bdf122e8a65596c72d5461dd9b47ec44ec12271663109"
   },
-  "head_sha": "87d6a52c0cacbcce7dd04cf108b78724c94ce19b",
+  "head_sha": "1ded7ccb7ca64b1748c96331acc14823c4d16033",
   "id": "fn-84-vocabulary-on-parakeet",
   "mode": "interactive",
   "open_p0p1": [],
@@ -67,14 +81,14 @@
   "scenarios": [
     {
       "evidence": [
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r1-batch-run1.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r1-batch-run2.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/run1/s1-parakeet/target-dettivo-1/vocab-default/inserted.txt",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/run1/s1-parakeet/target-dettivo-1/vocab-off/inserted.txt",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/run1/s1-parakeet/target-dettivo-1/vocab-empty/inserted.txt",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/run1/s1-parakeet/guard-meeting/vocab-default/inserted.txt"
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2-all.log",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2/s1-parakeet/target-hyprland-1/vocab-default/inserted.txt",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2/s1-parakeet/target-hyprland-1/vocab-off/inserted.txt",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2/s1-parakeet/target-hyprland-1/vocab-empty/inserted.txt",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2/s1-parakeet/target-dettivo-1/vocab-default/inserted.txt",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2/s1-parakeet/guard-meeting/vocab-default/inserted.txt"
       ],
-      "head_sha": "87d6a52c0cacbcce7dd04cf108b78724c94ce19b",
+      "head_sha": "1ded7ccb7ca64b1748c96331acc14823c4d16033",
       "id": "S1-daemon-dictation-rescoring-and-byte-identity",
       "outcome": "PASS",
       "rids": [
@@ -84,11 +98,11 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s3-bench/bench-run1.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s3-bench/evidence/run-1793571409-3033139/bench-vocabulary/vocabulary-report.json",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s3-bench/out/vocabulary-2026-11-01-thor.md"
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s2a-bench-1/bench.log",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s2a-bench-1/evidence/run-1793576766-121052/bench-vocabulary/vocabulary-report.json",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s2a-bench-1/out/vocabulary-2026-11-01-thor.md"
       ],
-      "head_sha": "87d6a52c0cacbcce7dd04cf108b78724c94ce19b",
+      "head_sha": "1ded7ccb7ca64b1748c96331acc14823c4d16033",
       "id": "S2a-bench-vocabulary-at-normal",
       "outcome": "PASS",
       "rids": [
@@ -98,11 +112,13 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s2-daemon-targets.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s2-margin/hyprland-1-take-padded-s2-margin.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s2-margin/target-hyprland-1-vocabulary.log"
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s2b-run1.log",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run1-daemon.tsv",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2-daemon.tsv",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2-guards-off.tsv",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/bench-normal.tsv"
       ],
-      "head_sha": "87d6a52c0cacbcce7dd04cf108b78724c94ce19b",
+      "head_sha": "1ded7ccb7ca64b1748c96331acc14823c4d16033",
       "id": "S2b-daemon-targets-at-normal",
       "outcome": "PASS",
       "rids": [
@@ -112,10 +128,10 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s3-bench/evidence/run-1793571409-3033139/bench-vocabulary/vocabulary-report.json",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s3-bench/load-start.txt"
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s2a-bench-1/evidence/run-1793576766-121052/bench-vocabulary/vocabulary-report.json",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s2a-bench-1/load-start.txt"
       ],
-      "head_sha": "87d6a52c0cacbcce7dd04cf108b78724c94ce19b",
+      "head_sha": "1ded7ccb7ca64b1748c96331acc14823c4d16033",
       "id": "S3-rescoring-latency-per-clip",
       "outcome": "PASS",
       "rids": [
@@ -125,14 +141,13 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s4-alias/damien-noalias.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s4-alias/damien-alias.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s4-alias/oh-marquis-noalias.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s4-alias/oh-marquis-alias.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s4-alias/distractor-clay-noalias.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s4-alias/distractor-clay-alias.log"
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s45.log",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s45/damien-alias-strong-pad.log",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s45/oh-marquis-alias-strong-pad.log",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s45/clay-alias-strong-pad.log",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run1/s2b/target-omarchy-1/inserted.txt"
       ],
-      "head_sha": "87d6a52c0cacbcce7dd04cf108b78724c94ce19b",
+      "head_sha": "1ded7ccb7ca64b1748c96331acc14823c4d16033",
       "id": "S4-alias-widens-matching",
       "outcome": "PASS",
       "rids": [
@@ -142,15 +157,15 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s5-synth/r5-path-strong.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s5-synth/r5-url-strong.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s5-synth/r5-plural-strong.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s5-synth/r5-case-THURSDAY.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s5-synth/distractor-highlands-Highland.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s5-synth/r4-short-noalias.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r5-unit-tests.log"
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s45.log",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s45/sweep.log",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2-all.log",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/possessive-daemon.log",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2/s5-daemon-strong/r5-path/inserted.txt",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2/s5-daemon-strong/r5-url/inserted.txt",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2/s5-daemon-strong/r5-possessive/inserted.txt"
       ],
-      "head_sha": "87d6a52c0cacbcce7dd04cf108b78724c94ce19b",
+      "head_sha": "1ded7ccb7ca64b1748c96331acc14823c4d16033",
       "id": "S5-never-rewritten-paths-urls-plurals-case-short",
       "outcome": "PASS",
       "rids": [
@@ -160,10 +175,10 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s6-config/run.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s6-config/daemon-bad.log"
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s6-config/run.log",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s6-config/daemon-bad.log"
       ],
-      "head_sha": "87d6a52c0cacbcce7dd04cf108b78724c94ce19b",
+      "head_sha": "1ded7ccb7ca64b1748c96331acc14823c4d16033",
       "id": "S6-config-set-vocabulary-boost",
       "outcome": "PASS",
       "rids": [
@@ -173,11 +188,11 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r1-batch-run1.log",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/run1/s7-whisper/target-hyprland-1/vocab-off/inserted.txt",
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/run1/s7-whisper/target-hyprland-1/vocab-strong/inserted.txt"
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2-all.log",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2/s7-whisper/target-hyprland-1/vocab-off/inserted.txt",
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/run2/s7-whisper/target-hyprland-1/vocab-strong/inserted.txt"
       ],
-      "head_sha": "87d6a52c0cacbcce7dd04cf108b78724c94ce19b",
+      "head_sha": "1ded7ccb7ca64b1748c96331acc14823c4d16033",
       "id": "S7-whisper-unaffected-by-boost",
       "outcome": "PASS",
       "rids": [
@@ -187,16 +202,16 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/s5-synth/reg-because-of-the.log"
+        ".flow/tmp/qa-fn-84-vocabulary-on-parakeet/r2/s45/reg-because-of-the-strong-pad.log"
       ],
-      "head_sha": "87d6a52c0cacbcce7dd04cf108b78724c94ce19b",
+      "head_sha": "1ded7ccb7ca64b1748c96331acc14823c4d16033",
       "id": "S8-regression-multiword-term-heard-right",
       "outcome": "PASS",
       "rids": [],
       "run": "live"
     }
   ],
-  "timestamp": "2026-11-01T22:49:50Z",
+  "timestamp": "2026-11-02T00:27:33Z",
   "type": "qa_verdict",
   "verdict": "SHIP"
 }
