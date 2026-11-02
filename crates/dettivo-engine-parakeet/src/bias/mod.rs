@@ -185,10 +185,13 @@ fn replacement(term: &str, span: &[RawWord]) -> Vec<RawWord> {
 
 /// The term as it replaces heard words: followed by the marks that close
 /// the last heard word (a comma, a full stop, a quote, a bracket), except
-/// a sentence mark when the term ends in one of its own.
+/// the term's own marks when the heard word already spells them (`C++.`)
+/// and a sentence mark when the term ends in one of its own.
 fn written(term: &str, heard_last: &str) -> String {
     let bare = heard_last.trim_end_matches(|c: char| !c.is_alphanumeric());
+    let own = &term[term.trim_end_matches(|c: char| !c.is_alphanumeric()).len()..];
     let mut marks = &heard_last[bare.len()..];
+    marks = marks.strip_prefix(own).unwrap_or(marks);
     if term.ends_with(['.', '!', '?']) {
         marks = marks.trim_start_matches(['.', '!', '?']);
     }
