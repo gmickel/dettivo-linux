@@ -1,0 +1,249 @@
+{
+  "branch": "fn-89-whisper-vocabulary-without-false",
+  "findings": {
+    "backend": "interactive",
+    "headSha": "0cb45a8591115a8ae841ab1c9b00e403370951ae",
+    "items": [
+      {
+        "body": "A take that is one listed name (\"Omarchy.\", \"Clef.\", \"Hyprland.\") is echo-shaped and is replaced by the prompt-free decode, so the misspelling is pasted even when the prompted decode was near-certain (Clef -0.009, Omarchy -0.097). Five-term vocabulary: base e0071ee pasted 7/10 single names, HEAD 1/10, same in two runs; one-term vocabulary: base 1/10, HEAD 0/10. Breaks fn-79 R6 (\"A take that says the one listed term pastes it\") and docs/dictation.md:48 still promises it. Evidence: .flow/tmp/qa-fn-89-whisper-vocabulary-without-false/finding-S6-single-name.md, run1/single-on, run2/single-on, base/single-on, run1/single-one-*, base/single-one-*. (surface: crates/dettivo-engine-whisper/src/check.rs)",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-76e9ea1780a3097f27cf4ff49e25fd5033062fe1cf91d78d7b6b1eb027a073c1",
+        "id": "finding-e76b26bb20e482fa84d8d5d8a2ec59bb",
+        "lastSeenReceiptId": "review-13ef4005b8d2614319b63e8c6018403365ad46858df41af00b5e98b5942165db",
+        "ordinal": 1,
+        "rIds": [
+          "R6"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "title": "QA-fn89-1-single-name-not-pasted"
+      },
+      {
+        "body": "Whisper wrote 'Is it done? Question mark.' and 'Send me the report, period, then go home.'. The raw pass pasted 'Is it done??' and 'Send me the report., then go home.', the same on two runs. The 'ends the sentence once' rule (2b527e6) drops only a second '.', never a second '?' or '!' or a comma after the stop. The vocabulary check is not involved: candidates=0 and no second decode. Evidence: .flow/tmp/qa-fn-89-whisper-vocabulary-without-false/finding-r3-punct-double-mark.md, r3/w-punct-on, r3/w-punct-on-2, r3/w-punct-nopunct. Memory: .flow/memory/bug/runtime-errors/whisper-dictation-user-saying-a-stop-2026-11-02.md (surface: crates/dettivo-language/src/raw/mod.rs)",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-13ef4005b8d2614319b63e8c6018403365ad46858df41af00b5e98b5942165db",
+        "id": "finding-5a3795313b718bcc4e1b1415cb97f169",
+        "lastSeenReceiptId": "review-13ef4005b8d2614319b63e8c6018403365ad46858df41af00b5e98b5942165db",
+        "ordinal": 4,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-fn89-4-spoken-stop-doubles-engine-mark"
+      },
+      {
+        "body": "The prompt-free second decode of short single-name takes (Omarchy x2, SapienXT amy) took 804-1210 ms, reproduced on a rerun, against the 150 ms target for clips with a candidate; bench clips stay at 80-122 ms so R4's benchmark median holds. Evidence: .flow/tmp/qa-fn-89-whisper-vocabulary-without-false/finding-S4-single-name-latency.md, run1/single-on, run2/single-on. (surface: crates/dettivo-engine-whisper/src/check.rs)",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-76e9ea1780a3097f27cf4ff49e25fd5033062fe1cf91d78d7b6b1eb027a073c1",
+        "id": "finding-0e38ebbe11815094ee1a4d0af854d84e",
+        "lastSeenReceiptId": "review-13ef4005b8d2614319b63e8c6018403365ad46858df41af00b5e98b5942165db",
+        "ordinal": 2,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "title": "QA-fn89-2-single-name-second-decode-slow"
+      },
+      {
+        "body": "guard-library through the daemon pastes \"during the exam..\" where the bench writes \"exam period.\"; same with the vocabulary off and at base e0071ee, so not caused by fn-89. Evidence: .flow/tmp/qa-fn-89-whisper-vocabulary-without-false/finding-guard-library.md. (surface: dettivod dictation path (Whisper))",
+        "classification": "pre_existing",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-76e9ea1780a3097f27cf4ff49e25fd5033062fe1cf91d78d7b6b1eb027a073c1",
+        "id": "finding-077c030b3e8a8d187bc66fc515da29f3",
+        "lastSeenReceiptId": "review-13ef4005b8d2614319b63e8c6018403365ad46858df41af00b5e98b5942165db",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P2",
+        "status": "fixed",
+        "title": "QA-fn89-3-exam-period-double-stop"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-13ef4005b8d2614319b63e8c6018403365ad46858df41af00b5e98b5942165db",
+    "supersedesReceiptId": "review-76e9ea1780a3097f27cf4ff49e25fd5033062fe1cf91d78d7b6b1eb027a073c1"
+  },
+  "head_sha": "0cb45a8591115a8ae841ab1c9b00e403370951ae",
+  "id": "fn-89-whisper-vocabulary-without-false",
+  "mode": "interactive",
+  "open_p0p1": [],
+  "qa_outcome": "SHIP",
+  "rid_coverage": {
+    "covered": 5,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "live",
+        "id": "R2"
+      },
+      {
+        "coverage": "live",
+        "id": "R3"
+      },
+      {
+        "coverage": "live",
+        "id": "R4"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R5"
+      }
+    ],
+    "total": 5
+  },
+  "scenarios": [
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-set-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-set-off/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-set-on/distractor-omar/engine.log",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3-score.log"
+      ],
+      "head_sha": "0cb45a8591115a8ae841ab1c9b00e403370951ae",
+      "id": "S1-daemon-distractors-and-guards-no-false-insertion",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-set-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3-score.log"
+      ],
+      "head_sha": "0cb45a8591115a8ae841ab1c9b00e403370951ae",
+      "id": "S2-daemon-target-recall",
+      "outcome": "PASS",
+      "rids": [
+        "R2"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-set-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/base/set-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run1/set-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3-score.log"
+      ],
+      "head_sha": "0cb45a8591115a8ae841ab1c9b00e403370951ae",
+      "id": "S3-term-free-takes-byte-identical-no-second-decode",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-set-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-single-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-single-on-2/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/smoke1/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3-run-all.log"
+      ],
+      "head_sha": "0cb45a8591115a8ae841ab1c9b00e403370951ae",
+      "id": "S4-added-latency-per-clip",
+      "outcome": "PASS",
+      "rids": [
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3-bench.log",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/bench/evidence/run-1793634487-1517325/bench-vocabulary/vocabulary-report.json"
+      ],
+      "head_sha": "0cb45a8591115a8ae841ab1c9b00e403370951ae",
+      "id": "S5-bench-vocabulary-reproduces-report",
+      "outcome": "PASS",
+      "rids": [
+        "R1",
+        "R2",
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-single-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-single-on-2/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-single-one/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/base/single-one-Clef/results.tsv"
+      ],
+      "head_sha": "0cb45a8591115a8ae841ab1c9b00e403370951ae",
+      "id": "S6-single-listed-name-pastes-it",
+      "outcome": "PASS",
+      "rids": [],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-regr/results.tsv"
+      ],
+      "head_sha": "0cb45a8591115a8ae841ab1c9b00e403370951ae",
+      "id": "S7-regression-overlapping-multi-word-suspects",
+      "outcome": "PASS",
+      "rids": [],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-punct-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-punct-nopunct/results.tsv"
+      ],
+      "head_sha": "0cb45a8591115a8ae841ab1c9b00e403370951ae",
+      "id": "S8-punctuation-word-rule-and-exam-limit",
+      "outcome": "PASS",
+      "rids": [],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/finding-r3-punct-double-mark.md",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-punct-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-punct-on-2/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/w-punct-nopunct/results.tsv"
+      ],
+      "head_sha": "0cb45a8591115a8ae841ab1c9b00e403370951ae",
+      "id": "S9-spoken-stop-beside-engine-question-mark-or-comma",
+      "outcome": "FAIL",
+      "rids": [],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/p-set-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/p-set-off/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/p-set-on/target-clef-1/daemon.log"
+      ],
+      "head_sha": "0cb45a8591115a8ae841ab1c9b00e403370951ae",
+      "id": "S10-parakeet-normal-boost-through-daemon",
+      "outcome": "PASS",
+      "rids": [],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/r3/p-cpp/results.tsv"
+      ],
+      "head_sha": "0cb45a8591115a8ae841ab1c9b00e403370951ae",
+      "id": "S11-parakeet-cpp-marks-not-doubled",
+      "outcome": "BLOCKED",
+      "rids": [],
+      "run": "live"
+    }
+  ],
+  "timestamp": "2026-11-02T15:51:56Z",
+  "type": "qa_verdict",
+  "verdict": "SHIP"
+}
