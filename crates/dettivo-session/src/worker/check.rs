@@ -98,9 +98,14 @@ impl SpeechCheck {
 }
 
 impl Drop for SpeechCheck {
+    /// A take that ends without a verdict waits for the piece the thread is
+    /// running: the voice process holds one take's state, so a piece left
+    /// running would land in the next take's.
     fn drop(&mut self) {
-        // A take that ends without a verdict leaves the thread to stop on
-        // its own after the piece it is running.
         self.finishing.store(true, Ordering::Relaxed);
+        self.tx = None;
+        if let Some(thread) = self.thread.take() {
+            let _ = thread.join();
+        }
     }
 }

@@ -163,3 +163,83 @@ fn a_failed_check_leaves_the_release_to_judge_the_whole_take() {
         assert_eq!(vad.whole.load(Ordering::Relaxed), 1);
     }
 }
+
+/// A voice pass that numbers its streams and logs when each piece starts
+/// and ends; a piece takes 300 ms.
+#[derive(Default)]
+struct Logged {
+    streams: AtomicUsize,
+    log: Arc<Mutex<Vec<(usize, &'static str)>>>,
+}
+
+struct LoggedStream {
+    id: usize,
+    log: Arc<Mutex<Vec<(usize, &'static str)>>>,
+}
+
+impl VoiceDetector for Logged {
+    fn speech_ms(&self, _: &[i16]) -> Result<u64, EngineError> {
+        Ok(600)
+    }
+
+    fn stream(&self) -> Option<Box<dyn SpeechStream>> {
+        Some(Box::new(LoggedStream {
+            id: self.streams.fetch_add(1, Ordering::Relaxed),
+            log: self.log.clone(),
+        }))
+    }
+}
+
+impl SpeechStream for LoggedStream {
+    fn feed(&mut self, _: &[i16]) -> Result<(), EngineError> {
+        self.log.lock().unwrap().push((self.id, "piece"));
+        std::thread::sleep(Duration::from_millis(300));
+        self.log.lock().unwrap().push((self.id, "piece done"));
+        Ok(())
+    }
+
+    fn finish(&mut self, _: &[i16]) -> Result<u64, EngineError> {
+        self.log.lock().unwrap().push((self.id, "finish"));
+        Ok(600)
+    }
+}
+
+/// The detector's process holds one take's state, so a cancelled take's
+/// check never runs a piece once the next take can start.
+#[test]
+fn a_cancelled_take_check_ends_before_the_next_take_starts() {
+    let (dir, _rec, session, engine, feed) = rig("ok");
+    let vad = Arc::new(Logged::default());
+    session.set_vad(Some(vad.clone()));
+    session
+        .start(
+            policy(dir.path(), false),
+            engine.clone(),
+            feed.clone(),
+            None,
+            Instant::now(),
+        )
+        .unwrap();
+    feed.speak(400);
+    std::thread::sleep(Duration::from_millis(50));
+    session.cancel().unwrap();
+    support::wait_idle(&session);
+    session
+        .start(
+            policy(dir.path(), false),
+            engine.clone(),
+            feed.clone(),
+            None,
+            Instant::now(),
+        )
+        .unwrap();
+    feed.speak(400);
+    std::thread::sleep(Duration::from_millis(50));
+    assert_eq!(session.stop().unwrap().text, "Ok");
+    let log = vad.log.lock().unwrap().clone();
+    let first_of_next = log.iter().position(|(id, _)| *id == 1).unwrap();
+    assert!(
+        log[first_of_next..].iter().all(|(id, _)| *id == 1),
+        "the cancelled take's check ran into the next take: {log:?}"
+    );
+}

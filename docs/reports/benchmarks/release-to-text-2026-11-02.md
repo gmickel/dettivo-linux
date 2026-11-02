@@ -20,7 +20,7 @@ Five takes at each length after two warm-up takes, one daemon per build.
 | 60 s | 722 | 711, 730, 767, 722, 717 | 583 | 583, 645, 639, 507, 549 |
 | 120 s | 1,271 | 1,178, 1,389, 1,271, 1,313, 1,221 | 890 | 747, 961, 587, 958, 890 |
 
-The two 15 s takes before came at a load average of 15 with nothing in the daemon log between `transcribing` and `inserting`. They are contention, and the p50 holds without them. ADR 0094 measured 594-657 ms at 30 s, 683 ms at 60 s and 1,157 ms at 120 s on the same machine on a quieter run.
+The two 15 s takes before came at a load average of 15 with nothing in the daemon log between `transcribing` and `inserting`. They are contention. Without them the before p50 at 30 s is 489 ms (455-570), the same as after, so this run does not resolve a gain at 30 s; the pass it removes cost 81 ms at 30 s in ADR 0094's engine measurement. ADR 0094 measured 594-657 ms at 30 s, 683 ms at 60 s and 1,157 ms at 120 s on the same machine on a quieter run.
 
 ## The first take after the engine idled out
 

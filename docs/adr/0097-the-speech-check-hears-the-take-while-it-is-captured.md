@@ -4,7 +4,7 @@ Status: Accepted 2026-11-02. Amends 0081.
 
 ## What this gives you
 
-A dictation's text no longer waits for the speech gate to listen to the whole take after the release. The Silero voice check now runs while you speak, so at the release only the last fraction of a second is left for it. On the reference GPU a two-minute Parakeet take now shows its text 890 ms after the release at p50, against 1,271 ms before, and shorter takes gain 2.3 to 3.2 ms per second of audio. The gate's verdict is the one it gave before, down to the milliseconds of speech it counts.
+A dictation's text no longer waits for the speech gate to listen to the whole take after the release. The Silero voice check now runs while you speak, so at the release only the last fraction of a second is left for it. On the reference GPU a two-minute Parakeet take now shows its text 890 ms after the release at p50, against 1,271 ms before, and a one-minute take's 583 ms against 722 ms. The gate's verdict is the one it gave before, down to the milliseconds of speech it counts.
 
 ## Situation
 
@@ -18,7 +18,7 @@ The voice check carries its state across pieces, and the verdict is computed fro
 
 - **whisper.cpp patch.** The vendored source (`third_party/whisper-rs-sys`, alongside the ADR 0080 patch) runs `whisper_vad_detect_speech`'s body with a `reset` flag. The new `dettivo_vad_detect_speech_more` runs it without one: the state carries over and the new windows' probabilities are appended. Fed whole windows, the stream ends with the probabilities one call over the whole take computes, and `whisper_vad_segments_from_probs` turns them into the same segments.
 - **Protocol.** `feed_speech` (one `pcm16k` attachment, `start` for a new take) runs the whole windows of what has arrived and holds the rest. `detect_speech` with `continues` set to the samples fed so far runs the final samples and answers `speech_ms` for the whole take. A `continues` that does not match the stream, or a feed without a started stream, is `bad_request`.
-- **Session.** When the take starts, the worker hands the detector's stream to a `speech-check` thread. The recording loop sends each captured chunk to it over a channel and never waits on it. A check that falls behind runs its backlog in one piece. Audio that arrives after the stop is seen can still be cut from the take by the release tail (ADR 0093), so it is never fed. At the release the thread stops after the piece it is running, and the take's remaining samples go to `detect_speech` with `continues`.
+- **Session.** When the take starts, the worker hands the detector's stream to a `speech-check` thread. The recording loop sends each captured chunk to it over a channel and never waits on it. A check that falls behind runs its backlog in one piece. Audio that arrives after the stop is seen can still be cut from the take by the release tail (ADR 0093), so it is never fed. At the release the thread stops after the piece it is running, and the take's remaining samples go to `detect_speech` with `continues`. A take that ends without a verdict, such as a cancel, also waits for the piece the thread is running before the session ends. The voice process holds one take's state, so a piece left running would reset the next take's stream.
 - **Fallback.** When a feed failed, or the check ran samples the take was later cut before, the release runs the whole take through `detect_speech` as before, and a failing pass still leaves the level stage to decide (ADR 0081).
 - **The level stage stays at the release.** Its DC offset is the whole take's mean, so it cannot be judged in pieces without changing its arithmetic. It costs 3.4 ms over a 120 s take in a release build.
 
@@ -30,11 +30,11 @@ Release-to-text through the daemon, before (`1dbe657`) and after this change, on
 
 | Take | Before (ms) | After (ms) | `transcribe_ms` p50, before and after |
 | --- | --- | --- | --- |
-| 30 s | 570 (455-570 without two contended takes of 15.0 and 15.6 s) | 489 (388-511) | 327, 247 |
+| 30 s | 570 with two contended takes of 15.0 and 15.6 s; 489 (455-570) without them | 489 (388-511) | 327, 247 |
 | 60 s | 722 (711-767) | 583 (507-645) | 478, 339 |
 | 120 s | 1,271 (1,178-1,389) | 890 (587-961) | 1,024, 643 |
 
-`capture_ms`, the release tail and the capture finish, stayed at 221-226 ms in both. The gain grows with the take: 81 ms at 30 s, 139 ms at 60 s and 381 ms at 120 s, the cost ADR 0094 measured for the Silero pass at those lengths.
+`capture_ms`, the release tail and the capture finish, stayed at 221-226 ms in both. The gain grows with the take: 139 ms at 60 s and 381 ms at 120 s, about the cost ADR 0094 measured for the Silero pass at those lengths (156 and 336 ms). At 30 s the pass cost 81 ms there, and this run does not resolve it: without the two contended takes the before p50 equals the after p50.
 
 - The verdict is unchanged. `crates/dettivo-engine-whisper/tests/vad_stream.rs` feeds every gate fixture (speech, speech 24 dB down, one short word, silence, steady noise, a mains hum, and two sentences around a pause) in 20 ms pieces with the 200 ms tail held back, in 100-sample pieces, in uneven 7,777-sample pieces, and whole. Each finds exactly the speech the whole-take pass finds. With the state reset on every piece, the same test fails at 0 against 7,600 ms. fn-79's gate tests and fixtures pass unmodified.
 - The capture never waits for the check. `crates/dettivo-session/tests/speech_check.rs` feeds a 10 s take while each check piece takes 200 ms. The take holds every sample, the check heard all of them in order, and the release waited for at most one piece.
