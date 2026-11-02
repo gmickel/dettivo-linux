@@ -102,7 +102,7 @@ impl Default for Settings {
             self_app_ids: text(&["dettivo", "dettivo-app", "dettivo-osd", "dettivo-sheet"]),
             inter_key_delay_ms: 2,
             restore_clipboard: true,
-            clipboard_restore_delay_ms: 300,
+            clipboard_restore_delay_ms: 500,
             undo_window_ms: 5000,
         }
     }

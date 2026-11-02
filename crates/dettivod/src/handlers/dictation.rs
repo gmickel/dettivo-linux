@@ -5,7 +5,7 @@ use dettivo_proto::error::{AppCode, ErrorDetails, JsonRpcError};
 use dettivo_proto::id::Id;
 use dettivo_proto::methods::dictation::{
     CancelParams, CancelResult, DictationMode, ReinsertLastResult, SessionTarget as WireTarget,
-    StartParams, StartResult, StatusResult, StopResult,
+    StartParams, StartResult, StatusResult, StopParams, StopResult,
 };
 use dettivo_proto::runtime::{JobState, JobStatus, RefKind, TranscriptRef};
 use dettivo_session::machine::Snapshot;
@@ -117,13 +117,26 @@ pub fn hold(
     json(outcome.result)
 }
 
-/// `dictation.stop`.
-pub fn stop(daemon: &Daemon) -> Result<Value, JsonRpcError> {
+/// `dictation.stop`; with `print` the take is finished without inserting
+/// and the text comes back in the result.
+pub fn stop(daemon: &Daemon, params_value: Value) -> Result<Value, JsonRpcError> {
+    let p: StopParams = params(params_value)?;
+    if p.print {
+        let transcript = actions::stop_print(daemon)?;
+        let text = transcript.text.clone();
+        let mut result = stop_result(transcript)?;
+        result.text = Some(text);
+        return json(result);
+    }
     stopped(actions::stop(daemon)?)
 }
 
 fn stopped(transcript: dettivo_session::Transcript) -> Result<Value, JsonRpcError> {
-    json(StopResult {
+    json(stop_result(transcript)?)
+}
+
+fn stop_result(transcript: dettivo_session::Transcript) -> Result<StopResult, JsonRpcError> {
+    Ok(StopResult {
         reference: TranscriptRef {
             kind: RefKind::Dictation,
             id: Id::new(transcript.id.clone()).map_err(|e| {
@@ -138,6 +151,7 @@ fn stopped(transcript: dettivo_session::Transcript) -> Result<Value, JsonRpcErro
             error: None,
         },
         insertion: transcript.insertion,
+        text: None,
     })
 }
 

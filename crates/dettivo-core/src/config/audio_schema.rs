@@ -17,6 +17,24 @@ pub struct Audio {
     /// monitor, followed when the default changes) or a sink's node name
     /// (its monitor, pinned).
     pub system_source: String,
+    /// What a dictation does to playing media (ADR 0091).
+    pub while_dictating: WhileDictating,
+}
+
+/// `[audio] while_dictating`: what a dictation does to playing media
+/// once the take is held past a tap.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum WhileDictating {
+    /// Leave media alone (`[hotkeys] pause_media = true` reads as pause).
+    #[default]
+    Nothing,
+    /// Pause the playing MPRIS players and resume them after.
+    Pause,
+    /// Lower the default sink to 20 % and raise it back after.
+    Duck,
+    /// Mute the default sink and unmute it after.
+    Mute,
 }
 
 impl Default for Audio {
@@ -25,6 +43,7 @@ impl Default for Audio {
             input_device: String::new(),
             level_interval_ms: 50,
             system_source: "default_monitor".into(),
+            while_dictating: WhileDictating::Nothing,
         }
     }
 }

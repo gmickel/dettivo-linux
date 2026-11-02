@@ -25,6 +25,10 @@ use crate::settings::Settings;
 pub struct Request<'a> {
     /// The text.
     pub text: &'a str,
+    /// The text as dictated, when `text` joins it to the previous take:
+    /// a clipboard-only backend copies this instead, since a copy is
+    /// pasted on its own and never continues anything (ADR 0091).
+    pub as_dictated: Option<&'a str>,
     /// The mode.
     pub mode: InsertMode,
     /// The guards.
@@ -348,6 +352,7 @@ impl Inserter for Service {
             &candidates,
             &choice.order,
             request.text,
+            request.as_dictated.unwrap_or(request.text),
             request.mode == InsertMode::ClipboardOnly,
             &ctx,
         );
@@ -406,6 +411,7 @@ mod tests {
     fn request<'a>(text: &'a str, window: Option<&'a str>) -> Request<'a> {
         Request {
             text,
+            as_dictated: None,
             mode: InsertMode::Raw,
             guards: Guards {
                 app_id: Some("foot"),

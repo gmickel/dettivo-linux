@@ -16,6 +16,9 @@ use dettivo_session::{SessionError, SessionTarget, Transcript};
 use crate::daemon::{Daemon, blocking};
 use crate::hold::Edge;
 
+/// The `CONFLICT` kind of a stop whose take the speech gate found silent.
+pub const NO_SPEECH: &str = "noSpeech";
+
 /// Maps a session refusal to the wire error.
 pub fn session_error(e: SessionError) -> JsonRpcError {
     let message = e.to_string();
@@ -38,6 +41,16 @@ pub fn session_error(e: SessionError) -> JsonRpcError {
             AppCode::Conflict,
             message,
             ErrorDetails::conflict_kind("sessionCancelled"),
+        ),
+        SessionError::Delivering => JsonRpcError::new(
+            AppCode::Conflict,
+            message,
+            ErrorDetails::conflict_kind("sessionDelivering"),
+        ),
+        SessionError::NoSpeech => JsonRpcError::new(
+            AppCode::Conflict,
+            message,
+            ErrorDetails::conflict_kind(NO_SPEECH),
         ),
         SessionError::Audio(_) | SessionError::Failed(_) => {
             JsonRpcError::new(AppCode::InternalError, message, ErrorDetails::empty())
@@ -177,6 +190,11 @@ pub enum Toggle {
 /// Stops and finishes the session.
 pub fn stop(daemon: &Daemon) -> Result<Transcript, JsonRpcError> {
     daemon.dictation().stop().map_err(session_error)
+}
+
+/// Stops and finishes the session without inserting the text.
+pub fn stop_print(daemon: &Daemon) -> Result<Transcript, JsonRpcError> {
+    daemon.dictation().stop_print().map_err(session_error)
 }
 
 /// Cancels the session.
