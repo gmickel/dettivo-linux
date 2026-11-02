@@ -18,7 +18,7 @@ use dettivo_engine_proto::{
 
 use crate::align;
 use crate::bias::{self, Pieces, Rescorer};
-use crate::ffi::{self, FfiError, Model, RawTranscription};
+use crate::ffi::{self, FfiError, Model, RawTranscription, RawWord};
 use crate::gguf;
 
 /// True when the binary was built with ggml's Vulkan backend.
@@ -269,18 +269,23 @@ impl Engine {
                 .as_ref()
                 .ok_or_else(|| EngineError::new("internal", "the model is not loaded"))?;
             let clip = &audio[*start..*end];
+            let offset_ms = (*start as u64 * 1000) / 16_000;
+            let at = |secs: f64| offset_ms + (secs.max(0.0) * 1000.0).round() as u64;
+            // A chunk rescores only words that start and end in the time
+            // it keeps when stitched, so a term never straddles a cut.
+            let (lower, upper) = align::owned(&ranges, i);
+            let owned = |w: &RawWord| at(w.start) >= lower && at(w.end) < upper;
             let raw = match &rescorer {
-                Some(r) => self.rescored(model, r, clip, lang, &mut rescored)?,
+                Some(r) => self.rescored(model, r, clip, lang, owned, &mut rescored)?,
                 None => model.transcribe(clip, lang).map_err(inference)?,
             };
-            let offset_ms = (*start as u64 * 1000) / 16_000;
             let words: Vec<Word> = raw
                 .words
                 .iter()
                 .filter(|w| !w.w.trim().is_empty())
                 .map(|w| Word {
-                    start_ms: offset_ms + (w.start.max(0.0) * 1000.0).round() as u64,
-                    end_ms: offset_ms + (w.end.max(0.0) * 1000.0).round() as u64,
+                    start_ms: at(w.start),
+                    end_ms: at(w.end),
                     text: w.w.trim().to_string(),
                     // The contract's range is (0, 1]: a zero or negative
                     // value from the model becomes the smallest positive.
@@ -326,14 +331,17 @@ impl Engine {
         })
     }
 
-    /// One chunk recognized and rescored; adds what rescoring did and its
-    /// time to `total`. A model rescoring cannot read is transcribed as is.
+    /// One chunk recognized and rescored over the words `owned` admits,
+    /// within what is left of the take's candidate budget; adds what
+    /// rescoring did and its time to `total`. A model rescoring cannot
+    /// read is transcribed as is.
     fn rescored(
         &self,
         model: &Model,
         rescorer: &Rescorer,
         clip: &[f32],
         lang: &str,
+        owned: impl Fn(&RawWord) -> bool,
         total: &mut (bias::Outcome, f64),
     ) -> Result<RawTranscription, EngineError> {
         let (take, mut raw) = match model.take(clip) {
@@ -348,8 +356,9 @@ impl Engine {
             .pieces
             .get()
             .expect("pieces are read before a rescorer exists");
+        let left = bias::MAX_CANDIDATES.saturating_sub(total.0.candidates);
         let outcome = rescorer
-            .rescore(&take, pieces, &mut raw)
+            .rescore(&take, pieces, &mut raw, owned, left)
             .map_err(inference)?;
         total.0.candidates += outcome.candidates;
         total.0.replaced += outcome.replaced;
