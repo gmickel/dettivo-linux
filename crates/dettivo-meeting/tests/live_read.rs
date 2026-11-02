@@ -76,16 +76,16 @@ impl Poller {
 
 fn speech(feeds: &Feeds, ms: u64) {
     for _ in 0..ms / 100 {
-        feeds.mic(0).send(Event::Pcm(tone(100, 3000))).unwrap();
-        feeds.system().send(Event::Pcm(tone(100, 3000))).unwrap();
+        feeds.mic(0).send(Event::pcm(tone(100, 3000))).unwrap();
+        feeds.system().send(Event::pcm(tone(100, 3000))).unwrap();
         std::thread::sleep(Duration::from_millis(10));
     }
 }
 
 fn silence(feeds: &Feeds, ms: u64) {
     for _ in 0..ms / 100 {
-        feeds.mic(0).send(Event::Pcm(vec![0; 1600])).unwrap();
-        feeds.system().send(Event::Pcm(vec![0; 1600])).unwrap();
+        feeds.mic(0).send(Event::pcm(vec![0; 1600])).unwrap();
+        feeds.system().send(Event::pcm(vec![0; 1600])).unwrap();
     }
 }
 

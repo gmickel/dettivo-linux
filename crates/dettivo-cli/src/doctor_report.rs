@@ -57,6 +57,7 @@ pub fn human(report: &Value) -> String {
             "capture unavailable".into()
         },
     );
+    row("microphone ready", microphone_ready(&report["audio"]));
     row("-- daemon", "--".into());
     row(
         "daemon",
@@ -266,6 +267,29 @@ pub fn human(report: &Value) -> String {
     out
 }
 
+/// The always-ready microphone's row (ADR 0092): a capture that could
+/// not open is named here, never as a failed dictation. A press opens the
+/// microphone itself only while PipeWire is there. An open or waiting ring
+/// says whether a screen lock closes it.
+fn microphone_ready(audio: &Value) -> String {
+    let ready = &audio["microphone_ready"];
+    let lock = match ready["lock_signal"].as_str() {
+        Some("compositor") => "closes when the screen locks",
+        Some("logind") => "closes on a lock only where the locker sets logind's LockedHint",
+        _ => "no lock signal: stays open while the screen is locked",
+    };
+    match ready["state"].as_str() {
+        Some("off") | None => "off ([audio] keep_microphone_ready)".into(),
+        Some("open") => format!("open: takes start 450 ms before the press; {lock}"),
+        Some("closed") => format!("closed: {}; {lock}", show(&ready["reason"])),
+        Some(_) if audio["pipewire"] != true => format!("failed: {}", show(&ready["reason"])),
+        Some(_) => format!(
+            "failed: {}; dictation opens the microphone on press",
+            show(&ready["reason"])
+        ),
+    }
+}
+
 fn show(value: &Value) -> String {
     match value {
         Value::String(text) => text.clone(),
@@ -332,5 +356,74 @@ mod tests {
             voice_gate_row("downloading"),
             "voice gate whisper/silero-vad downloading"
         );
+    }
+
+    /// fn-81 R6: an always-ready microphone that cannot open is a doctor
+    /// row naming the failure.
+    #[test]
+    fn the_microphone_ready_row_names_its_state() {
+        let row_on = |pipewire: bool, ready: serde_json::Value| {
+            human(&json!({ "audio": { "pipewire": pipewire, "microphone_ready": ready } }))
+                .lines()
+                .find(|l| l.starts_with("microphone ready"))
+                .expect("a microphone ready row")
+                .to_string()
+        };
+        let row = |ready: serde_json::Value| row_on(true, ready);
+        let failed =
+            row(json!({"state": "failed", "reason": "audio device \"usb\" is not present"}));
+        assert!(
+            failed.contains("failed: audio device \"usb\" is not present; dictation opens the microphone on press"),
+            "{failed}"
+        );
+        assert!(
+            row(json!({"state": "off", "reason": null}))
+                .contains("off ([audio] keep_microphone_ready)")
+        );
+        assert!(
+            row(json!({"state": "closed", "reason": "the session is locked"}))
+                .contains("closed: the session is locked")
+        );
+        // QA81-3: with PipeWire gone a press cannot open the microphone
+        // either, so the row names PipeWire and promises nothing.
+        let gone = row_on(
+            false,
+            json!({"state": "failed", "reason": "PipeWire is not reachable: PipeWire went away"}),
+        );
+        assert!(
+            gone.ends_with("failed: PipeWire is not reachable: PipeWire went away"),
+            "{gone}"
+        );
+    }
+
+    /// QA81-1: an open ring says whether a screen lock closes it, and
+    /// warns when nothing would.
+    #[test]
+    fn the_microphone_ready_row_names_the_lock_signal() {
+        for (signal, says) in [
+            ("compositor", "closes when the screen locks"),
+            (
+                "logind",
+                "closes on a lock only where the locker sets logind's LockedHint",
+            ),
+            (
+                "none",
+                "no lock signal: stays open while the screen is locked",
+            ),
+        ] {
+            let ready = json!({"state": "open", "reason": null, "lock_signal": signal});
+            let report =
+                human(&json!({ "audio": { "pipewire": true, "microphone_ready": ready } }));
+            let row = report
+                .lines()
+                .find(|l| l.starts_with("microphone ready"))
+                .unwrap();
+            assert!(
+                row.ends_with(&format!(
+                    "open: takes start 450 ms before the press; {says}"
+                )),
+                "{row}"
+            );
+        }
     }
 }

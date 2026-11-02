@@ -1,11 +1,13 @@
 //! `dictation.start`, `stop`, `cancel`, `status` and the Linux addition
 //! `reinsert_last`.
 
+use std::time::Instant;
+
 use dettivo_proto::error::{AppCode, ErrorDetails, JsonRpcError};
 use dettivo_proto::id::Id;
 use dettivo_proto::methods::dictation::{
-    CancelParams, CancelResult, DictationMode, ReinsertLastResult, SessionTarget as WireTarget,
-    StartParams, StartResult, StatusResult, StopParams, StopResult,
+    CancelParams, CancelResult, DictationMode, PauseResult, ReinsertLastResult,
+    SessionTarget as WireTarget, StartParams, StartResult, StatusResult, StopParams, StopResult,
 };
 use dettivo_proto::runtime::{JobState, JobStatus, RefKind, TranscriptRef};
 use dettivo_session::machine::Snapshot;
@@ -74,8 +76,8 @@ pub fn job(snapshot: &Snapshot) -> JobStatus {
     }
 }
 
-/// `dictation.start`.
-pub fn start(daemon: &Daemon, params_value: Value) -> Result<Value, JsonRpcError> {
+/// `dictation.start` for the call that arrived `at`.
+pub fn start(daemon: &Daemon, params_value: Value, at: Instant) -> Result<Value, JsonRpcError> {
     let p: StartParams = params(params_value)?;
     // A field left out means the configured value, as the hotkey path
     // has it, so a client never has to guess what the file says.
@@ -83,15 +85,15 @@ pub fn start(daemon: &Daemon, params_value: Value) -> Result<Value, JsonRpcError
     let language = p.language.trim();
     let language = (!language.is_empty()).then_some(language);
     let expected = expected_target(&p)?;
-    let snapshot = actions::start(daemon, language, mode, expected)?;
+    let snapshot = actions::start(daemon, language, mode, expected, at)?;
     json(StartResult {
         job: job(&snapshot),
     })
 }
 
 /// `dictation.toggle`: the daemon serializes the decision with capture starts.
-pub fn toggle(daemon: &Daemon) -> Result<Value, JsonRpcError> {
-    match actions::toggle(daemon)? {
+pub fn toggle(daemon: &Daemon, at: Instant) -> Result<Value, JsonRpcError> {
+    match actions::toggle(daemon, at)? {
         actions::Toggle::Started(snapshot) => json(StartResult {
             job: job(&snapshot),
         }),
@@ -102,14 +104,10 @@ pub fn toggle(daemon: &Daemon) -> Result<Value, JsonRpcError> {
 /// `dictation.press` and `dictation.release` (Linux additions, ADR 0083):
 /// one edge of the hold chord through the hold key. A take the edge
 /// finished is settled before the answer, as `dictation.stop` does.
-pub fn hold(
-    daemon: &Daemon,
-    edge: crate::hold::Edge,
-    at: std::time::Instant,
-) -> Result<Value, JsonRpcError> {
+pub fn hold(daemon: &Daemon, edge: crate::hold::Edge, at: Instant) -> Result<Value, JsonRpcError> {
     let outcome = daemon.hotkeys().hold().on(daemon, edge, at)?;
     if let Some(job) = &outcome.stop {
-        match daemon.dictation().stop_expected(job) {
+        match daemon.dictation().stop_expected(job, at) {
             Ok(_) | Err(dettivo_session::SessionError::NoSession) => {}
             Err(e) => return Err(actions::session_error(e)),
         }
@@ -117,18 +115,18 @@ pub fn hold(
     json(outcome.result)
 }
 
-/// `dictation.stop`; with `print` the take is finished without inserting
-/// and the text comes back in the result.
-pub fn stop(daemon: &Daemon, params_value: Value) -> Result<Value, JsonRpcError> {
+/// `dictation.stop` for the call that arrived `at`; with `print` the take
+/// is finished without inserting and the text comes back in the result.
+pub fn stop(daemon: &Daemon, params_value: Value, at: Instant) -> Result<Value, JsonRpcError> {
     let p: StopParams = params(params_value)?;
     if p.print {
-        let transcript = actions::stop_print(daemon)?;
+        let transcript = actions::stop_print(daemon, at)?;
         let text = transcript.text.clone();
         let mut result = stop_result(transcript)?;
         result.text = Some(text);
         return json(result);
     }
-    stopped(actions::stop(daemon)?)
+    stopped(actions::stop(daemon, at)?)
 }
 
 fn stopped(transcript: dettivo_session::Transcript) -> Result<Value, JsonRpcError> {
@@ -199,4 +197,14 @@ pub fn reinsert_last(daemon: &Daemon) -> Result<Value, JsonRpcError> {
         },
         insertion,
     })
+}
+
+/// `dictation.pause` and `dictation.resume` (Linux additions, ADR 0092):
+/// the always-ready microphone closes before the answer, unless a take
+/// still taps it, which closes it once the take stops; a resume lets it
+/// reopen.
+pub fn pause(daemon: &Daemon, paused: bool) -> Result<Value, JsonRpcError> {
+    daemon.dictation().ready().set_paused(paused);
+    crate::ready::tick(daemon);
+    json(PauseResult { paused })
 }

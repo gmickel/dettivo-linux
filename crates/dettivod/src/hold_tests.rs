@@ -31,7 +31,7 @@ impl Takes for Fake {
     fn recording(&self) -> Option<String> {
         self.recording.lock().unwrap().clone()
     }
-    fn start(&self) -> Result<String, JsonRpcError> {
+    fn start(&self, _: Instant) -> Result<String, JsonRpcError> {
         std::thread::sleep(self.slow);
         let mut n = self.started.lock().unwrap();
         *n += 1;

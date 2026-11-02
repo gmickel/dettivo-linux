@@ -175,7 +175,7 @@ impl Feed {
     pub fn speak(&self, ms: u64) {
         let chunk = tone(320);
         for _ in 0..(ms / 20) {
-            self.send(Event::Pcm(chunk.clone()));
+            self.send(Event::pcm(chunk.clone()));
         }
         self.send(Event::Level {
             rms: 0.1,
@@ -222,6 +222,8 @@ pub fn policy(dir: &std::path::Path, keep: bool) -> Policy {
         spoken_punctuation: true,
         protect_tokens: true,
         max_duration: Duration::from_secs(30),
+        min_hold: Duration::ZERO,
+        release_tail: Duration::ZERO,
         silence_dbfs: -50.0,
         keep_audio: keep,
         level_interval_ms: 50,

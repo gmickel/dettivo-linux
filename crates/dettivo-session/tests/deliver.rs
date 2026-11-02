@@ -4,7 +4,7 @@
 
 mod support;
 
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc};
 use std::time::{Duration, Instant};
 
 use dettivo_proto::runtime::{InsertionMethod, InsertionOutcome, InsertionResult, TargetApp};
@@ -50,7 +50,13 @@ fn the_first_key_waits_out_the_modifier_settle_after_the_stop() {
         let mut engine = FakeEngine::new("hello");
         Arc::get_mut(&mut engine).unwrap().slow = slow;
         session
-            .start(policy(dir.path(), false), engine, feed.clone(), None)
+            .start(
+                policy(dir.path(), false),
+                engine,
+                feed.clone(),
+                None,
+                Instant::now(),
+            )
             .unwrap();
         feed.speak(400);
         std::thread::sleep(Duration::from_millis(50));
@@ -70,16 +76,38 @@ fn the_first_key_waits_out_the_modifier_settle_after_the_stop() {
 fn a_printing_stop_inserts_nothing_and_records_printed() {
     let (dir, rec, session, engine, feed) = support::rig("hello");
     session
-        .start(policy(dir.path(), false), engine, feed.clone(), None)
+        .start(
+            policy(dir.path(), false),
+            engine,
+            feed.clone(),
+            None,
+            Instant::now(),
+        )
         .unwrap();
     feed.speak(400);
     std::thread::sleep(Duration::from_millis(50));
-    let done = session.stop_print().unwrap();
+    let done = session.stop_print(Instant::now()).unwrap();
     assert_eq!(done.text, "Hello");
     let insertion = done.insertion.unwrap();
     assert_eq!(insertion.outcome, InsertionOutcome::Printed);
     assert_eq!(insertion.method, InsertionMethod::Printed);
     assert!(rec.inserted.lock().unwrap().is_empty());
+}
+
+/// An inserter that reports each call and holds it until released, so
+/// a test can act while the worker is committed to inserting.
+struct Held {
+    entered: Mutex<mpsc::Sender<()>>,
+    release: Mutex<mpsc::Receiver<()>>,
+    rec: Recorder,
+}
+
+impl Inserter for Held {
+    fn insert(&self, text: &str, target: Option<&SessionTarget>) -> InsertionResult {
+        self.entered.lock().unwrap().send(()).unwrap();
+        self.release.lock().unwrap().recv().unwrap();
+        self.rec.insert(text, target)
+    }
 }
 
 /// A printing stop and the worker's commitment race for the take: a
@@ -88,41 +116,63 @@ fn a_printing_stop_inserts_nothing_and_records_printed() {
 /// refused instead of reporting a print that never happened.
 #[test]
 fn a_print_counts_only_until_the_text_is_committed() {
-    for (slow, print_after, printed) in [
-        (Duration::from_millis(400), Duration::from_millis(100), true),
-        (Duration::ZERO, Duration::from_millis(120), false),
-    ] {
+    for committed in [false, true] {
         let dir = tempfile::tempdir().unwrap();
-        let rec = Arc::new(Recorder::default());
+        let (entered_tx, entered) = mpsc::channel();
+        let (release, release_rx) = mpsc::channel();
+        let held = Arc::new(Held {
+            entered: Mutex::new(entered_tx),
+            release: Mutex::new(release_rx),
+            rec: Recorder::default(),
+        });
         let session = Arc::new(Session::new(
             dir.path().join("sessions"),
-            rec.clone(),
-            rec.clone(),
+            Arc::new(Recorder::default()),
+            held.clone(),
         ));
         let feed = Feed::new();
         let mut engine = FakeEngine::new("hello");
-        Arc::get_mut(&mut engine).unwrap().slow = slow;
+        // While the engine works for 400 ms the route is still open.
+        Arc::get_mut(&mut engine).unwrap().slow = if committed {
+            Duration::ZERO
+        } else {
+            Duration::from_millis(400)
+        };
         session
-            .start(policy(dir.path(), false), engine, feed.clone(), None)
+            .start(
+                policy(dir.path(), false),
+                engine,
+                feed.clone(),
+                None,
+                Instant::now(),
+            )
             .unwrap();
         feed.speak(400);
         std::thread::sleep(Duration::from_millis(50));
         let s = session.clone();
         let plain = std::thread::spawn(move || s.stop());
-        std::thread::sleep(print_after);
-        let print = session.stop_print();
+        if committed {
+            // The worker is inside the inserter: the text is committed.
+            entered.recv_timeout(Duration::from_secs(5)).unwrap();
+        } else {
+            std::thread::sleep(Duration::from_millis(100));
+        }
+        let print = session.stop_print(Instant::now());
+        release.send(()).unwrap();
         let plain = plain.join().unwrap().unwrap();
         let outcome = plain.insertion.unwrap().outcome;
-        if printed {
-            assert_eq!(print.unwrap().text, "Hello");
-            assert_eq!(outcome, InsertionOutcome::Printed);
-            assert!(rec.inserted.lock().unwrap().is_empty());
-        } else {
+        if committed {
             assert_eq!(
                 print.unwrap_err(),
                 dettivo_session::SessionError::Delivering
             );
             assert_eq!(outcome, InsertionOutcome::Inserted);
+            assert_eq!(*held.rec.inserted.lock().unwrap(), ["Hello"]);
+        } else {
+            assert_eq!(print.unwrap().text, "Hello");
+            assert_eq!(outcome, InsertionOutcome::Printed);
+            assert!(entered.try_recv().is_err(), "nothing reached the inserter");
+            assert!(held.rec.inserted.lock().unwrap().is_empty());
         }
     }
 }

@@ -205,20 +205,25 @@ impl Daemon {
         })
     }
 
-    /// Connects the audio service (PipeWire); without PipeWire the daemon
-    /// runs on, and `audio.devices` says so.
+    /// Starts the audio service (PipeWire). A PipeWire that is absent now
+    /// is connected once it appears; meanwhile `audio.devices` says so and
+    /// a press fails naming PipeWire.
     pub fn with_audio(mut self) -> Self {
         match AudioService::start() {
-            Ok(service) => {
+            Ok(service) if service.connected() => {
                 tracing::info!("audio: PipeWire connected");
                 self.audio = Some(service);
             }
-            Err(e) => tracing::warn!(error = %e, "audio: PipeWire unavailable, capture disabled"),
+            Ok(service) => {
+                tracing::warn!("audio: PipeWire unavailable, connecting once it runs");
+                self.audio = Some(service);
+            }
+            Err(e) => tracing::warn!(error = %e, "audio: the audio thread did not start"),
         }
         self
     }
 
-    /// The audio service, when PipeWire answered at start.
+    /// The audio service, unless its thread did not start.
     pub fn audio(&self) -> Option<&AudioService> {
         self.audio.as_ref()
     }

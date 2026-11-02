@@ -43,8 +43,8 @@ struct Inner {
 pub trait Takes {
     /// The take recording now.
     fn recording(&self) -> Option<String>;
-    /// Starts a take; its job id.
-    fn start(&self) -> Result<String, JsonRpcError>;
+    /// Starts a take for the press that arrived `at`; its job id.
+    fn start(&self, at: Instant) -> Result<String, JsonRpcError>;
     /// Drops the take a tap started.
     fn discard(&self, job: &str);
     /// Tells the pill `job` is locked, only while it still records; false
@@ -59,11 +59,11 @@ impl Takes for Daemon {
             .filter(|s| s.state == State::Recording)
             .map(|s| s.job_id)
     }
-    fn start(&self) -> Result<String, JsonRpcError> {
-        actions::start(self, None, None, None).map(|s| s.job_id)
+    fn start(&self, at: Instant) -> Result<String, JsonRpcError> {
+        actions::start(self, None, None, None, at).map(|s| s.job_id)
     }
     fn discard(&self, job: &str) {
-        if let Err(e) = self.dictation().cancel_expected(Some(job)) {
+        if let Err(e) = self.dictation().discard_tap(job) {
             tracing::debug!(error = %e, "hold key: the tapped take was already gone");
         }
     }
@@ -118,7 +118,7 @@ impl HoldKey {
         let mut job_id = g.job.clone();
         let mut stop = None;
         match action {
-            HoldAction::Start => match takes.start() {
+            HoldAction::Start => match takes.start(at) {
                 Ok(job) => {
                     job_id = Some(job);
                     g.job = job_id.clone();

@@ -134,7 +134,7 @@ fn a_fixture_played_into_a_null_sink_is_captured_with_levels_and_written_as_a_ta
     let deadline = Instant::now() + Duration::from_millis(2_500);
     while Instant::now() < deadline {
         match capture.events().recv_timeout(Duration::from_millis(200)) {
-            Ok(Event::Pcm(chunk)) => {
+            Ok(Event::Pcm { pcm: chunk, .. }) => {
                 writer.write(&chunk).unwrap();
                 pcm.extend(chunk);
             }
@@ -257,7 +257,7 @@ fn the_fixture_path_matches_the_fixture_without_pipewire() {
     let mut levels = 0usize;
     for event in capture.events().iter() {
         match event {
-            Event::Pcm(chunk) => {
+            Event::Pcm { pcm: chunk, .. } => {
                 writer.write(&chunk).unwrap();
                 pcm.extend(chunk);
             }

@@ -40,6 +40,7 @@ QJsonArray settingsEntries()
         entry("daemon.shutdown_timeout_ms", 5000, "default"),
         entry("audio.input_device", QStringLiteral(""), "default"),
         entry("audio.level_interval_ms", 50, "default"),
+        entry("audio.keep_microphone_ready", false, "default"),
         entry("dictation.language", QStringLiteral("en")),
         entry("dictation.vocabulary", list({"Dettivo", "Omarchy", "Hyprland"})),
         entry("dictation.max_duration_seconds", 300, "default"),

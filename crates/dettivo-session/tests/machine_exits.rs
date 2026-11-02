@@ -7,7 +7,7 @@ mod support;
 
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use dettivo_audio::{EndReason, Event};
 use dettivo_proto::runtime::InsertionOutcome;
@@ -26,6 +26,7 @@ fn cancel_works_in_every_state() {
             engine.clone(),
             feed.clone(),
             None,
+            Instant::now(),
         )
         .unwrap();
     feed.speak(100);
@@ -56,6 +57,7 @@ fn cancel_works_in_every_state() {
             slow.clone(),
             feed2.clone(),
             None,
+            Instant::now(),
         )
         .unwrap();
     feed2.speak(100);
@@ -88,7 +90,13 @@ fn cancel_works_in_every_state() {
 fn device_loss_ends_the_session_recoverably() {
     let (dir, rec, session, engine, feed) = rig("x");
     session
-        .start(policy(dir.path(), false), engine, feed.clone(), None)
+        .start(
+            policy(dir.path(), false),
+            engine,
+            feed.clone(),
+            None,
+            Instant::now(),
+        )
         .unwrap();
     feed.speak(100);
     feed.send(Event::Ended {
@@ -117,7 +125,8 @@ fn device_loss_ends_the_session_recoverably() {
                 policy(dir2.path(), false),
                 FakeEngine::new("y"),
                 Feed::new(),
-                None
+                None,
+                Instant::now()
             )
             .is_ok()
     );
@@ -136,7 +145,13 @@ fn an_engine_crash_fails_the_session_and_the_next_one_runs() {
         last_samples: AtomicUsize::new(0),
     });
     session
-        .start(policy(dir.path(), false), crashing, feed.clone(), None)
+        .start(
+            policy(dir.path(), false),
+            crashing,
+            feed.clone(),
+            None,
+            Instant::now(),
+        )
         .unwrap();
     feed.speak(100);
     let err = session.stop().unwrap_err();
@@ -158,7 +173,13 @@ fn an_engine_crash_fails_the_session_and_the_next_one_runs() {
     );
     let good = FakeEngine::new("fine");
     session
-        .start(policy(dir.path(), false), good, feed.clone(), None)
+        .start(
+            policy(dir.path(), false),
+            good,
+            feed.clone(),
+            None,
+            Instant::now(),
+        )
         .unwrap();
     feed.speak(100);
     assert_eq!(session.stop().unwrap().text, "Fine");
@@ -174,14 +195,26 @@ fn a_source_that_fails_to_open_reports_audio_and_frees_the_slot() {
         fail_open: true,
     });
     let err = session
-        .start(policy(dir.path(), false), engine.clone(), broken, None)
+        .start(
+            policy(dir.path(), false),
+            engine.clone(),
+            broken,
+            None,
+            Instant::now(),
+        )
         .unwrap_err();
     assert_eq!(err, SessionError::Audio("no microphone".into()));
     assert!(session.snapshot().is_none());
     assert_eq!(rec.sequence(), [State::Failed, State::Idle]);
     assert!(
         session
-            .start(policy(dir.path(), false), engine, Feed::new(), None)
+            .start(
+                policy(dir.path(), false),
+                engine,
+                Feed::new(),
+                None,
+                Instant::now()
+            )
             .is_ok()
     );
     session.cancel().unwrap();
@@ -192,7 +225,9 @@ fn the_policy_is_frozen_at_start_and_the_take_stops_at_the_maximum() {
     let (dir, _rec, session, engine, feed) = rig("late words");
     let mut p = policy(dir.path(), false);
     p.max_duration = Duration::from_millis(300);
-    let snap = session.start(p, engine, feed.clone(), None).unwrap();
+    let snap = session
+        .start(p, engine, feed.clone(), None, Instant::now())
+        .unwrap();
     assert_eq!(snap.policy.model, "tiny");
     feed.speak(200);
     std::thread::sleep(Duration::from_millis(400));

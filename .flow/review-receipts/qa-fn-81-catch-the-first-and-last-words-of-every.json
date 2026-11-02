@@ -1,0 +1,372 @@
+{
+  "branch": "fn-81-catch-the-first-and-last-words-of-every",
+  "findings": {
+    "backend": "interactive",
+    "headSha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+    "items": [
+      {
+        "body": "R5: with keep_microphone_ready on, locking an Omarchy desktop leaves the ring capturing (indicator lit). dettivod follows only logind LockedHint/Active (live: closes within 150 ms on LockedHint=true via a stand-in logind); Omarchy's Quickshell WlSessionLock sets neither (read-only inspection). Memory: .flow/memory/bug/security/omarchy-user-with-keep-microphone-ready-2026-11-02.md (surface: crates/dettivod/src/ready_session.rs)",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-e9c5d14f1155693ed5b0321b92ad6b8f4a2f4dcb712d6eb9bba8e6d004c989b9",
+        "id": "finding-60d24774ba4716818b74e1eab4f30272",
+        "lastSeenReceiptId": "review-6044b87ce037d1fa821e6eb408cdae4ecc352c6bab2dcaf7687c6bc6a4b41ca4",
+        "ordinal": 1,
+        "rIds": [
+          "R5"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "title": "QA81-1"
+      },
+      {
+        "body": "After a PipeWire restart the daemon never captures again until it restarts: every dictation is cancelled as 'silence: level', with keep_microphone_ready off as well (control run s4b). Memory: .flow/memory/bug/runtime-errors/dictation-user-cant-record-after-a-2026-11-02.md (surface: crates/dettivo-audio (AudioService))",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-e9c5d14f1155693ed5b0321b92ad6b8f4a2f4dcb712d6eb9bba8e6d004c989b9",
+        "id": "finding-ff42520014cb33522b08e75d017e6a21",
+        "lastSeenReceiptId": "review-6044b87ce037d1fa821e6eb408cdae4ecc352c6bab2dcaf7687c6bc6a4b41ca4",
+        "ordinal": 4,
+        "rIds": [],
+        "severity": "P1",
+        "status": "fixed",
+        "title": "QA81-4"
+      },
+      {
+        "body": "R5 requires the ring to close on pause; Dettivo has no pause action (ADR 0092 records it). Only the setting closes it (live: off closes the capture within 0.6 s). Memory: .flow/memory/bug/integration/user-cant-close-the-always-ready-2026-11-02.md (surface: crates/dettivod/src/ready.rs)",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-e9c5d14f1155693ed5b0321b92ad6b8f4a2f4dcb712d6eb9bba8e6d004c989b9",
+        "id": "finding-b50667d1d49050219e56fbbcab132760",
+        "lastSeenReceiptId": "review-6044b87ce037d1fa821e6eb408cdae4ecc352c6bab2dcaf7687c6bc6a4b41ca4",
+        "ordinal": 2,
+        "rIds": [
+          "R5"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "title": "QA81-2"
+      },
+      {
+        "body": "R6: after PipeWire stops (and after it returns) doctor, Settings/Diagnostics and audio.devices keep saying 'microphone ready open: takes start 450 ms before the press' while no capture exists; dictations cancel as silence instead of doctor naming the failure. Reproduced twice. Memory: .flow/memory/bug/runtime-errors/doctor-says-microphone-ready-open-after-2026-11-02.md (surface: crates/dettivod/src/ready.rs)",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-e9c5d14f1155693ed5b0321b92ad6b8f4a2f4dcb712d6eb9bba8e6d004c989b9",
+        "id": "finding-68c9c82685ff26ee334c4bfabd4ee178",
+        "lastSeenReceiptId": "review-6044b87ce037d1fa821e6eb408cdae4ecc352c6bab2dcaf7687c6bc6a4b41ca4",
+        "ordinal": 3,
+        "rIds": [
+          "R6"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "title": "QA81-3"
+      },
+      {
+        "body": "R5: a daemon started while the compositor already reports locked opens the always-ready capture for about 250 ms before closing it (pw-dump: a dettivod stream linked to the mic from 170.741 to 170.985 while locked; 2 of 4 runs, a race). ready_screen.rs:70-72 reports unlocked on bind before the compositor's initial locked event. Startup-only; ring audio stays in memory. Memory: .flow/memory/bug/security/hyprland-user-starting-dettivo-under-a-2026-11-02.md (surface: crates/dettivod/src/ready_screen.rs)",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-e1bbfac47035de63cf4718c2b47ce97f7cc5e8e1a2aa10f3ab9afa2bae3cf7bf",
+        "id": "finding-09163522edadf43fd17dcf750dd9f53a",
+        "lastSeenReceiptId": "review-6044b87ce037d1fa821e6eb408cdae4ecc352c6bab2dcaf7687c6bc6a4b41ca4",
+        "ordinal": 5,
+        "rIds": [
+          "R5"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "title": "QA81-5"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 3,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-6044b87ce037d1fa821e6eb408cdae4ecc352c6bab2dcaf7687c6bc6a4b41ca4",
+    "supersedesReceiptId": "review-e1bbfac47035de63cf4718c2b47ce97f7cc5e8e1a2aa10f3ab9afa2bae3cf7bf"
+  },
+  "head_sha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+  "id": "fn-81-catch-the-first-and-last-words-of-every",
+  "mode": "interactive",
+  "open_p0p1": [],
+  "qa_outcome": "SHIP",
+  "rid_coverage": {
+    "covered": 8,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "live",
+        "id": "R2"
+      },
+      {
+        "coverage": "live",
+        "id": "R3"
+      },
+      {
+        "coverage": "live",
+        "id": "R4"
+      },
+      {
+        "coverage": "live",
+        "id": "R4a"
+      },
+      {
+        "coverage": "live",
+        "id": "R5"
+      },
+      {
+        "coverage": "live",
+        "id": "R6"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R7"
+      }
+    ],
+    "total": 8
+  },
+  "scenarios": [
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2_mock-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2_mock-2-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2-on-take-1.wav",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2-on-take-2.wav",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2-on-daemon-1.log"
+      ],
+      "head_sha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+      "id": "S1-preroll-first-word",
+      "outcome": "PASS",
+      "rids": [
+        "R1",
+        "R2"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2_mock-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2_mock-2-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2-off-take-1.wav",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2-off-take-2.wav"
+      ],
+      "head_sha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+      "id": "S2-release-tail-setting-off",
+      "outcome": "PASS",
+      "rids": [
+        "R2",
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2_mock-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2_mock-2-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2-on-sounds.txt",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2-off-sounds.txt"
+      ],
+      "head_sha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+      "id": "S3-taps-release-stop-toggle",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s1_pipewire-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s1_pipewire-2-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s1-config-get-default.json"
+      ],
+      "head_sha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+      "id": "S4-default-off-no-idle-stream",
+      "outcome": "PASS",
+      "rids": [
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r2/s3-01-general-default-off-run1.png",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r2/s3-02-general-on-run1.png",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r2/s3-03-diagnostics-run1.png",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r2/s3-04-diagnostics-pw-gone-run2.png",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r2/s3-05-diagnostics-pw-back-run2.png",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r2/s3_gui-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r2/s3_gui-2-notes.log"
+      ],
+      "head_sha": "92af5354cfc712ead0c04b8e1e2222d390f32882",
+      "id": "S5-settings-switch-and-diagnostics",
+      "outcome": "PASS",
+      "rids": [
+        "R4",
+        "R6"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s1_pipewire-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s1_pipewire-2-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s1-pw-graph-1.jsonl",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s1-pw-graph-2.jsonl"
+      ],
+      "head_sha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+      "id": "S6-meeting-handoff-single-capture",
+      "outcome": "PASS",
+      "rids": [
+        "R4a"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2-on-profile-files.tsv",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2-on-events.jsonl",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s2_mock-2-notes.log"
+      ],
+      "head_sha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+      "id": "S7-privacy-only-take-window-persisted",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s1_pipewire-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s1_pipewire-2-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s1-daemon-1.log"
+      ],
+      "head_sha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+      "id": "S8-closes-on-disable-lockedhint-inactive",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s5_lock-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s5_lock-2-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s5-daemon-1.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s5-compositor-1.log"
+      ],
+      "head_sha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+      "id": "S9-omarchy-lock-closes-ring",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/recheck-summary.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9b_lock_edges-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9b_lock_edges-2-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9b_lock_edges-3-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9b_lock_edges-4-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9b-pw-graph-1.jsonl",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9b-pw-graph-2.jsonl",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9b-pw-graph-3.jsonl",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9b-pw-graph-4.jsonl",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9b-daemon-1.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9b-daemon-2.log"
+      ],
+      "head_sha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+      "id": "S9b-start-under-lock-never-opens",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/recheck-summary.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9c_logind_locked-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9c_logind_locked-2-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9c-pw-graph-1.jsonl",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9c-pw-graph-2.jsonl",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9c-daemon-1.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s9c-daemon-2.log"
+      ],
+      "head_sha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+      "id": "S9c-logind-locked-start-never-opens",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s10_pause-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s10_pause-2-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s10-daemon-1.log"
+      ],
+      "head_sha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+      "id": "S10-pause-closes-ring",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s1_pipewire-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s1_pipewire-2-notes.log"
+      ],
+      "head_sha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+      "id": "S11-default-move-and-device-loss",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r2/s4_fail-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r2/s4_fail-2-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r2/s4b_fail_off-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r2/s4b_fail_off-2-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r2/s4-doctor-pw-gone-1.txt",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r2/s4-daemon-1.log"
+      ],
+      "head_sha": "92af5354cfc712ead0c04b8e1e2222d390f32882",
+      "id": "S12-pipewire-restart-reported-in-doctor",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s13_late-1-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s13_late-2-notes.log",
+        ".flow/tmp/qa-fn-81-catch-the-first-and-last-words-of-every/r3/s13b-daemon-1.log"
+      ],
+      "head_sha": "2ffa3c205269e1399da11256d2d04f5f2f8dda69",
+      "id": "S13-pipewire-absent-at-daemon-start",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    }
+  ],
+  "timestamp": "2026-11-02T10:09:52Z",
+  "type": "qa_verdict",
+  "verdict": "SHIP"
+}

@@ -27,6 +27,11 @@
           "name": "alsa_output.pci-0000_01_00.1.hdmi-stereo"
         }
       ],
+      "microphone_ready": {
+        "lock_signal": "compositor",
+        "reason": null,
+        "state": "off"
+      },
       "pinned": "",
       "pipewire": true
     }

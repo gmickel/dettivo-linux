@@ -261,6 +261,10 @@ pub fn start(daemon: &Daemon, params_value: Value) -> Result<Value, JsonRpcError
         daemon
             .engines()
             .engine_for(&daemon.paths, &loaded, &row.stt_provider, &row.stt_model)?;
+    // One capture of the microphone (ADR 0092): the always-ready ring
+    // closes, inside this reservation, before the meeting opens its
+    // streams; it reopens once the meeting's capture ended.
+    daemon.dictation().ready().close("a meeting is capturing");
     let snapshot = daemon
         .meetings()
         .start(
