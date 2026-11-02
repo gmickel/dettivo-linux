@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-89-whisper-vocabulary-without-false",
   "spec_path": ".flow/tasks/fn-89-whisper-vocabulary-without-false.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Whisper vocabulary without false insertions",
   "updated_at": "2026-11-02T09:25:34.529093Z"
 }

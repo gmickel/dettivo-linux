@@ -458,7 +458,7 @@
     "impl:fn-89-whisper-vocabulary-without-false.1": 0
   },
   "spec_path": ".flow/specs/fn-89-whisper-vocabulary-without-false.md",
-  "status": "open",
+  "status": "done",
   "title": "Whisper vocabulary without false insertions",
   "tracker": {
     "baseHashFlow": null,
@@ -471,5 +471,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-02T15:10:47.065984Z"
+  "updated_at": "2026-11-02T15:53:23.918144Z"
 }
