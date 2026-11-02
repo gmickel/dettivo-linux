@@ -5,8 +5,8 @@
 hl.unbind("SUPER + ALT + SPACE")
 hl.unbind("SUPER + ALT + D")
 -- Hold to talk: press starts, release stops.
-hl.bind("SUPER + ALT + SPACE", hl.dsp.exec_cmd("dettivo --quiet dictation start"), { description = "Dettivo: hold to talk" })
-hl.bind("SUPER + ALT + SPACE", hl.dsp.exec_cmd("dettivo --quiet dictation stop"), { description = "Dettivo: hold to talk (release)", release = true })
+hl.bind("SUPER + ALT + SPACE", hl.dsp.exec_cmd("dettivo --quiet dictation press"), { description = "Dettivo: hold to talk" })
+hl.bind("SUPER + ALT + SPACE", hl.dsp.exec_cmd("dettivo --quiet dictation release"), { description = "Dettivo: hold to talk (release)", release = true })
 -- Toggle: one press starts, the next stops.
 hl.bind("SUPER + ALT + D", hl.dsp.exec_cmd("dettivo --quiet dictation toggle"), { description = "Dettivo: toggle dictation" })
 hl.bind("SUPER + ALT + ESCAPE", hl.dsp.exec_cmd("dettivo --quiet dictation cancel"), { description = "Dettivo: cancel dictation" })

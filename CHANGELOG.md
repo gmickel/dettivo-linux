@@ -11,6 +11,9 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ### Fixed
 
+- Hold to talk survives a lost key release. Hyprland's Lua binds and GNOME can drop the release, which left the take recording until the 300 s limit; now a press 1 s or more into a hold finishes the take, and a key repeat inside that second is ignored. The `dettivo setup` snippets bind the new idempotent verbs `dettivo dictation press` and `release`, which feed one hold-key state machine in the daemon with the portal and evdev paths ([docs/hotkeys.md](docs/hotkeys.md), [ADR 0083](docs/adr/0083-the-hold-key-is-a-daemon-state-machine-and-the-portal-gets-an-app-id.md)). Existing `start` and `stop` bindings keep working.
+- The GlobalShortcuts portal opens a session for the daemon on a stock Omarchy install. `dettivo doctor` reported `NotAllowed: An app id is required`; the daemon now registers the app id `dettivo` with the portal before it opens the session, writes `dettivo.desktop` for a source build that has none, and `dettivo doctor` says how the portal identified it. Hyprland's portal, which assigns no keys, is reported as `bound by the compositor`.
+- A changed `[hotkeys] hold` takes effect on GNOME and KDE after the daemon reloads its configuration. The desktops kept the first key they saw for a shortcut, so the portal shortcut ids now carry the chord (`dictation-hold-F9`), and a rebind registers a new id.
 - An empty or noisy dictation no longer pastes "Thank you." A take now passes a speech gate before the engine hears it. Its loudest 30 ms window must reach -50 dBFS, so a click or keyboard thump stays out, and the Silero model must hear a voice in it, so a fan or music bed stays out too. A gated take shows "Nothing heard" and pastes nothing. The voice check needs `whisper/silero-vad`, which now downloads with any speech model. Without it the level check runs alone, and `dettivo doctor` names the model and `dettivo speech download --model silero-vad` ([docs/dictation.md](docs/dictation.md)).
 - A dictation never pastes the vocabulary back when the take was silent, a decoder loop leaves the words before it, and the silence hallucinations and blank markers meetings already dropped (`thanks for watching`, `[BLANK_AUDIO]`) are dropped from dictation too.
 - A long vocabulary keeps its first words. The Whisper prompt stops at 500 characters, at a whole word.
@@ -21,6 +24,7 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 - First run recommends the speech model that transcribes your language best. The Models step reads `[dictation] language`, or your system locale while that is `auto`, and preselects the model the catalogue ranks first for it, with its word error rate beside it. `dettivo speech providers --language de` lists the ranking. The ranks come from a recorded FLEURS run over eight languages, and an existing selection never changes ([docs/models.md](docs/models.md)).
 - `dettivo speech status` and `dettivo doctor` say whether each speech engine is cold, loaded or warm, so you can tell whether the next take pays for a start.
+- Double-tap the hold key to dictate hands-free. A tap and then a press within 300 ms lock the take; releasing leaves it recording, the pill shows `locked · press to finish`, and the next press finishes it.
 
 ### Changed
 
