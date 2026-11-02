@@ -31,6 +31,14 @@ pub fn within(deadline: Instant, name: &'static str, step: impl FnOnce() + Send 
     }
 }
 
+/// Ends the runtime by `deadline`. Dropping it would wait without bound
+/// for blocking work still running, such as a cancel waiting on a slow
+/// speech check, so the daemon could stay alive after it logged
+/// `stopped`; work still running at the deadline is left behind.
+pub fn runtime(runtime: tokio::runtime::Runtime, deadline: Instant) {
+    runtime.shutdown_timeout(deadline.saturating_duration_since(Instant::now()));
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -59,5 +67,20 @@ mod tests {
         assert!(!within(past, "late", || std::thread::sleep(
             Duration::from_secs(10)
         )));
+    }
+
+    /// Blocking work still running at the deadline does not keep the
+    /// runtime, and so the daemon, alive.
+    #[test]
+    fn the_runtime_ends_by_the_deadline_with_blocking_work_left() {
+        let rt = tokio::runtime::Builder::new_multi_thread().build().unwrap();
+        rt.spawn_blocking(|| std::thread::sleep(Duration::from_secs(10)));
+        let started = Instant::now();
+        runtime(rt, started + Duration::from_millis(150));
+        assert!(
+            started.elapsed() < Duration::from_secs(2),
+            "{:?}",
+            started.elapsed()
+        );
     }
 }

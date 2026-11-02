@@ -103,7 +103,7 @@ fn main() -> ExitCode {
         }
     };
 
-    runtime.block_on(async move {
+    let (code, deadline) = runtime.block_on(async move {
         // The history store opens before anything listens: a migration
         // that fails names itself and its backup, and the daemon does not
         // start on a database it cannot read.
@@ -111,7 +111,7 @@ fn main() -> ExitCode {
             Ok(d) => d,
             Err(e) => {
                 eprintln!("dettivod: {e}");
-                return ExitCode::from(1);
+                return (ExitCode::from(1), None);
             }
         };
         logging::init(daemon.log_level());
@@ -135,7 +135,7 @@ fn main() -> ExitCode {
             Err(e) => {
                 tracing::error!(error = %e, "cannot acquire the socket");
                 eprintln!("dettivod: {e}");
-                return ExitCode::from(1);
+                return (ExitCode::from(1), None);
             }
         };
         daemon.record_start();
@@ -213,8 +213,12 @@ fn main() -> ExitCode {
         // when the daemon exits. The children end on their closed pipes.
         let d = daemon.clone();
         shutdown::within(deadline, "engines", move || d.engines().shutdown());
-        ExitCode::SUCCESS
-    })
+        (ExitCode::SUCCESS, Some(deadline))
+    });
+    if let Some(deadline) = deadline {
+        shutdown::runtime(runtime, deadline);
+    }
+    code
 }
 
 /// The hourly retention sweep (first run at start) and the minute-wise
