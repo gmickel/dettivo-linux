@@ -136,14 +136,21 @@ fn a_lone_listed_name_stands_when_sure() {
     );
 }
 
+/// Prompted segments, the prompt-free text, and the settled text (`None`
+/// keeps the term).
+type SoundCase = (
+    &'static [&'static [(&'static str, f32)]],
+    &'static str,
+    Option<&'static str>,
+);
+
 /// An unsure lone name stays when the prompt-free decode heard something
 /// that sounds like it or one of its aliases, and gives way to what that
 /// decode heard when it does not; a term inside a sentence never stays by
 /// sound.
 #[test]
 fn an_unsure_lone_name_stays_only_when_the_plain_decode_sounds_like_it() {
-    // (prompted segments, prompt-free text, settled: None keeps the term)
-    let cases: &[(&[&[(&str, f32)]], &str, Option<&str>)] = &[
+    let cases: &[SoundCase] = &[
         (&[&[(" Hyprland.", -0.411)]], " Hyperland.", None),
         (&[&[(" Omarchy.", -0.6)]], " Oh, Marky.", None),
         (&[&[(" Clef.", -0.416)]], " Pleph.", None),
@@ -173,7 +180,11 @@ fn an_unsure_lone_name_stays_only_when_the_plain_decode_sounds_like_it() {
             texts[segments.len() - 1] = s.to_string();
             texts
         });
-        assert_eq!(settle(&found, &plain(&[heard])), want, "{segments:?} {heard:?}");
+        assert_eq!(
+            settle(&found, &plain(&[heard])),
+            want,
+            "{segments:?} {heard:?}"
+        );
     }
 }
 
