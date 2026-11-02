@@ -20,6 +20,11 @@ use support::{policy, rig, silence_reason, tone};
 /// after `t0` and is silent otherwise, chunk `i` arriving at
 /// `t0 + 20 ms × (i + 1)`, until its stop or `until_ms`.
 fn microphone(t0: Instant, speech: (u64, u64), until_ms: u64) -> Source {
+    gapped_microphone(t0, speech, until_ms, (0, 0))
+}
+
+/// [`microphone`], capturing nothing from `gap.0` to `gap.1` ms.
+fn gapped_microphone(t0: Instant, speech: (u64, u64), until_ms: u64, gap: (u64, u64)) -> Source {
     let (tx, events) = mpsc::channel::<Event>();
     let stopped = Arc::new(AtomicBool::new(false));
     let (flag, ack) = (stopped.clone(), tx.clone());
@@ -31,6 +36,9 @@ fn microphone(t0: Instant, speech: (u64, u64), until_ms: u64) -> Source {
                 return;
             }
             let ms = 20 * i;
+            if ms >= gap.0 && ms < gap.1 {
+                continue;
+            }
             let pcm = if ms >= speech.0 && ms < speech.1 {
                 tone(320)
             } else {
@@ -195,6 +203,40 @@ fn a_release_queued_behind_a_slow_start_ends_the_take_at_its_tail() {
     assert!(
         (1_040..=1_060).contains(&ms),
         "{ms} ms: 450 ms pre-roll, the 400 ms hold and the 200 ms tail"
+    );
+}
+
+/// R2: the queued release cuts by capture time across a gap in the
+/// capture. Audio from 550 to 1600 ms and 1800 to 2000 ms, cut at
+/// 1600 ms, keeps all 1050 ms captured before the cut.
+#[test]
+fn a_queued_release_cuts_by_capture_time_across_a_capture_gap() {
+    let (dir, _, mut session, engine, _) = rig("queued gap");
+    let takes = Arc::new(Takes::default());
+    session.set_archive(takes.clone());
+    let t0 = Instant::now();
+    let feed = ReadyFeed::open(gapped_microphone(t0, (0, 5_000), 5_000, (1_600, 1_800))).unwrap();
+    let pressed = t0 + Duration::from_millis(1_000);
+    let released = pressed + Duration::from_millis(400);
+    sleep_until(pressed + Duration::from_millis(1_000));
+    let take = feed.take(pressed - PRE_ROLL).expect("the feed is idle");
+    let mut p = policy(dir.path(), true);
+    p.release_tail = POST_RELEASE_TAIL;
+    session
+        .start(
+            p,
+            engine,
+            Arc::new(Once(Mutex::new(Some(take)))),
+            None,
+            pressed,
+        )
+        .unwrap();
+    session.stop_expected(None, released).unwrap();
+    feed.close();
+    let ms = takes.0.lock().unwrap().pop().expect("one take file").len() / 16;
+    assert!(
+        (1_040..=1_060).contains(&ms),
+        "{ms} ms: the 1050 ms captured from 550 to 1600 ms, none after the gap"
     );
 }
 
