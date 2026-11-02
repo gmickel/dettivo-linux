@@ -8,14 +8,18 @@ pub mod backend;
 pub mod chain;
 pub mod clip;
 mod delivery;
+pub mod display;
 pub mod guards;
 pub mod idle;
+pub mod instance;
 pub mod join;
 pub mod keymap;
 pub mod probe;
 pub mod service;
 pub mod session;
 pub mod settings;
+#[cfg(any(test, feature = "stand-in"))]
+pub mod stand_in;
 
 pub use service::{Inserter, Request, Service};
 pub use session::{Mock, Session};

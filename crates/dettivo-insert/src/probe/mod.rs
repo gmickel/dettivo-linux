@@ -8,6 +8,7 @@ pub mod x11;
 
 use dettivo_proto::methods::insert::Target;
 
+use crate::instance::Instances;
 use crate::session::Session;
 use crate::settings::Settings;
 
@@ -61,13 +62,17 @@ impl FocusProbe for MockProbe {
 }
 
 /// The probe for this session: the mock when QA asks for it, Hyprland
-/// IPC on Hyprland, X11 when a display is reachable, none otherwise.
-pub fn for_session(session: &Session) -> Option<Box<dyn FocusProbe>> {
+/// IPC on Hyprland (through the instance in use, ADR 0099), X11 when a
+/// display is reachable, none otherwise.
+pub fn for_session<'a>(
+    session: &'a Session,
+    instances: &'a Instances,
+) -> Option<Box<dyn FocusProbe + 'a>> {
     if session.mock_focus || session.mock.is_some() {
         return Some(Box::new(MockProbe));
     }
-    if let Some(socket) = session.hyprland_socket() {
-        return Some(Box::new(hyprland::HyprlandProbe { socket }));
+    if session.hyprland_signature.is_some() {
+        return Some(Box::new(hyprland::HyprlandProbe { instances, session }));
     }
     if let Some(display) = &session.x11_display {
         return Some(Box::new(x11::X11Probe {
@@ -138,9 +143,10 @@ mod tests {
             mock_focus: true,
             ..Session::default()
         };
-        let probe = for_session(&session).unwrap();
+        let instances = Instances::default();
+        let probe = for_session(&session, &instances).unwrap();
         assert_eq!(probe.name(), "mock");
         assert_eq!(probe.focused().unwrap().unwrap().app_id, MOCK_APP_ID);
-        assert!(for_session(&Session::default()).is_none());
+        assert!(for_session(&Session::default(), &instances).is_none());
     }
 }
