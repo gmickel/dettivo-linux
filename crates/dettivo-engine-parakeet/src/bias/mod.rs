@@ -14,6 +14,7 @@ use dettivo_engine_proto::VocabularyBias;
 use crate::ffi::{FfiError, RawTranscription, RawWord, Take};
 pub use pieces::Pieces;
 
+pub use candidates::MAX_CANDIDATES;
 use candidates::Term;
 
 /// The most token pieces a term may take; longer terms are skipped.
@@ -58,12 +59,15 @@ impl Rescorer {
         })
     }
 
-    /// Rescores `raw`, the transcript of `take`, in place.
+    /// Rescores `raw`, the transcript of `take`, in place: at most `limit`
+    /// candidates, each made only of words `eligible` admits.
     pub fn rescore(
         &self,
         take: &Take<'_>,
         pieces: &Pieces,
         raw: &mut RawTranscription,
+        eligible: impl Fn(&RawWord) -> bool,
+        limit: usize,
     ) -> Result<Outcome, FfiError> {
         let tokens = take.tokens();
         let ids: Vec<i32> = tokens.iter().map(|t| t.id).collect();
@@ -78,7 +82,8 @@ impl Rescorer {
         }
         let texts: Vec<&str> = raw.words.iter().map(|w| w.w.as_str()).collect();
         let terms: Vec<Term> = self.terms.iter().map(|(t, _)| t.clone()).collect();
-        let found = candidates::find(&texts, &terms);
+        let eligible: Vec<bool> = raw.words.iter().map(eligible).collect();
+        let found = candidates::find(&texts, &terms, &eligible, limit);
         let mut outcome = Outcome {
             candidates: found.len(),
             replaced: 0,
@@ -128,14 +133,8 @@ impl Rescorer {
         }
         chosen.sort_by_key(|(first, _, _)| std::cmp::Reverse(*first));
         for (first, last, text) in &chosen {
-            let span = &raw.words[*first..=*last];
-            let word = RawWord {
-                w: written(text, &span[span.len() - 1].w),
-                start: span[0].start,
-                end: span[span.len() - 1].end,
-                conf: span.iter().map(|w| w.conf).fold(f64::INFINITY, f64::min),
-            };
-            raw.words.splice(*first..=*last, [word]);
+            let words = replacement(text, &raw.words[*first..=*last]);
+            raw.words.splice(*first..=*last, words);
         }
         outcome.replaced = chosen.len();
         if outcome.replaced > 0 {
@@ -150,23 +149,107 @@ impl Rescorer {
     }
 }
 
-/// The term as it replaces heard words: with the trailing marks of the
-/// last heard word, unless the term ends in a mark of its own.
+/// The words of `term` in place of the heard `span`, one timed word each:
+/// word for word when the counts match, otherwise the span's time shared
+/// out by letters. Every word takes the span's lowest confidence.
+fn replacement(term: &str, span: &[RawWord]) -> Vec<RawWord> {
+    let parts: Vec<&str> = term.split_whitespace().collect();
+    let conf = span.iter().map(|w| w.conf).fold(f64::INFINITY, f64::min);
+    let (start, end) = (span[0].start, span[span.len() - 1].end);
+    let letters: usize = parts.iter().map(|p| p.chars().count()).sum();
+    let mut at = start;
+    let last = parts.len() - 1;
+    parts
+        .iter()
+        .enumerate()
+        .map(|(i, part)| {
+            let (from, to) = if parts.len() == span.len() {
+                (span[i].start, span[i].end)
+            } else {
+                let to = at + (end - start) * part.chars().count() as f64 / letters as f64;
+                (std::mem::replace(&mut at, to), to)
+            };
+            RawWord {
+                w: if i == last {
+                    written(part, &span[span.len() - 1].w)
+                } else {
+                    part.to_string()
+                },
+                start: from,
+                end: if i == last { end } else { to },
+                conf,
+            }
+        })
+        .collect()
+}
+
+/// The term as it replaces heard words: followed by the marks that close
+/// the last heard word (a comma, a full stop, a quote, a bracket), except
+/// a sentence mark when the term ends in one of its own.
 fn written(term: &str, heard_last: &str) -> String {
-    if term.ends_with(|c: char| c.is_ascii_punctuation()) {
-        return term.to_string();
+    let bare = heard_last.trim_end_matches(|c: char| !c.is_alphanumeric());
+    let mut marks = &heard_last[bare.len()..];
+    if term.ends_with(['.', '!', '?']) {
+        marks = marks.trim_start_matches(['.', '!', '?']);
     }
-    let bare = heard_last.trim_end_matches(|c: char| c.is_ascii_punctuation());
-    format!("{term}{}", &heard_last[bare.len()..])
+    format!("{term}{marks}")
 }
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    fn word(w: &str, start: f64, end: f64, conf: f64) -> RawWord {
+        RawWord {
+            w: w.into(),
+            start,
+            end,
+            conf,
+        }
+    }
+
     #[test]
     fn the_term_takes_the_heard_marks_unless_it_has_its_own() {
-        assert_eq!(super::written("Hyprland", "Hyperland."), "Hyprland.");
-        assert_eq!(super::written("Hyprland", "Hyperland"), "Hyprland");
-        assert_eq!(super::written("Hyperland.", "Hyperland."), "Hyperland.");
-        assert_eq!(super::written("Yahoo!", "yahoo."), "Yahoo!");
+        assert_eq!(written("Hyprland", "Hyperland."), "Hyprland.");
+        assert_eq!(written("Hyprland", "Hyperland"), "Hyprland");
+        assert_eq!(written("Hyperland.", "Hyperland."), "Hyperland.");
+        assert_eq!(written("Yahoo!", "yahoo."), "Yahoo!");
+    }
+
+    /// Marks around a term that ends in its own (`C++`, `C#`) are kept.
+    #[test]
+    fn a_term_ending_in_marks_keeps_the_heard_comma_quote_and_bracket() {
+        assert_eq!(written("C++", "plus,"), "C++,");
+        assert_eq!(written("C++", "plus."), "C++.");
+        assert_eq!(written("C#", "sharp)"), "C#)");
+        assert_eq!(written("C#", "sharp\u{201d}."), "C#\u{201d}.");
+        assert_eq!(written("Yahoo!", "yahoo!\""), "Yahoo!\"");
+    }
+
+    /// A multi-word term comes back as timed words, never one word.
+    #[test]
+    fn a_multi_word_term_is_one_timed_word_per_word() {
+        let heard = [word("Gnu", 1.0, 1.2, 0.9), word("Yolk.", 1.3, 1.6, 0.5)];
+        let out = replacement("New York", &heard);
+        let as_tuples: Vec<(&str, f64, f64, f64)> = out
+            .iter()
+            .map(|w| (w.w.as_str(), w.start, w.end, w.conf))
+            .collect();
+        assert_eq!(
+            as_tuples,
+            [("New", 1.0, 1.2, 0.5), ("York.", 1.3, 1.6, 0.5)]
+        );
+        // One heard word, two term words: the time is shared by letters.
+        let out = replacement("New York", &[word("Newark", 2.0, 2.7, 0.8)]);
+        assert_eq!(out.len(), 2);
+        assert_eq!((out[0].w.as_str(), out[0].start), ("New", 2.0));
+        assert_eq!((out[1].w.as_str(), out[1].end), ("York", 2.7));
+        assert!((out[0].end - 2.3).abs() < 1e-9 && out[1].start == out[0].end);
+        // Several heard words, one term word: the span's whole time.
+        let out = replacement(
+            "SapienXT",
+            &[word("Zapian", 3.0, 3.4, 0.7), word("XT", 3.4, 3.8, 0.6)],
+        );
+        assert_eq!(out, [word("SapienXT", 3.0, 3.8, 0.6)]);
     }
 }

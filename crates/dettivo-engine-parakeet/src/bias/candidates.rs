@@ -3,8 +3,9 @@
 //! alias, shares most letters with the term or an alias, is a small edit
 //! away from one, or (for a term of five sounds or more) is one consonant
 //! sound off. Case-only differences, inflections of the term or of a
-//! mishearing of it, words inside paths, URLs and addresses, and terms
-//! under five letters without an alias are never candidates.
+//! mishearing of it, words inside paths, URLs, addresses and code, runs
+//! across punctuation, and terms under five letters without an alias are
+//! never candidates.
 
 use super::sound::{common_letters, edit_distance, key, normalise};
 
@@ -34,14 +35,17 @@ impl Term {
     /// under five letters with no alias, or one with no letters at all.
     pub fn new(text: &str, aliases: &[String]) -> Option<Self> {
         let norm = normalise(text);
-        let aliases: Vec<String> = aliases
+        let given: Vec<String> = aliases
             .iter()
             .map(|a| normalise(a))
-            .filter(|a| !a.is_empty() && *a != norm)
+            .filter(|a| !a.is_empty())
             .collect();
-        if norm.is_empty() || (norm.chars().count() < MIN_TERM_LETTERS && aliases.is_empty()) {
+        // A spelling that normalises to the term itself (`A W S` for
+        // `AWS`) still counts as one: the term matches it as it stands.
+        if norm.is_empty() || (norm.chars().count() < MIN_TERM_LETTERS && given.is_empty()) {
             return None;
         }
+        let aliases: Vec<String> = given.into_iter().filter(|a| *a != norm).collect();
         let (key, sounds) = key(&norm);
         Some(Self {
             text: text.trim().to_string(),
@@ -65,26 +69,43 @@ impl Term {
             })
     }
 
-    /// True when `heard` (normalised) is a plural or possessive of a
-    /// mishearing of the term ("hyperlans" for "Hyprland's"): it would
-    /// qualify without its trailing `s` or `es`, and no spelling of the
-    /// term ends in `s`.
-    fn inflected(&self, heard: &str) -> bool {
-        !std::iter::once(&self.norm)
-            .chain(&self.aliases)
-            .any(|s| s.ends_with('s'))
-            && ["s", "es"].iter().any(|tail| {
-                heard
-                    .strip_suffix(tail)
-                    .is_some_and(|stem| self.rank(stem).is_some())
-            })
+    /// The stem of `heard` (normalised) when it is a plural or possessive
+    /// of a mishearing of the term ("hyperlans" for "Hyprland's"). With a
+    /// written possessive (`possessive` letters of `'s` to drop) the stem
+    /// need only qualify. Otherwise `heard` must not be a listed spelling,
+    /// and without its `s` or `es` it must qualify against a spelling that
+    /// does not itself end in `s`, so `Cubernetes` still matches
+    /// `Kubernetes`.
+    fn inflected(&self, heard: &str, possessive: Option<usize>) -> Option<String> {
+        if let Some(drop) = possessive {
+            let stem = &heard[..heard.len().saturating_sub(drop)];
+            return self.rank(stem).is_some().then(|| stem.to_string());
+        }
+        if self.aliases.iter().any(|a| a == heard) {
+            return None;
+        }
+        ["s", "es"].iter().find_map(|tail| {
+            let stem = heard.strip_suffix(tail)?;
+            self.rank_by(stem, |s| !s.ends_with('s'))
+                .is_some()
+                .then(|| stem.to_string())
+        })
     }
 
     /// How closely `heard` (normalised) matches: lower is closer, `None`
     /// when it does not qualify.
     fn rank(&self, heard: &str) -> Option<u32> {
-        let spellings = || std::iter::once(&self.norm).chain(&self.aliases);
-        if self.aliases.iter().any(|a| a == heard) {
+        self.rank_by(heard, |_| true)
+    }
+
+    /// [`Term::rank`] against the spellings `keep` admits.
+    fn rank_by(&self, heard: &str, keep: impl Fn(&str) -> bool) -> Option<u32> {
+        let spellings = || {
+            std::iter::once(&self.norm)
+                .chain(&self.aliases)
+                .filter(|s| keep(s))
+        };
+        if self.aliases.iter().any(|a| a == heard && keep(a)) {
             return Some(0);
         }
         let len = heard.chars().count();
@@ -104,7 +125,12 @@ impl Term {
             }
         }
         let n = self.norm.chars().count();
-        if best.is_none() && self.sounds >= MIN_PHONETIC_SOUNDS && 2 * len >= n && len <= 2 * n {
+        if best.is_none()
+            && keep(&self.norm)
+            && self.sounds >= MIN_PHONETIC_SOUNDS
+            && 2 * len >= n
+            && len <= 2 * n
+        {
             let (heard_key, _) = key(heard);
             if !heard_key.is_empty()
                 && heard_key.len().abs_diff(self.key.len()) <= 1
@@ -126,10 +152,10 @@ impl Term {
     }
 }
 
-/// A word of a path, URL or address (`src/app`, `example.com`,
-/// `me@example.org`): never part of a candidate.
+/// A word of a path, URL, address or code (`src/app`, `example.com`,
+/// `me@example.org`, `std::io`, `` `x` ``): never part of a candidate.
 pub fn is_protected(word: &str) -> bool {
-    if word.contains(['/', '\\', '@', '~']) || word.contains("://") {
+    if word.contains(['/', '\\', '@', '~', '`']) || word.contains("::") {
         return true;
     }
     let chars: Vec<char> = word.chars().collect();
@@ -149,15 +175,53 @@ pub struct Candidate {
     pub term: usize,
 }
 
-/// Every candidate in `words` (each as the transcript spells it), closest
-/// first, at most [`MAX_CANDIDATES`].
-pub fn find(words: &[&str], terms: &[Term]) -> Vec<Candidate> {
+/// Every word between a backtick and the next one, both included: code
+/// the raw layer keeps byte for byte.
+fn in_code(words: &[&str]) -> Vec<bool> {
+    let mut code = vec![false; words.len()];
+    let mut open = None;
+    for (i, word) in words.iter().enumerate() {
+        for _ in word.matches('`') {
+            match open.take() {
+                Some(from) => code[from..=i].iter_mut().for_each(|c| *c = true),
+                None => open = Some(i),
+            }
+        }
+    }
+    code
+}
+
+/// The letters a written possessive adds to a word's normalised form:
+/// one for `'s` (`XT's`), none for a bare `'` after an `s` (`Kubernetes'`).
+fn possessive(word: &str) -> Option<usize> {
+    let apostrophe = |c: char| matches!(c, '\'' | '\u{2019}');
+    let bare = word.trim_end_matches(|c: char| !c.is_alphanumeric() && !apostrophe(c));
+    let mut tail = bare.chars().rev();
+    match (tail.next(), tail.next()) {
+        (Some('s' | 'S'), Some(a)) if apostrophe(a) => Some(1),
+        (Some(a), Some('s' | 'S')) if apostrophe(a) => Some(0),
+        _ => None,
+    }
+}
+
+/// Every candidate in `words` (each as the transcript spells it) whose
+/// words are all `eligible`, closest first, at most `limit`.
+pub fn find(words: &[&str], terms: &[Term], eligible: &[bool], limit: usize) -> Vec<Candidate> {
     // A word that opens with a mark (a quote, a bracket) or holds none of
     // its letters cannot take a term's spelling without losing it.
+    let code = in_code(words);
     let usable: Vec<bool> = words
         .iter()
-        .map(|w| !is_protected(w) && w.chars().next().is_some_and(char::is_alphanumeric))
+        .enumerate()
+        .map(|(i, w)| {
+            eligible[i]
+                && !code[i]
+                && !is_protected(w)
+                && w.chars().next().is_some_and(char::is_alphanumeric)
+        })
         .collect();
+    // A word ending in a mark (a full stop, a comma, a quote) ends a run.
+    let closes = |w: &str| !w.chars().last().is_some_and(char::is_alphanumeric);
     let norms: Vec<String> = words.iter().map(|w| normalise(w)).collect();
     let joined = |from: usize, to: usize| norms[from..to].concat();
     let spans = || {
@@ -165,35 +229,55 @@ pub fn find(words: &[&str], terms: &[Term]) -> Vec<Candidate> {
             (first..words.len().min(first + MAX_SPAN_WORDS)).map(move |last| (first, last))
         })
     };
-    // Words that already are a term stay as heard, and no shorter or
-    // overlapping run rewrites them into that term.
-    let mut written: Vec<(usize, usize, usize)> = Vec::new();
+    // Words that already are a term, or an inflection of a mishearing of
+    // it, stay as heard, and no shorter or overlapping run rewrites them
+    // into that term: `blocked[word]` lists those terms.
+    let mut blocked: Vec<Vec<usize>> = vec![Vec::new(); words.len()];
+    let mut inflected: Vec<(usize, usize, usize)> = Vec::new();
     for (first, last) in spans() {
         let heard = joined(first, last + 1);
         let as_written = words[first..=last]
             .join(" ")
             .trim_end_matches(|c: char| c.is_ascii_punctuation())
             .to_lowercase();
+        let possessive = possessive(words[last]);
         for (index, term) in terms.iter().enumerate() {
-            if term.written(&as_written, &heard) {
-                written.push((first, last, index));
+            let block = term.written(&as_written, &heard)
+                || match term.inflected(&heard, possessive) {
+                    None => false,
+                    // The suffix must belong to the run: its last word
+                    // brings the stem closer to a spelling (`Pro's` in
+                    // `Hyperland Pro's`, never `draws` after `Hyperland`).
+                    Some(stem) => {
+                        inflected.push((first, last, index));
+                        first == last || {
+                            let before = joined(first, last);
+                            std::iter::once(&term.norm)
+                                .chain(&term.aliases)
+                                .any(|s| edit_distance(&stem, s) < edit_distance(&before, s))
+                        }
+                    }
+                };
+            if block {
+                for terms in &mut blocked[first..=last] {
+                    if !terms.contains(&index) {
+                        terms.push(index);
+                    }
+                }
             }
         }
     }
     let mut found: Vec<(u32, Candidate)> = Vec::new();
     for (first, last) in spans() {
-        if !usable[first..=last].iter().all(|u| *u) {
+        if !usable[first..=last].iter().all(|u| *u) || words[first..last].iter().any(|w| closes(w))
+        {
             continue;
         }
         let heard = joined(first, last + 1);
         for (index, term) in terms.iter().enumerate() {
-            if written
-                .iter()
-                .any(|&(f, l, t)| t == index && first <= l && last >= f)
+            if blocked[first..=last].iter().any(|b| b.contains(&index))
+                || inflected.contains(&(first, last, index))
             {
-                continue;
-            }
-            if term.inflected(&heard) {
                 continue;
             }
             let Some(rank) = term.rank(&heard) else {
@@ -219,143 +303,10 @@ pub fn find(words: &[&str], terms: &[Term]) -> Vec<Candidate> {
         }
     }
     found.sort_by_key(|(rank, c)| (*rank, c.first, c.last, c.term));
-    found.truncate(MAX_CANDIDATES);
+    found.truncate(limit);
     found.into_iter().map(|(_, c)| c).collect()
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn term(text: &str, aliases: &[&str]) -> Term {
-        let aliases: Vec<String> = aliases.iter().map(|a| a.to_string()).collect();
-        Term::new(text, &aliases).unwrap()
-    }
-
-    fn spans(heard: &str, terms: &[Term]) -> Vec<(usize, usize, usize)> {
-        let words: Vec<&str> = heard.split_whitespace().collect();
-        find(&words, terms)
-            .into_iter()
-            .map(|c| (c.first, c.last, c.term))
-            .collect()
-    }
-
-    #[test]
-    fn mishearings_of_a_term_are_candidates() {
-        let terms = [
-            term("Dettivo", &["detivo"]),
-            term("Hyprland", &[]),
-            term("SapienXT", &[]),
-            term("Omarchy", &[]),
-        ];
-        // An edit away from an alias, letters in common, two words that
-        // spell the term, one consonant sound off.
-        assert!(spans("with dativo on", &terms).contains(&(1, 1, 0)));
-        assert!(spans("The HyperLAN config", &terms).contains(&(1, 1, 1)));
-        assert!(spans("to Zapian XT before", &terms).contains(&(1, 2, 2)));
-        assert!(spans("in Omar He changed", &terms).contains(&(1, 2, 3)));
-        assert!(spans("Itivo puts the text", &terms).contains(&(0, 0, 0)));
-    }
-
-    /// R4: an alias widens matching.
-    #[test]
-    fn an_alias_finds_a_span_the_spelling_alone_misses() {
-        assert_eq!(
-            spans("she shaped the clay", &[term("Clef", &["clay"])]),
-            vec![(3, 3, 0)]
-        );
-        assert!(
-            Term::new("Clef", &[]).is_none(),
-            "a short term needs an alias"
-        );
-        assert_eq!(
-            spans("I installed oh marky", &[term("Omarchy", &["oh marky"])]),
-            vec![(2, 3, 0)]
-        );
-        assert_eq!(
-            spans("I installed oh marky", &[term("Omarchy", &[])]),
-            vec![]
-        );
-    }
-
-    /// R5: case-only differences, inflections, paths, URLs and addresses
-    /// are never rewritten, and short terms without an alias are skipped.
-    #[test]
-    fn what_must_stay_as_heard_is_never_a_candidate() {
-        let terms = [term("Dettivo", &["detivo"])];
-        for heard in [
-            "open dettivo now",
-            "open DETTIVO now",
-            "two Dettivos here",
-            "the Dettivo's window",
-            "the detivos window",
-            "see src/detivo please",
-            "see https://dativo.com please",
-            "see dativo.com please",
-            "mail me@dativo.org please",
-        ] {
-            assert_eq!(spans(heard, &terms), vec![], "{heard}");
-        }
-        assert!(Term::new("Jev", &[]).is_none());
-        assert!(Term::new("Jev", &["jeff".into()]).is_some());
-    }
-
-    /// R5: a plural or possessive fused onto a mishearing of the term
-    /// ("Hyperlans" for "Hyprland's") stays as heard, while a term that
-    /// itself ends in `s` still matches a mishearing ending in `s`.
-    #[test]
-    fn an_inflected_mishearing_is_never_a_candidate() {
-        let terms = [
-            term("Hyprland", &["hyper land", "hyperland"]),
-            term("SapienXT", &[]),
-        ];
-        for heard in [
-            "Hyperlans config is short.",
-            "Hyperlan's config is short.",
-            "Both hyperlans crashed",
-            "two Zapian XTs here",
-            "the Zapian XT's dashboard",
-        ] {
-            assert_eq!(spans(heard, &terms), vec![], "{heard}");
-        }
-        assert_eq!(
-            spans("I run Cubernetes at home", &[term("Kubernetes", &[])]),
-            vec![(2, 2, 0)]
-        );
-        // A mishearing followed by a word ending in `s` is still one.
-        assert!(spans("Hyperland draws the windows", &terms).contains(&(0, 0, 0)));
-    }
-
-    /// R5: words that already are a multi-word term are never rewritten
-    /// in part, so no word of the term is written twice.
-    #[test]
-    fn a_term_already_heard_is_never_rewritten_in_part() {
-        for (heard, written) in [
-            ("moved because of the holiday", "because of the"),
-            ("O Markey ships with", "o Markey"),
-            ("Rain is expected over", "Rain Is"),
-            ("two Sapien XTs here", "Sapien XT"),
-        ] {
-            assert_eq!(spans(heard, &[term(written, &[])]), vec![], "{heard}");
-        }
-    }
-
-    #[test]
-    fn a_span_never_swallows_a_neighbouring_word() {
-        let found = spans("invoice to Sapien XT before", &[term("SapienXT", &[])]);
-        assert!(found.contains(&(2, 3, 0)), "{found:?}");
-        assert!(!found.contains(&(1, 3, 0)), "{found:?}");
-    }
-
-    #[test]
-    fn unrelated_words_are_not_candidates_and_the_count_is_capped() {
-        let terms = [
-            term("Hyprland", &[]),
-            term("SapienXT", &[]),
-            term("Detective", &[]),
-        ];
-        assert_eq!(spans("We walked across the highland", &terms[..2]), vec![]);
-        let many = "detectiv ".repeat(20);
-        assert_eq!(spans(&many, &terms).len(), MAX_CANDIDATES);
-    }
-}
+#[path = "candidates_tests.rs"]
+mod tests;
