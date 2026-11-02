@@ -297,12 +297,15 @@ fn microphone_ready(audio: &Value) -> String {
 }
 
 /// The Hyprland instance the daemon talks to, and whether the signature
-/// in its environment is stale (fn-91).
+/// in its environment is stale (fn-91) or names another display's instance.
 fn compositor_row(instance: &Value) -> String {
     let environment = show(&instance["environment_signature"]);
     match instance["signature"].as_str() {
         None => format!(
             "no Hyprland instance answers for this display (the environment names {environment})"
+        ),
+        Some(live) if instance["environment_other_display"] == true => format!(
+            "Hyprland instance {live}; the environment's {environment} belongs to another display"
         ),
         Some(live) if instance["environment_stale"] == true => format!(
             "Hyprland instance {live}; the environment's {environment} is stale (the compositor restarted)"
@@ -466,6 +469,11 @@ mod tests {
             json!({"signature": "new", "environment_signature": "old", "environment_stale": true});
         assert!(row(stale).ends_with(
             "Hyprland instance new; the environment's old is stale (the compositor restarted)"
+        ));
+        let other = json!({"signature": "live", "environment_signature": "other",
+            "environment_stale": true, "environment_other_display": true});
+        assert!(row(other).ends_with(
+            "Hyprland instance live; the environment's other belongs to another display"
         ));
         let none =
             json!({"signature": null, "environment_signature": "old", "environment_stale": true});

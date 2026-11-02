@@ -19,8 +19,8 @@ Hyprland keeps one directory per instance under `$XDG_RUNTIME_DIR/hypr/<signatur
 - The environment's signature is a hint. The probe connects to the instance in use, which at first is the environment's, unless that instance's `hyprland.lock` names a different Wayland display; then the hint is ignored and the search below runs at once. A lock with no display line, as older Hyprland releases write, cannot be checked, so the environment's instance is used as before.
 - When that connection is refused or the socket is missing, the daemon reads every `hyprland.lock` under `$XDG_RUNTIME_DIR/hypr/`, keeps the instances whose second line equals the daemon's `WAYLAND_DISPLAY`, and connects to them newest lock first. The first that accepts becomes the instance in use, and its connection carries the query. The search runs on every refused connection, never on a timer.
 - An instance of another Wayland display is never connected to, and nothing outside this user's runtime directory is read. With no instance of this display answering, the probe fails and the existing rule holds: an unverifiable target gets the clipboard only.
-- The log says `hyprland: switched to the live instance` once per switch, with both signatures, and warns once when no instance answers.
-- `insert.target` carries a `compositor` block on Hyprland: `signature` (the instance in use, `null` when none answers), `environment_signature`, and `environment_stale`. `dettivo doctor` renders it as its `compositor` row.
+- The log says `hyprland: switched to the live instance` once per switch, with both signatures (`from=<the environment's or the previous instance> to=<the live one>`), and warns once when no instance answers.
+- `insert.target` carries a `compositor` block on Hyprland: `signature` (the instance in use, `null` when none answers), `environment_signature`, `environment_stale`, and `environment_other_display` (`true` when the environment's instance belongs to another display, so it was passed over rather than gone after a restart). `dettivo doctor` renders it as its `compositor` row.
 
 ## Consequences
 

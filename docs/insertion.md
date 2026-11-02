@@ -54,7 +54,7 @@ Dettivo learns whether you gave input in between from the compositor's input-idl
 
 When Hyprland restarts (a crash, its watchdog, a reload gone wrong), the next dictation types into the focused window again within 2 s of the new compositor being up, with no daemon restart ([ADR 0099](adr/0099-the-live-hyprland-instance-is-found-again-on-every-refused-connection.md), [ADR 0100](adr/0100-every-compositor-connection-comes-back-after-a-compositor-restart.md)).
 
-- The restarted compositor has a new instance signature, while the daemon's environment, and the systemd user environment uwsm wrote at login, keep the old one. The focus probe treats `HYPRLAND_INSTANCE_SIGNATURE` as a hint. When its socket refuses the connection, the probe reads `$XDG_RUNTIME_DIR/hypr/*/hyprland.lock`, takes the instances whose Wayland display is the daemon's `WAYLAND_DISPLAY`, and uses the newest one that accepts. It searches again on every refused connection. The journal says `hyprland: switched to the live instance` once per switch.
+- The restarted compositor has a new instance signature, while the daemon's environment, and the systemd user environment uwsm wrote at login, keep the old one. The focus probe treats `HYPRLAND_INSTANCE_SIGNATURE` as a hint. When its socket refuses the connection, the probe reads `$XDG_RUNTIME_DIR/hypr/*/hyprland.lock`, takes the instances whose Wayland display is the daemon's `WAYLAND_DISPLAY`, and uses the newest one that accepts. It searches again on every refused connection. The journal says `hyprland: switched to the live instance` once per switch, with the old and new signatures.
 - An instance of another Wayland display is never used. With no instance of this display answering, the target cannot be verified and the take goes to the clipboard, as before.
 - The virtual keyboard and the clipboard connect for each insertion, so they reach the new compositor on their own. The screen-lock watcher and the input-idle watch that joins dictations reconnect within 2 s of the compositor's return.
 
@@ -62,6 +62,12 @@ When Hyprland restarts (a crash, its watchdog, a reload gone wrong), the next di
 
 ```
 compositor Hyprland instance 7c2a…_1762075000_123; the environment's 7c2a…_1762060000_456 is stale (the compositor restarted)
+```
+
+When the environment names a live instance of another display, such as a nested Hyprland, the row says so instead:
+
+```
+compositor Hyprland instance 7c2a…_1762075000_123; the environment's 9f1b…_1762070000_789 belongs to another display
 ```
 
 ## Undo

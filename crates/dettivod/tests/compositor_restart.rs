@@ -78,12 +78,14 @@ fn the_next_insertion_after_a_compositor_restart_types_again() {
     assert_eq!(target["compositor"]["signature"], "second", "{target}");
     assert_eq!(target["compositor"]["environment_signature"], "first");
     assert_eq!(target["compositor"]["environment_stale"], true);
+    assert_eq!(target["compositor"]["environment_other_display"], false);
     let log = daemon.stop();
     assert_eq!(
         log.matches("switched to the live instance").count(),
         1,
         "{log}"
     );
+    assert!(log.contains("from=first to=second"), "{log}");
 }
 
 /// R2: a daemon whose environment names an instance that no longer
@@ -108,7 +110,8 @@ fn a_daemon_started_with_a_stale_signature_types_through_the_live_instance() {
     assert_eq!(target["compositor"]["signature"], "live", "{target}");
     assert_eq!(target["compositor"]["environment_signature"], "stale");
     assert_eq!(target["compositor"]["environment_stale"], true);
-    daemon.stop();
+    assert_eq!(target["compositor"]["environment_other_display"], false);
+    assert!(daemon.stop().contains("from=stale to=live"));
 }
 
 /// The boundary holds for the environment's instance too: a live
@@ -131,7 +134,9 @@ fn an_environment_naming_another_display_uses_this_displays_instance() {
     assert_eq!(target["compositor"]["signature"], "live", "{target}");
     assert_eq!(target["compositor"]["environment_signature"], "other");
     assert_eq!(target["compositor"]["environment_stale"], true);
-    daemon.stop();
+    assert_eq!(target["compositor"]["environment_other_display"], true);
+    let log = daemon.stop();
+    assert!(log.contains("from=other to=live"), "{log}");
 }
 
 /// A fresh environment reports its own instance, not stale.

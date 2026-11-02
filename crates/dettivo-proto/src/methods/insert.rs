@@ -132,6 +132,10 @@ pub struct CompositorInstance {
     /// The environment names another instance than the one in use, or
     /// one that does not answer.
     pub environment_stale: bool,
+    /// The environment's instance belongs to another Wayland display, so
+    /// it is never used (rather than gone after a compositor restart).
+    #[serde(default)]
+    pub environment_other_display: bool,
 }
 
 #[cfg(test)]

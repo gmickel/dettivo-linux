@@ -89,10 +89,12 @@ impl Instances {
     /// display, found again on every refused connection.
     pub fn connect(&self, session: &Session) -> Result<UnixStream, String> {
         let mut state = self.state.lock().unwrap_or_else(|p| p.into_inner());
-        let hint = state
+        let previous = state
             .in_use
             .clone()
-            .or_else(|| session.hyprland_signature.clone())
+            .or_else(|| session.hyprland_signature.clone());
+        let hint = previous
+            .clone()
             .filter(|signature| !of_another_display(session, signature));
         let mut refused = None;
         if let Some(path) = hint.as_deref().and_then(|s| session.hyprland_socket(s)) {
@@ -108,7 +110,7 @@ impl Instances {
         for (signature, socket) in live_candidates(session, hint.as_deref()) {
             if let Ok(stream) = UnixStream::connect(&socket) {
                 tracing::info!(
-                    from = hint.as_deref().unwrap_or("none"),
+                    from = %previous.as_deref().unwrap_or("none"),
                     to = %signature,
                     "hyprland: switched to the live instance"
                 );
@@ -127,8 +129,9 @@ impl Instances {
         Err(why)
     }
 
-    /// What `insert.target` reports: the instance in use and whether the
-    /// environment's signature names another one. `None` outside Hyprland.
+    /// What `insert.target` reports: the instance in use, whether the
+    /// environment's signature names another one, and whether that one
+    /// belongs to another display. `None` outside Hyprland.
     pub fn report(&self, session: &Session) -> Option<CompositorInstance> {
         let in_use = self
             .state
@@ -142,6 +145,9 @@ impl Instances {
         }
         Some(CompositorInstance {
             environment_stale: environment.is_some() && environment != in_use,
+            environment_other_display: environment
+                .as_deref()
+                .is_some_and(|signature| of_another_display(session, signature)),
             signature: in_use,
             environment_signature: environment,
         })
@@ -186,6 +192,7 @@ mod tests {
             let report = instances.report(&session).unwrap();
             assert_eq!(report.signature, None);
             assert!(report.environment_stale);
+            assert!(!report.environment_other_display);
 
             let _live = HyprlandStandIn::start(dir.path(), "live", "wl-0").unwrap();
             assert!(instances.connect(&session).is_ok(), "absolute: {absolute}");
@@ -217,5 +224,31 @@ mod tests {
         let report = instances.report(&session).unwrap();
         assert_eq!(report.signature.as_deref(), Some("old"));
         assert!(!report.environment_stale);
+        assert!(!report.environment_other_display);
+    }
+
+    /// An environment naming another display's live instance is reported
+    /// as such, not as a restart.
+    #[test]
+    fn an_environment_instance_of_another_display_is_reported_as_such() {
+        let dir = tempfile::Builder::new()
+            .prefix("dtv")
+            .tempdir_in("/tmp")
+            .unwrap();
+        let other = HyprlandStandIn::start(dir.path(), "other", "wl-9").unwrap();
+        let _live = HyprlandStandIn::start(dir.path(), "live", "wl-0").unwrap();
+        let session = Session {
+            runtime_dir: Some(dir.path().to_path_buf()),
+            wayland_display: Some("wl-0".into()),
+            hyprland_signature: Some("other".into()),
+            ..Session::default()
+        };
+        let instances = Instances::default();
+        assert!(instances.connect(&session).is_ok());
+        assert_eq!(other.queries(), 0);
+        let report = instances.report(&session).unwrap();
+        assert_eq!(report.signature.as_deref(), Some("live"));
+        assert!(report.environment_stale);
+        assert!(report.environment_other_display);
     }
 }
