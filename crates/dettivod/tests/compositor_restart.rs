@@ -111,6 +111,29 @@ fn a_daemon_started_with_a_stale_signature_types_through_the_live_instance() {
     daemon.stop();
 }
 
+/// The boundary holds for the environment's instance too: a live
+/// instance of another display named by the environment is never queried,
+/// and the instance of the daemon's own display types the take.
+#[test]
+fn an_environment_naming_another_display_uses_this_displays_instance() {
+    let tree = pinned_tree();
+    let run = tree.root().join("run");
+    let wayland = WaylandStandIn::start(&run.join(DISPLAY), GLOBALS).unwrap();
+    let other_seat = HyprlandStandIn::start(&run, "other", "wl-9").unwrap();
+    let live = HyprlandStandIn::start(&run, "live", DISPLAY).unwrap();
+    let daemon = spawn(tree, "other");
+
+    assert_typed(&insert(&daemon, "hello"));
+    assert_eq!(wayland.presses(), 5);
+    assert!(live.queries() > 0);
+    assert_eq!(other_seat.queries(), 0, "another display's compositor");
+    let target = daemon.result("insert.target", json!({}));
+    assert_eq!(target["compositor"]["signature"], "live", "{target}");
+    assert_eq!(target["compositor"]["environment_signature"], "other");
+    assert_eq!(target["compositor"]["environment_stale"], true);
+    daemon.stop();
+}
+
 /// A fresh environment reports its own instance, not stale.
 #[test]
 fn a_current_signature_is_reported_as_in_use() {
