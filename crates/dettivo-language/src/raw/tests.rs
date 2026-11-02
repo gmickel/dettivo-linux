@@ -41,6 +41,46 @@ fn a_spoken_stop_beside_the_engines_own_ends_the_sentence_once() {
     }
 }
 
+/// A spoken mark beside one Whisper wrote leaves one mark: the spoken
+/// one wins a sentence end, a comma Whisper wrote right after a spoken
+/// stop gives way and the next sentence keeps its capital, and a spoken
+/// comma beside a written one is one comma. Marks Whisper wrote alone
+/// stay as they were.
+#[test]
+fn a_spoken_mark_beside_a_written_one_leaves_one_mark() {
+    let cases = [
+        ("Is it done? Question mark.", "Is it done?"),
+        ("Is it done. Question mark.", "Is it done?"),
+        ("Is it done? Period.", "Is it done."),
+        ("Watch out! Exclamation mark.", "Watch out!"),
+        ("Watch out. Exclamation point.", "Watch out!"),
+        ("Send me the report. Period.", "Send me the report."),
+        (
+            "Send me the report, period, then go home.",
+            "Send me the report. Then go home.",
+        ),
+        (
+            "Send me the report period, then go home.",
+            "Send me the report. Then go home.",
+        ),
+        ("Is it done, question mark, then go.", "Is it done? Then go."),
+        (
+            "Meet me at nine, comma, then we go.",
+            "Meet me at nine, then we go.",
+        ),
+        (
+            "Meet me at nine comma, then we go.",
+            "Meet me at nine, then we go.",
+        ),
+        ("What?! No way.", "What?! No way."),
+        ("Really? Yes, I think so.", "Really? Yes, I think so."),
+        ("One, two, three.", "One, two, three."),
+    ];
+    for (input, want) in cases {
+        assert_eq!(raw(input), want, "{input}");
+    }
+}
+
 /// A punctuation word after an article or a determiner that cannot end a
 /// sentence is a noun ("a period of three weeks"), so it stays a word;
 /// the same word as a command still becomes its mark.
