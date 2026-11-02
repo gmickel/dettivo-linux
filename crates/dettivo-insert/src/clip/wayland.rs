@@ -76,7 +76,9 @@ impl Clip for WaylandClip {
             .map_err(|e| e.to_string())
             .and_then(|(pipe, _)| bounded(pipe, until, left));
             match read {
-                Ok(bytes) => admit(&mut snap, &mut left, mime, bytes),
+                Ok(bytes) => {
+                    admit(&mut snap, &mut left, mime, bytes);
+                }
                 Err(reason) => {
                     tracing::warn!(mime = %mime, reason = %reason, "clipboard type left out of the snapshot")
                 }

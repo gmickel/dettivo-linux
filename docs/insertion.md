@@ -28,11 +28,11 @@ An image, a file list or rich text you copied before a `clipboard_paste` dictati
 
 - Before the text is set, Dettivo reads every type the clipboard offers, up to 32 MiB in total and within 1 s. On Wayland it reads through data-control (`ext_data_control_v1`, else `zwlr_data_control_v1`), and under X11 through the `CLIPBOARD` selection, following `INCR` transfers. A type that does not fit or does not answer in time is left out of the snapshot and logged by name.
 - `clipboard_restore_delay_ms` (500 ms) after the paste keystroke, Dettivo offers the snapshot again. An empty clipboard is cleared again.
-- A copy made during the delay, by you or by another app, wins: Dettivo restores only while the text it set is still the clipboard. On Wayland it knows that because its own offer is still being served, and under X11 because no `SelectionClear` arrived.
+- A copy made during the delay, by you or by another app, wins: Dettivo restores only while the text it set is still the clipboard. On Wayland it knows that because its own offer is still being served, and under X11 because the X server still names its window as the `CLIPBOARD` owner, checked under a server grab so no copy can slip in between.
 - A clipboard that could not be read at all is not restored, so the dictated text stays rather than an empty clipboard.
 - Two dictations in a row keep your first original, because the second one starts only after the first restore.
 
-Under X11, Dettivo serves the restored types from a window of its own for as long as the daemon runs. A single type larger than the X server's request limit (16 MiB with BIG-REQUESTS) is offered but answered with a refusal, because Dettivo does not send `INCR`. `[insert] restore_clipboard = false` leaves the dictated text on the clipboard.
+Under X11, Dettivo serves the restored types from a window of its own for as long as the daemon runs, each in the property type and format the original owner answered with. The dictated text is offered as `UTF8_STRING`, `TEXT` and the `text/plain` types, and as `STRING` only when it has an ISO-8859-1 form. A single type larger than the X server's request limit (16 MiB with BIG-REQUESTS) is offered but answered with a refusal, because Dettivo does not send `INCR`. `[insert] restore_clipboard = false` leaves the dictated text on the clipboard.
 
 ## Held modifiers wait out
 

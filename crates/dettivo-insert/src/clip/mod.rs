@@ -9,6 +9,7 @@ mod read;
 mod wayland;
 mod x11;
 
+use std::collections::HashMap;
 use std::time::Duration;
 
 use crate::session::Session;
@@ -28,6 +29,19 @@ pub const SNAPSHOT_DEADLINE: Duration = Duration::from_secs(1);
 pub struct ClipboardSnapshot {
     /// `(mime type, bytes)` pairs.
     pub offers: Vec<(String, Vec<u8>)>,
+    /// How an X11 owner answered each target: the property type and
+    /// format a restore replays. Empty on Wayland, whose types are bytes.
+    pub forms: HashMap<String, X11Form>,
+}
+
+/// The type and format (8, 16 or 32) of an X11 selection reply: a `TEXT`
+/// target answered as `UTF8_STRING`, or a list of 32-bit values.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct X11Form {
+    /// The reply's property type, by atom name.
+    pub type_name: String,
+    /// The reply's format.
+    pub format: u8,
 }
 
 /// Which content Dettivo last set: a restore runs only while the
@@ -86,15 +100,6 @@ pub fn clip_for(session: &Session) -> Result<Box<dyn Clip>, String> {
     }
 }
 
-/// The text types a dictation is offered as.
-pub(crate) const TEXT_TYPES: &[&str] = &[
-    "text/plain;charset=utf-8",
-    "UTF8_STRING",
-    "text/plain",
-    "STRING",
-    "TEXT",
-];
-
 /// X11 selection targets that describe the selection instead of holding
 /// its content; a snapshot never reads them.
 pub(crate) fn is_meta(mime: &str) -> bool {
@@ -104,14 +109,21 @@ pub(crate) fn is_meta(mime: &str) -> bool {
     )
 }
 
-/// Keeps `offer` when it fits in what is left of the budget.
-pub(crate) fn admit(snap: &mut ClipboardSnapshot, left: &mut usize, mime: String, bytes: Vec<u8>) {
+/// Keeps `offer` when it fits in what is left of the budget, and says
+/// whether it did.
+pub(crate) fn admit(
+    snap: &mut ClipboardSnapshot,
+    left: &mut usize,
+    mime: String,
+    bytes: Vec<u8>,
+) -> bool {
     if bytes.len() > *left {
         tracing::warn!(mime = %mime, bytes = bytes.len(), "clipboard type left out of the snapshot: over the budget");
-        return;
+        return false;
     }
     *left -= bytes.len();
     snap.offers.push((mime, bytes));
+    true
 }
 
 #[cfg(test)]

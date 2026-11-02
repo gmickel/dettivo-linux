@@ -167,7 +167,10 @@ mod tests {
                 return Err(ClipError("no clipboard type could be read".into()));
             }
             let offers = self.offers();
-            Ok((!offers.is_empty()).then_some(ClipboardSnapshot { offers }))
+            Ok((!offers.is_empty()).then_some(ClipboardSnapshot {
+                offers,
+                ..Default::default()
+            }))
         }
         fn set_text(&self, text: &str) -> Result<Generation, ClipError> {
             self.copy(&[("text/plain;charset=utf-8", text.as_bytes())]);
