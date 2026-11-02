@@ -337,10 +337,94 @@
       "task": "fn-81-catch-the-first-and-last-words-of-every.1",
       "timestamp": "2026-11-02T01:51:00.333403Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "1482ccaa3179889de211c6e492599cb40b4ba856bbfb8e0f51d9e01c6c8b5007",
+      "backend": "codex",
+      "base_sha": "cb10c6b8d7cfb8a911645f7d6d2d50e2ddec71dd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-302fa43ede12a2ccca9077965be2139c",
+            "classification": "introduced",
+            "findingId": "finding-302fa43ede12a2ccca9077965be2139c",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a61702c603bfc9de06768107dfcf7f76",
+            "classification": "introduced",
+            "findingId": "finding-a61702c603bfc9de06768107dfcf7f76",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-436c0d3d2983f92d92143b22d7a687d1",
+            "classification": "introduced",
+            "findingId": "finding-436c0d3d2983f92d92143b22d7a687d1",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ce64b871e317d108611b4ae26903b1ff",
+            "classification": "introduced",
+            "findingId": "finding-ce64b871e317d108611b4ae26903b1ff",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-81467f959566d1eae568a6fcedf21e07",
+            "classification": "introduced",
+            "findingId": "finding-81467f959566d1eae568a6fcedf21e07",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c5376dac9855c397dccb40b043ef3bb4",
+            "classification": "introduced",
+            "findingId": "finding-c5376dac9855c397dccb40b043ef3bb4",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "70c65cd28c1605d6f2ca5bdd926fae4959f9c6b4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "09450b29bbff40c7a05fa4438f905a39",
+      "round_consumed": true,
+      "scope": "impl:fn-81-catch-the-first-and-last-words-of-every.1",
+      "superseded_by": null,
+      "task": "fn-81-catch-the-first-and-last-words-of-every.1",
+      "timestamp": "2026-11-02T09:27:03.558335Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-81-catch-the-first-and-last-words-of-every.1": 2
+    "impl:fn-81-catch-the-first-and-last-words-of-every.1": 3
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -361,5 +445,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-02T01:51:00.336342Z"
+  "updated_at": "2026-11-02T09:27:03.561571Z"
 }

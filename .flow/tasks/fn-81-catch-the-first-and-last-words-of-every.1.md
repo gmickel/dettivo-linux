@@ -51,11 +51,19 @@ stage: impl-review - ran (codex gpt-6.1-sol, 3-lens panel NEEDS_WORK with 1 find
 
 Follow-ups (not built):
 - The graph registers only Audio/Source and Audio/Sink nodes, so a PipeWire "Audio/Source/Virtual" source cannot be pinned (QA S9b, pre-existing).
-- The daemon still fails to start capture when PipeWire is absent at daemon start; only a restart while running recovers.
 - tests/reconnect.rs and rig.rs skip in CI (no wireplumber); local runs cover them.
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
+
+Pre-QA-recheck round (sibling fix, merge with the goal base, re-review; cb10c6b..70c65cd):
+- Late PipeWire (sibling of QA81-4): the audio service no longer gives up when PipeWire is absent at daemon start. It starts its thread, tries PipeWire once, and retries every second as after a restart. Meanwhile audio.devices.pipewire is false, doctor reports capture unavailable (and `microphone ready failed: PipeWire is not reachable: PipeWire is not running` with the ring on), a press fails with that reason, and pinning a device skips node validation while disconnected. Test: crates/dettivo-audio/tests/reconnect.rs capture_follows_pipewire_starting_late_and_restarting (red at 725994d, green at 16ec48b; private PipeWire + WirePlumber). Live: .flow/tmp/fix81b/live/s13_late.sh, isolated daemon started with no PipeWire, private PipeWire started later, dictation transcribed without a restart, ring off and on (rerun on the merged build).
+- Merged origin/goal/fn-88-better-dictation-shipped-as-one-release (8cd6c76: fn-80, fn-85). No overlap with dictation.pause/resume: fn-85's "pause" is the MPRIS while_dictating mode. Resolutions: finish code lives in crate::finish with Exit::Tap added; stop_expected and stop_print share stop_with and both take the release instant (print refusal checked before tap/tail); the source is not stopped at the stop request (release tail); record reports the stop instant that delivery's MODIFIER_SETTLE waits from; the continuation join gets the press time; feedback keeps Stopped (media) and Tapped (media back, no stop cue); silent takes end NoSpeech with the tail timing assertion kept; print_default.json carries keep_microphone_ready.
+- Also fixed: the Qt settings sample lacked audio.keep_microphone_ready (78cc660; dettivo-settings-test failed before it), and a private rustdoc link (70c65cd).
+
+stage: impl-review - ran (codex gpt-6.1-sol, 3-lens panel SHIP, no findings, head 70c65cd)
+
+Tier: implementer (dispatch: claude-opus-5-5) (model: claude-opus-5-5)
 ## Evidence
-- Commits: 7de3c60a8cb923e8845a6a3ddcc8a21511447437, a24aafd54b4da6d2d1d26ce90eb6af7ce546ea53, 13a6502, e8fab41, 7662111, 2e462ce, b47cbae, 458469b, 849ac6e, 4703e08
-- Tests: cargo test -p dettivo-audio -p dettivo-session -p dettivo-proto -p dettivo-cli -p dettivo-qa (rc 0, 420 passed; WAYLAND_DISPLAY unset, PipeWire pointed at a nonexistent socket), cargo test -p dettivod --no-fail-fast (177 passed, 1 failed: contract lock_signal; fixed in 849ac6e, contract rerun rc 0); after 4703e08: --bin dettivod ready (rc 0), cargo test -p dettivo-audio --test reconnect (private PipeWire + WirePlumber, 3/3 green), just lint (rc 0 at 458469b); cargo clippy -D warnings on touched crates (rc 0 after 4703e08), live: QA harness S10/S11 (PipeWire restart, ring on/off), S12a-f (stand-in compositor + fake logind lock) in .flow/tmp/fix81/live/, baseline: green (cargo test -p dettivo-audio -p dettivo-session at 2190ae1)
+- Commits: 7de3c60a8cb923e8845a6a3ddcc8a21511447437, a24aafd54b4da6d2d1d26ce90eb6af7ce546ea53, 13a6502, e8fab41, 7662111, 2e462ce, b47cbae, 458469b, 849ac6e, 4703e08, 725994d, 16ec48b, 8cd6c76, 78cc660, 70c65cd
+- Tests: cargo test --no-fail-fast -p dettivo-audio -p dettivo-session -p dettivod -p dettivo-cli -p dettivo-qa -p dettivo-core -p dettivo-insert (rc 0, 665 passed, after merge 8cd6c76; WAYLAND_DISPLAY unset, PIPEWIRE_REMOTE and PULSE_SERVER at nonexistent sockets), cargo test -p dettivo-audio --test reconnect (private PipeWire + WirePlumber: red at 725994d, green at 16ec48b), ctest --test-dir build/qt (offscreen, 86/86 after 78cc660), just lint (rc 0 at 70c65cd), live: .flow/tmp/fix81b/live/s13_late.sh (late private PipeWire, ring off and on; pre- and post-merge), baseline: green (cargo test -p dettivo-audio --test reconnect at cb10c6b), earlier rounds: see the done summary
 - PRs:
