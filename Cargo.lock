@@ -835,6 +835,7 @@ dependencies = [
  "atspi",
  "base64",
  "clap",
+ "dettivo-engine-proto",
  "dettivo-mcp",
  "dettivo-proto",
  "dettivo-rest",

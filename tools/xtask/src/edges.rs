@@ -128,7 +128,8 @@ pub const ALLOWED: &[(&str, &[&str])] = &[
     ("dettivo-rest", &["dettivo-proto", "dettivo-core"]),
     // The QA runner also drives the chunker and merger of the long-audio
     // pipeline through the engine CLI modes (ADR 0022) and replays the
-    // REST fixtures through dettivo-rest's harness (ADR 0028).
+    // REST fixtures through dettivo-rest's harness (ADR 0028), and times
+    // an engine process over the engine protocol (ADR 0084).
     (
         "dettivo-qa",
         &[
@@ -136,6 +137,7 @@ pub const ALLOWED: &[(&str, &[&str])] = &[
             "dettivo-mcp",
             "dettivo-rest",
             "dettivo-transcribe",
+            "dettivo-engine-proto",
         ],
     ),
 ];

@@ -12,6 +12,11 @@ impl Supervisor {
     pub fn note_backend(&self, binary: &str, backend: Backend, reason: &str) {
         let slot = self.slot(binary);
         let mut s = slot.lock().unwrap_or_else(|p| p.into_inner());
+        self.set_backend(&mut s, binary, backend, reason);
+    }
+
+    /// `note_backend` on a slot already locked.
+    pub(super) fn set_backend(&self, s: &mut Slot, binary: &str, backend: Backend, reason: &str) {
         let Some(loaded) = s.loaded.as_mut().filter(|l| l.backend != backend) else {
             return;
         };
@@ -24,7 +29,7 @@ impl Supervisor {
             backend: Some(backend),
             reason: Some(loaded.reason.clone()),
         };
-        self.transition(&mut s, transition);
+        self.transition(s, transition);
     }
 
     pub(super) fn remember(&self, binary: &str, slot: &mut Slot) -> EngineStatus {
@@ -39,6 +44,7 @@ impl Supervisor {
             lora: slot.params.as_ref().and_then(|p| p.lora.clone()),
             crashes: slot.crashes,
             degraded: slot.crashes >= 3,
+            warm: slot.warm && slot.loaded.is_some(),
             memory_bytes: running
                 .then(|| slot.process.as_ref().and_then(EngineProcess::memory_bytes))
                 .flatten(),
@@ -84,6 +90,7 @@ impl Supervisor {
                     lora: None,
                     crashes: 0,
                     degraded: false,
+                    warm: false,
                     memory_bytes: None,
                 });
                 status.path = path;

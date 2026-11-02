@@ -29,6 +29,7 @@ mod polish;
 mod rest;
 mod setup;
 mod speech;
+mod speech_lines;
 mod transfer;
 
 use std::path::PathBuf;

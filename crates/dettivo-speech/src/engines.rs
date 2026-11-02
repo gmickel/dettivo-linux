@@ -12,7 +12,7 @@ use dettivo_engine_proto::{
 use serde_json::Value;
 
 use crate::gate::{VAD_PARAMS, VoiceDetector};
-use crate::supervisor::{LlmLoad, Supervisor};
+use crate::supervisor::{Supervisor, WARM_UP_SAMPLES};
 use crate::{Capabilities, EngineError, PreloadSource, RecognizeRequest, SttEngine};
 
 /// The whisper engine binary name.
@@ -60,6 +60,9 @@ pub fn capabilities_of(provider: &str) -> Capabilities {
     }
 }
 
+/// The longest a warm-up `recognize` may take.
+const WARM_UP_TIMEOUT: Duration = Duration::from_secs(60);
+
 /// What every engine over the supervisor shares.
 struct Shared {
     supervisor: Arc<Supervisor>,
@@ -70,16 +73,50 @@ struct Shared {
 }
 
 impl Shared {
+    /// The complete `load` every request on this engine carries.
+    fn load_params(&self) -> LoadParams {
+        LoadParams {
+            model: self.model.clone(),
+            backend_preference: self.backend,
+            vad_model: self.vad_model.clone(),
+            context_length: None,
+            lora: None,
+            threads: None,
+        }
+    }
+
+    /// Loads the model, then warms it with one silent `recognize` whose
+    /// result is discarded (ADR 0084); only the timing is logged.
     fn preload(&self, source: PreloadSource) -> Result<(), EngineError> {
         tracing::info!(source = ?source, engine = self.binary, "preload");
-        self.supervisor.with_engine_on(
-            self.binary,
-            &self.model,
-            self.vad_model.as_deref(),
-            self.backend,
-            LlmLoad::default(),
-            |_, _| Ok(()),
-        )
+        self.supervisor
+            .with_engine_load(self.binary, self.load_params(), |_, _| Ok(()))?;
+        let params = RecognizeParams {
+            language: "en".into(),
+            prompt: None,
+            timestamps: false,
+        };
+        let pcm = dettivo_engine_proto::pcm_to_bytes(&[0; WARM_UP_SAMPLES]);
+        let warmed = self.supervisor.warm_up(self.binary, |process| {
+            let value = process.call(
+                "recognize",
+                serde_json::to_value(&params).unwrap_or(Value::Null),
+                &[&pcm],
+                WARM_UP_TIMEOUT,
+                |_| {},
+            )?;
+            // The text is discarded; the backend is kept, since the engine
+            // may have moved to the CPU for want of GPU memory (ADR 0080).
+            Ok(serde_json::from_value::<Backend>(value["backend"].clone()).ok())
+        })?;
+        if let Some(took) = warmed {
+            tracing::info!(
+                engine = self.binary,
+                warm_up_ms = took.as_millis() as u64,
+                "engine warmed up"
+            );
+        }
+        Ok(())
     }
 
     fn recognize(
@@ -93,13 +130,11 @@ impl Shared {
             timestamps: request.timestamps,
         };
         let pcm = dettivo_engine_proto::pcm_to_bytes(&request.pcm);
-        let result: RecognizeResult = self.supervisor.with_engine_on(
-            self.binary,
-            &self.model,
-            self.vad_model.as_deref(),
-            self.backend,
-            LlmLoad::default(),
-            |process, _| {
+        let _request = self.supervisor.begin_request(self.binary);
+        // The supervisor records the take's warmth and backend (an engine
+        // moves itself to the CPU when the GPU has no room, ADR 0080).
+        self.supervisor
+            .recognize_on(self.binary, self.load_params(), |process| {
                 let value = process.call(
                     "recognize",
                     serde_json::to_value(&params).unwrap_or(Value::Null),
@@ -109,16 +144,7 @@ impl Shared {
                 )?;
                 serde_json::from_value(value)
                     .map_err(|e| EngineError::Transport(format!("recognize response: {e}")))
-            },
-        )?;
-        // An engine moves itself to the CPU when the GPU has no room for an
-        // inference (ADR 0080); the supervisor's record follows it.
-        self.supervisor.note_backend(
-            self.binary,
-            result.backend,
-            "the GPU had no room for an inference, CPU fallback",
-        );
-        Ok(result)
+            })
     }
 
     fn backend(&self) -> Option<Backend> {
