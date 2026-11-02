@@ -80,6 +80,16 @@ pub fn resolve(method: &str) -> Option<Handler> {
             let _: dettivo_proto::catalog::NoParams = params(value)?;
             dictation::toggle(daemon)
         },
+        "dictation.press" => |daemon, _ctx, value| {
+            let at = std::time::Instant::now();
+            let _: dettivo_proto::catalog::NoParams = params(value)?;
+            dictation::hold(daemon, crate::hold::Edge::Press, at)
+        },
+        "dictation.release" => |daemon, _ctx, value| {
+            let at = std::time::Instant::now();
+            let _: dettivo_proto::catalog::NoParams = params(value)?;
+            dictation::hold(daemon, crate::hold::Edge::Release, at)
+        },
         "dictation.stop" => |daemon, _ctx, value| dictation::stop(daemon, value),
         "dictation.cancel" => |daemon, _ctx, value| dictation::cancel(daemon, value),
         "dictation.status" => |daemon, _ctx, value| {

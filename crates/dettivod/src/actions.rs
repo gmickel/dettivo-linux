@@ -5,6 +5,7 @@
 //! ignored with a log line, never a second session.
 
 use std::sync::Arc;
+use std::time::Instant;
 
 use dettivo_hotkeys::{Action, HotkeyEvent};
 use dettivo_proto::error::{AppCode, ErrorDetails, JsonRpcError};
@@ -13,6 +14,7 @@ use dettivo_session::machine::Snapshot;
 use dettivo_session::{SessionError, SessionTarget, Transcript};
 
 use crate::daemon::{Daemon, blocking};
+use crate::hold::Edge;
 
 /// The `CONFLICT` kind of a stop whose take the speech gate found silent.
 pub const NO_SPEECH: &str = "noSpeech";
@@ -228,24 +230,14 @@ pub fn reinsert_last(daemon: &Daemon) -> Result<(String, InsertionResult), JsonR
 /// waits for the transcription and the insertion on a thread of its own,
 /// so a cancel pressed meanwhile is acted on at once instead of queueing
 /// behind the text it was meant to stop.
-pub fn on_hotkey(daemon: &Arc<Daemon>, event: HotkeyEvent) {
+pub fn on_hotkey(daemon: &Arc<Daemon>, event: HotkeyEvent, at: Instant) {
     daemon.hotkeys().note_press();
-    let active = daemon.dictation().snapshot().is_some();
     let action = match event {
         HotkeyEvent::Press(a) | HotkeyEvent::Release(a) => a.id(),
     };
     let outcome: Result<&str, JsonRpcError> = match event {
-        HotkeyEvent::Press(Action::PushToTalk) if active => {
-            tracing::info!(
-                action = "push_to_talk",
-                "hotkey press ignored: a session is active"
-            );
-            return;
-        }
-        HotkeyEvent::Press(Action::PushToTalk) => {
-            start(daemon, None, None, None).map(|_| "started")
-        }
-        HotkeyEvent::Release(Action::PushToTalk) => return stop_detached(daemon, action),
+        HotkeyEvent::Press(Action::PushToTalk) => hold(daemon, Edge::Press, at),
+        HotkeyEvent::Release(Action::PushToTalk) => hold(daemon, Edge::Release, at),
         HotkeyEvent::Press(Action::Toggle) => return toggle_detached(daemon, action),
         HotkeyEvent::Press(Action::Cancel) => cancel(daemon).map(|_| "cancelled"),
         HotkeyEvent::Press(Action::ReinsertLast) => reinsert_last(daemon).map(|_| "reinserted"),
@@ -262,14 +254,34 @@ fn toggle_detached(daemon: &Arc<Daemon>, action: &'static str) {
     }
 }
 
-/// Captures the take identity before handing settlement to a background thread.
-fn stop_detached(daemon: &Arc<Daemon>, action: &'static str) {
-    match daemon.dictation().snapshot() {
-        Some(snapshot) => stop_job_detached(daemon, action, snapshot.job_id),
-        None => report(action, Err(session_error(SessionError::NoSession))),
+/// The hold key's answer to an edge, as the line `report` logs. A press
+/// while another session runs is ignored, never a second session.
+fn hold(daemon: &Arc<Daemon>, edge: Edge, at: Instant) -> Result<&'static str, JsonRpcError> {
+    match daemon.hotkeys().hold().on(&**daemon, edge, at) {
+        Ok(outcome) => Ok(match outcome.result.action.as_str() {
+            "started" => "started",
+            "stopped" => {
+                if let Some(job) = outcome.stop {
+                    stop_job_detached(daemon, "push_to_talk", job);
+                }
+                "stopping"
+            }
+            "locked" => "locked",
+            "discarded" => "discarded",
+            _ => "nothing",
+        }),
+        Err(e) if e.app_code() == AppCode::Conflict => {
+            tracing::info!(
+                action = "push_to_talk",
+                "hotkey press ignored: a session is active"
+            );
+            Ok("nothing")
+        }
+        Err(e) => Err(e),
     }
 }
 
+/// Settles the named take on a thread of its own; the outcome is logged.
 fn stop_job_detached(daemon: &Arc<Daemon>, action: &'static str, job_id: String) {
     let owned = daemon.clone();
     let job = job_id.clone();

@@ -18,6 +18,8 @@ use dettivo_language::provider::LocalEngine;
 use dettivo_speech::SttEngine;
 use dettivo_speech::gate::VoiceDetector;
 
+pub(crate) mod while_recording;
+
 use crate::finish::{Completion, Exit, Outcome, SharedState, finish_shared};
 use crate::source::SourceFactory;
 use crate::worker::Worker;
@@ -59,6 +61,8 @@ pub(crate) struct Active {
     /// Ends the capture from the stopping thread, so the take holds nothing
     /// recorded after the release; set once the source is open.
     pub(crate) stop_source: Option<Arc<dyn Fn() + Send + Sync>>,
+    /// The take began to end: its terminal state is being published.
+    pub(crate) ending: bool,
 }
 
 /// The session service.
@@ -177,6 +181,7 @@ impl Session {
             worker: None,
             completion: completion.clone(),
             stop_source: None,
+            ending: false,
         });
         drop(guard);
         let shared = self.shared(completion);

@@ -179,7 +179,7 @@ Singleton {
         if (state === "recording") {
             root.dictationState = "recording";
             root.showPill("listening", {
-                "hint": "release to insert"
+                "hint": payload.reason === "locked" ? "locked · press to finish" : "release to insert"
             });
         } else if (state === "transcribing") {
             root.dictationState = "transcribing";

@@ -6,7 +6,7 @@ While you dictate, one 36 px pill tells you what Dettivo is doing: the bars foll
 
 | State | What you see | When |
 |---|---|---|
-| Listening | accent dot, live bars, `Listening`, the hint `release to insert`; during a meeting the hint is the meeting's elapsed time (`12:04`), counting on from the duration `meeting.state` carried | `dictation.state` is `recording`, or `meeting.state` is `recording` ([docs/meetings.md](meetings.md)); the bars follow `audio.level` from either track |
+| Listening | accent dot, live bars, `Listening`, the hint `release to insert`, or `locked · press to finish` once a double tap of the hold key locked the take; during a meeting the hint is the meeting's elapsed time (`12:04`), counting on from the duration `meeting.state` carried | `dictation.state` is `recording`, or `meeting.state` is `recording` ([docs/meetings.md](meetings.md)); the bars follow `audio.level` from either track |
 | Transcribing | held dot, frozen dimmed bars, `Transcribing`, the engine and the elapsed time | `transcribing` and `inserting`; shown for at least one second so a fast engine never makes it flicker |
 | Enhancing | a travelling gold thread and the raw first words | reserved for the polish spec; the state exists in the component |
 | Inserted | accent border, the insert icon, `Inserted into` and the target app in accent, the first words | the completion carries `insertion.outcome = inserted` |

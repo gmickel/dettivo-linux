@@ -119,13 +119,25 @@ pub fn hotkeys_lines(v: &Value) -> String {
         avail(&v["portal"]),
         avail(&v["evdev"])
     );
+    match v["identity"].as_str() {
+        Some("registered") => {
+            out.push_str("identity  app id dettivo, registered with the portal\n")
+        }
+        Some("unit") => {
+            out.push_str("identity  from the systemd unit (this portal has no host registry)\n")
+        }
+        _ => {}
+    }
     let bound: Vec<&str> = v["bound"]
         .as_array()
         .map(|b| b.iter().filter_map(Value::as_str).collect())
         .unwrap_or_default();
     out.push_str(&format!(
         "bound     {}\n",
-        if bound.is_empty() {
+        if v["compositor_bound"] == Value::Bool(true) {
+            "by the compositor (the portal assigned no keys; the dettivo setup snippet binds them)"
+                .to_string()
+        } else if bound.is_empty() {
             "nothing (compositor bindings call the CLI)".to_string()
         } else {
             bound.join(", ")
@@ -248,6 +260,12 @@ mod tests {
         assert_eq!(
             status,
             "backend   none (requested auto)\nportal    unavailable: no portal\nevdev     unavailable: needs the input group\nbound     nothing (compositor bindings call the CLI)\n"
+        );
+        assert_eq!(
+            hotkeys_lines(
+                &json!({"backend":"portal","requested":"auto","portal":{"available":true,"reason":null},"evdev":{"available":false,"reason":"x"},"bound":[],"error":null,"identity":"registered","compositor_bound":true}),
+            ),
+            "backend   portal (requested auto)\nportal    available\nevdev     unavailable: x\nidentity  app id dettivo, registered with the portal\nbound     by the compositor (the portal assigned no keys; the dettivo setup snippet binds them)\n"
         );
     }
 }

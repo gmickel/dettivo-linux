@@ -112,6 +112,7 @@ pub(crate) fn finish_shared(
         ),
         _ => (None, None, None),
     };
+    crate::machine::while_recording::mark_ending(&shared.active);
     let mut change = StateChange::plain(job_id, state, previous, reason.clone());
     (change.insertion, change.first_words, change.timings) = completion;
     (change.mode, change.notice, change.policy_hash) = polish;

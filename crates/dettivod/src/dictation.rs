@@ -271,6 +271,11 @@ impl Dictation {
         self.session.cancel_expected(expected_job_id)
     }
 
+    /// Runs `f` while the take `job_id` records and has not begun to end.
+    pub fn while_recording<R>(&self, job_id: &str, f: impl FnOnce() -> R) -> Option<R> {
+        self.session.while_recording(job_id, f)
+    }
+
     /// The active session.
     pub fn snapshot(&self) -> Option<Snapshot> {
         self.session.snapshot()

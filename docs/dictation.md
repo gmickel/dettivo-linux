@@ -5,8 +5,10 @@ A compositor binding can dictate: `dettivo dictation start` records the micropho
 ## From a binding
 
 ```
-dettivo dictation start --language en     # push to talk: bind to a key press
-dettivo dictation stop                     # bind to the release
+dettivo dictation press                    # push to talk: bind to a key press
+dettivo dictation release                  # bind to the release
+dettivo dictation start --language en     # start a take from a script
+dettivo dictation stop                     # finish it
 dettivo dictation stop --print             # finish it and print the text instead of inserting it
 dettivo dictation toggle                   # one binding for both
 dettivo dictation cancel                   # drop the take
@@ -15,7 +17,7 @@ dettivo dictation reinsert-last            # hand the last transcript over again
 dettivo events --follow --topic dictation.state --topic audio.level
 ```
 
-`toggle` and `reinsert-last` are Linux additions; the other verbs map one to one to `dictation.start`, `stop`, `cancel` and `status`. `dettivo setup hyprland` (or `sway`, `niri`) writes these bindings for you with the chords from `[hotkeys]`, and on GNOME and KDE the daemon binds the same actions through the portal ([docs/hotkeys.md](hotkeys.md)). `events --follow` subscribes and prints one JSON line per notification (`--json` prints the raw `params` object; `--count N` stops after N events).
+`press`, `release`, `toggle` and `reinsert-last` are Linux additions; the other verbs map one to one to `dictation.start`, `stop`, `cancel` and `status`. `press` and `release` feed the daemon's hold key, which finishes a take whose release the compositor dropped, ignores a repeating key and locks recording after a double tap ([docs/hotkeys.md](hotkeys.md#what-a-press-does)); `start` and `stop` act on the session directly. `dettivo setup hyprland` (or `sway`, `niri`) writes these bindings for you with the chords from `[hotkeys]`, and on GNOME and KDE the daemon binds the same actions through the portal ([docs/hotkeys.md](hotkeys.md)). `events --follow` subscribes and prints one JSON line per notification (`--json` prints the raw `params` object; `--count N` stops after N events).
 
 ## The session
 

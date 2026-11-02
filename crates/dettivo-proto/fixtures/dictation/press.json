@@ -1,0 +1,19 @@
+{
+  "capabilities": {},
+  "method": "dictation.press",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "dictation.press",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "action": "started",
+      "hold": "held",
+      "job_id": "job_dict_1"
+    }
+  }
+}

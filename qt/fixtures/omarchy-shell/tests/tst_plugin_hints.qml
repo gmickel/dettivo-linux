@@ -124,4 +124,20 @@ TestCase {
         compare(done.texts.target, "");
         compare(done.texts.words, "Hello");
     }
+
+    // A double tap of the hold key locks the take; the pill says how it ends.
+    function test_5_a_locked_take_names_the_press_that_finishes_it() {
+        DettivoState.handleDictation({
+            "state": "recording"
+        });
+        compare(DettivoState.pillHint, "release to insert");
+        DettivoState.handleDictation({
+            "state": "recording",
+            "previous_state": "recording",
+            "reason": "locked"
+        });
+        compare(DettivoState.pillState, "listening");
+        compare(DettivoState.pillHint, "locked · press to finish");
+        DettivoState.pillState = "hidden";
+    }
 }

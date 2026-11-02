@@ -3,7 +3,10 @@
 //! and a `dettivo` that talks to the scenario's daemon, a virtual keyboard
 //! presses the chords, and the daemon's event stream shows every
 //! transition: hold starts and the release stops, toggle starts and stops,
-//! cancel cancels. Skipped with the reason when `hyprctl`, a Hyprland
+//! cancel cancels, a double tap of the hold chord locks the take until the
+//! next press, and a press after a release that never reached the daemon
+//! (two `dettivo dictation press` calls, the compositor's lost release
+//! made synthetic) finishes the take. Skipped with the reason when `hyprctl`, a Hyprland
 //! session or a writable `/dev/uinput` is missing.
 
 use crate::child::ChildOwner;
@@ -26,6 +29,10 @@ use crate::keys::{self, Keyboard};
 
 /// The scenario.
 pub struct HotkeysHyprland;
+
+/// The pause between the tap's release and the second press, on top of
+/// one [`keys::SETTLE`].
+const TAP_GAP: Duration = Duration::from_millis(100);
 
 /// The modifier keys of every chord.
 const MODIFIERS: &[KeyCode] = &[
@@ -173,7 +180,8 @@ impl Scenario for HotkeysHyprland {
         .map_err(|e| e.to_string())?;
         let mut env: BTreeMap<String, String> = ctx.profile.env();
         env.insert("DETTIVO_MOCK_MIC".into(), wav.display().to_string());
-        env.insert("RUST_LOG".into(), "info".into());
+        // The hold key logs the edges it ignored at debug.
+        env.insert("RUST_LOG".into(), "info,dettivod::hold=debug".into());
         let log = std::fs::File::create(ctx.evidence_dir.join("daemon.log"))
             .map_err(|e| format!("daemon.log: {e}"))?;
         ctx.evidence.push("daemon.log".into());
@@ -218,7 +226,24 @@ impl Scenario for HotkeysHyprland {
             .map_err(|e| e.to_string())?;
         ctx.evidence.push("snippet.lua".into());
         let events = States::subscribe(&socket)?;
-        let outcome = drive_keys(&snippet, &chords, &events);
+        let press = || {
+            crate::profile::command(&cli, &env)
+                .args([
+                    "--socket",
+                    &socket.display().to_string(),
+                    "--quiet",
+                    "dictation",
+                    "press",
+                ])
+                .status()
+                .map_err(|e| format!("dettivo dictation press: {e}"))
+                .and_then(|s| {
+                    s.success()
+                        .then_some(())
+                        .ok_or(format!("dettivo dictation press: {s}"))
+                })
+        };
+        let outcome = drive_keys(&snippet, &chords, &events, &press);
         // The chords come back out whatever the drive did, and a chord
         // that stays bound is a failure of its own.
         let restored = hyprctl(&["eval", &chords.unbind()])
@@ -267,8 +292,14 @@ fn eval_source(snippet: &str) -> String {
         .join(" ")
 }
 
-/// Loads the snippet, presses the chords and checks the transitions.
-fn drive_keys(snippet: &str, chords: &Chords, events: &States) -> Result<(), String> {
+/// Loads the snippet, presses the chords and checks the transitions;
+/// `press` is one synthetic `dettivo dictation press`.
+fn drive_keys(
+    snippet: &str,
+    chords: &Chords,
+    events: &States,
+    press: &dyn Fn() -> Result<(), String>,
+) -> Result<(), String> {
     hyprctl(&["eval", &eval_source(snippet)])?;
     let binds = hyprctl(&["binds", "-j"])?;
     if chords.still_bound(&binds)?.len() != 4 {
@@ -302,6 +333,29 @@ fn drive_keys(snippet: &str, chords: &Chords, events: &States) -> Result<(), Str
     events.wait_for(9, "recording", Duration::from_secs(15))?;
     keyboard.chord(MODIFIERS, cancel)?;
     events.wait_for(11, "idle", Duration::from_secs(15))?;
+    // Double tap: the tap's take is dropped, the second press's release
+    // locks (a recording-to-recording event), the next press finishes.
+    // The modifiers stay down and only the key is tapped again, so the
+    // second press lands `TAP_GAP` after the tap's release, inside the
+    // daemon's window; lifting the whole chord costs a settle per key.
+    keyboard.chord_down(MODIFIERS, hold)?;
+    std::thread::sleep(Duration::from_millis(80));
+    keyboard.release(hold)?;
+    std::thread::sleep(TAP_GAP);
+    keyboard.press(hold)?;
+    events.wait_for(15, "recording", Duration::from_secs(15))?;
+    std::thread::sleep(Duration::from_millis(600));
+    keyboard.chord_up(MODIFIERS, hold)?;
+    events.wait_for(16, "recording", Duration::from_secs(15))?;
+    std::thread::sleep(Duration::from_millis(1500));
+    keyboard.chord(MODIFIERS, hold)?;
+    events.wait_for(19, "idle", long)?;
+    // A lost release: the second press after a second finishes the take.
+    press()?;
+    events.wait_for(20, "recording", Duration::from_secs(15))?;
+    std::thread::sleep(Duration::from_millis(1500));
+    press()?;
+    events.wait_for(23, "idle", long)?;
     let states = events.states();
     let expected = [
         "recording",
@@ -315,9 +369,34 @@ fn drive_keys(snippet: &str, chords: &Chords, events: &States) -> Result<(), Str
         "recording",
         "cancelled",
         "idle",
+        "recording",
+        "cancelled",
+        "idle",
+        "recording",
+        "recording",
+        "transcribing",
+        "inserting",
+        "idle",
+        "recording",
+        "transcribing",
+        "inserting",
+        "idle",
     ];
     if states != expected {
         return Err(format!("transitions {states:?}, expected {expected:?}"));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_double_tap_lands_well_inside_the_daemons_300_ms_window() {
+        // The daemon's window (dettivo_hotkeys::hold::DOUBLE_TAP) is 300 ms;
+        // the rest is the compositor spawning `dettivo dictation press`.
+        let gap = keys::SETTLE + TAP_GAP;
+        assert!(gap <= Duration::from_millis(150), "{gap:?}");
+    }
 }

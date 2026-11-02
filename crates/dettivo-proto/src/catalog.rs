@@ -153,6 +153,8 @@ catalog! {
         "system.capabilities" => (NoParams, system::CapabilitiesResult);
         "dictation.start" => (dictation::StartParams, dictation::StartResult);
         "dictation.toggle" => (NoParams, dictation::ToggleResult), linux: true;
+        "dictation.press" => (NoParams, dictation::HoldResult), linux: true;
+        "dictation.release" => (NoParams, dictation::HoldResult), linux: true;
         "dictation.stop" => (dictation::StopParams, dictation::StopResult);
         "dictation.cancel" => (dictation::CancelParams, dictation::CancelResult);
         "dictation.status" => (NoParams, dictation::StatusResult);
