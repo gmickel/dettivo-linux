@@ -7,7 +7,7 @@
 //! across punctuation, and terms under five letters without an alias are
 //! never candidates.
 
-use dettivo_engine_proto::sound::{common_letters, edit_distance, key, normalise};
+use dettivo_engine_proto::sound::{common_letters, edit_distance, ends_run, key, normalise};
 
 /// The most words a candidate span covers.
 pub const MAX_SPAN_WORDS: usize = 4;
@@ -220,8 +220,6 @@ pub fn find(words: &[&str], terms: &[Term], eligible: &[bool], limit: usize) -> 
                 && w.chars().next().is_some_and(char::is_alphanumeric)
         })
         .collect();
-    // A word ending in a mark (a full stop, a comma, a quote) ends a run.
-    let closes = |w: &str| !w.chars().last().is_some_and(char::is_alphanumeric);
     let norms: Vec<String> = words.iter().map(|w| normalise(w)).collect();
     let joined = |from: usize, to: usize| norms[from..to].concat();
     let spans = || {
@@ -269,7 +267,8 @@ pub fn find(words: &[&str], terms: &[Term], eligible: &[bool], limit: usize) -> 
     }
     let mut found: Vec<(u32, Candidate)> = Vec::new();
     for (first, last) in spans() {
-        if !usable[first..=last].iter().all(|u| *u) || words[first..last].iter().any(|w| closes(w))
+        if !usable[first..=last].iter().all(|u| *u)
+            || words[first..last].iter().any(|w| ends_run(w))
         {
             continue;
         }

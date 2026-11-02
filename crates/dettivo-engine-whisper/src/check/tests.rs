@@ -42,13 +42,13 @@ fn bias(terms: &[&str]) -> Vec<BiasTerm> {
 }
 
 /// A whole take, each piece certain unless it carries its own probability.
-fn take(segments: &[&[(&str, f32)]], terms: &[&str]) -> Finding {
+pub(super) fn take(segments: &[&[(&str, f32)]], terms: &[&str]) -> Finding {
     let (texts, tokens): (Vec<String>, Vec<Vec<Token>>) =
         segments.iter().map(|s| segment(s)).unzip();
     find(&texts, &tokens, &bias(terms))
 }
 
-fn plain(texts: &[&str]) -> Vec<String> {
+pub(super) fn plain(texts: &[&str]) -> Vec<String> {
     texts.iter().map(|t| t.to_string()).collect()
 }
 
