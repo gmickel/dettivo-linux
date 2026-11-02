@@ -4,6 +4,7 @@
 //! protocol would, so benchmarks and fixtures exercise the exact
 //! inference path. Logs go to stderr and never carry transcript text.
 
+mod check;
 mod engine;
 mod vad;
 mod words;
@@ -12,7 +13,9 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use clap::Parser;
-use dettivo_engine_proto::{BackendPreference, LoadParams, RecognizeParams, host};
+use dettivo_engine_proto::{
+    BackendPreference, BiasTerm, LoadParams, RecognizeParams, VocabularyBias, host,
+};
 
 /// Package names of the workspace crates this binary builds on.
 const UPSTREAM: &[&str] = &[dettivo_engine_proto::CRATE_NAME];
@@ -36,6 +39,11 @@ struct Cli {
     /// Vocabulary prompt (CLI mode).
     #[arg(long)]
     prompt: Option<String>,
+    /// Vocabulary the prompted output is checked against (CLI mode): a JSON
+    /// list of `{"term": ..., "aliases": [...]}`; a lone name is kept when
+    /// the prompt-free decode sounds like the term or an alias (ADR 0095).
+    #[arg(long, value_name = "JSON")]
+    vocabulary: Option<String>,
     /// Optional VAD model (CLI mode).
     #[arg(long, value_name = "PATH")]
     vad_model: Option<PathBuf>,
@@ -75,11 +83,23 @@ fn main() -> ExitCode {
                 lora: None,
                 threads: None,
             };
+            let vocabulary = match cli
+                .vocabulary
+                .as_deref()
+                .map(serde_json::from_str::<Vec<BiasTerm>>)
+            {
+                None => None,
+                Some(Ok(terms)) => Some(VocabularyBias { terms, boost: 0.0 }),
+                Some(Err(e)) => {
+                    eprintln!("dettivo-engine-whisper: --vocabulary: {e}");
+                    return ExitCode::from(4);
+                }
+            };
             let params = RecognizeParams {
                 language: cli.language,
                 prompt: cli.prompt,
                 timestamps: true,
-                vocabulary: None,
+                vocabulary,
             };
             match host::run_cli::<engine::Engine>(&wav, &load, &params, force_cpu) {
                 Ok(json) => {

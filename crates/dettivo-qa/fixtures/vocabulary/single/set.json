@@ -1,0 +1,29 @@
+{
+  "about": "The Whisper single-name section of `dettivo-qa bench vocabulary` (ADR 0095). Each clip is one word said on its own, synthesised by scripts/qa/make-vocabulary-fixture.py from `say` with a Piper voice; `text` is what was meant. Target clips are a listed name, distractor clips a lone sound-alike that must not become one. The section is primed with the vocabulary of ../set.json.",
+  "voices": {
+    "amy": "Piper en_US-amy-low (rhasspy/piper-voices, dataset from MycroftAI/mimic3-voices; licence as stated there)",
+    "ryan": "Piper en_US-ryan-low (rhasspy/piper-voices, dataset RyanSpeech; CC BY-NC-SA 4.0)"
+  },
+  "clips": [
+    { "id": "single-dettivo-amy", "kind": "target", "term": "Dettivo", "voice": "amy", "text": "Dettivo.", "say": "Dettivo." },
+    { "id": "single-dettivo-ryan", "kind": "target", "term": "Dettivo", "voice": "ryan", "text": "Dettivo.", "say": "Dettivo." },
+    { "id": "single-clef-amy", "kind": "target", "term": "Clef", "voice": "amy", "text": "Clef.", "say": "Clef." },
+    { "id": "single-clef-ryan", "kind": "target", "term": "Clef", "voice": "ryan", "text": "Clef.", "say": "Clef." },
+    { "id": "single-sapienxt-amy", "kind": "target", "term": "SapienXT", "voice": "amy", "text": "SapienXT.", "say": "Sapien X T." },
+    { "id": "single-sapienxt-ryan", "kind": "target", "term": "SapienXT", "voice": "ryan", "text": "SapienXT.", "say": "Sapien X T." },
+    { "id": "single-omarchy-amy", "kind": "target", "term": "Omarchy", "voice": "amy", "text": "Omarchy.", "say": "Oh marky." },
+    { "id": "single-omarchy-ryan", "kind": "target", "term": "Omarchy", "voice": "ryan", "text": "Omarchy.", "say": "Oh marky." },
+    { "id": "single-hyprland-amy", "kind": "target", "term": "Hyprland", "voice": "amy", "text": "Hyprland.", "say": "Hyper land." },
+    { "id": "single-hyprland-ryan", "kind": "target", "term": "Hyprland", "voice": "ryan", "text": "Hyprland.", "say": "Hyper land." },
+    { "id": "lone-clay-amy", "kind": "distractor", "voice": "amy", "text": "Clay.", "say": "Clay." },
+    { "id": "lone-clay-ryan", "kind": "distractor", "voice": "ryan", "text": "Clay.", "say": "Clay." },
+    { "id": "lone-omar-amy", "kind": "distractor", "voice": "amy", "text": "Omar.", "say": "Omar." },
+    { "id": "lone-omar-ryan", "kind": "distractor", "voice": "ryan", "text": "Omar.", "say": "Omar." },
+    { "id": "lone-hyper-amy", "kind": "distractor", "voice": "amy", "text": "Hyper.", "say": "Hyper." },
+    { "id": "lone-hyper-ryan", "kind": "distractor", "voice": "ryan", "text": "Hyper.", "say": "Hyper." },
+    { "id": "lone-sapient-amy", "kind": "distractor", "voice": "amy", "text": "Sapient.", "say": "Sapient." },
+    { "id": "lone-sapient-ryan", "kind": "distractor", "voice": "ryan", "text": "Sapient.", "say": "Sapient." },
+    { "id": "lone-detective-amy", "kind": "distractor", "voice": "amy", "text": "Detective.", "say": "Detective." },
+    { "id": "lone-detective-ryan", "kind": "distractor", "voice": "ryan", "text": "Detective.", "say": "Detective." }
+  ]
+}

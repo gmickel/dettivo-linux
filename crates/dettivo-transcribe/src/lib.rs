@@ -10,6 +10,7 @@
 
 pub mod chunker;
 pub mod filters;
+pub mod guards;
 pub mod interleave;
 pub mod job;
 pub mod live;
@@ -18,7 +19,8 @@ pub mod source;
 
 pub use dettivo_engine_proto::{Segment, Word};
 /// The padding a dictation take gets before recognition, for the QA
-/// vocabulary bench, which reaches the speech layer through this crate.
+/// vocabulary bench, which reaches the speech layer through this crate
+/// and guards each clip's text with [`guards::clean`] as dictation does.
 pub use dettivo_speech::gate::pad_for_engine;
 pub use job::{JobError, Progress, Request, Stage, run};
 pub use source::{AudioSource, WavSource};

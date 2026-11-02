@@ -1,0 +1,315 @@
+use super::*;
+
+/// A segment spelt by `(token text, log probability)` pairs, as
+/// whisper.cpp returns one: the text and its tokens.
+fn segment(pieces: &[(&str, f32)]) -> (String, Vec<Token>) {
+    let tokens: Vec<Token> = pieces
+        .iter()
+        .map(|&(text, plog)| Token {
+            bytes: text.as_bytes().to_vec(),
+            t0: 0,
+            t1: 0,
+            dtw: 0,
+            p: plog.exp(),
+            plog,
+        })
+        .collect();
+    (pieces.iter().map(|p| p.0).collect(), tokens)
+}
+
+/// The bench vocabulary's `sounds_like` spellings (fixtures/vocabulary).
+const ALIASES: &[(&str, &[&str])] = &[
+    ("Omarchy", &["oh marky", "omar key"]),
+    ("Hyprland", &["hyper land", "hyperland"]),
+    ("Clef", &["clay", "cleff"]),
+    ("SapienXT", &["sapient x t", "sapien xt"]),
+];
+
+fn bias(terms: &[&str]) -> Vec<BiasTerm> {
+    terms
+        .iter()
+        .map(|t| BiasTerm {
+            term: t.to_string(),
+            aliases: ALIASES
+                .iter()
+                .find(|(term, _)| term == t)
+                .map_or(&[][..], |(_, a)| a)
+                .iter()
+                .map(|a| a.to_string())
+                .collect(),
+        })
+        .collect()
+}
+
+/// A whole take, each piece certain unless it carries its own probability.
+pub(super) fn take(segments: &[&[(&str, f32)]], terms: &[&str]) -> Finding {
+    let (texts, tokens): (Vec<String>, Vec<Vec<Token>>) =
+        segments.iter().map(|s| segment(s)).unzip();
+    find(&texts, &tokens, &bias(terms))
+}
+
+pub(super) fn plain(texts: &[&str]) -> Vec<String> {
+    texts.iter().map(|t| t.to_string()).collect()
+}
+
+const TERMS: &[&str] = &["Omarchy", "Hyprland", "Clef", "SapienXT"];
+
+/// R3: a take that spells no listed term has no candidate and asks for no
+/// second decode.
+#[test]
+fn a_take_without_a_listed_term_needs_nothing() {
+    let found = take(
+        &[&[(" The detective closed", 0.0), (" the case.", 0.0)]],
+        TERMS,
+    );
+    assert_eq!(found.candidates(), 0);
+    assert!(!found.needs_plain_decode());
+}
+
+/// A confident term inside a sentence stands without a second decode;
+/// split, plural and possessive spellings are term spans too.
+#[test]
+fn a_confident_term_in_a_sentence_stands() {
+    let found = take(
+        &[&[
+            (" I bound the key in", 0.0),
+            (" Hy", -0.4),
+            ("pr", -0.2),
+            ("land.", -0.1),
+        ]],
+        TERMS,
+    );
+    assert_eq!(found.candidates(), 1);
+    assert!(!found.needs_plain_decode());
+    let spellings = take(
+        &[&[(" Sapien XT and Clefs and Hyprland's config.", 0.0)]],
+        TERMS,
+    );
+    assert_eq!(spellings.candidates(), 3);
+    assert!(!spellings.needs_plain_decode());
+}
+
+/// R1: a term whose tokens are unsure gives way to what the prompt-free
+/// decode heard there, and only the gap between shared words changes.
+#[test]
+fn an_unsure_term_gives_way_to_the_prompt_free_words() {
+    let found = take(
+        &[&[(" Clef", -2.5), (" and I went to the cinema.", -0.1)]],
+        TERMS,
+    );
+    assert!(found.needs_plain_decode());
+    let settled = settle(&found, &plain(&[" Play and I went to the cinema."]));
+    assert_eq!(settled, Some(plain(&["Play and I went to the cinema."])));
+    let merged = take(
+        &[&[(" Omarchy", -1.6), (" said would arrive at noon.", -0.1)]],
+        TERMS,
+    );
+    assert_eq!(
+        settle(&merged, &plain(&[" Omar, he said, would arrive at noon."])),
+        Some(plain(&["Omar, he said would arrive at noon."]))
+    );
+}
+
+/// fn-79 R6: one listed name said on its own pastes it when the decoder
+/// was sure of it, alone in the take or closing it after a sentence, so
+/// it asks for no second decode; an unsure one is still checked.
+#[test]
+fn a_lone_listed_name_stands_when_sure() {
+    for segments in [
+        &[&[(" Clef.", -0.009)][..]][..],
+        &[&[(" Omarchy.", -0.097)][..]][..],
+        &[
+            &[(" Book the room.", -0.1)][..],
+            &[(" Hyprland.", -0.2)][..],
+        ][..],
+    ] {
+        assert!(!take(segments, TERMS).needs_plain_decode(), "{segments:?}");
+    }
+    // A lone "Clay." decoded as "Clef," at -0.344 (single-name set,
+    // lone-clay-amy): one name alone keeps the -0.3 level, so it is
+    // checked and becomes what the prompt-free decode heard.
+    let alike = take(&[&[(" Clef,", -0.344)]], TERMS);
+    assert!(alike.needs_plain_decode());
+    assert_eq!(
+        settle(&alike, &plain(&[" Clyde."])),
+        Some(plain(&["Clyde."]))
+    );
+}
+
+/// Prompted segments, the prompt-free text, and the settled text (`None`
+/// keeps the term).
+type SoundCase = (
+    &'static [&'static [(&'static str, f32)]],
+    &'static str,
+    Option<&'static str>,
+);
+
+/// An unsure lone name stays when the prompt-free decode heard something
+/// that sounds like it or one of its aliases, and gives way to what that
+/// decode heard when it does not; a term inside a sentence never stays by
+/// sound.
+#[test]
+fn an_unsure_lone_name_stays_only_when_the_plain_decode_sounds_like_it() {
+    let cases: &[SoundCase] = &[
+        (&[&[(" Hyprland.", -0.411)]], " Hyperland.", None),
+        (&[&[(" Omarchy.", -0.6)]], " Oh, Marky.", None),
+        (&[&[(" Clef.", -0.416)]], " Pleph.", None),
+        (
+            &[&[(" Book the room.", -0.1)], &[(" Hyprland.", -0.5)]],
+            " Book the room. Hyper land.",
+            None,
+        ),
+        (&[&[(" Clef,", -0.344)]], " Clyde.", Some("Clyde.")),
+        (&[&[(" Omarchy.", -0.5)]], " Omar.", Some("Omar.")),
+        (&[&[(" Clef.", -0.416)]], " Blah.", Some("Blah.")),
+        (&[&[(" Omarchy.", -0.5)]], "", Some("")),
+        (
+            &[&[(" I bound the key in", 0.0), (" Hyprland.", -0.6)]],
+            " I bound the key in Hyperland.",
+            Some("I bound the key in Hyperland."),
+        ),
+    ];
+    for &(segments, heard, settled) in cases {
+        let found = take(segments, TERMS);
+        assert!(found.needs_plain_decode(), "{segments:?}");
+        let want = settled.map(|s| {
+            let mut texts = vec![String::new(); segments.len()];
+            if segments.len() > 1 {
+                texts[0] = "Book the room.".into();
+            }
+            texts[segments.len() - 1] = s.to_string();
+            texts
+        });
+        assert_eq!(
+            settle(&found, &plain(&[heard])),
+            want,
+            "{segments:?} {heard:?}"
+        );
+    }
+}
+
+/// R1: a segment, or the sentences closing one, made only of two or more
+/// listed terms is an echo however sure the decoder was; it becomes what
+/// the prompt-free decode heard there, or nothing.
+#[test]
+fn an_echo_of_listed_terms_is_replaced_or_dropped() {
+    let whole = take(&[&[(" Omarchy,", 0.0), (" Hyprland.", 0.0)]], TERMS);
+    assert!(whole.needs_plain_decode());
+    let heard = " Omar keeps the spare keys in his desk.";
+    assert_eq!(
+        settle(&whole, &plain(&[heard])),
+        Some(plain(&[heard.trim()]))
+    );
+    let trailing = take(
+        &[&[(" Book the room.", -0.1), (" Omarchy, Hyprland.", 0.0)]],
+        TERMS,
+    );
+    assert!(trailing.needs_plain_decode());
+    assert_eq!(
+        settle(&trailing, &plain(&[" Book the room."])),
+        Some(plain(&["Book the room."]))
+    );
+    let own_segment = take(
+        &[&[(" Book the room.", -0.1)], &[(" Clef, Hyprland.", 0.0)]],
+        TERMS,
+    );
+    assert_eq!(
+        settle(&own_segment, &plain(&[" Book the room."])),
+        Some(plain(&["Book the room.", ""]))
+    );
+}
+
+/// A name that ends a sentence begun in an earlier segment is inside that
+/// sentence, so it never stays by sound: Whisper splits segments at
+/// timestamps, not at sentence ends.
+#[test]
+fn a_name_closing_a_split_sentence_never_stays_by_sound() {
+    let found = take(&[&[(" She shaped the", -0.1)], &[(" Clef.", -0.5)]], TERMS);
+    assert!(found.needs_plain_decode());
+    assert_eq!(
+        settle(&found, &plain(&[" She shaped the clay."])),
+        Some(plain(&["She shaped the", "clay."]))
+    );
+}
+
+/// A term with no letters or digits spells nothing, and its alias never
+/// takes its place as a span.
+#[test]
+fn an_alias_never_stands_in_for_a_term_without_letters() {
+    let (text, tokens) = segment(&[(" Say plus plus.", -0.5)]);
+    let terms = vec![BiasTerm {
+        term: "++".into(),
+        aliases: vec!["plus plus".into()],
+    }];
+    let found = find(&[text], &[tokens], &terms);
+    assert_eq!(found.candidates(), 0);
+    assert!(!found.needs_plain_decode());
+}
+
+/// A suspect the prompt-free decode also spells stands, even split into
+/// other words.
+#[test]
+fn a_suspect_the_prompt_free_decode_also_spells_stands() {
+    let found = take(
+        &[&[
+            (" Send it to", -0.1),
+            (" SapienXT", -3.0),
+            (" today.", -0.1),
+        ]],
+        TERMS,
+    );
+    assert!(found.needs_plain_decode());
+    assert_eq!(
+        settle(&found, &plain(&[" Send it to Sapien XT today."])),
+        None
+    );
+    let lone = take(&[&[(" Clef.", -1.0)]], TERMS);
+    assert!(lone.needs_plain_decode());
+    assert_eq!(settle(&lone, &plain(&[" Clef."])), None);
+}
+
+/// Suspects whose gaps overlap, because a word inside a multi-word term
+/// is shared with the prompt-free decode, settle as one gap instead of
+/// two edits that overlap (which panicked).
+#[test]
+fn suspects_with_overlapping_gaps_settle_as_one() {
+    // (terms, prompted words, prompt-free text, settled text)
+    let cases: &[(&[&str], &[&str], &str, &str)] = &[
+        (
+            &["Visual Studio", "Code"],
+            &[" Use", " Visual Studio", " Code."],
+            " Use Visual.",
+            "Use Visual.",
+        ),
+        (
+            &["SapienXT", "Clef"],
+            &[" Sapien XT", " Clef."],
+            " XT.",
+            "XT.",
+        ),
+        (
+            &["New Hampshire", "West End"],
+            &[" New Hampshire", " West End."],
+            " New End.",
+            "New End.",
+        ),
+    ];
+    for &(terms, words, heard, settled) in cases {
+        let pieces: Vec<(&str, f32)> = words
+            .iter()
+            .map(|w| (*w, if w.trim() == "Use" { 0.0 } else { -2.0 }))
+            .collect();
+        let found = take(&[&pieces], terms);
+        assert!(found.needs_plain_decode(), "{words:?}");
+        assert_eq!(settle(&found, &plain(&[heard])), Some(plain(&[settled])));
+    }
+}
+
+/// Tokens that do not spell the segment's text leave no confidence, so
+/// the term is checked rather than trusted.
+#[test]
+fn tokens_that_do_not_spell_the_text_leave_the_term_unsure() {
+    let (text, mut tokens) = segment(&[(" Ask the Clef team.", 0.0)]);
+    tokens[0].bytes.pop();
+    assert!(find(&[text], &[tokens], &bias(&["Clef"])).needs_plain_decode());
+}

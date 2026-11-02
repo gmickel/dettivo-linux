@@ -7,7 +7,6 @@
 
 mod candidates;
 mod pieces;
-mod sound;
 
 use dettivo_engine_proto::VocabularyBias;
 
@@ -185,10 +184,13 @@ fn replacement(term: &str, span: &[RawWord]) -> Vec<RawWord> {
 
 /// The term as it replaces heard words: followed by the marks that close
 /// the last heard word (a comma, a full stop, a quote, a bracket), except
-/// a sentence mark when the term ends in one of its own.
+/// the term's own marks when the heard word already spells them (`C++.`)
+/// and a sentence mark when the term ends in one of its own.
 fn written(term: &str, heard_last: &str) -> String {
     let bare = heard_last.trim_end_matches(|c: char| !c.is_alphanumeric());
+    let own = &term[term.trim_end_matches(|c: char| !c.is_alphanumeric()).len()..];
     let mut marks = &heard_last[bare.len()..];
+    marks = marks.strip_prefix(own).unwrap_or(marks);
     if term.ends_with(['.', '!', '?']) {
         marks = marks.trim_start_matches(['.', '!', '?']);
     }
@@ -224,6 +226,15 @@ mod tests {
         assert_eq!(written("C#", "sharp)"), "C#)");
         assert_eq!(written("C#", "sharp\u{201d}."), "C#\u{201d}.");
         assert_eq!(written("Yahoo!", "yahoo!\""), "Yahoo!\"");
+    }
+
+    /// A heard word that already spells the term's own marks (`C++.`)
+    /// gives only its closing marks, never a second copy of the term's.
+    #[test]
+    fn a_heard_word_spelling_the_terms_marks_adds_none_of_them() {
+        assert_eq!(written("C++", "C++."), "C++.");
+        assert_eq!(written("C++", "c++,"), "C++,");
+        assert_eq!(written("C#", "C#)"), "C#)");
     }
 
     /// A multi-word term comes back as timed words, never one word.

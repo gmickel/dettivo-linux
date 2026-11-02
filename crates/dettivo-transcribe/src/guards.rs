@@ -2,11 +2,12 @@
 //! sees it: a segment that only echoes the vocabulary prompt, a decoder
 //! loop (the text before it stays), and the known silence hallucinations
 //! and blank markers the meeting pipeline drops
-//! (`dettivo_transcribe::filters`). The engine's own text stands when no
-//! segment changed.
+//! (`filters`). The engine's own text stands when no segment changed. The
+//! session guards every take with it, and the QA vocabulary bench every
+//! clip, so the bench scores the text dictation would paste.
 
+use crate::filters::{canonical, should_drop};
 use dettivo_engine_proto::RecognizeResult;
-use dettivo_transcribe::filters::{canonical, should_drop};
 
 /// The most words a looping n-gram has.
 const LOOP_MAX_NGRAM: usize = 8;
@@ -18,7 +19,7 @@ const LOOP_MIN_WORDS: usize = 8;
 /// The text of `result` with the guards applied; `prompt_terms` are the
 /// vocabulary terms the engine was primed with (none when it took no
 /// prompt).
-pub(crate) fn clean(result: &RecognizeResult, prompt_terms: &[String]) -> String {
+pub fn clean(result: &RecognizeResult, prompt_terms: &[String]) -> String {
     let pieces: Vec<(&str, u64)> = if result.segments.is_empty() {
         vec![(result.text.as_str(), result.duration_ms)]
     } else {

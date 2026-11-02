@@ -1,6 +1,10 @@
 //! How alike two spellings are: letters in common, edit distance, and a
 //! rough English consonant key with a sound count, so a heard span can be
-//! matched to a term it may be a mishearing of.
+//! matched to a term it may be a mishearing of. Parakeet finds candidate
+//! spans with them (ADR 0088), and Whisper's term check asks whether a
+//! lone name sounds like what the prompt-free decode heard (ADR 0095).
+//! Both also read word boundaries the same way: a word ending in a mark
+//! ends a run of words ([`ends_run`]).
 
 /// Lowercase letters and digits only: `"Sapien XT"` is `sapienxt`.
 pub fn normalise(text: &str) -> String {
@@ -8,6 +12,46 @@ pub fn normalise(text: &str) -> String {
         .filter(|c| c.is_alphanumeric())
         .flat_map(char::to_lowercase)
         .collect()
+}
+
+/// The marks that carry a term's meaning (`C++`, `C#`, `AT&T`) and stay
+/// in [`marked`]; every other mark is punctuation around the word.
+const TERM_MARKS: &[char] = &[
+    '+', '#', '&', '*', '=', '%', '$', '@', '^', '<', '>', '|', '~',
+];
+
+/// True for a mark that is part of a term's spelling (`+` in `C++`).
+pub fn is_term_mark(c: char) -> bool {
+    TERM_MARKS.contains(&c)
+}
+
+/// Lowercase letters and digits, and the marks a term is spelt with:
+/// `"C++."` is `c++`, not the `c` that [`normalise`] gives `C`, while
+/// `"Sapien-XT's"` is still `sapienxts`.
+pub fn marked(text: &str) -> String {
+    text.chars()
+        .filter(|&c| c.is_alphanumeric() || is_term_mark(c))
+        .flat_map(char::to_lowercase)
+        .collect()
+}
+
+/// True when `word` ends in a mark (a full stop, a comma, a quote): a run
+/// of words spelling one term stops there.
+pub fn ends_run(word: &str) -> bool {
+    !word.chars().last().is_some_and(char::is_alphanumeric)
+}
+
+/// True when `word` ends a sentence: a `.`, `!`, `?` (or the CJK full
+/// stop, exclamation or question mark, or an ellipsis), also when a
+/// closing quote or bracket follows it (`"hello."`, `(done!)`).
+pub fn ends_sentence(word: &str) -> bool {
+    const CLOSERS: &[char] = &[
+        '"', '\'', '\u{201d}', '\u{2019}', '\u{bb}', ')', ']', '}', '\u{300d}', '\u{300f}',
+        '\u{ff09}',
+    ];
+    word.trim_end_matches(CLOSERS).ends_with([
+        '.', '!', '?', '\u{3002}', '\u{ff01}', '\u{ff1f}', '\u{2026}',
+    ])
 }
 
 /// Levenshtein distance over characters.
@@ -136,6 +180,26 @@ pub fn key(word: &str) -> (String, usize) {
     (key.replace('.', ""), sounds)
 }
 
+/// How alike two normalised spellings sound, from 0 to 1: the share of
+/// the longer consonant key the shorter one matches, times the ratio of
+/// their sound counts, so a spelling that drops a sound (`omar` for
+/// `omarchy`) scores under one that swaps a like sound (`pleph` for
+/// `clef`). 0 when either has no sounds, and when their digits differ:
+/// the key has no digits, so `gpt3` would otherwise sound like `gpt4`.
+pub fn alike(heard: &str, spelling: &str) -> f32 {
+    let digits = |s: &str| s.chars().filter(|c| c.is_numeric()).collect::<String>();
+    if digits(heard) != digits(spelling) {
+        return 0.0;
+    }
+    let ((heard_key, heard_sounds), (key_s, sounds)) = (key(heard), key(spelling));
+    let longer = heard_key.chars().count().max(key_s.chars().count());
+    if heard_sounds == 0 || sounds == 0 || longer == 0 {
+        return 0.0;
+    }
+    let keys = 1.0 - edit_distance(&heard_key, &key_s) as f32 / longer as f32;
+    keys * heard_sounds.min(sounds) as f32 / heard_sounds.max(sounds) as f32
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -144,6 +208,32 @@ mod tests {
     fn spellings_normalise_to_lowercase_letters_and_digits() {
         assert_eq!(normalise("Sapien XT."), "sapienxt");
         assert_eq!(normalise("Dettivo's"), "dettivos");
+    }
+
+    #[test]
+    fn marked_spellings_keep_the_marks_a_term_is_spelt_with() {
+        assert_eq!(marked("C++."), "c++");
+        assert_eq!(marked("C#,"), "c#");
+        assert_eq!(marked("C"), "c");
+        assert_eq!(marked("Sapien-XT's"), "sapienxts");
+        assert_ne!(marked("C++"), marked("C"));
+    }
+
+    #[test]
+    fn a_sentence_ends_before_a_closing_quote_or_bracket() {
+        for word in [
+            "Clef.",
+            "\"hello.\"",
+            "(done!)",
+            "\u{201c}why?\u{201d}",
+            "工作。",
+        ] {
+            assert!(ends_sentence(word), "{word}");
+        }
+        for word in ["Clef,", "\"hello\"", "C++", "Clef"] {
+            assert!(!ends_sentence(word), "{word}");
+        }
+        assert!(ends_run("new.") && ends_run("new,") && !ends_run("new"));
     }
 
     #[test]
@@ -164,5 +254,20 @@ mod tests {
         assert_eq!(key("zapianxt").0, "SPNKST");
         assert_eq!(key("highland").0, "LNT");
         assert_eq!(key("clef"), ("KLF".into(), 4));
+    }
+
+    #[test]
+    fn a_swapped_like_sound_scores_over_a_dropped_one() {
+        assert_eq!(alike("hyprland", "hyprland"), 1.0);
+        assert!(alike("pleph", "clef") > alike("clyde", "clef"));
+        assert!(alike("ohmarky", "omarchy") > alike("omar", "omarchy"));
+        assert_eq!(alike("", "clef"), 0.0);
+    }
+
+    #[test]
+    fn spellings_with_other_digits_never_sound_alike() {
+        assert_eq!(alike("gpt3", "gpt4"), 0.0);
+        assert_eq!(alike("gpt", "gpt4"), 0.0);
+        assert_eq!(alike("gpt4", "gpt4"), 1.0);
     }
 }

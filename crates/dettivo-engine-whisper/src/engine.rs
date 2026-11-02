@@ -14,9 +14,10 @@ use dettivo_engine_proto::{
 };
 use whisper_rs::{
     DtwMode, DtwParameters, FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters,
-    WhisperSegment,
+    WhisperSegment, WhisperState,
 };
 
+use crate::check;
 use crate::vad::Vad;
 use crate::words::{self, Spoken, Timing, Token};
 
@@ -181,6 +182,73 @@ impl Engine {
             threads: None,
         })
     }
+
+    /// One whisper.cpp pass over `audio` on `state`, primed with `prompt`:
+    /// each segment with text, as whisper.cpp returned it, with its span
+    /// and its text tokens.
+    fn decode(
+        &self,
+        context: &WhisperContext,
+        state: &mut WhisperState,
+        audio: &[f32],
+        language: &str,
+        prompt: Option<&str>,
+        timed: bool,
+    ) -> Result<(Vec<String>, Vec<Spoken>), EngineError> {
+        let mut full = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
+        full.set_print_progress(false);
+        full.set_print_special(false);
+        full.set_print_realtime(false);
+        full.set_print_timestamps(false);
+        full.set_suppress_blank(true);
+        full.set_n_threads(backend::speech_threads(self.threads, self.backend));
+        full.set_language((language != "auto").then_some(language));
+        if let Some(p) = prompt {
+            full.set_initial_prompt(p);
+        }
+        if let Some(vad) = &self.vad_model {
+            full.set_vad_model_path(Some(vad.as_str()));
+        }
+        full.set_token_timestamps(timed && self.timing == Timing::Plain);
+        let mut token_beg = context.token_beg();
+        if self.timing == Timing::Dtw {
+            #[allow(unsafe_code)]
+            // SAFETY: the callback reads the arguments whisper.cpp passes and
+            // `token_beg`, which outlives `full` and the `state.full` call.
+            unsafe {
+                full.set_filter_logits_callback(Some(dtw_safe_timestamps));
+                full.set_filter_logits_callback_user_data(
+                    (&raw mut token_beg).cast::<std::os::raw::c_void>(),
+                );
+            }
+        }
+        state
+            .full(full, audio)
+            .map_err(|e| EngineError::new("internal", format!("inference: {e}")))?;
+        let eot = context.token_eot();
+        let (mut texts, mut spoken) = (Vec::new(), Vec::new());
+        for i in 0..state.full_n_segments() {
+            let Some(segment) = state.get_segment(i) else {
+                continue;
+            };
+            let text = segment
+                .to_str_lossy()
+                .map(|s| s.into_owned())
+                .unwrap_or_default();
+            if text.trim().is_empty() {
+                continue;
+            }
+            spoken.push(Spoken {
+                span: (
+                    segment.start_timestamp().max(0),
+                    segment.end_timestamp().max(0),
+                ),
+                tokens: tokens_of(&segment, eot),
+            });
+            texts.push(text);
+        }
+        Ok((texts, spoken))
+    }
 }
 
 impl SpeechEngine for Engine {
@@ -230,98 +298,14 @@ impl SpeechEngine for Engine {
         let mut audio: Vec<f32> = vec![0.0; pcm.len()];
         whisper_rs::convert_integer_to_float_audio(pcm, &mut audio)
             .map_err(|e| EngineError::new("bad_request", format!("pcm conversion: {e}")))?;
-        let mut full = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
-        full.set_print_progress(false);
-        full.set_print_special(false);
-        full.set_print_realtime(false);
-        full.set_print_timestamps(false);
-        full.set_suppress_blank(true);
-        full.set_n_threads(backend::speech_threads(self.threads, self.backend));
-        if language != "auto" {
-            full.set_language(Some(language));
-        } else {
-            full.set_language(None);
-        }
-        if let Some(p) = params.prompt.as_deref().filter(|p| !p.is_empty()) {
-            full.set_initial_prompt(p);
-        }
-        if let Some(vad) = &self.vad_model {
-            full.set_vad_model_path(Some(vad.as_str()));
-        }
         // whisper.cpp maps segment times back from VAD-compressed audio but
         // not token times, so words are timed only without VAD.
         let timed = params.timestamps && self.vad_model.is_none();
-        full.set_token_timestamps(timed && self.timing == Timing::Plain);
-        let mut token_beg = context.token_beg();
-        if self.timing == Timing::Dtw {
-            #[allow(unsafe_code)]
-            // SAFETY: the callback reads the arguments whisper.cpp passes and
-            // `token_beg`, which outlives `full` and the `state.full` call.
-            unsafe {
-                full.set_filter_logits_callback(Some(dtw_safe_timestamps));
-                full.set_filter_logits_callback_user_data(
-                    (&raw mut token_beg).cast::<std::os::raw::c_void>(),
-                );
-            }
-        }
         let mut state = context
             .create_state()
             .map_err(|e| EngineError::new("internal", format!("state: {e}")))?;
-        state
-            .full(full, &audio)
-            .map_err(|e| EngineError::new("internal", format!("inference: {e}")))?;
-        let mut spoken = Vec::new();
-        let mut pieces = Vec::new();
-        let mut text = String::new();
-        let eot = context.token_eot();
-        for i in 0..state.full_n_segments() {
-            let Some(segment) = state.get_segment(i) else {
-                continue;
-            };
-            let piece = segment
-                .to_str_lossy()
-                .map(|s| s.trim().to_string())
-                .unwrap_or_default();
-            if piece.is_empty() {
-                continue;
-            }
-            if !text.is_empty() {
-                text.push(' ');
-            }
-            text.push_str(&piece);
-            spoken.push(Spoken {
-                span: (
-                    segment.start_timestamp().max(0),
-                    segment.end_timestamp().max(0),
-                ),
-                tokens: if timed {
-                    tokens_of(&segment, eot)
-                } else {
-                    Vec::new()
-                },
-            });
-            pieces.push(piece);
-        }
-        let audio_cs = (pcm.len() / 160) as i64;
-        let timed_segments = if timed {
-            words::timed(&spoken, self.timing, audio_cs)
-        } else {
-            spoken.iter().map(|s| (s.span, Vec::new())).collect()
-        };
-        let segments = if params.timestamps {
-            pieces
-                .into_iter()
-                .zip(timed_segments)
-                .map(|(text, ((start, end), words))| Segment {
-                    start_ms: start as u64 * 10,
-                    end_ms: end as u64 * 10,
-                    text,
-                    words,
-                })
-                .collect()
-        } else {
-            Vec::new()
-        };
+        let prompt = params.prompt.as_deref().filter(|p| !p.is_empty());
+        let (texts, spoken) = self.decode(context, &mut state, &audio, language, prompt, timed)?;
         // An English-only model (`*.en`) has no language detector worth
         // reading; everything else reports what whisper detected.
         let english_only = self.model.contains(".en.") || self.model.ends_with(".en");
@@ -334,6 +318,43 @@ impl SpeechEngine for Engine {
                 .map(str::to_string)
                 .unwrap_or_else(|| "auto".into())
         };
+        // A prompted take's listed terms are checked (ADR 0095).
+        let revised = match (&params.vocabulary, prompt) {
+            (Some(vocabulary), Some(_)) => check::run(&texts, &spoken, &vocabulary.terms, || {
+                self.decode(context, &mut state, &audio, &detected, None, false)
+                    .map(|(texts, _)| texts)
+            })?,
+            _ => None,
+        };
+        let audio_cs = (pcm.len() / 160) as i64;
+        let timed_segments = if timed {
+            words::timed(&spoken, self.timing, audio_cs)
+        } else {
+            spoken.iter().map(|s| (s.span, Vec::new())).collect()
+        };
+        let mut text = String::new();
+        let mut segments = Vec::new();
+        for (i, ((start, end), words)) in timed_segments.into_iter().enumerate() {
+            let piece = revised.as_ref().map_or(texts[i].trim(), |r| r[i].as_str());
+            if piece.is_empty() {
+                continue;
+            }
+            if !text.is_empty() {
+                text.push(' ');
+            }
+            text.push_str(piece);
+            // A segment the check rewrote has no tokens behind its words.
+            let rewritten = piece != texts[i].trim();
+            segments.push(Segment {
+                start_ms: start as u64 * 10,
+                end_ms: end as u64 * 10,
+                text: piece.to_string(),
+                words: if rewritten { Vec::new() } else { words },
+            });
+        }
+        if !params.timestamps {
+            segments.clear();
+        }
         Ok(RecognizeResult {
             text,
             language: detected,
@@ -415,7 +436,7 @@ unsafe extern "C" fn dtw_safe_timestamps(
 }
 
 /// The segment's text tokens (ids below end-of-text; the rest are
-/// timestamps and control tokens).
+/// timestamps and control tokens): their bytes spell the segment's text.
 fn tokens_of(segment: &WhisperSegment<'_>, eot: i32) -> Vec<Token> {
     (0..segment.n_tokens())
         .filter_map(|i| segment.get_token(i))
@@ -428,58 +449,12 @@ fn tokens_of(segment: &WhisperSegment<'_>, eot: i32) -> Vec<Token> {
                 t1: data.t1,
                 dtw: data.t_dtw,
                 p: data.p,
+                plog: data.plog,
             }
         })
         .collect()
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn token(id: i32) -> whisper_rs::WhisperTokenData {
-        whisper_rs::WhisperTokenData {
-            id,
-            tid: 0,
-            p: 1.0,
-            plog: 0.0,
-            pt: 0.0,
-            ptsum: 0.0,
-            t0: 0,
-            t1: 0,
-            t_dtw: 0,
-            vlen: 0.0,
-        }
-    }
-
-    /// Runs the mask over `ids` with timestamps starting at id 100.
-    fn masked(ids: &[i32]) -> Vec<usize> {
-        let mut beg = 100;
-        let tokens: Vec<_> = ids.iter().copied().map(token).collect();
-        let mut logits = vec![0.0f32; 200];
-        #[allow(unsafe_code)]
-        // SAFETY: the pointers cover `tokens`, `logits` and `beg`, all alive here.
-        unsafe {
-            dtw_safe_timestamps(
-                std::ptr::null_mut(),
-                std::ptr::null_mut(),
-                tokens.as_ptr(),
-                tokens.len() as i32,
-                logits.as_mut_ptr(),
-                (&raw mut beg).cast(),
-            );
-        }
-        (0..logits.len())
-            .filter(|&i| logits[i].is_infinite())
-            .collect()
-    }
-
-    /// A decode that opened a segment may not close it before 160 ms, so
-    /// whisper.cpp's DTW median filter never sees a window it aborts on.
-    #[test]
-    fn early_closing_timestamps_are_masked_once_a_segment_opened() {
-        assert!(masked(&[]).is_empty(), "the opening timestamp stays free");
-        assert!(masked(&[5, 6]).is_empty(), "text alone opens nothing");
-        assert_eq!(masked(&[100, 5]), (100..108).collect::<Vec<_>>());
-    }
-}
+#[path = "engine_tests.rs"]
+mod tests;

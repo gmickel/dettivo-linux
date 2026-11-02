@@ -274,6 +274,32 @@ impl Runner {
         Ok(answer["result"].clone())
     }
 
+    /// A daemon that runs only the text layers, with no language model:
+    /// [`Runner::raw`] behind `dettivo-qa bench vocabulary`.
+    pub fn text_only(repo: &Path, cpu: bool) -> Result<Self, String> {
+        let opts = Options {
+            candidate: Candidate::Echo,
+            cpu,
+            experiments_dir: None,
+            models_dir: None,
+            timeout_ms: 10_000,
+            engines_dir: None,
+        };
+        Self::start(repo, &opts)
+    }
+
+    /// What default raw dictation pastes for `engine_text`: `polish.test`
+    /// in `raw` mode under the profile's default configuration, the raw
+    /// layer a take's text passes after the output guards.
+    pub fn raw(&self, engine_text: &str) -> Result<String, String> {
+        if engine_text.trim().is_empty() {
+            return Ok(String::new());
+        }
+        let params = json!({"input": engine_text, "preset": "generic", "rules": [], "mode": "raw"});
+        let result = self.call("polish.test", params)?;
+        Ok(result["output"].as_str().unwrap_or_default().to_string())
+    }
+
     /// The id the daemon serves the candidate under: the sideload row's
     /// id for a sideload (the manifest's `id`), the candidate's own id
     /// otherwise.

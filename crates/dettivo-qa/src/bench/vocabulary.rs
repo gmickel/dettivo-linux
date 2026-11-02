@@ -7,8 +7,10 @@
 //! clips, terms inserted into distractor and guard clips, and the word
 //! error rate of the guard clips. A term counts only as a whole-word,
 //! case-insensitive match of its own spelling; an alias is never a hit.
+//! The single-name set under `single/` holds one word said on its own: a
+//! listed name, or a sound-alike that must not become one (ADR 0095).
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
@@ -16,6 +18,9 @@ use crate::pack::wer::{wer, words};
 
 /// The fixture set, relative to the repository root.
 pub const FIXTURE_DIR: &str = "crates/dettivo-qa/fixtures/vocabulary";
+/// The single-name set, relative to [`FIXTURE_DIR`]; it is primed with
+/// the vocabulary of the main set.
+pub const SINGLE_DIR: &str = "single";
 
 /// One vocabulary entry of the fixture set, the `config.toml` shape.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -56,10 +61,15 @@ pub struct Clip {
 /// `set.json`.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Set {
-    /// The vocabulary a pass with the vocabulary on primes the engine with.
+    /// The vocabulary a pass with the vocabulary on primes the engine with;
+    /// the single-name set carries none of its own.
+    #[serde(default)]
     pub vocabulary: Vec<Entry>,
     /// Every clip.
     pub clips: Vec<Clip>,
+    /// The directory holding `set.json` and the clips.
+    #[serde(skip)]
+    pub dir: PathBuf,
 }
 
 impl Set {
@@ -68,7 +78,12 @@ impl Set {
         let path = dir.join("set.json");
         let text =
             std::fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?;
-        serde_json::from_str(&text).map_err(|e| format!("{}: {e}", path.display()))
+        let set: Self =
+            serde_json::from_str(&text).map_err(|e| format!("{}: {e}", path.display()))?;
+        Ok(Self {
+            dir: dir.to_path_buf(),
+            ..set
+        })
     }
 }
 
@@ -136,13 +151,24 @@ pub fn score(set: &Set, transcripts: &[(String, String)]) -> VocabularyScore {
 
 /// How the vocabulary reaches the engine: Whisper's prompt, the terms
 /// joined as `dettivo_speech::vocabulary_prompt` joins them and never the
-/// aliases; Parakeet's terms with their aliases at the default boost
-/// (ADR 0088). `None` for an engine that takes no vocabulary.
+/// aliases, with the same terms and their aliases to check its output
+/// against (ADR 0095);
+/// Parakeet's terms with their aliases at the default boost (ADR 0088).
+/// `None` for an engine that takes no vocabulary.
 pub fn prompt_args(provider: &str, vocabulary: &[Entry]) -> Option<Vec<String>> {
     match provider {
         "whisper" => {
             let terms: Vec<&str> = vocabulary.iter().map(|e| e.term.as_str()).collect();
-            Some(vec!["--prompt".into(), format!("{}.", terms.join(", "))])
+            let checked: Vec<serde_json::Value> = vocabulary
+                .iter()
+                .map(|e| serde_json::json!({ "term": e.term, "aliases": e.sounds_like }))
+                .collect();
+            Some(vec![
+                "--prompt".into(),
+                format!("{}.", terms.join(", ")),
+                "--vocabulary".into(),
+                serde_json::Value::from(checked).to_string(),
+            ])
         }
         "parakeet" => {
             let terms: Vec<serde_json::Value> = vocabulary
@@ -160,12 +186,13 @@ pub fn prompt_args(provider: &str, vocabulary: &[Entry]) -> Option<Vec<String>> 
     }
 }
 
-/// What rescoring did to one clip, from the engine's
-/// `vocabulary rescoring` log line: candidate spans and milliseconds.
+/// What the vocabulary cost one clip, from Parakeet's `vocabulary
+/// rescoring` or Whisper's `vocabulary check` log line: candidate spans
+/// and milliseconds.
 pub fn rescoring(stderr: &str) -> Option<(u32, f64)> {
     let line = stderr
         .lines()
-        .find(|l| l.contains("vocabulary rescoring"))?;
+        .find(|l| l.contains("vocabulary rescoring") || l.contains("vocabulary check"))?;
     let field = |name: &str| {
         line.split_whitespace()
             .find_map(|f| f.strip_prefix(name))
@@ -173,7 +200,10 @@ pub fn rescoring(stderr: &str) -> Option<(u32, f64)> {
     };
     Some((
         field("candidates=")?.parse().ok()?,
-        field("rescore_ms=")?.parse().ok()?,
+        field("rescore_ms=")
+            .or_else(|| field("check_ms="))?
+            .parse()
+            .ok()?,
     ))
 }
 
@@ -207,6 +237,7 @@ mod tests {
                 clip("g1", Kind::Guard, None, "Rain is expected."),
                 clip("g2", Kind::Guard, None, "Bring an umbrella."),
             ],
+            dir: PathBuf::new(),
         }
     }
 
@@ -274,11 +305,16 @@ mod tests {
     }
 
     #[test]
-    fn whisper_gets_a_prompt_of_terms_and_parakeet_the_terms_with_aliases() {
+    fn whisper_gets_a_prompt_and_its_terms_and_parakeet_the_terms_with_aliases() {
         let vocabulary = set().vocabulary;
         assert_eq!(
             prompt_args("whisper", &vocabulary),
-            Some(vec!["--prompt".into(), "Clef, Sapien XT.".into()])
+            Some(vec![
+                "--prompt".into(),
+                "Clef, Sapien XT.".into(),
+                "--vocabulary".into(),
+                r#"[{"aliases":["clay"],"term":"Clef"},{"aliases":[],"term":"Sapien XT"}]"#.into(),
+            ])
         );
         assert_eq!(
             prompt_args("parakeet", &vocabulary),
@@ -293,9 +329,11 @@ mod tests {
     }
 
     #[test]
-    fn the_rescoring_line_gives_candidates_and_milliseconds() {
+    fn the_rescoring_and_check_lines_give_candidates_and_milliseconds() {
         let log = "INFO model loaded\nINFO vocabulary rescoring candidates=2 replaced=1 rescore_ms=31.4\n";
         assert_eq!(rescoring(log), Some((2, 31.4)));
+        let check = "INFO vocabulary check candidates=2 suspects=1 replaced=1 check_ms=80.6";
+        assert_eq!(rescoring(check), Some((2, 80.6)));
         assert_eq!(rescoring("INFO model loaded"), None);
     }
 
@@ -328,5 +366,39 @@ mod tests {
         let score = score(&set, &perfect);
         assert_eq!(score.term_recall, (15, 15));
         assert_eq!((score.false_insertions, score.guard_wer), (0, 0.0));
+    }
+
+    /// Two voices say each listed name alone and each lone sound-alike.
+    #[test]
+    fn the_single_name_set_has_two_lone_takes_a_name_and_ten_sound_alikes() {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("fixtures/vocabulary");
+        let vocabulary = Set::load(&dir).unwrap().vocabulary;
+        let set = Set {
+            vocabulary,
+            ..Set::load(&dir.join(SINGLE_DIR)).unwrap()
+        };
+        for entry in &set.vocabulary {
+            let names = set
+                .clips
+                .iter()
+                .filter(|c| c.term == Some(entry.term.clone()));
+            assert_eq!(names.count(), 2, "{}", entry.term);
+        }
+        let alikes = set.clips.iter().filter(|c| c.kind == Kind::Distractor);
+        assert_eq!(alikes.count(), 10);
+        for clip in &set.clips {
+            assert!(
+                set.dir.join(format!("{}.wav", clip.id)).is_file(),
+                "{}",
+                clip.id
+            );
+        }
+        let perfect: Vec<(String, String)> = set
+            .clips
+            .iter()
+            .map(|c| (c.id.clone(), c.text.clone()))
+            .collect();
+        let score = score(&set, &perfect);
+        assert_eq!((score.term_recall, score.false_insertions), ((10, 10), 0));
     }
 }
