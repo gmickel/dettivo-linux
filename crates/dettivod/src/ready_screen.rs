@@ -6,13 +6,14 @@
 //! offer the protocol leaves the lock to logind (`ready_session.rs`).
 
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use wayland_client::protocol::wl_registry;
-use wayland_client::{Connection, Dispatch, QueueHandle};
+use wayland_client::{ConnectError, Connection, Dispatch, QueueHandle};
 
 use crate::daemon::Daemon;
-use crate::ready::LockSource;
+use crate::ready::{LockSource, MicReady};
 
 /// The client side of `protocols/hyprland-lock-notify-v1.xml`.
 #[allow(missing_docs, non_upper_case_globals, non_camel_case_types, unused)]
@@ -133,61 +134,72 @@ pub fn follow(conn: &Connection, report: impl Fn(bool) + 'static) -> Result<(), 
 /// Follows the compositor's lock on a thread of its own: a lost
 /// connection is tried again every [`RETRY`], a compositor without lock
 /// notifications or a session without a Wayland display is left to
-/// logind. The ring stays closed until the first connection reports.
+/// logind. The ring stays closed until the compositor first reports,
+/// across lost connections and retries.
 pub fn watch(daemon: Arc<Daemon>) {
-    let ready = |d: &Daemon, locked| {
-        d.dictation()
-            .ready()
-            .set_lock(LockSource::Compositor, locked)
-    };
-    daemon
-        .dictation()
-        .ready()
-        .lock_pending(LockSource::Compositor);
+    let ready: fn(&Daemon) -> &MicReady = |d| d.dictation().ready();
+    ready(&daemon).lock_pending(LockSource::Compositor);
     let d = daemon.clone();
     let spawned = std::thread::Builder::new()
         .name("dettivo-screen-lock".into())
-        .spawn(move || {
-            let mut last = String::new();
-            loop {
-                let stop = match Connection::connect_to_env() {
-                    Ok(conn) => {
-                        let d = daemon.clone();
-                        follow(&conn, move |locked| {
-                            d.dictation()
-                                .ready()
-                                .set_lock(LockSource::Compositor, Some(locked));
-                        })
-                    }
-                    Err(wayland_client::ConnectError::NoCompositor) => {
-                        ready(&daemon, None);
-                        tracing::info!("microphone ready: no Wayland display, the compositor's lock is not followed");
-                        return;
-                    }
-                    Err(e) => Err(Stop::Lost(e.to_string())),
-                };
-                daemon
-                    .dictation()
-                    .ready()
-                    .set_lock(LockSource::Compositor, None);
-                match stop {
-                    Err(Stop::Lost(why)) => {
-                        if why != last {
-                            tracing::info!(why, "microphone ready: the compositor's lock is not followed; trying again");
-                            last = why;
-                        }
-                    }
-                    Err(Stop::NotOffered) | Ok(()) => {
-                        tracing::info!("microphone ready: the compositor offers no lock notifications");
-                        return;
-                    }
-                }
-                std::thread::sleep(RETRY);
-            }
-        });
+        .spawn(move || keep_following(daemon, ready, Connection::connect_to_env, RETRY));
     if let Err(e) = spawned {
-        ready(&d, None);
+        ready(&d).set_lock(LockSource::Compositor, None);
         tracing::error!(error = %e, "microphone ready: the screen lock watcher did not start");
+    }
+}
+
+/// Follows the compositor `connect` reaches into the ring `ready` reaches
+/// from `owner`, connecting again `retry` after a lost connection, until
+/// there is no compositor or it offers no lock notifications. A
+/// connection lost before the compositor's first report leaves the ring
+/// waiting for it, closed, through the retry.
+fn keep_following<O: Send + Sync + 'static>(
+    owner: Arc<O>,
+    ready: fn(&O) -> &MicReady,
+    mut connect: impl FnMut() -> Result<Connection, ConnectError>,
+    retry: Duration,
+) {
+    let mut last = String::new();
+    let reported = Arc::new(AtomicBool::new(false));
+    loop {
+        let stop = match connect() {
+            Ok(conn) => {
+                let (o, r) = (owner.clone(), reported.clone());
+                follow(&conn, move |locked| {
+                    r.store(true, Ordering::Relaxed);
+                    ready(&o).set_lock(LockSource::Compositor, Some(locked));
+                })
+            }
+            Err(ConnectError::NoCompositor) => {
+                ready(&owner).set_lock(LockSource::Compositor, None);
+                tracing::info!(
+                    "microphone ready: no Wayland display, the compositor's lock is not followed"
+                );
+                return;
+            }
+            Err(e) => Err(Stop::Lost(e.to_string())),
+        };
+        let lost = matches!(stop, Err(Stop::Lost(_)));
+        if !lost || reported.load(Ordering::Relaxed) {
+            ready(&owner).set_lock(LockSource::Compositor, None);
+        }
+        match stop {
+            Err(Stop::Lost(why)) => {
+                if why != last {
+                    tracing::info!(
+                        why,
+                        "microphone ready: the compositor's lock is not followed; trying again"
+                    );
+                    last = why;
+                }
+            }
+            Err(Stop::NotOffered) | Ok(()) => {
+                tracing::info!("microphone ready: the compositor offers no lock notifications");
+                return;
+            }
+        }
+        std::thread::sleep(retry);
     }
 }
 

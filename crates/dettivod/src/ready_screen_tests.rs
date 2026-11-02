@@ -23,6 +23,8 @@ enum Start {
     Locked,
     /// `locked` while answering the client's next roundtrip.
     LockedAtNextSync,
+    /// Nothing: the connection drops before any report.
+    Drops,
 }
 
 fn message(object: u32, opcode: u16, args: &[u8]) -> Vec<u8> {
@@ -109,6 +111,10 @@ impl Compositor {
                             Start::Unlocked => {}
                             Start::Locked => self.lock(true),
                             Start::LockedAtNextSync => lock_at_sync = true,
+                            Start::Drops => {
+                                let _ = reader.shutdown(std::net::Shutdown::Both);
+                                return;
+                            }
                         }
                     }
                     _ => {}
@@ -215,4 +221,56 @@ fn a_session_locked_at_start_never_opens_the_ring() {
         std::thread::sleep(Duration::from_millis(50));
         assert_eq!(*reports.lock().unwrap(), [(true, true)]);
     }
+}
+
+/// A compositor connection that drops before its first report keeps the
+/// ring closed while the watcher waits to connect again, and the locked
+/// session the next connection reports keeps it closed; losing that
+/// connection too leaves the ring closed.
+#[test]
+fn a_connection_lost_before_its_first_report_keeps_the_ring_closed() {
+    let ready = Arc::new(MicReady::default());
+    ready.lock_pending(LockSource::Compositor);
+    let compositors = Arc::new(Mutex::new(Vec::new()));
+    let c = compositors.clone();
+    let mut starts = vec![Start::Locked, Start::Drops];
+    let connect = move || match starts.pop() {
+        Some(start) => {
+            let (conn, compositor) = connect(true, start);
+            c.lock().unwrap().push(compositor);
+            Ok(conn)
+        }
+        None => Err(ConnectError::NoCompositor),
+    };
+    let r = ready.clone();
+    let watcher = std::thread::spawn(move || {
+        keep_following(r, |r| r, connect, Duration::from_millis(300));
+    });
+    let until = Instant::now() + Duration::from_secs(3);
+    loop {
+        assert!(
+            ready.blocked(),
+            "the ring opened before the compositor reported"
+        );
+        let reconnected = compositors.lock().unwrap().get(1).cloned();
+        if let Some(second) = reconnected.filter(|c| c.notification.lock().unwrap().is_some()) {
+            // Past the reconnect's `locked`, then lose that connection too.
+            std::thread::sleep(Duration::from_millis(50));
+            assert!(ready.blocked(), "the reported lock closes the ring");
+            second
+                .writer
+                .lock()
+                .unwrap()
+                .shutdown(std::net::Shutdown::Both)
+                .unwrap();
+            break;
+        }
+        assert!(Instant::now() < until, "the watcher connected again");
+        std::thread::sleep(Duration::from_millis(1));
+    }
+    watcher.join().unwrap();
+    assert!(
+        ready.blocked(),
+        "a connection lost while locked keeps the ring closed"
+    );
 }

@@ -98,6 +98,7 @@ impl Shared {
             language: "en".into(),
             prompt: None,
             timestamps: false,
+            vocabulary: None,
         };
         let samples = if self.binary == PARAKEET_BINARY {
             PARAKEET_WARM_UP_SAMPLES
@@ -136,6 +137,7 @@ impl Shared {
             language: request.language.clone(),
             prompt: request.prompt.clone(),
             timestamps: request.timestamps,
+            vocabulary: request.vocabulary.clone(),
         };
         let pcm = dettivo_engine_proto::pcm_to_bytes(&request.pcm);
         let _request = self.supervisor.begin_request(self.binary);
@@ -257,8 +259,8 @@ impl SttEngine for ParakeetEngine {
         request: RecognizeRequest,
         timeout: Duration,
     ) -> Result<RecognizeResult, EngineError> {
-        // Parakeet takes no vocabulary; the prompt is dropped here so the
-        // engine never sees it.
+        // Parakeet takes the vocabulary as terms, never as a prompt; the
+        // prompt is dropped here so the engine never sees it.
         self.0.recognize(
             RecognizeRequest {
                 prompt: None,

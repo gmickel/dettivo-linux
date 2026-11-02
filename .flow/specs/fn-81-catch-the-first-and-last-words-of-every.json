@@ -600,7 +600,7 @@
     "impl:fn-81-catch-the-first-and-last-words-of-every.1": 0
   },
   "spec_path": ".flow/specs/fn-81-catch-the-first-and-last-words-of-every.md",
-  "status": "open",
+  "status": "done",
   "title": "Catch the first and last words of every take",
   "tracker": {
     "baseHashFlow": null,
@@ -613,5 +613,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-02T10:01:10.880093Z"
+  "updated_at": "2026-11-02T10:11:05.941266Z"
 }
