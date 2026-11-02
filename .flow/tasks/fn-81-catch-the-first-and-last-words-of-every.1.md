@@ -33,8 +33,29 @@ Follow-ups (not built):
 
 Feature routes: Settings / General / Microphone gains "Keep microphone ready". `dettivo doctor` gains a `microphone ready` row.
 
-stage: plan-sync - skipped(config: planSync.enabled != true)
-## Evidence
+### Evidence
 - Commits: 7de3c60a8cb923e8845a6a3ddcc8a21511447437, a24aafd54b4da6d2d1d26ce90eb6af7ce546ea53
 - Tests: cargo test -p dettivo-audio -p dettivo-session (rc 0, after a24aafd), cargo test -p dettivod --no-fail-fast (full, rc 0 at 7de3c60); after a24aafd: --bin dettivod + take_window hold hotkeys dictation dictation_gate dictation_mode contract config_live session_exclusion meetings smoke (rc 0), cargo test -p dettivo-meeting -p dettivo-cli (rc 0), cargo clippy --workspace --all-targets -D warnings (rc 0); cargo fmt --all --check (rc 0), just lint (all steps green at 7de3c60; docs/settings-keys re-run after a24aafd ok), baseline: green (cargo test -p dettivo-audio -p dettivo-session pre-edit)
+- PRs:
+
+QA fix round (QA NEEDS_WORK at ae3e5e0, receipt qa-fn-81-catch-the-first-and-last-words-of-every.json; fixed 2190ae1..4703e08):
+- QA81-1 (P1): the ring now closes on an Omarchy lock. dettivod follows Hyprland's hyprland_lock_notify_v1 (crates/dettivod/src/ready_screen.rs, protocol XML vendored), which Hyprland sends for every ext-session-lock locker including Omarchy's Quickshell lock, beside logind. No Omarchy config change or plugin hook is needed. audio.devices.microphone_ready.lock_signal reports compositor|logind|none and doctor warns when a lock may go unseen. A watcher lost while locked keeps the lock (review finding). Tests: ready_screen_tests.rs (fake compositor on a socket pair: lock, unlock, starts locked, lost while locked, no protocol), doctor_report lock-signal rows; live: isolated daemon + stand-in compositor + fake logind, S12a-f.
+- QA81-4 (P1): capture reconnects after a PipeWire restart. The graph clears an alive flag on the core EPIPE, captures end with Error("PipeWire went away"), the audio thread reconnects every second, opens answer NoPipeWire meanwhile. Test: crates/dettivo-audio/tests/reconnect.rs (private PipeWire + WirePlumber, stop and restart; skips without them). Live: S10/S11 reruns pass.
+- QA81-3 (P2): audio.devices.pipewire follows the live connection; the ring reports failed with the PipeWire reason and reopens on return; the doctor row names it without promising capture on press. Test: doctor_report row test; live S10a/S10c.
+- QA81-2 (P2): dictation.pause / dictation.resume (dettivo dictation pause|resume): a runtime switch that closes the ring until resume or a daemon restart, no config write, a key press still dictates. Recorded in ADR 0092. Test: crates/dettivod/tests/take_window.rs pause_closes_the_ready_microphone_until_resume.
+- Also fixed: capture streams are destroyed under the PipeWire loop lock (the "pw_stream_destroy called from wrong context" warning in the QA logs is gone).
+
+Tier: implementer (dispatch: claude-opus-5-5) (model: claude-opus-5-5)
+
+stage: impl-review - ran (codex gpt-6.1-sol, 3-lens panel NEEDS_WORK with 1 finding (lost watcher cleared a lock), fixed in 4703e08, one-reviewer re-review SHIP)
+
+Follow-ups (not built):
+- The graph registers only Audio/Source and Audio/Sink nodes, so a PipeWire "Audio/Source/Virtual" source cannot be pinned (QA S9b, pre-existing).
+- The daemon still fails to start capture when PipeWire is absent at daemon start; only a restart while running recovers.
+- tests/reconnect.rs and rig.rs skip in CI (no wireplumber); local runs cover them.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
+## Evidence
+- Commits: 7de3c60a8cb923e8845a6a3ddcc8a21511447437, a24aafd54b4da6d2d1d26ce90eb6af7ce546ea53, 13a6502, e8fab41, 7662111, 2e462ce, b47cbae, 458469b, 849ac6e, 4703e08
+- Tests: cargo test -p dettivo-audio -p dettivo-session -p dettivo-proto -p dettivo-cli -p dettivo-qa (rc 0, 420 passed; WAYLAND_DISPLAY unset, PipeWire pointed at a nonexistent socket), cargo test -p dettivod --no-fail-fast (177 passed, 1 failed: contract lock_signal; fixed in 849ac6e, contract rerun rc 0); after 4703e08: --bin dettivod ready (rc 0), cargo test -p dettivo-audio --test reconnect (private PipeWire + WirePlumber, 3/3 green), just lint (rc 0 at 458469b); cargo clippy -D warnings on touched crates (rc 0 after 4703e08), live: QA harness S10/S11 (PipeWire restart, ring on/off), S12a-f (stand-in compositor + fake logind lock) in .flow/tmp/fix81/live/, baseline: green (cargo test -p dettivo-audio -p dettivo-session at 2190ae1)
 - PRs:

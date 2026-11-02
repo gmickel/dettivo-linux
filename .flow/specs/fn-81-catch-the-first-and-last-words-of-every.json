@@ -169,10 +169,178 @@
       "task": "fn-81-catch-the-first-and-last-words-of-every.1",
       "timestamp": "2026-11-02T00:43:46.949949Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "913d7f181dd8c91b2b958670c26023aa1253c728ea65b634d16518f58d357e94",
+      "backend": "codex",
+      "base_sha": "2190ae15f7f5917f5ad5919803564f763a53f3a0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-302fa43ede12a2ccca9077965be2139c",
+            "classification": "introduced",
+            "findingId": "finding-302fa43ede12a2ccca9077965be2139c",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a61702c603bfc9de06768107dfcf7f76",
+            "classification": "introduced",
+            "findingId": "finding-a61702c603bfc9de06768107dfcf7f76",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-436c0d3d2983f92d92143b22d7a687d1",
+            "classification": "introduced",
+            "findingId": "finding-436c0d3d2983f92d92143b22d7a687d1",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ce64b871e317d108611b4ae26903b1ff",
+            "classification": "introduced",
+            "findingId": "finding-ce64b871e317d108611b4ae26903b1ff",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-81467f959566d1eae568a6fcedf21e07",
+            "classification": "introduced",
+            "findingId": "finding-81467f959566d1eae568a6fcedf21e07",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c5376dac9855c397dccb40b043ef3bb4",
+            "classification": "introduced",
+            "findingId": "finding-c5376dac9855c397dccb40b043ef3bb4",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "849ac6efe846660a2c32638a81fee77e004b657d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1113,
+      "output_sha256": "8e6434d3b1ad59875e8d632a6859caead53642ffe9243e9ee9e668f9aaebf7b9",
+      "reservation_id": "de4c8f53f12449ddab6acaea039d534e",
+      "round_consumed": true,
+      "scope": "impl:fn-81-catch-the-first-and-last-words-of-every.1",
+      "superseded_by": null,
+      "task": "fn-81-catch-the-first-and-last-words-of-every.1",
+      "timestamp": "2026-11-02T01:48:55.989052Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "9b62b0d48e3a57f677bbf7f5b441b072cc9f4c5d4ebb85c594e24e5e4a9ab960",
+      "backend": "codex",
+      "base_sha": "2190ae15f7f5917f5ad5919803564f763a53f3a0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-302fa43ede12a2ccca9077965be2139c",
+            "classification": "introduced",
+            "findingId": "finding-302fa43ede12a2ccca9077965be2139c",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-a61702c603bfc9de06768107dfcf7f76",
+            "classification": "introduced",
+            "findingId": "finding-a61702c603bfc9de06768107dfcf7f76",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-436c0d3d2983f92d92143b22d7a687d1",
+            "classification": "introduced",
+            "findingId": "finding-436c0d3d2983f92d92143b22d7a687d1",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ce64b871e317d108611b4ae26903b1ff",
+            "classification": "introduced",
+            "findingId": "finding-ce64b871e317d108611b4ae26903b1ff",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-81467f959566d1eae568a6fcedf21e07",
+            "classification": "introduced",
+            "findingId": "finding-81467f959566d1eae568a6fcedf21e07",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c5376dac9855c397dccb40b043ef3bb4",
+            "classification": "introduced",
+            "findingId": "finding-c5376dac9855c397dccb40b043ef3bb4",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "4703e08e3ce7e9a7d1bcd52f0e62b4cf66710c97",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1755,
+      "output_sha256": "dd44e2ad252f7ebe8699529b9f642a8dc8f8f9df0eadb8074ba52c34b5292e21",
+      "reservation_id": "44883c77cb764fa183c368793829ee08",
+      "round_consumed": true,
+      "scope": "impl:fn-81-catch-the-first-and-last-words-of-every.1",
+      "superseded_by": null,
+      "task": "fn-81-catch-the-first-and-last-words-of-every.1",
+      "timestamp": "2026-11-02T01:51:00.333403Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-81-catch-the-first-and-last-words-of-every.1": 1
+    "impl:fn-81-catch-the-first-and-last-words-of-every.1": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -193,5 +361,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-02T00:45:33.083267Z"
+  "updated_at": "2026-11-02T01:51:00.336342Z"
 }
