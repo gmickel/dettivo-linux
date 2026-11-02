@@ -1,7 +1,7 @@
 //! The vocabulary as the engines take it: for Parakeet every term with its
 //! `sounds_like` spellings and the boost of the configured level (ADR
-//! 0088), for Whisper the prompt's terms its output is checked against
-//! (ADR 0095).
+//! 0088), for Whisper the prompt's terms its output is checked against,
+//! with their spellings (ADR 0095).
 
 use dettivo_core::config::vocabulary_schema::{VocabularyBoost, VocabularyEntry};
 use dettivo_engine_proto::{BiasTerm, VocabularyBias};
@@ -29,15 +29,23 @@ pub(crate) fn vocabulary_bias(
 }
 
 /// The terms a Whisper request checks its prompted output against: the
-/// prompt's own, since only a term in the prompt can be read back from it.
-/// Whisper reads neither the aliases nor the boost; `None` without terms.
-pub(crate) fn checked_terms(prompt_terms: &[String]) -> Option<VocabularyBias> {
+/// prompt's own, since only a term in the prompt can be read back from it,
+/// each with its `sounds_like` spellings from `entries`, which a lone name
+/// may sound like. Whisper ignores the boost; `None` without terms.
+pub(crate) fn checked_terms(
+    prompt_terms: &[String],
+    entries: &[VocabularyEntry],
+) -> Option<VocabularyBias> {
     (!prompt_terms.is_empty()).then(|| VocabularyBias {
         terms: prompt_terms
             .iter()
             .map(|t| BiasTerm {
                 term: t.clone(),
-                aliases: Vec::new(),
+                aliases: entries
+                    .iter()
+                    .find(|e| e.term() == t)
+                    .map(|e| e.aliases().to_vec())
+                    .unwrap_or_default(),
             })
             .collect(),
         boost: 0.0,
@@ -70,6 +78,10 @@ mod tests {
         );
         assert_eq!(vocabulary_bias(&entries, VocabularyBoost::Off), None);
         assert_eq!(vocabulary_bias(&[], VocabularyBoost::Normal), None);
+        let checked = checked_terms(&["Clef".into()], &entries).unwrap();
+        assert_eq!(checked.terms.len(), 1);
+        assert_eq!(checked.terms[0].aliases, vec!["clay".to_string()]);
+        assert_eq!(checked_terms(&[], &entries), None);
     }
 
     /// The largest vocabulary the configuration accepts still fits the

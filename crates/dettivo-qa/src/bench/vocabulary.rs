@@ -151,16 +151,17 @@ pub fn score(set: &Set, transcripts: &[(String, String)]) -> VocabularyScore {
 
 /// How the vocabulary reaches the engine: Whisper's prompt, the terms
 /// joined as `dettivo_speech::vocabulary_prompt` joins them and never the
-/// aliases, with the same terms to check its output against (ADR 0095);
+/// aliases, with the same terms and their aliases to check its output
+/// against (ADR 0095);
 /// Parakeet's terms with their aliases at the default boost (ADR 0088).
 /// `None` for an engine that takes no vocabulary.
 pub fn prompt_args(provider: &str, vocabulary: &[Entry]) -> Option<Vec<String>> {
     match provider {
         "whisper" => {
             let terms: Vec<&str> = vocabulary.iter().map(|e| e.term.as_str()).collect();
-            let checked: Vec<serde_json::Value> = terms
+            let checked: Vec<serde_json::Value> = vocabulary
                 .iter()
-                .map(|t| serde_json::json!({ "term": t }))
+                .map(|e| serde_json::json!({ "term": e.term, "aliases": e.sounds_like }))
                 .collect();
             Some(vec![
                 "--prompt".into(),
@@ -312,7 +313,7 @@ mod tests {
                 "--prompt".into(),
                 "Clef, Sapien XT.".into(),
                 "--vocabulary".into(),
-                r#"[{"term":"Clef"},{"term":"Sapien XT"}]"#.into(),
+                r#"[{"aliases":["clay"],"term":"Clef"},{"aliases":[],"term":"Sapien XT"}]"#.into(),
             ])
         );
         assert_eq!(

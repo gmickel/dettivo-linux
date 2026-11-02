@@ -154,7 +154,7 @@ impl Worker {
             vocabulary: if parakeet {
                 crate::bias::vocabulary_bias(&self.policy.vocabulary, self.policy.vocabulary_boost)
             } else {
-                crate::bias::checked_terms(echo_terms)
+                crate::bias::checked_terms(echo_terms, &self.policy.vocabulary)
             },
         };
         let padded = gate::pad_for_engine(samples.clone(), parakeet, gate::SAMPLE_RATE);

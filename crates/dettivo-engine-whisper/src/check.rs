@@ -311,8 +311,9 @@ fn lcs(a: &[&str], b: &[&str]) -> Vec<(usize, usize)> {
 /// segment texts of the prompt-free decode; `None` when every suspect
 /// stands. Words both decodes share anchor the two; a suspect's gap
 /// between anchors becomes the prompt-free decode's words in that gap,
-/// unless both gaps spell the same letters. Texts come back trimmed, and
-/// a segment left with nothing is empty.
+/// unless both gaps spell the same letters, or the suspect is a lone name
+/// and their gap sounds like it. Texts come back trimmed, and a segment
+/// left with nothing is empty.
 pub fn settle(finding: &Finding, plain: &[String]) -> Option<Vec<String>> {
     let words = &finding.words;
     let theirs: Vec<&str> = plain.iter().flat_map(|t| t.split_whitespace()).collect();
@@ -325,7 +326,7 @@ pub fn settle(finding: &Finding, plain: &[String]) -> Option<Vec<String>> {
     }
     // (our gap, their gap), each a half-open word range.
     let mut gaps: Vec<((usize, usize), (usize, usize))> = Vec::new();
-    for &Suspect { span: s, .. } in &finding.suspects {
+    for &Suspect { span: s, lone } in &finding.suspects {
         if (s.first..=s.last).all(|w| anchor[w].is_some()) {
             continue;
         }
@@ -344,9 +345,20 @@ pub fn settle(finding: &Finding, plain: &[String]) -> Option<Vec<String>> {
             .map(|w| w.norm.as_str())
             .collect();
         let their_letters: String = their_norms[theirs.0..theirs.1].concat();
-        if our_letters != their_letters {
-            gaps.push((ours, theirs));
+        if our_letters == their_letters {
+            continue;
         }
+        if lone {
+            let sound = finding.spellings[s.term]
+                .iter()
+                .map(|spelling| alike(&their_letters, spelling))
+                .fold(0.0, f32::max);
+            tracing::debug!(first_word = s.first, sound, "vocabulary lone name");
+            if sound >= MIN_SOUND_ALIKE {
+                continue;
+            }
+        }
+        gaps.push((ours, theirs));
     }
     if gaps.is_empty() {
         return None;

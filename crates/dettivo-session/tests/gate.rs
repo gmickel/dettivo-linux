@@ -259,7 +259,8 @@ impl SttEngine for Prompted {
 }
 
 /// fn-83 R4: the engine is primed with the terms, never their aliases;
-/// fn-89: Whisper gets the prompt's terms to check its output against.
+/// fn-89: Whisper gets the prompt's terms with their aliases to check its
+/// output against, since a lone name may sound like an alias.
 #[test]
 fn the_engine_prompt_carries_terms_and_never_aliases() {
     let (dir, _rec, session, engine, feed) = rig("Ship the Clef build.");
@@ -285,5 +286,6 @@ fn the_engine_prompt_carries_terms_and_never_aliases() {
         terms.iter().map(|t| t.term.as_str()).collect::<Vec<_>>(),
         ["Clef", "Dettivo"]
     );
-    assert!(terms.iter().all(|t| t.aliases.is_empty()));
+    assert_eq!(terms[0].aliases, ["clay", "cleff"]);
+    assert!(terms[1].aliases.is_empty());
 }
