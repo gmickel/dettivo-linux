@@ -66,7 +66,17 @@ fn cancel_works_in_every_state() {
         let s = s2.clone();
         std::thread::spawn(move || s.stop())
     };
-    std::thread::sleep(Duration::from_millis(150));
+    // The cancel has to land while the engine works on the take: wait for
+    // the stopper to reach the engine, however long a loaded runner keeps
+    // it from getting there; the engine then holds the take for 5 s.
+    let reached = Instant::now() + Duration::from_secs(30);
+    while slow.calls.load(Ordering::SeqCst) == 0 {
+        assert!(
+            Instant::now() < reached,
+            "the stop never reached the engine"
+        );
+        std::thread::sleep(Duration::from_millis(5));
+    }
     assert_eq!(s2.snapshot().unwrap().state, State::Transcribing);
     let c = s2.cancel().unwrap();
     assert_eq!(c.state, State::Cancelled);
