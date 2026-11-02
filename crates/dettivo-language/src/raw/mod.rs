@@ -188,16 +188,34 @@ fn at_boundary(chars: &[char], i: usize) -> bool {
     !(chars[i - 1].is_alphanumeric() && chars[i].is_alphanumeric())
 }
 
-/// Turns spoken punctuation into marks and glues them to the word before.
-/// The spans of every spoken `dash dash`: a doubled dash is a flag
-/// (`--model`), which the code preset's technical pass owns, never two
-/// marks of prose punctuation.
-fn doubled_dashes(chars: &[char]) -> Vec<Span> {
+/// Words after which a punctuation word is a noun ("a period of three
+/// weeks", "add a dash of salt"): articles and determiners that cannot
+/// end a sentence, so the word cannot be a spoken mark closing one.
+const DETERMINERS: &[&str] = &[
+    "the", "a", "an", "each", "every", "my", "your", "our", "their", "its",
+];
+
+/// The start of the word before `at` when it is one of [`DETERMINERS`].
+fn determiner_before(chars: &[char], at: usize) -> Option<usize> {
+    let end = chars[..at].iter().rposition(|c| !c.is_whitespace())? + 1;
+    let start = chars[..end]
+        .iter()
+        .rposition(|c| !c.is_alphanumeric())
+        .map_or(0, |i| i + 1);
+    let word: String = chars[start..end]
+        .iter()
+        .flat_map(|c| c.to_lowercase())
+        .collect();
+    DETERMINERS.contains(&word.as_str()).then_some(start)
+}
+
+/// The whole-word, case-insensitive occurrences of `needle` in `chars`.
+fn occurrences(chars: &[char], needle: &str) -> Vec<Span> {
     let lower: Vec<char> = chars
         .iter()
         .map(|c| c.to_lowercase().next().unwrap_or(*c))
         .collect();
-    let needle: Vec<char> = "dash dash".chars().collect();
+    let needle: Vec<char> = needle.chars().collect();
     let mut spans = Vec::new();
     let mut i = 0;
     while i + needle.len() <= lower.len() {
@@ -212,15 +230,23 @@ fn doubled_dashes(chars: &[char]) -> Vec<Span> {
     spans
 }
 
+/// Turns spoken punctuation into marks and glues them to the word before.
+/// A phrase after a determiner stays a word, and a spoken `dash dash` is a
+/// flag (`--model`), which the code preset's technical pass owns, never
+/// two marks of prose punctuation.
 fn punctuate(text: &str) -> String {
     let mut out = text.to_string();
     for (phrase, mark) in SPOKEN {
         let chars: Vec<char> = out.chars().collect();
-        let keep = if *phrase == "dash" {
-            doubled_dashes(&chars)
-        } else {
-            Vec::new()
-        };
+        let mut keep: Vec<Span> = occurrences(&chars, phrase)
+            .into_iter()
+            .filter_map(|s| {
+                determiner_before(&chars, s.start).map(|start| Span { start, end: s.end })
+            })
+            .collect();
+        if *phrase == "dash" {
+            keep.extend(occurrences(&chars, "dash dash"));
+        }
         let replaced = replace_word(&chars, phrase, mark, &keep);
         if replaced != out {
             out = replaced;
@@ -234,6 +260,21 @@ fn punctuate(text: &str) -> String {
         if matches!(c, '.' | ',' | '?' | '!' | ':' | ';' | ')' | '\u{201d}') {
             while result.ends_with(' ') {
                 result.pop();
+            }
+            // A spoken stop beside the engine's own ("report period."):
+            // the sentence ends once, over a comma before it, and a run
+            // of exactly two dots is one; an ellipsis keeps three.
+            let ends = matches!(c, '.' | '?' | '!');
+            if ends && result.ends_with([',', ';', ':']) {
+                result.pop();
+            }
+            let doubled = c == '.'
+                && result.ends_with(['.', '?', '!'])
+                && !result.ends_with("..")
+                && chars.get(i + 1) != Some(&'.');
+            if doubled {
+                i += 1;
+                continue;
             }
             result.push(c);
             // Capitalise after a sentence end.

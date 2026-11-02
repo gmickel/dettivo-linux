@@ -17,6 +17,48 @@ fn spoken_punctuation_becomes_marks_and_glues() {
     assert_eq!(raw("wait exclamation mark now"), "Wait! Now");
 }
 
+/// A spoken sentence end that the engine already punctuated ("the report
+/// period." from Whisper) ends it once, and a comma before it gives way;
+/// an ellipsis keeps its three dots.
+#[test]
+fn a_spoken_stop_beside_the_engines_own_ends_the_sentence_once() {
+    let cases = [
+        ("Send me the report period.", "Send me the report."),
+        (
+            "Meet me at 9, then we go, period.",
+            "Meet me at 9, then we go.",
+        ),
+        ("is it done question mark.", "Is it done?"),
+        ("wait ellipsis", "Wait..."),
+        ("Wait... then go.", "Wait... Then go."),
+    ];
+    for (input, want) in cases {
+        assert_eq!(raw(input), want, "{input}");
+    }
+}
+
+/// A punctuation word after an article or a determiner that cannot end a
+/// sentence is a noun ("a period of three weeks"), so it stays a word;
+/// the same word as a command still becomes its mark.
+#[test]
+fn a_punctuation_word_after_a_determiner_stays_a_word() {
+    let cases = [
+        (
+            "it took a period of three weeks",
+            "It took a period of three weeks",
+        ),
+        ("The period ends Friday.", "The period ends Friday."),
+        ("add a dash of salt", "Add a dash of salt"),
+        ("use a new line of products", "Use a new line of products"),
+        ("check its colon period", "Check its colon."),
+        ("send me the report period", "Send me the report."),
+        ("look at this period", "Look at this."),
+    ];
+    for (input, want) in cases {
+        assert_eq!(raw(input), want, "{input}");
+    }
+}
+
 #[test]
 fn non_ascii_text_never_breaks_matching() {
     let r = vec![("straße".to_string(), "Strasse".to_string())];
