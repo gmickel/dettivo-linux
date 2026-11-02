@@ -32,7 +32,7 @@ An image, a file list or rich text you copied before a `clipboard_paste` dictati
 - A clipboard that could not be read at all is not restored, so the dictated text stays rather than an empty clipboard.
 - Two dictations in a row keep your first original, because the second one starts only after the first restore.
 
-Under X11, Dettivo serves the restored types from a window of its own for as long as the daemon runs, each in the property type and format the original owner answered with. The dictated text is offered as `UTF8_STRING`, `TEXT` and the `text/plain` types, and as `STRING` only when it has an ISO-8859-1 form. A single type larger than the X server's request limit (16 MiB with BIG-REQUESTS) is offered but answered with a refusal, because Dettivo does not send `INCR`. `[insert] restore_clipboard = false` leaves the dictated text on the clipboard.
+Under X11, Dettivo serves the restored types from a window of its own for as long as the daemon runs, each in the property type and format the original owner answered with. The dictated text is offered as `UTF8_STRING`, `TEXT` and the `text/plain` types, and as `STRING` only when it has an ISO-8859-1 form. A type larger than one X request can carry (16 MiB with BIG-REQUESTS) is sent through `INCR` in 64 KiB chunks, so a 20 MiB image pastes after the restore like a small one; a paste whose app stops reading for 5 s is dropped. `[insert] restore_clipboard = false` leaves the dictated text on the clipboard.
 
 ## Held modifiers wait out
 

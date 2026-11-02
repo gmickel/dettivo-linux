@@ -3,6 +3,7 @@
 //! is still Dettivo's.
 
 use std::sync::{Arc, Mutex, OnceLock};
+use std::time::Duration;
 
 use x11rb::connection::{Connection, RequestConnection};
 use x11rb::protocol::Event;
@@ -14,14 +15,16 @@ use x11rb::rust_connection::RustConnection;
 use x11rb::wrapper::ConnectionExt as _;
 use x11rb::{CURRENT_TIME, NONE};
 
+use super::incr::Transfers;
 use super::{Endpoint, err, intern};
 use crate::clip::{ClipError, Restored};
+
 /// One target the owner window serves, as the property it writes.
 pub(super) struct Offer {
     pub(super) target: Atom,
     pub(super) type_: Atom,
     pub(super) format: u8,
-    pub(super) bytes: Vec<u8>,
+    pub(super) bytes: Arc<[u8]>,
 }
 
 /// What the owner window serves.
@@ -35,6 +38,7 @@ struct Served {
 pub(super) struct Owner {
     endpoint: Endpoint,
     window: Window,
+    incr: Atom,
     served: Mutex<Served>,
 }
 
@@ -46,6 +50,7 @@ pub(super) fn owner() -> Result<Arc<Owner>, ClipError> {
             let endpoint = Endpoint::open()?;
             let owner = Arc::new(Owner {
                 window: endpoint.window()?,
+                incr: intern(&endpoint.conn, "INCR")?,
                 endpoint,
                 served: Mutex::new(Served::default()),
             });
@@ -60,17 +65,42 @@ pub(super) fn owner() -> Result<Arc<Owner>, ClipError> {
 }
 
 impl Owner {
+    /// Answers requests and advances `INCR` transfers. While a transfer
+    /// is in flight the loop polls, so a requestor that stops reading is
+    /// dropped on time; otherwise it blocks on the next event.
     fn run(&self) {
-        while let Ok(event) = self.endpoint.conn.wait_for_event() {
-            if let Event::SelectionRequest(request) = event
-                && let Err(e) = self.answer(&request)
-            {
+        let conn = &self.endpoint.conn;
+        let mut transfers = Transfers::default();
+        loop {
+            let event = if transfers.is_empty() {
+                conn.wait_for_event().map(Some)
+            } else {
+                transfers.expire(conn);
+                conn.poll_for_event()
+            };
+            let event = match event {
+                Ok(Some(event)) => event,
+                Ok(None) => {
+                    std::thread::sleep(Duration::from_millis(2));
+                    continue;
+                }
+                Err(_) => return,
+            };
+            let answered = match &event {
+                Event::SelectionRequest(request) => self.answer(request, &mut transfers),
+                event => transfers.handle(conn, event),
+            };
+            if let Err(e) = answered {
                 tracing::warn!(error = %e, "x11 clipboard: request not answered");
             }
         }
     }
 
-    fn answer(&self, request: &SelectionRequestEvent) -> Result<(), String> {
+    fn answer(
+        &self,
+        request: &SelectionRequestEvent,
+        transfers: &mut Transfers,
+    ) -> Result<(), String> {
         let conn = &self.endpoint.conn;
         let served = self.served.lock().unwrap_or_else(|p| p.into_inner());
         let property = if request.property == NONE {
@@ -107,7 +137,12 @@ impl Owner {
                     .map_err(|e| e.to_string())?;
                     property
                 }
-                _ => NONE,
+                Some(o) => {
+                    let value = (o.type_, o.format, o.bytes.clone());
+                    transfers.start(conn, self.incr, request.requestor, property, value)?;
+                    property
+                }
+                None => NONE,
             }
         };
         let notify = SelectionNotifyEvent {
@@ -213,7 +248,7 @@ pub(super) fn text_offers(conn: &RustConnection, text: &str) -> Result<Vec<Offer
             target,
             type_: type_.unwrap_or(target),
             format: 8,
-            bytes: text.as_bytes().to_vec(),
+            bytes: text.as_bytes().into(),
         });
     }
     if let Some(latin1) = latin1(text) {
@@ -222,7 +257,7 @@ pub(super) fn text_offers(conn: &RustConnection, text: &str) -> Result<Vec<Offer
             target: string,
             type_: string,
             format: 8,
-            bytes: latin1,
+            bytes: latin1.into(),
         });
     }
     Ok(offers)

@@ -6,8 +6,7 @@
 //! so a restore can offer every target the snapshot held, with the type
 //! and format each was answered in. A restore asks the server, under a
 //! grab, whether the selection is still Dettivo's before taking it back.
-//! One target larger than the server's request limit is not served (no
-//! `INCR` on the owner side) and the requestor gets a refusal.
+//! A target larger than one request fits in goes out through `INCR`.
 
 use std::time::{Duration, Instant};
 
@@ -21,6 +20,7 @@ use x11rb::{CURRENT_TIME, NONE};
 
 use super::{Clip, ClipError, ClipboardSnapshot, Generation, Restored, X11Form, admit, is_meta};
 
+mod incr;
 mod owner;
 
 use owner::{Offer, owner, text_offers};
@@ -284,7 +284,7 @@ impl Clip for X11Clip {
                 target: intern(conn, &name)?,
                 type_: intern(conn, type_name)?,
                 format,
-                bytes,
+                bytes: bytes.into(),
             });
         }
         owner.restore(offers, if_generation.0)

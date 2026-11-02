@@ -26,7 +26,7 @@ R5's accepted meaning, Gordon's decision of 2026-11-01: a user volume change tha
 
 ## Consequences
 
-- An X11 type larger than the server's request limit, 16 MiB with BIG-REQUESTS, is offered after a restore but refused when pasted, because the owner does not send `INCR`.
+- An X11 type larger than the server's request limit, 16 MiB with BIG-REQUESTS, is served after a restore through `INCR` in 64 KiB chunks. A transfer whose requestor stops reading for 5 s is dropped, so the owner never stalls.
 - Under X11 the owner window lives as long as the daemon. The restored content is gone when the daemon exits, as it is for any X11 selection owner.
 - Any key or pointer input counts as input for a join, so moving the mouse between two dictations prevents the join. Input in the last second before a take starts is not seen. Typing that continues straight from Dettivo's own delivery, with no pause of 100 ms, is not seen either.
 - A compositor without `ext_idle_notifier_v1` version 2 never joins dictations.

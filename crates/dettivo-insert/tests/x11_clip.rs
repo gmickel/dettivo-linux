@@ -11,7 +11,7 @@ use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
 use dettivo_insert::clip::{Clip, ClipboardSnapshot, Restored, X11Clip};
-use x11rb::connection::Connection;
+use x11rb::connection::{Connection, RequestConnection};
 use x11rb::protocol::Event;
 use x11rb::protocol::xproto::{
     Atom, AtomEnum, ChangeWindowAttributesAux, ConnectionExt as _, CreateWindowAux, EventMask,
@@ -433,4 +433,42 @@ fn a_restore_never_takes_back_a_copy_made_after_the_dictation() {
             "round {round}: the user's copy was taken back"
         );
     }
+}
+
+#[test]
+fn a_restored_target_over_the_request_limit_is_served_through_incr() {
+    let Some(_display) = private_display() else {
+        return;
+    };
+    let (conn, _) = connect();
+    let size = conn.maximum_request_bytes() + (1 << 20);
+    drop(conn);
+    let image: Vec<u8> = (0..size).map(|i| (i % 251) as u8).collect();
+    let owner = own(vec![(
+        "image/png",
+        Answer::Incr(
+            image.chunks(1 << 20).map(<[u8]>::to_vec).collect(),
+            Vec::new(),
+        ),
+    )]);
+    let read_all = || {
+        X11Clip
+            .snapshot(32 << 20, Duration::from_secs(10))
+            .unwrap()
+            .expect("the clipboard offers types")
+    };
+    let snap = read_all();
+    assert_eq!(bytes_of(&snap, "image/png").map(<[u8]>::len), Some(size));
+    drop(owner);
+    let generation = X11Clip.set_text("dictated").unwrap();
+    assert_eq!(
+        X11Clip.restore(snap, generation).unwrap(),
+        Restored::Restored
+    );
+    let pasted = read_all();
+    assert!(
+        bytes_of(&pasted, "image/png") == Some(&image[..]),
+        "the restored image was not served whole: {:?} bytes",
+        bytes_of(&pasted, "image/png").map(<[u8]>::len)
+    );
 }
