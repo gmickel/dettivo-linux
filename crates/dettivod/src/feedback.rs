@@ -2,14 +2,14 @@
 //! the MPRIS players that were playing when capture starts and resumes
 //! them when it ends, and plays the start, stop and error cues. Both are
 //! off by default, read from `[hotkeys]` at each transition, and silent
-//! during a meeting.
+//! during a meeting. A tap resumes the players without a stop cue.
 
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex, RwLock};
 
 use dettivo_audio::playback::{Cue, Player};
 use dettivo_core::config::Loaded;
-use dettivo_session::{State, StateChange};
+use dettivo_session::{State, StateChange, TAP};
 
 /// The service.
 pub struct Feedback {
@@ -32,6 +32,8 @@ pub enum Effect {
     Ended,
     /// The session failed: resume media, error cue.
     Failed,
+    /// A tap was dropped: resume media, no cue.
+    Tapped,
 }
 
 /// The effect of a state change, if any. `Idle` after a failure or a
@@ -39,6 +41,7 @@ pub enum Effect {
 pub fn effect_of(change: &StateChange) -> Option<Effect> {
     match (change.state, change.previous) {
         (State::Recording, State::Idle) => Some(Effect::Started),
+        (State::Cancelled, _) if change.reason.as_deref() == Some(TAP) => Some(Effect::Tapped),
         (State::Cancelled, _) => Some(Effect::Ended),
         (State::Failed, _) => Some(Effect::Failed),
         (State::Idle, State::Cancelled | State::Failed | State::Idle) => None,
@@ -90,7 +93,7 @@ impl Feedback {
                 }
                 self.cue(sounds, Cue::Start);
             }
-            Effect::Ended | Effect::Failed => {
+            Effect::Ended | Effect::Failed | Effect::Tapped => {
                 let names: Vec<String> =
                     std::mem::take(&mut *self.paused.lock().unwrap_or_else(|p| p.into_inner()));
                 if !names.is_empty() {
@@ -98,14 +101,11 @@ impl Feedback {
                         tracing::warn!(error = %e, "mpris: players not resumed");
                     }
                 }
-                self.cue(
-                    sounds,
-                    if effect == Effect::Failed {
-                        Cue::Error
-                    } else {
-                        Cue::Stop
-                    },
-                );
+                match effect {
+                    Effect::Failed => self.cue(sounds, Cue::Error),
+                    Effect::Ended => self.cue(sounds, Cue::Stop),
+                    Effect::Started | Effect::Tapped => {}
+                }
             }
         }
     }
@@ -162,6 +162,15 @@ mod tests {
             Some(Effect::Ended)
         );
         assert_eq!(effect_of(&change(State::Idle, State::Cancelled)), None);
+        let tap = StateChange {
+            reason: Some(TAP.into()),
+            ..change(State::Cancelled, State::Recording)
+        };
+        assert_eq!(
+            effect_of(&tap),
+            Some(Effect::Tapped),
+            "a tap plays no stop cue"
+        );
         assert_eq!(
             effect_of(&change(State::Failed, State::Transcribing)),
             Some(Effect::Failed)

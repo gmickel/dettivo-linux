@@ -7,7 +7,7 @@ mod support;
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Barrier};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use dettivo_language::provider::local::LocalEngine;
 use dettivo_language::provider::{Answer, Availability, ProviderError, RewriteRequest};
@@ -53,7 +53,9 @@ fn a_cancel_during_the_rewrite_inserts_and_archives_nothing() {
     policy.mode = "enhanced".into();
     policy.llm.provider = dettivo_core::config::llm_schema::LlmProviderChoice::Local;
     policy.llm.timeout_ms = 30_000;
-    session.start(policy, engine, feed.clone(), None).unwrap();
+    session
+        .start(policy, engine, feed.clone(), None, Instant::now())
+        .unwrap();
     feed.speak(100);
     let session = Arc::new(session);
     let stopper = {

@@ -11,14 +11,18 @@
 
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::{Arc, Condvar, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Instant;
 
 use dettivo_language::provider::LocalEngine;
 use dettivo_speech::SttEngine;
-use dettivo_speech::gate::{SilenceReason, VoiceDetector};
+use dettivo_speech::gate::VoiceDetector;
 
+mod finish;
 mod while_recording;
+
+use finish::Completion;
+pub(crate) use finish::{Exit, Outcome, SharedState, finish_shared};
 
 use crate::source::SourceFactory;
 use crate::worker::Worker;
@@ -41,7 +45,7 @@ pub struct Snapshot {
     pub policy: Policy,
     /// The failure reason when `Failed`.
     pub error: Option<String>,
-    /// When it started.
+    /// When the press that started it arrived.
     pub started: Instant,
     /// The window captured at start, handed to the inserter as the guard.
     pub target: Option<SessionTarget>,
@@ -54,49 +58,13 @@ pub(crate) struct Active {
     pub(crate) engine: Arc<dyn SttEngine>,
     pub(crate) worker: Option<std::thread::JoinHandle<()>>,
     pub(crate) completion: Arc<Completion>,
-    /// Ends the capture from the stopping thread, so the take holds nothing
-    /// recorded after the release; set once the source is open.
-    pub(crate) stop_source: Option<Arc<dyn Fn() + Send + Sync>>,
+    /// When the release that stopped the take arrived; the worker records
+    /// the release tail from it.
+    pub(crate) released: Arc<OnceLock<Instant>>,
+    /// The take ends as a tap, not as a cancel.
+    pub(crate) tap: Arc<AtomicBool>,
     /// The take began to end: its terminal state is being published.
     pub(crate) ending: bool,
-}
-
-/// How a take ended.
-#[derive(Debug, Clone)]
-pub(crate) enum Outcome {
-    Completed(Box<Transcript>),
-    Cancelled,
-    Failed(String),
-}
-
-/// One take's end: set once, by the worker or by the start that could
-/// not run it, and waited on by every stopper of that take.
-#[derive(Default)]
-pub(crate) struct Completion {
-    outcome: Mutex<Option<Outcome>>,
-    done: Condvar,
-}
-
-impl Completion {
-    /// Records the outcome, once; a second call keeps the first.
-    pub(crate) fn set(&self, outcome: Outcome) {
-        let mut g = self.outcome.lock().unwrap_or_else(|p| p.into_inner());
-        if g.is_none() {
-            *g = Some(outcome);
-        }
-        self.done.notify_all();
-    }
-
-    /// Waits until the take ended.
-    fn wait(&self) -> Outcome {
-        let mut g = self.outcome.lock().unwrap_or_else(|p| p.into_inner());
-        loop {
-            if let Some(o) = g.as_ref() {
-                return o.clone();
-            }
-            g = self.done.wait(g).unwrap_or_else(|p| p.into_inner());
-        }
-    }
 }
 
 /// The session service.
@@ -163,15 +131,17 @@ impl Session {
         self.inserter.clone()
     }
 
-    /// Starts a session: the active flag is taken under the lock before the
-    /// source opens, so a concurrent start sees `Active`. The engine and
-    /// the source are the caller's (frozen for this session).
+    /// Starts a session for a press that arrived at `pressed_at`: the
+    /// active flag is taken under the lock before the source opens, so a
+    /// concurrent start sees `Active`. The engine and the source are the
+    /// caller's (frozen for this session).
     pub fn start(
         &self,
         policy: Policy,
         engine: Arc<dyn SttEngine>,
         source: Arc<dyn SourceFactory>,
         target: Option<SessionTarget>,
+        pressed_at: Instant,
     ) -> Result<Snapshot, SessionError> {
         if dettivo_language::pipeline::Mode::parse(&policy.mode).is_none() {
             return Err(SessionError::ModeUnknown(policy.mode));
@@ -197,12 +167,14 @@ impl Session {
             progress: 0.0,
             policy: policy.clone(),
             error: None,
-            started: Instant::now(),
+            started: pressed_at,
             target: target.clone(),
         };
         let stop = Arc::new(AtomicBool::new(false));
         let cancel = Arc::new(AtomicBool::new(false));
         let completion = Arc::new(Completion::default());
+        let released = Arc::new(OnceLock::new());
+        let tap = Arc::new(AtomicBool::new(false));
         // The slot is taken now, with this take's completion; the worker
         // fills in the rest.
         *guard = Some(Active {
@@ -212,7 +184,8 @@ impl Session {
             engine: engine.clone(),
             worker: None,
             completion: completion.clone(),
-            stop_source: None,
+            released: released.clone(),
+            tap: tap.clone(),
             ending: false,
         });
         drop(guard);
@@ -233,18 +206,6 @@ impl Session {
                 return Err(SessionError::Audio(e));
             }
         };
-        let stop_source = src.stopper();
-        if let Some(a) = self
-            .active
-            .lock()
-            .unwrap_or_else(|p| p.into_inner())
-            .as_mut()
-        {
-            a.stop_source = Some(stop_source.clone());
-        }
-        if stop.load(Ordering::Relaxed) {
-            stop_source();
-        }
         self.publisher.state(&StateChange::plain(
             &job_id,
             State::Recording,
@@ -258,6 +219,8 @@ impl Session {
             engine,
             stop,
             cancel,
+            released,
+            tap,
             dir: self.sessions_dir.join(&job_id),
             publisher: self.publisher.clone(),
             inserter: self.inserter.clone(),
@@ -302,16 +265,24 @@ impl Session {
         Ok(snapshot)
     }
 
-    /// Asks the session to stop recording and finish; waits for this
+    /// Asks the session to stop recording and finish now; waits for this
     /// take's result, whether the stop lands while the source is still
     /// opening or beside another stopper.
     pub fn stop(&self) -> Result<Transcript, SessionError> {
-        self.stop_expected(None)
+        self.stop_expected(None, Instant::now())
     }
 
-    /// Stops only the named active take when supplied, never a replacement.
-    pub fn stop_expected(&self, expected_job_id: Option<&str>) -> Result<Transcript, SessionError> {
-        let (stop, worker, completion, stop_source) = {
+    /// Stops only the named active take when supplied, never a
+    /// replacement, for a release that arrived at `released_at`. The take
+    /// keeps recording for the policy's release tail. A release sooner
+    /// than the policy's minimum hold after the press is a tap: the take
+    /// ends `cancelled` with reason `tap` and reaches no engine.
+    pub fn stop_expected(
+        &self,
+        expected_job_id: Option<&str>,
+        released_at: Instant,
+    ) -> Result<Transcript, SessionError> {
+        let (worker, completion) = {
             let mut g = self.active.lock().unwrap_or_else(|p| p.into_inner());
             let Some(a) = g.as_mut() else {
                 return Err(SessionError::NoSession);
@@ -319,17 +290,16 @@ impl Session {
             if expected_job_id.is_some_and(|id| id != a.snapshot.job_id) {
                 return Err(SessionError::NoSession);
             }
-            (
-                a.stop.clone(),
-                a.worker.take(),
-                a.completion.clone(),
-                a.stop_source.clone(),
-            )
+            let held = released_at.saturating_duration_since(a.snapshot.started);
+            if held < a.snapshot.policy.min_hold {
+                a.tap.store(true, Ordering::Relaxed);
+                a.cancel.store(true, Ordering::Relaxed);
+            } else {
+                let _ = a.released.set(released_at);
+            }
+            a.stop.store(true, Ordering::Relaxed);
+            (a.worker.take(), a.completion.clone())
         };
-        stop.store(true, Ordering::Relaxed);
-        if let Some(stop_source) = stop_source {
-            stop_source();
-        }
         Self::await_take(worker, &completion);
         match completion.wait() {
             Outcome::Completed(t) => Ok(*t),
@@ -346,6 +316,20 @@ impl Session {
 
     /// Cancels only the named job when supplied. A replaced job is absent.
     pub fn cancel_expected(&self, expected_job_id: Option<&str>) -> Result<Snapshot, SessionError> {
+        self.end_early(expected_job_id, false)
+    }
+
+    /// Drops the named take as a tap: it ends `cancelled` with reason
+    /// `tap`, plays no stop cue and keeps nothing.
+    pub fn discard_tap(&self, expected_job_id: &str) -> Result<Snapshot, SessionError> {
+        self.end_early(Some(expected_job_id), true)
+    }
+
+    fn end_early(
+        &self,
+        expected_job_id: Option<&str>,
+        tap: bool,
+    ) -> Result<Snapshot, SessionError> {
         let (worker, snapshot, completion) = {
             let mut g = self.active.lock().unwrap_or_else(|p| p.into_inner());
             let Some(a) = g.as_mut() else {
@@ -354,6 +338,7 @@ impl Session {
             if expected_job_id.is_some_and(|id| id != a.snapshot.job_id) {
                 return Err(SessionError::NoSession);
             }
+            a.tap.store(tap, Ordering::Relaxed);
             a.cancel.store(true, Ordering::Relaxed);
             a.stop.store(true, Ordering::Relaxed);
             a.engine.cancel();
@@ -406,90 +391,4 @@ impl Session {
         *self.last.lock().unwrap_or_else(|p| p.into_inner()) = Some(t.clone());
         Ok(t)
     }
-}
-
-/// The two slots the worker updates (both live in the `Session`) and the
-/// completion of the take it runs.
-#[derive(Clone)]
-pub(crate) struct SharedState {
-    pub(crate) active: Arc<Mutex<Option<Active>>>,
-    pub(crate) last: Arc<Mutex<Option<Transcript>>>,
-    pub(crate) completion: Arc<Completion>,
-}
-
-impl Session {
-    fn shared(&self, completion: Arc<Completion>) -> SharedState {
-        SharedState {
-            active: self.active.clone(),
-            last: self.last.clone(),
-            completion,
-        }
-    }
-}
-
-pub(crate) enum Exit {
-    /// Finished; a warning (the archive failed) rides on the final state.
-    Completed(Option<String>),
-    Cancelled,
-    /// The speech gate found the take silent; it never reached the engine.
-    Silence(SilenceReason),
-    Failed(String),
-}
-
-pub(crate) fn finish_shared(
-    shared: &SharedState,
-    publisher: &dyn Publisher,
-    job_id: &str,
-    previous: State,
-    exit: Exit,
-    transcript: Option<Transcript>,
-) {
-    let (state, reason) = match &exit {
-        Exit::Completed(warning) => (State::Idle, warning.clone()),
-        Exit::Cancelled => (State::Cancelled, Some("cancelled".to_string())),
-        Exit::Silence(stage) => (
-            State::Cancelled,
-            Some(format!("silence: {}", stage.as_str())),
-        ),
-        Exit::Failed(r) => (State::Failed, Some(r.clone())),
-    };
-    let outcome = match (&exit, transcript) {
-        (Exit::Completed(_), Some(t)) => {
-            *shared.last.lock().unwrap_or_else(|p| p.into_inner()) = Some(t.clone());
-            Outcome::Completed(Box::new(t))
-        }
-        (Exit::Completed(_), None) => Outcome::Failed("no transcript".into()),
-        (Exit::Cancelled | Exit::Silence(_), _) => Outcome::Cancelled,
-        (Exit::Failed(r), _) => Outcome::Failed(r.clone()),
-    };
-    let completion = match &outcome {
-        Outcome::Completed(t) => (
-            t.insertion.clone(),
-            Some(crate::first_words(&t.text)),
-            t.timings,
-        ),
-        _ => (None, None, None),
-    };
-    // The Polish fields ride on the same completion transition, so a
-    // client that sees `idle` knows which mode ran and why it fell back.
-    let polish = match &outcome {
-        Outcome::Completed(t) => (
-            Some(t.policy.mode.clone()),
-            t.notice.clone(),
-            t.policy_hash.clone(),
-        ),
-        _ => (None, None, None),
-    };
-    while_recording::mark_ending(&shared.active);
-    let mut change = StateChange::plain(job_id, state, previous, reason.clone());
-    (change.insertion, change.first_words, change.timings) = completion;
-    (change.mode, change.notice, change.policy_hash) = polish;
-    publisher.state(&change);
-    if state != State::Idle {
-        publisher.state(&StateChange::plain(job_id, State::Idle, state, reason));
-    }
-    // The slot is retired first, then the take completes: a stopper that
-    // wakes finds the slot free for the next start.
-    *shared.active.lock().unwrap_or_else(|p| p.into_inner()) = None;
-    shared.completion.set(outcome);
 }

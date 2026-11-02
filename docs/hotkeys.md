@@ -51,7 +51,7 @@ The hold chord goes through one state machine in the daemon, whichever path deli
 | The key is | A press | A release |
 |---|---|---|
 | idle | starts a take; the key is held | nothing |
-| held, less than 1 s since the press | nothing: the key is repeating | under 300 ms, a tap: the take is dropped and the key waits 300 ms for a second tap; otherwise the take is finished |
+| held, less than 1 s since the press | nothing: the key is repeating | under 300 ms, a tap: the take is dropped with reason `tap` and no stop cue, and the key waits 300 ms for a second tap; otherwise the take is finished |
 | held, 1 s or more | finishes the take: its release was lost | finishes the take |
 | held after a second tap | as held | locks: the take keeps recording |
 | locked | finishes the take | nothing |

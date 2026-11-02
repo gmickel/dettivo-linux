@@ -12,6 +12,7 @@ pub mod level;
 pub mod mock;
 pub mod playback;
 pub mod resample;
+pub mod ring;
 pub mod service;
 pub mod takes;
 

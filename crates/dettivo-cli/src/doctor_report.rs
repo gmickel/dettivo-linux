@@ -57,6 +57,10 @@ pub fn human(report: &Value) -> String {
             "capture unavailable".into()
         },
     );
+    row(
+        "microphone ready",
+        microphone_ready(&report["audio"]["microphone_ready"]),
+    );
     row("-- daemon", "--".into());
     row(
         "daemon",
@@ -266,6 +270,20 @@ pub fn human(report: &Value) -> String {
     out
 }
 
+/// The always-ready microphone's row (ADR 0092): a capture that could
+/// not open is named here, never as a failed dictation.
+fn microphone_ready(ready: &Value) -> String {
+    match ready["state"].as_str() {
+        Some("off") | None => "off ([audio] keep_microphone_ready)".into(),
+        Some("open") => "open: takes start 450 ms before the press".into(),
+        Some("closed") => format!("closed: {}", show(&ready["reason"])),
+        Some(_) => format!(
+            "failed: {}; dictation opens the microphone on press",
+            show(&ready["reason"])
+        ),
+    }
+}
+
 fn show(value: &Value) -> String {
     match value {
         Value::String(text) => text.clone(),
@@ -327,6 +345,33 @@ mod tests {
         assert_eq!(
             voice_gate_row("downloading"),
             "voice gate whisper/silero-vad downloading"
+        );
+    }
+
+    /// fn-81 R6: an always-ready microphone that cannot open is a doctor
+    /// row naming the failure.
+    #[test]
+    fn the_microphone_ready_row_names_its_state() {
+        let row = |ready: serde_json::Value| {
+            human(&json!({ "audio": { "microphone_ready": ready } }))
+                .lines()
+                .find(|l| l.starts_with("microphone ready"))
+                .expect("a microphone ready row")
+                .to_string()
+        };
+        let failed =
+            row(json!({"state": "failed", "reason": "audio device \"usb\" is not present"}));
+        assert!(
+            failed.contains("failed: audio device \"usb\" is not present; dictation opens the microphone on press"),
+            "{failed}"
+        );
+        assert!(
+            row(json!({"state": "off", "reason": null}))
+                .contains("off ([audio] keep_microphone_ready)")
+        );
+        assert!(
+            row(json!({"state": "closed", "reason": "the session is locked"}))
+                .contains("closed: the session is locked")
         );
     }
 }

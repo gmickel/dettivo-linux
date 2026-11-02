@@ -45,6 +45,22 @@ pub struct DevicesResult {
     pub pinned: String,
     /// Every capturable node.
     pub devices: Vec<Device>,
+    /// The always-ready microphone (`[audio] keep_microphone_ready`,
+    /// ADR 0092).
+    #[serde(default)]
+    pub microphone_ready: MicrophoneReady,
+}
+
+/// Where the always-ready microphone stands.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
+pub struct MicrophoneReady {
+    /// `off` (the setting), `open`, `closed` (it waits, for `reason`) or
+    /// `failed` (it could not open; dictation opens the microphone on
+    /// press meanwhile).
+    pub state: String,
+    /// Why it is closed or failed; null when off or open.
+    pub reason: Option<String>,
 }
 
 #[cfg(test)]
@@ -61,6 +77,7 @@ mod tests {
             default_sink: None,
             pinned: String::new(),
             devices: Vec::new(),
+            microphone_ready: MicrophoneReady::default(),
         })
         .unwrap();
         let keys: Vec<&str> = value
@@ -75,6 +92,7 @@ mod tests {
                 "default_sink",
                 "default_source",
                 "devices",
+                "microphone_ready",
                 "pinned",
                 "pipewire"
             ]

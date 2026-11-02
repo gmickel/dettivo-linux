@@ -1,5 +1,6 @@
-//! A stop acknowledges the final accepted PCM; silence in the queue is not an end.
-//! What arrives after the release joins the take but never counts as speech.
+//! A stop acknowledges the final accepted PCM; silence in the queue is not
+//! an end. The take runs through its release tail and ends at the source's
+//! end; nothing the source sends after that joins it.
 
 mod support;
 
@@ -8,8 +9,8 @@ use std::sync::{Arc, mpsc};
 use std::time::{Duration, Instant};
 
 use dettivo_audio::{EndReason, Event};
-use dettivo_session::SessionError;
 use dettivo_session::source::{Source, SourceFactory};
+use dettivo_session::{SessionError, TAIL_STALL_GRACE};
 use support::{policy, rig, tone};
 
 /// Delivers `before` while recording and one 20 ms chunk of speech while
@@ -58,6 +59,7 @@ fn stop_includes_the_last_chunk_delivered_during_source_shutdown() {
                 before: tone(1_600),
             }),
             None,
+            Instant::now(),
         )
         .unwrap();
     std::thread::sleep(Duration::from_millis(50));
@@ -66,24 +68,18 @@ fn stop_includes_the_last_chunk_delivered_during_source_shutdown() {
     assert_eq!(result.text, "Last words");
 }
 
-/// fn-79 R1: the stop request ends the capture on the stopping thread, so
-/// the take holds nothing recorded after the release, and audio a source
-/// sends after its end never joins the take.
+/// Audio a source sends after its end never joins the take: the worker
+/// stops the source once the release tail is covered, and the take ends
+/// at the source's `Ended`.
 #[test]
-fn the_capture_ends_at_the_stop_request_and_nothing_after_it_counts() {
+fn audio_a_source_sends_after_its_end_never_counts() {
     let (dir, _, session, engine, _) = rig("never used");
-    let stopped_on = Arc::new(std::sync::Mutex::new(None));
-    let seen = stopped_on.clone();
     let source = move |_: u64| {
         let (tx, events) = mpsc::channel();
         let _ = tx.send(Event::Pcm(vec![0; 1_600]));
-        let seen = seen.clone();
         Ok(Source::Channel {
             events,
             on_stop: Arc::new(move || {
-                seen.lock()
-                    .unwrap()
-                    .get_or_insert(std::thread::current().id());
                 let _ = tx.send(Event::Ended {
                     reason: EndReason::Stopped,
                 });
@@ -97,14 +93,11 @@ fn the_capture_ends_at_the_stop_request_and_nothing_after_it_counts() {
             engine.clone(),
             Arc::new(Opener(Box::new(source))),
             None,
+            Instant::now(),
         )
         .unwrap();
     std::thread::sleep(Duration::from_millis(50));
     assert_eq!(session.stop().unwrap_err(), SessionError::Cancelled);
-    assert_eq!(
-        *stopped_on.lock().unwrap(),
-        Some(std::thread::current().id())
-    );
     assert_eq!(engine.calls.load(std::sync::atomic::Ordering::Relaxed), 0);
 }
 
@@ -129,6 +122,7 @@ fn a_source_that_never_acknowledges_stop_fails_within_a_bound() {
                 before: Vec::new(),
             }),
             None,
+            Instant::now(),
         )
         .unwrap();
     let start = Instant::now();
@@ -153,6 +147,7 @@ fn speech_queued_before_the_stop_opens_the_gate() {
             engine.clone(),
             feed.clone(),
             None,
+            Instant::now(),
         )
         .unwrap();
     feed.speak(200);
@@ -161,27 +156,31 @@ fn speech_queued_before_the_stop_opens_the_gate() {
     assert_eq!(result.duration_ms, 200);
 }
 
-/// fn-79 R1: a stop while the worker waits on an empty source, then a
-/// key-up thump: the capture already ended, so the thump never opens the gate.
+/// ADR 0092: a source that stops delivering during the release tail
+/// closes the take after the stall grace, not at the tail's end, and a
+/// sound after that never opens the gate.
 #[test]
-fn a_sound_that_arrives_after_the_stop_while_the_worker_waits_is_tail() {
+fn a_stalled_tail_closes_after_the_grace_and_a_later_sound_never_counts() {
     let (dir, _, session, engine, feed) = rig("never used");
+    let mut p = policy(dir.path(), false);
+    p.release_tail = Duration::from_secs(2);
     session
-        .start(
-            policy(dir.path(), false),
-            engine.clone(),
-            feed.clone(),
-            None,
-        )
+        .start(p, engine.clone(), feed.clone(), None, Instant::now())
         .unwrap();
     feed.send(Event::Pcm(vec![0; 1_600]));
     std::thread::sleep(Duration::from_millis(20));
     let late = feed.clone();
     let thump = std::thread::spawn(move || {
-        std::thread::sleep(Duration::from_millis(10));
+        std::thread::sleep(Duration::from_millis(400));
         late.send(Event::Pcm(tone(320)));
     });
+    let released = Instant::now();
     assert_eq!(session.stop().unwrap_err(), SessionError::Cancelled);
+    let waited = released.elapsed();
+    assert!(
+        waited >= TAIL_STALL_GRACE && waited < Duration::from_millis(350),
+        "closed {waited:?} after the release"
+    );
     thump.join().unwrap();
     assert_eq!(engine.calls.load(std::sync::atomic::Ordering::Relaxed), 0);
 }

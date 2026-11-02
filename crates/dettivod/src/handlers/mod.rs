@@ -75,10 +75,14 @@ pub type Handler = fn(&Daemon, &Ctx, Value) -> Result<Value, JsonRpcError>;
 /// Finds the handler without executing it.
 pub fn resolve(method: &str) -> Option<Handler> {
     Some(match method {
-        "dictation.start" => |daemon, _ctx, value| dictation::start(daemon, value),
+        "dictation.start" => |daemon, _ctx, value| {
+            let at = std::time::Instant::now();
+            dictation::start(daemon, value, at)
+        },
         "dictation.toggle" => |daemon, _ctx, value| {
+            let at = std::time::Instant::now();
             let _: dettivo_proto::catalog::NoParams = params(value)?;
-            dictation::toggle(daemon)
+            dictation::toggle(daemon, at)
         },
         "dictation.press" => |daemon, _ctx, value| {
             let at = std::time::Instant::now();
@@ -91,8 +95,9 @@ pub fn resolve(method: &str) -> Option<Handler> {
             dictation::hold(daemon, crate::hold::Edge::Release, at)
         },
         "dictation.stop" => |daemon, _ctx, value| {
+            let at = std::time::Instant::now();
             let _: dettivo_proto::catalog::NoParams = params(value)?;
-            dictation::stop(daemon)
+            dictation::stop(daemon, at)
         },
         "dictation.cancel" => |daemon, _ctx, value| dictation::cancel(daemon, value),
         "dictation.status" => |daemon, _ctx, value| {

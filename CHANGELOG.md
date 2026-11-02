@@ -8,6 +8,12 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 - A vocabulary entry can say how its term tends to be misheard: `{ term = "Clef", sounds_like = ["clay", "cleff"] }` sits beside plain terms in `[dictation] vocabulary`, and Settings / Vocabulary edits the spellings per term. The Enhanced prompt names the spellings with the term, so the rewrite can correct `clay` to `Clef` when the sentence means it. Whisper still gets the terms only. A vocabulary holds 500 entries, 64 characters a term and 16 spellings a term, and a term repeated in another case is dropped ([docs/dictation.md](docs/dictation.md#vocabulary)).
 - `dettivo-qa bench vocabulary` measures term recall, false insertions and guard word error rate per engine and model, with the vocabulary off and on, over a synthetic clip set ([docs/qa.md](docs/qa.md#vocabulary-term-recall)).
+- `[audio] keep_microphone_ready` keeps the microphone open while dictation is idle, so a take starts 450 ms before you press the key and keeps the first word you spoke as it went down. It is off by default because the desktop's microphone indicator stays lit while it is on. The last 10 s live only in the daemon's memory, only the take is written, and the capture closes while the session is locked and while a meeting records. `dettivo doctor` and `audio.devices` report whether it is open ([docs/dictation.md](docs/dictation.md#first-and-last-words), [ADR 0092](docs/adr/0092-dictation-can-keep-the-microphone-ready-and-it-is-off-by-default.md)).
+
+### Changed
+
+- A take keeps recording for 200 ms after you release the key, so a last word still sounding at the release is in it. `dettivo dictation release` and `stop` answer 200 ms later as a result ([ADR 0093](docs/adr/0093-a-take-runs-from-the-pre-roll-to-the-release-tail-and-a-tap-is-no-take.md)).
+- A press released within 300 ms is a tap: it reaches no engine, plays no stop cue, stores nothing, and ends `cancelled` with reason `tap`. A tap on the hold key used to play the stop cue and end with reason `cancelled`.
 
 ### Fixed
 

@@ -5,6 +5,7 @@
 mod support;
 
 use std::sync::{Arc, Mutex, OnceLock, Weak};
+use std::time::Instant;
 
 use dettivo_session::machine::Session;
 use dettivo_session::{Level, Publisher, State, StateChange};
@@ -46,6 +47,7 @@ fn the_notice_runs_while_the_take_records_and_never_once_it_ends() {
             support::FakeEngine::new("x"),
             feed.clone(),
             None,
+            Instant::now(),
         )
         .unwrap();
     feed.speak(100);

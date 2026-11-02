@@ -2,12 +2,13 @@
 //! machine from `dettivo-session`, the policy frozen from the config in
 //! force (the speech keys, and the `[polish]` and `[llm]` sections the
 //! mode step runs under, ADR 0023), the audio source (PipeWire, or the `DETTIVO_MOCK_MIC` fixture),
-//! the engine from the supervisor, and the publisher that feeds the event
-//! bus with `dictation.state` and `audio.level`.
+//! the engine from the supervisor, the always-ready microphone a take
+//! starts from when it is open (ADR 0092), and the publisher that feeds
+//! the event bus with `dictation.state` and `audio.level`.
 
-use std::path::PathBuf;
-use std::sync::Arc;
-use std::time::Duration;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 
 use dettivo_audio::Target;
 use dettivo_audio::mock::MockCapture;
@@ -21,16 +22,19 @@ use dettivo_proto::events::{
 };
 use dettivo_proto::methods::polish::PolishNotice;
 use dettivo_session::machine::{Session, Snapshot};
+use dettivo_session::ready::PRE_ROLL;
 use dettivo_session::source::{Source, SourceFactory};
 use dettivo_session::{
-    Archive, Inserter, Level, Policy, Publisher, SessionError, SessionTarget, StateChange,
-    Transcript,
+    Archive, Inserter, Level, POST_RELEASE_TAIL, Policy, Publisher, SessionError, SessionTarget,
+    StateChange, Transcript,
 };
 use dettivo_speech::gate::VoiceDetector;
 use serde_json::json;
 
+use crate::daemon::Daemon;
 use crate::events::EventBus;
 use crate::feedback::Feedback;
+use crate::ready::MicReady;
 
 /// Bridges session events onto the bus and to the feedback service.
 struct BusPublisher {
@@ -96,9 +100,44 @@ impl Publisher for BusPublisher {
     }
 }
 
-/// Opens the session's audio: the fixture named by `DETTIVO_MOCK_MIC`
-/// when set, else a PipeWire capture on the pinned device or the default.
+/// The fixture `DETTIVO_MOCK_MIC` names, when set.
+fn mock_microphone() -> Option<PathBuf> {
+    std::env::var_os("DETTIVO_MOCK_MIC")
+        .map(PathBuf::from)
+        .filter(|p| !p.as_os_str().is_empty())
+}
+
+/// Opens the microphone: the fixture when one is named, else a PipeWire
+/// capture on the pinned device or the default.
+fn open_capture(
+    audio: Option<&AudioService>,
+    mock: Option<&Path>,
+    input_device: &str,
+    level_interval_ms: u64,
+) -> Result<Source, String> {
+    if let Some(path) = mock {
+        return MockCapture::open(path, level_interval_ms)
+            .map(Source::Mock)
+            .map_err(|e| format!("mock microphone: {e}"));
+    }
+    let Some(audio) = audio else {
+        return Err("PipeWire is not available".into());
+    };
+    let target = if input_device.is_empty() {
+        Target::Default
+    } else {
+        Target::Node(input_device.to_string())
+    };
+    audio
+        .open(target, level_interval_ms)
+        .map(Source::Capture)
+        .map_err(|e| e.to_string())
+}
+
+/// The session's audio: the take the always-ready microphone handed over,
+/// else a capture of its own.
 struct DaemonSource {
+    ready: Mutex<Option<Source>>,
     audio: Option<AudioService>,
     mock: Option<PathBuf>,
     input_device: String,
@@ -106,29 +145,22 @@ struct DaemonSource {
 
 impl SourceFactory for DaemonSource {
     fn open(&self, level_interval_ms: u64) -> Result<Source, String> {
-        if let Some(path) = &self.mock {
-            return MockCapture::open(path, level_interval_ms)
-                .map(Source::Mock)
-                .map_err(|e| format!("mock microphone: {e}"));
+        if let Some(take) = self.ready.lock().unwrap_or_else(|p| p.into_inner()).take() {
+            return Ok(take);
         }
-        let Some(audio) = &self.audio else {
-            return Err("PipeWire is not available".into());
-        };
-        let target = if self.input_device.is_empty() {
-            Target::Default
-        } else {
-            Target::Node(self.input_device.clone())
-        };
-        audio
-            .open(target, level_interval_ms)
-            .map(Source::Capture)
-            .map_err(|e| e.to_string())
+        open_capture(
+            self.audio.as_ref(),
+            self.mock.as_deref(),
+            &self.input_device,
+            level_interval_ms,
+        )
     }
 }
 
 /// The service.
 pub struct Dictation {
     session: Session,
+    ready: MicReady,
 }
 
 impl Dictation {
@@ -153,7 +185,10 @@ impl Dictation {
             inserter,
         );
         session.set_archive(archive);
-        Self { session }
+        Self {
+            session,
+            ready: MicReady::default(),
+        }
     }
 
     /// The inserter in force (the chain; its mock backend in QA mode).
@@ -189,6 +224,8 @@ impl Dictation {
             spoken_punctuation: d.spoken_punctuation,
             protect_tokens: d.protect_tokens,
             max_duration: Duration::from_secs(d.max_duration_seconds.max(1)),
+            min_hold: dettivo_hotkeys::hold::MIN_HOLD,
+            release_tail: POST_RELEASE_TAIL,
             silence_dbfs: d.silence_dbfs as f32,
             keep_audio: loaded.config.history.keep_audio,
             level_interval_ms: loaded.config.audio.level_interval_ms.max(1),
@@ -198,30 +235,55 @@ impl Dictation {
         }
     }
 
-    /// Starts a session with the policy, engine, the speech gate's voice
-    /// pass, source and the window captured at start.
+    /// Starts a session for the press that arrived at `pressed_at` with
+    /// the policy, engine, the speech gate's voice pass, the daemon's
+    /// microphone and the window captured at start. An open always-ready microphone hands
+    /// over its audio from [`PRE_ROLL`] before the press.
     pub fn start(
         &self,
         policy: Policy,
         engine: Arc<dyn dettivo_speech::SttEngine>,
         vad: Option<Arc<dyn VoiceDetector>>,
-        audio: Option<AudioService>,
-        input_device: &str,
+        daemon: &Daemon,
         target: Option<SessionTarget>,
+        pressed_at: Instant,
     ) -> Result<Snapshot, SessionError> {
         self.session.set_vad(vad);
-        let mock = std::env::var_os("DETTIVO_MOCK_MIC")
-            .map(PathBuf::from)
-            .filter(|p| !p.as_os_str().is_empty());
-        if let Some(m) = &mock {
-            tracing::info!(fixture = %m.display(), "dictation uses the mock microphone");
+        let mock = mock_microphone();
+        let ready = self
+            .ready
+            .take(pressed_at.checked_sub(PRE_ROLL).unwrap_or(pressed_at));
+        match (&ready, &mock) {
+            (Some(_), _) => tracing::info!("dictation starts from the always-ready microphone"),
+            (None, Some(m)) => {
+                tracing::info!(fixture = %m.display(), "dictation uses the mock microphone")
+            }
+            (None, None) => {}
         }
         let source = Arc::new(DaemonSource {
-            audio,
+            ready: Mutex::new(ready),
+            audio: daemon.audio().cloned(),
             mock,
-            input_device: input_device.to_string(),
+            input_device: daemon.config().config.audio.input_device,
         });
-        self.session.start(policy, engine, source, target)
+        self.session
+            .start(policy, engine, source, target, pressed_at)
+    }
+
+    /// The always-ready microphone.
+    pub fn ready(&self) -> &MicReady {
+        &self.ready
+    }
+
+    /// Opens the microphone the always-ready ring drains.
+    pub fn open_microphone(&self, daemon: &Daemon) -> Result<Source, String> {
+        let audio = &daemon.config().config.audio;
+        open_capture(
+            daemon.audio(),
+            mock_microphone().as_deref(),
+            &audio.input_device,
+            audio.level_interval_ms.max(1),
+        )
     }
 
     /// Installs the local language model the Enhanced pass reaches; a
@@ -230,14 +292,25 @@ impl Dictation {
         self.session.set_local_llm(Some(engine));
     }
 
-    /// Stops and finishes the session.
-    pub fn stop(&self) -> Result<Transcript, SessionError> {
-        self.session.stop()
+    /// Stops and finishes the session for a release that arrived at
+    /// `released_at`.
+    pub fn stop(&self, released_at: Instant) -> Result<Transcript, SessionError> {
+        self.session.stop_expected(None, released_at)
     }
 
     /// Stops the named take without affecting a replacement session.
-    pub fn stop_expected(&self, expected_job_id: &str) -> Result<Transcript, SessionError> {
-        self.session.stop_expected(Some(expected_job_id))
+    pub fn stop_expected(
+        &self,
+        expected_job_id: &str,
+        released_at: Instant,
+    ) -> Result<Transcript, SessionError> {
+        self.session
+            .stop_expected(Some(expected_job_id), released_at)
+    }
+
+    /// Drops the named take as a tap.
+    pub fn discard_tap(&self, expected_job_id: &str) -> Result<Snapshot, SessionError> {
+        self.session.discard_tap(expected_job_id)
     }
 
     /// Cancels the session.

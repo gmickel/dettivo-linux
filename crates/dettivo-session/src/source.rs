@@ -1,5 +1,6 @@
 //! Where a session's audio comes from: a PipeWire capture, the mock
-//! microphone fixture (`DETTIVO_MOCK_MIC`), or a channel the tests feed.
+//! microphone fixture (`DETTIVO_MOCK_MIC`), or a channel: the
+//! always-ready feed's take, or one a test feeds.
 
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
@@ -14,7 +15,7 @@ pub enum Source {
     Capture(CaptureHandle),
     /// The fixture player.
     Mock(MockCapture),
-    /// A channel (tests).
+    /// A channel: a take of the always-ready feed, or a test's.
     Channel {
         /// The events.
         events: Receiver<Event>,
@@ -42,8 +43,7 @@ impl Source {
         }
     }
 
-    /// `stop` for the thread that takes the stop request, so the capture
-    /// ends at the release and not when the worker next looks.
+    /// `stop` for a thread that does not hold the event stream.
     pub fn stopper(&self) -> Arc<dyn Fn() + Send + Sync> {
         match self {
             Self::Capture(c) => Arc::new(c.stopper()),

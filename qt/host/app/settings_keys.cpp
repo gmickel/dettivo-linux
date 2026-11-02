@@ -20,6 +20,7 @@ constexpr RouteKey kRouteKeys[] = {
     {"general", "daemon.shutdown_timeout_ms"},
     {"general", "audio.input_device"},
     {"general", "audio.level_interval_ms"},
+    {"general", "audio.keep_microphone_ready"},
     {"general", "dictation.language"},
     {"vocabulary", "dictation.vocabulary"},
     {"general", "dictation.max_duration_seconds"},

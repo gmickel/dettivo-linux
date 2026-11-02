@@ -9,6 +9,10 @@
     "default_sink": null,
     "default_source": null,
     "devices": [],
+    "microphone_ready": {
+      "reason": null,
+      "state": "off"
+    },
     "pinned": "",
     "pipewire": false
   },

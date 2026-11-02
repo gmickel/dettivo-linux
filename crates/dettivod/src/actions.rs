@@ -81,16 +81,18 @@ pub fn session_target(probed: dettivo_insert::service::Probed) -> SessionTarget 
     }
 }
 
-/// Starts a session. `expected` is a target the caller captured itself;
-/// without one the daemon probes the focused window now.
+/// Starts a session for the press that arrived at `pressed_at`.
+/// `expected` is a target the caller captured itself; without one the
+/// daemon probes the focused window now.
 pub fn start(
     daemon: &Daemon,
     language: Option<&str>,
     mode: Option<&str>,
     expected: Option<SessionTarget>,
+    pressed_at: Instant,
 ) -> Result<Snapshot, JsonRpcError> {
     let _reservation = daemon.capture_start_lock();
-    start_reserved(daemon, language, mode, expected)
+    start_reserved(daemon, language, mode, expected, pressed_at)
 }
 
 fn start_reserved(
@@ -98,6 +100,7 @@ fn start_reserved(
     language: Option<&str>,
     mode: Option<&str>,
     expected: Option<SessionTarget>,
+    pressed_at: Instant,
 ) -> Result<Snapshot, JsonRpcError> {
     let loaded = daemon.config();
     let policy = crate::dictation::Dictation::policy(
@@ -127,37 +130,30 @@ fn start_reserved(
     daemon.engines().preload_session_start();
     daemon
         .dictation()
-        .start(
-            policy,
-            engine,
-            vad,
-            daemon.audio().cloned(),
-            &loaded.config.audio.input_device,
-            Some(target),
-        )
+        .start(policy, engine, vad, daemon, Some(target), pressed_at)
         .map_err(session_error)
 }
 
-/// Resolves a toggle under the capture reservation, then settles that take.
-/// Toggles during settlement join the same job rather than start another recording.
-pub fn toggle(daemon: &Daemon) -> Result<Toggle, JsonRpcError> {
-    match toggle_decision(daemon)? {
+/// Resolves a toggle that arrived `at` under the capture reservation, then
+/// settles that take. Toggles during settlement join the same job rather
+/// than start another recording.
+pub fn toggle(daemon: &Daemon, at: Instant) -> Result<Toggle, JsonRpcError> {
+    match toggle_decision(daemon, at)? {
         ToggleDecision::Started(snapshot) => Ok(Toggle::Started(snapshot)),
         ToggleDecision::Stop(id) => daemon
             .dictation()
-            .stop_expected(&id)
+            .stop_expected(&id, at)
             .map(|t| Toggle::Stopped(Box::new(t)))
             .map_err(session_error),
     }
 }
 
-fn toggle_decision(daemon: &Daemon) -> Result<ToggleDecision, JsonRpcError> {
+fn toggle_decision(daemon: &Daemon, at: Instant) -> Result<ToggleDecision, JsonRpcError> {
     let _reservation = daemon.capture_start_lock();
     match daemon.dictation().snapshot() {
         Some(snapshot) => Ok(ToggleDecision::Stop(snapshot.job_id)),
-        None => {
-            start_reserved(daemon, None, None, None).map(|s| ToggleDecision::Started(Box::new(s)))
-        }
+        None => start_reserved(daemon, None, None, None, at)
+            .map(|s| ToggleDecision::Started(Box::new(s))),
     }
 }
 
@@ -174,9 +170,9 @@ pub enum Toggle {
     Stopped(Box<Transcript>),
 }
 
-/// Stops and finishes the session.
-pub fn stop(daemon: &Daemon) -> Result<Transcript, JsonRpcError> {
-    daemon.dictation().stop().map_err(session_error)
+/// Stops and finishes the session for a release that arrived `at`.
+pub fn stop(daemon: &Daemon, at: Instant) -> Result<Transcript, JsonRpcError> {
+    daemon.dictation().stop(at).map_err(session_error)
 }
 
 /// Cancels the session.
@@ -220,7 +216,7 @@ pub fn on_hotkey(daemon: &Arc<Daemon>, event: HotkeyEvent, at: Instant) {
     let outcome: Result<&str, JsonRpcError> = match event {
         HotkeyEvent::Press(Action::PushToTalk) => hold(daemon, Edge::Press, at),
         HotkeyEvent::Release(Action::PushToTalk) => hold(daemon, Edge::Release, at),
-        HotkeyEvent::Press(Action::Toggle) => return toggle_detached(daemon, action),
+        HotkeyEvent::Press(Action::Toggle) => return toggle_detached(daemon, action, at),
         HotkeyEvent::Press(Action::Cancel) => cancel(daemon).map(|_| "cancelled"),
         HotkeyEvent::Press(Action::ReinsertLast) => reinsert_last(daemon).map(|_| "reinserted"),
         HotkeyEvent::Release(_) => return,
@@ -228,10 +224,10 @@ pub fn on_hotkey(daemon: &Arc<Daemon>, event: HotkeyEvent, at: Instant) {
     report(action, outcome);
 }
 
-fn toggle_detached(daemon: &Arc<Daemon>, action: &'static str) {
-    match toggle_decision(daemon) {
+fn toggle_detached(daemon: &Arc<Daemon>, action: &'static str, at: Instant) {
+    match toggle_decision(daemon, at) {
         Ok(ToggleDecision::Started(_)) => report(action, Ok("started")),
-        Ok(ToggleDecision::Stop(id)) => stop_job_detached(daemon, action, id),
+        Ok(ToggleDecision::Stop(id)) => stop_job_detached(daemon, action, id, at),
         Err(error) => report(action, Err(error)),
     }
 }
@@ -244,7 +240,7 @@ fn hold(daemon: &Arc<Daemon>, edge: Edge, at: Instant) -> Result<&'static str, J
             "started" => "started",
             "stopped" => {
                 if let Some(job) = outcome.stop {
-                    stop_job_detached(daemon, "push_to_talk", job);
+                    stop_job_detached(daemon, "push_to_talk", job, at);
                 }
                 "stopping"
             }
@@ -263,8 +259,9 @@ fn hold(daemon: &Arc<Daemon>, edge: Edge, at: Instant) -> Result<&'static str, J
     }
 }
 
-/// Settles the named take on a thread of its own; the outcome is logged.
-fn stop_job_detached(daemon: &Arc<Daemon>, action: &'static str, job_id: String) {
+/// Settles the named take, released `at`, on a thread of its own; the
+/// outcome is logged.
+fn stop_job_detached(daemon: &Arc<Daemon>, action: &'static str, job_id: String, at: Instant) {
     let owned = daemon.clone();
     let job = job_id.clone();
     let spawned = std::thread::Builder::new()
@@ -274,7 +271,7 @@ fn stop_job_detached(daemon: &Arc<Daemon>, action: &'static str, job_id: String)
                 action,
                 owned
                     .dictation()
-                    .stop_expected(&job)
+                    .stop_expected(&job, at)
                     .map(|_| "stopped")
                     .map_err(session_error),
             )
@@ -285,7 +282,7 @@ fn stop_job_detached(daemon: &Arc<Daemon>, action: &'static str, job_id: String)
             action,
             daemon
                 .dictation()
-                .stop_expected(&job_id)
+                .stop_expected(&job_id, at)
                 .map(|_| "stopped")
                 .map_err(session_error),
         );

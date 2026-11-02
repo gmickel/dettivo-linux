@@ -39,6 +39,8 @@ fn rejected_dictation_archive_removes_only_its_new_artifacts() {
             spoken_punctuation: true,
             protect_tokens: true,
             max_duration: Duration::from_secs(10),
+            min_hold: Duration::ZERO,
+            release_tail: Duration::ZERO,
             silence_dbfs: -50.0,
             keep_audio: true,
             level_interval_ms: 100,

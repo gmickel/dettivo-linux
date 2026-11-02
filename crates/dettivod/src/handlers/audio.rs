@@ -1,5 +1,5 @@
-//! `audio.devices`: the capturable PipeWire nodes, the default source and
-//! the pinned device (ADR 0006).
+//! `audio.devices`: the capturable PipeWire nodes, the default source,
+//! the pinned device (ADR 0006) and the always-ready microphone (ADR 0092).
 
 use dettivo_proto::error::{AppCode, ErrorDetails, JsonRpcError};
 use dettivo_proto::methods::audio::{Device, DeviceKind, DevicesResult};
@@ -10,6 +10,7 @@ use crate::daemon::Daemon;
 /// `audio.devices`.
 pub fn devices(daemon: &Daemon) -> Result<Value, JsonRpcError> {
     let pinned = daemon.config().config.audio.input_device.clone();
+    let microphone_ready = daemon.dictation().ready().status().wire();
     let result = match daemon.audio() {
         None => DevicesResult {
             pipewire: false,
@@ -17,6 +18,7 @@ pub fn devices(daemon: &Daemon) -> Result<Value, JsonRpcError> {
             default_sink: None,
             pinned,
             devices: Vec::new(),
+            microphone_ready,
         },
         Some(service) => {
             let snapshot = service.snapshot();
@@ -41,6 +43,7 @@ pub fn devices(daemon: &Daemon) -> Result<Value, JsonRpcError> {
                 default_sink: snapshot.default_sink,
                 pinned,
                 devices,
+                microphone_ready,
             }
         }
     };

@@ -9,6 +9,7 @@
 
 mod guards;
 pub mod machine;
+pub mod ready;
 pub mod source;
 mod worker;
 
@@ -81,6 +82,12 @@ pub struct Policy {
     pub protect_tokens: bool,
     /// The longest take before the session stops itself.
     pub max_duration: Duration,
+    /// A take released sooner than this after its press is a tap: it ends
+    /// `cancelled` with reason [`TAP`] and reaches no engine.
+    pub min_hold: Duration,
+    /// How long a take keeps recording after its release
+    /// ([`POST_RELEASE_TAIL`] in the daemon).
+    pub release_tail: Duration,
     /// A take whose loudest 30 ms window stays under this level (dBFS) is
     /// silence.
     pub silence_dbfs: f32,
@@ -95,6 +102,17 @@ pub struct Policy {
     /// The `[llm]` section the session froze at its start (FR-M6).
     pub llm: Llm,
 }
+
+/// The recording a take keeps after its release, so a last word still
+/// sounding at the release is kept (ADR 0092).
+pub const POST_RELEASE_TAIL: Duration = Duration::from_millis(200);
+
+/// A release tail ends this long after audio stopped arriving, so a
+/// stalled device never holds the take open.
+pub const TAIL_STALL_GRACE: Duration = Duration::from_millis(100);
+
+/// The reason a take dropped as a tap ends `cancelled` with.
+pub const TAP: &str = "tap";
 
 /// A finished transcript kept as the session's last result.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

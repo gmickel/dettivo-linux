@@ -60,6 +60,14 @@ SettingsPage {
             label: qsTr("Level interval")
             settings: root.settings
         }
+
+        SettingRow {
+            hint: qsTr("Catches your first word: the microphone stays open while idle and its indicator stays lit")
+            key: "audio.keep_microphone_ready"
+            kind: "switch"
+            label: qsTr("Keep microphone ready")
+            settings: root.settings
+        }
     }
 
     SettingsGroup {

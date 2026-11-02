@@ -951,6 +951,7 @@ dependencies = [
  "dettivo-speech",
  "dettivo-storage",
  "dettivo-transcribe",
+ "futures-util",
  "hound",
  "libc",
  "rusqlite",
@@ -962,6 +963,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "uuid",
+ "zbus",
 ]
 
 [[package]]

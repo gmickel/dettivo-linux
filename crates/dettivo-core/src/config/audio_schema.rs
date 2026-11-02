@@ -13,6 +13,10 @@ pub struct Audio {
     pub input_device: String,
     /// Meter sample interval in milliseconds.
     pub level_interval_ms: u64,
+    /// Keep the microphone open while dictation is idle, so a take starts
+    /// 450 ms before its press (ADR 0092). Off by default: an open
+    /// microphone keeps the desktop's microphone indicator lit.
+    pub keep_microphone_ready: bool,
     /// A meeting's system track: `default_monitor` (the default sink's
     /// monitor, followed when the default changes) or a sink's node name
     /// (its monitor, pinned).
@@ -24,6 +28,7 @@ impl Default for Audio {
         Self {
             input_device: String::new(),
             level_interval_ms: 50,
+            keep_microphone_ready: false,
             system_source: "default_monitor".into(),
         }
     }

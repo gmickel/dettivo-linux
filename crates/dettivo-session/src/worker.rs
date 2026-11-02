@@ -2,18 +2,17 @@
 //! levels, passes the take through the speech gate, transcribes it through
 //! the frozen engine, guards the engine's text, applies the raw pipeline,
 //! hands the text over and records the outcome. The gate judges the take's
-//! samples, never the meter's display windows; the capture ends at the stop
-//! request, so nothing after the release is in them. A take the gate finds
-//! silent ends `cancelled` without reaching the engine.
+//! samples, never the meter's display windows: the take runs to the end of
+//! its release tail (ADR 0092). A take the gate finds silent ends
+//! `cancelled` without reaching the engine, and so does a tap.
 
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::sync::OnceLock;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::RecvTimeoutError;
 use std::time::{Duration, Instant};
 
 use dettivo_audio::takes::TakeWriter;
-use dettivo_audio::{EndReason, Event};
 use dettivo_speech::gate::{self, GateVerdict, VoiceDetector};
 use dettivo_speech::{EngineError, RecognizeRequest, SttEngine, prompt_terms, vocabulary_prompt};
 
@@ -23,21 +22,14 @@ use dettivo_language::provider::LocalEngine;
 
 use crate::machine::{Exit, SharedState, finish_shared};
 use crate::{
-    Archive, Inserter, Level, Policy, Publisher, SessionTarget, SessionTimings, State, StateChange,
+    Archive, Inserter, Policy, Publisher, SessionTarget, SessionTimings, State, StateChange,
     Transcript,
 };
 
-/// What the recording phase hands to the rest of the worker.
-struct Recorded {
-    samples: Vec<i16>,
-    duration_ms: u64,
-    /// An early exit when the recording itself decided the outcome.
-    exit: Option<Exit>,
-    /// From the stop being observed to the take being final.
-    capture_ms: u64,
-}
+mod record;
+use record::Recorded;
 
-fn elapsed_ms(since: Instant) -> u64 {
+pub(crate) fn elapsed_ms(since: Instant) -> u64 {
     u64::try_from(since.elapsed().as_millis()).unwrap_or(u64::MAX)
 }
 
@@ -47,6 +39,10 @@ pub(crate) struct Worker {
     pub(crate) engine: Arc<dyn SttEngine>,
     pub(crate) stop: Arc<AtomicBool>,
     pub(crate) cancel: Arc<AtomicBool>,
+    /// When the release arrived, once a stop asked for the take's end.
+    pub(crate) released: Arc<OnceLock<Instant>>,
+    /// A cancel ends the take as a tap.
+    pub(crate) tap: Arc<AtomicBool>,
     pub(crate) dir: PathBuf,
     pub(crate) publisher: Arc<dyn Publisher>,
     pub(crate) inserter: Arc<dyn Inserter>,
@@ -122,7 +118,7 @@ impl Worker {
                 &*self.publisher,
                 &self.job_id,
                 State::Transcribing,
-                Exit::Cancelled,
+                self.cancelled(),
                 None,
             );
             return;
@@ -174,7 +170,7 @@ impl Worker {
                 &*self.publisher,
                 &self.job_id,
                 State::Transcribing,
-                Exit::Cancelled,
+                self.cancelled(),
                 None,
             );
             return;
@@ -188,7 +184,7 @@ impl Worker {
                     &*self.publisher,
                     &self.job_id,
                     State::Transcribing,
-                    Exit::Cancelled,
+                    self.cancelled(),
                     None,
                 );
                 return;
@@ -243,7 +239,7 @@ impl Worker {
                 &*self.publisher,
                 &self.job_id,
                 State::Transcribing,
-                Exit::Cancelled,
+                self.cancelled(),
                 None,
             );
             return;
@@ -301,126 +297,13 @@ impl Worker {
         );
     }
 
-    /// Drains the source until stop, cancel, the maximum duration or the
-    /// source's end. Returns the samples, the duration, an early exit when
-    /// the recording itself decided the outcome, and how long the drain and
-    /// the take's finish took after the stop.
-    fn record(&self, src: &crate::source::Source, shared: &SharedState) -> Result<Recorded, Exit> {
-        let mut writer =
-            TakeWriter::new(&self.dir).map_err(|e| Exit::Failed(format!("take: {e}")))?;
-        writer
-            .start_take(false)
-            .map_err(|e| Exit::Failed(format!("take: {e}")))?;
-        let mut samples: Vec<i16> = Vec::new();
-        let started = Instant::now();
-        let mut ended: Option<EndReason> = None;
-        let mut terminal = false;
-        loop {
-            if self.cancel.load(Ordering::Relaxed) {
-                return Ok(Recorded {
-                    samples,
-                    duration_ms: 0,
-                    exit: Some(Exit::Cancelled),
-                    capture_ms: 0,
-                });
-            }
-            if self.stop.load(Ordering::Relaxed) || started.elapsed() >= self.policy.max_duration {
-                break;
-            }
-            match src.events().recv_timeout(Duration::from_millis(50)) {
-                Ok(Event::Pcm(chunk)) => {
-                    writer
-                        .write(&chunk)
-                        .map_err(|e| Exit::Failed(format!("take: {e}")))?;
-                    samples.extend_from_slice(&chunk);
-                    let progress = (started.elapsed().as_secs_f64()
-                        / self.policy.max_duration.as_secs_f64())
-                    .min(1.0);
-                    if let Some(a) = shared
-                        .active
-                        .lock()
-                        .unwrap_or_else(|p| p.into_inner())
-                        .as_mut()
-                    {
-                        a.snapshot.progress = progress;
-                    }
-                }
-                Ok(Event::Level { rms, peak: p }) => {
-                    self.publisher.level(Level { rms, peak: p });
-                }
-                Ok(Event::DeviceChanged { from, to }) => {
-                    ended = Some(EndReason::DeviceLost(format!(
-                        "default moved from {} to {}",
-                        from.unwrap_or_else(|| "none".into()),
-                        to.unwrap_or_else(|| "none".into())
-                    )));
-                    break;
-                }
-                Ok(Event::Ended { reason }) => {
-                    ended = Some(reason);
-                    terminal = true;
-                    break;
-                }
-                Err(RecvTimeoutError::Timeout) => {}
-                Err(RecvTimeoutError::Disconnected) => {
-                    ended = Some(EndReason::Error(
-                        "capture stop acknowledgement missing".into(),
-                    ));
-                    terminal = true;
-                    break;
-                }
-            }
+    /// How a cancel ends this take: a tap, or a cancel.
+    fn cancelled(&self) -> Exit {
+        if self.tap.load(Ordering::Relaxed) {
+            Exit::Tap
+        } else {
+            Exit::Cancelled
         }
-        let released = Instant::now();
-        src.stop();
-        let deadline = released + Duration::from_secs(2);
-        while !terminal {
-            let remaining = deadline.saturating_duration_since(Instant::now());
-            if remaining.is_zero() {
-                return Err(Exit::Failed(
-                    "capture stop acknowledgement timed out".into(),
-                ));
-            }
-            let event = src.events().recv_timeout(remaining).map_err(|_| {
-                Exit::Failed("capture stop acknowledgement missing or timed out".into())
-            })?;
-            match event {
-                Event::Pcm(chunk) => {
-                    writer
-                        .write(&chunk)
-                        .map_err(|e| Exit::Failed(format!("take: {e}")))?;
-                    samples.extend_from_slice(&chunk);
-                }
-                Event::Level { rms, peak: p } => {
-                    self.publisher.level(Level { rms, peak: p });
-                }
-                Event::Ended { reason } => {
-                    terminal = true;
-                    if ended.is_none() {
-                        ended = Some(reason);
-                    }
-                }
-                _ => {}
-            }
-        }
-        let takes = writer
-            .finish()
-            .map_err(|e| Exit::Failed(format!("take: {e}")))?;
-        let duration_ms = takes.takes.iter().map(|t| t.samples).sum::<u64>() * 1000 / 16_000;
-        let exit = match ended {
-            Some(EndReason::DeviceLost(name)) => Some(Exit::Failed(format!("device lost: {name}"))),
-            Some(EndReason::NoSource) => Some(Exit::Failed("no audio source".into())),
-            Some(EndReason::Error(e)) | Some(EndReason::Write(e)) => {
-                Some(Exit::Failed(format!("capture error: {e}")))
-            }
-            Some(EndReason::Stopped) | Some(EndReason::FixtureFinished) | None => None,
-        };
-        Ok(Recorded {
-            samples,
-            duration_ms,
-            exit,
-            capture_ms: elapsed_ms(released),
-        })
     }
 
     fn cleanup(&self) {

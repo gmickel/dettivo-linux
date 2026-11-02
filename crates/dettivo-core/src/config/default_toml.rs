@@ -148,6 +148,9 @@ catalogue_file = ""
 input_device = ""
 # How often a level sample (RMS and peak) is published, in milliseconds.
 level_interval_ms = 50
+# Keep the microphone open while dictation is idle, so a take starts 450 ms
+# before the key went down. The desktop's microphone indicator stays lit.
+keep_microphone_ready = false
 # A meeting's system track: "default_monitor" captures the default sink's
 # monitor and follows the default when it changes; a sink's node name pins
 # that sink's monitor.

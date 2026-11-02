@@ -86,10 +86,12 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0079](0079-a-release-builds-each-ggml-engine-in-its-own-job.md) | A release builds each ggml engine in its own CI job and assembles the package from them, and NeMo-Speech.cpp links with no undefined symbols | Accepted 2026-09-29, amends 0070 |
 | [0080](0080-whisper-cpp-carries-a-dtw-median-filter-guard.md) | whisper.cpp carries a DTW median-filter guard, a chunk the engine dies on twice becomes a marked gap, and an engine that crashes on the GPU moves to the CPU | Accepted 2026-09-29, amends 0074; amended 2026-09-30 (the GPU is tried again after a hold, crash warnings keep Vulkan exception lines) |
 | [0081](0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md) | A dictation take passes a speech gate before the engine, and its text passes output guards after it | Accepted 2026-11-01, amends 0048; amended by 0082 |
-| [0082](0082-a-take-ends-at-the-stop-within-one-capture-quantum.md) | A dictation take ends at the stop request, within one capture quantum PipeWire may deliver before the stop runs | Accepted 2026-11-01, amends 0081 |
-| [0083](0083-the-hold-key-is-a-daemon-state-machine-and-the-portal-gets-an-app-id.md) | The hold key is a daemon state machine that survives a lost release and locks on a double tap, and the portal gets the app id `dettivo` | Accepted 2026-11-01, amends 0016 |
+| [0082](0082-a-take-ends-at-the-stop-within-one-capture-quantum.md) | A dictation take ends at the stop request, within one capture quantum PipeWire may deliver before the stop runs | Accepted 2026-11-01, amends 0081; amended by 0092 and 0093 |
+| [0083](0083-the-hold-key-is-a-daemon-state-machine-and-the-portal-gets-an-app-id.md) | The hold key is a daemon state machine that survives a lost release and locks on a double tap, and the portal gets the app id `dettivo` | Accepted 2026-11-01, amends 0016; amended by 0093 |
 | [0086](0086-a-vocabulary-entry-names-how-its-term-is-misheard.md) | A vocabulary entry names how its term is misheard, and only Enhanced reads the aliases | Accepted 2026-11-01 |
 | [0087](0087-the-term-recall-benchmark-scores-a-vocabulary-on-synthetic-clips.md) | The term-recall benchmark scores a vocabulary on synthetic clips, with the vocabulary off and on | Accepted 2026-11-01 |
+| [0092](0092-dictation-can-keep-the-microphone-ready-and-it-is-off-by-default.md) | Dictation can keep the microphone ready in a 10 s ring, off by default, closed during a meeting and while the session is locked | Accepted 2026-11-02, amends 0082 |
+| [0093](0093-a-take-runs-from-the-pre-roll-to-the-release-tail-and-a-tap-is-no-take.md) | A take runs from 450 ms before the press to 200 ms after the release, and a press under 300 ms is a tap that reaches no engine | Accepted 2026-11-02, amends 0082 and 0083 |
 
 ## Writing a record
 
