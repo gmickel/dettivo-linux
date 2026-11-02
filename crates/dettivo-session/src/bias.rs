@@ -53,4 +53,37 @@ mod tests {
         assert_eq!(vocabulary_bias(&entries, VocabularyBoost::Off), None);
         assert_eq!(vocabulary_bias(&[], VocabularyBoost::Normal), None);
     }
+
+    /// The largest vocabulary the configuration accepts still fits the
+    /// recognize header, so no accepted list breaks Parakeet dictation.
+    #[test]
+    fn every_accepted_vocabulary_fits_the_recognize_header() {
+        use dettivo_core::config::vocabulary_schema::{
+            MAX_ALIASES, MAX_ENTRIES, MAX_VOCABULARY_BYTES, limit_error,
+        };
+        // Spellings of control characters: each takes six bytes as JSON.
+        let entry = |chars: usize| VocabularyEntry::Entry {
+            term: "x".repeat(64),
+            sounds_like: vec!["\u{1}".repeat(chars); MAX_ALIASES],
+        };
+        // The longest spelling accepted, searched up to a length that
+        // would overrun the header many times over.
+        let chars = (1..=1024)
+            .take_while(|&n| limit_error(&vec![entry(n); MAX_ENTRIES]).is_none())
+            .last()
+            .unwrap();
+        let entries = vec![entry(chars); MAX_ENTRIES];
+        assert!(serde_json::to_vec(&entries).unwrap().len() <= MAX_VOCABULARY_BYTES);
+        let params = dettivo_engine_proto::RecognizeParams {
+            language: "en".into(),
+            prompt: None,
+            timestamps: true,
+            vocabulary: vocabulary_bias(&entries, VocabularyBoost::Normal),
+        };
+        let header = serde_json::to_vec(&params).unwrap().len();
+        assert!(
+            header < dettivo_engine_proto::frame::MAX_HEADER_BYTES as usize,
+            "{header}"
+        );
+    }
 }
