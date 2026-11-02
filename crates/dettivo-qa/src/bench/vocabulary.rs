@@ -377,13 +377,20 @@ mod tests {
             ..Set::load(&dir.join(SINGLE_DIR)).unwrap()
         };
         for entry in &set.vocabulary {
-            let names = set.clips.iter().filter(|c| c.term == Some(entry.term.clone()));
+            let names = set
+                .clips
+                .iter()
+                .filter(|c| c.term == Some(entry.term.clone()));
             assert_eq!(names.count(), 2, "{}", entry.term);
         }
         let alikes = set.clips.iter().filter(|c| c.kind == Kind::Distractor);
         assert_eq!(alikes.count(), 10);
         for clip in &set.clips {
-            assert!(set.dir.join(format!("{}.wav", clip.id)).is_file(), "{}", clip.id);
+            assert!(
+                set.dir.join(format!("{}.wav", clip.id)).is_file(),
+                "{}",
+                clip.id
+            );
         }
         let perfect: Vec<(String, String)> = set
             .clips
