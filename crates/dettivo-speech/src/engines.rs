@@ -95,6 +95,7 @@ impl Shared {
             language: "en".into(),
             prompt: None,
             timestamps: false,
+            vocabulary: None,
         };
         let pcm = dettivo_engine_proto::pcm_to_bytes(&[0; WARM_UP_SAMPLES]);
         let warmed = self.supervisor.warm_up(self.binary, |process| {
