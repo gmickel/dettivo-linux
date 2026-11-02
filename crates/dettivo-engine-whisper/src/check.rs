@@ -7,8 +7,8 @@
 //! sentences closing one, made of listed terms alone) or when the mean log
 //! probability of its tokens is under [`MIN_MEAN_LOGPROB`]. Suspects are
 //! settled against the same take decoded without the prompt: a span that
-//! decode also spells stays, and so does a lone name (one term alone in
-//! its segment) when that decode heard something that sounds like it or
+//! decode also spells stays, and so does a lone name (one term that is a
+//! sentence of its own) when that decode heard something that sounds like it or
 //! one of its aliases ([`MIN_SOUND_ALIKE`]). Any other gives way to what
 //! that decode heard in its place, which is nothing when it heard nothing
 //! there.
@@ -124,10 +124,15 @@ pub fn find(texts: &[String], tokens: &[Vec<Token>], terms: &[BiasTerm]) -> Find
     let spellings: Vec<Vec<String>> = terms
         .iter()
         .map(|t| {
-            std::iter::once(&t.term)
-                .chain(&t.aliases)
-                .map(|s| normalise(s))
-                .filter(|s| !s.is_empty())
+            // The term keeps the first place even when it spells nothing,
+            // so an alias never stands in for it as a span.
+            std::iter::once(normalise(&t.term))
+                .chain(
+                    t.aliases
+                        .iter()
+                        .map(|a| normalise(a))
+                        .filter(|a| !a.is_empty()),
+                )
                 .collect()
         })
         .collect();
@@ -148,7 +153,7 @@ pub fn find(texts: &[String], tokens: &[Vec<Token>], terms: &[BiasTerm]) -> Find
             );
             (echo || mean_logprob < MIN_MEAN_LOGPROB).then_some(Suspect {
                 span,
-                lone: run == 1,
+                lone: !echo && own_sentence(span, &words),
             })
         })
         .collect();
@@ -195,7 +200,9 @@ fn spans(words: &[Word], spellings: &[Vec<String>]) -> Vec<Span> {
             }
             spelt.push_str(&words[last].norm);
             let spells = |t: &String| spelt == *t || spelt.strip_suffix('s') == Some(t.as_str());
-            let term = spellings.iter().position(|s| s.first().is_some_and(spells));
+            let term = spellings
+                .iter()
+                .position(|s| s.first().is_some_and(|t| !t.is_empty() && spells(t)));
             if let (false, Some(term)) = (words[i].norm.is_empty(), term) {
                 hit = Some((last, term));
             }
@@ -256,8 +263,7 @@ fn confidence(span: Span, words: &[Word], texts: &[String], tokens: &[Vec<Token>
 /// How many term spans make up the run the span sits in when that run
 /// closes its segment and opens it or follows a sentence's end; 0 when it
 /// does not. A run of two or more is echo-shaped. One term alone is a
-/// lone name, said on its own as often as an echo, so its confidence and
-/// its sound decide.
+/// name said on its own as often as an echo, so its confidence decides.
 fn alone(span: Span, words: &[Word], spans: &[Span]) -> usize {
     let in_span = |w: usize| spans.iter().any(|s| s.first <= w && w <= s.last);
     let seg = words[span.first].seg;
@@ -277,6 +283,16 @@ fn alone(span: Span, words: &[Word], spans: &[Span]) -> usize {
         .filter(|s| s.first >= start && words[s.first].seg == seg)
         .count();
     if closes_segment && opens { run } else { 0 }
+}
+
+/// True when the span is a sentence of its own: it opens the take or
+/// follows a word ending in `.`, `!` or `?`, and it ends the take or ends
+/// in one itself. Segment breaks do not count, because Whisper splits
+/// segments at timestamps, not at sentence ends. Only such a lone name
+/// may stay by sound.
+fn own_sentence(span: Span, words: &[Word]) -> bool {
+    (span.first == 0 || words[span.first - 1].closes)
+        && (span.last + 1 == words.len() || words[span.last].closes)
 }
 
 /// The longest common subsequence of `a` and `b`, as matched index pairs.

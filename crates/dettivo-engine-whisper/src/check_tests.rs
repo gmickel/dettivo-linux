@@ -219,6 +219,33 @@ fn an_echo_of_listed_terms_is_replaced_or_dropped() {
     );
 }
 
+/// A name that ends a sentence begun in an earlier segment is inside that
+/// sentence, so it never stays by sound: Whisper splits segments at
+/// timestamps, not at sentence ends.
+#[test]
+fn a_name_closing_a_split_sentence_never_stays_by_sound() {
+    let found = take(&[&[(" She shaped the", -0.1)], &[(" Clef.", -0.5)]], TERMS);
+    assert!(found.needs_plain_decode());
+    assert_eq!(
+        settle(&found, &plain(&[" She shaped the clay."])),
+        Some(plain(&["She shaped the", "clay."]))
+    );
+}
+
+/// A term with no letters or digits spells nothing, and its alias never
+/// takes its place as a span.
+#[test]
+fn an_alias_never_stands_in_for_a_term_without_letters() {
+    let (text, tokens) = segment(&[(" Say plus plus.", -0.5)]);
+    let terms = vec![BiasTerm {
+        term: "++".into(),
+        aliases: vec!["plus plus".into()],
+    }];
+    let found = find(&[text], &[tokens], &terms);
+    assert_eq!(found.candidates(), 0);
+    assert!(!found.needs_plain_decode());
+}
+
 /// A suspect the prompt-free decode also spells stands, even split into
 /// other words.
 #[test]
