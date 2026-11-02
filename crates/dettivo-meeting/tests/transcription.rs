@@ -24,10 +24,10 @@ use dettivo_transcribe::live::Source;
 fn feed_speech(feeds: &Feeds, mic_ms: u64, sys_ms: u64) {
     // 100 ms chunks, as a capture delivers them.
     for _ in 0..mic_ms / 100 {
-        feeds.mic(0).send(Event::Pcm(tone(100, 3000))).unwrap();
+        feeds.mic(0).send(Event::pcm(tone(100, 3000))).unwrap();
     }
     for _ in 0..sys_ms / 100 {
-        feeds.system().send(Event::Pcm(tone(100, 3000))).unwrap();
+        feeds.system().send(Event::pcm(tone(100, 3000))).unwrap();
     }
 }
 
@@ -44,8 +44,8 @@ fn live_segments_arrive_provisional_then_final_per_source_and_finalisation_cover
     feed_speech(&feeds, 1900, 1900);
     std::thread::sleep(Duration::from_millis(300));
     for _ in 0..30 {
-        feeds.mic(0).send(Event::Pcm(vec![0; 1600])).unwrap();
-        feeds.system().send(Event::Pcm(vec![0; 1600])).unwrap();
+        feeds.mic(0).send(Event::pcm(vec![0; 1600])).unwrap();
+        feeds.system().send(Event::pcm(vec![0; 1600])).unwrap();
     }
     std::thread::sleep(Duration::from_millis(400));
     {
@@ -102,7 +102,7 @@ fn live_segments_arrive_provisional_then_final_per_source_and_finalisation_cover
         .unwrap();
     std::thread::sleep(Duration::from_millis(150));
     for _ in 0..19 {
-        feeds.mic(1).send(Event::Pcm(tone(100, 3000))).unwrap();
+        feeds.mic(1).send(Event::pcm(tone(100, 3000))).unwrap();
     }
     std::thread::sleep(Duration::from_millis(300));
     let calls_before_stop = engine.calls.load(Ordering::SeqCst);
@@ -186,7 +186,7 @@ fn a_lagging_engine_skips_windows_with_a_journal_line_and_finalisation_still_cov
     // Six seconds of speech arrive at once: more than two ticks past a
     // full window, so the oldest audio is skipped and the newest window
     // is what the engine sees.
-    feeds.mic(0).send(Event::Pcm(tone(6000, 3000))).unwrap();
+    feeds.mic(0).send(Event::pcm(tone(6000, 3000))).unwrap();
     std::thread::sleep(Duration::from_millis(900));
     session.stop().unwrap();
     assert!(session.wait_idle(Duration::from_secs(10)));
@@ -242,7 +242,7 @@ fn a_cancelled_finalisation_leaves_the_meeting_stopped_with_its_audio() {
         )
         .unwrap();
     let id = snapshot.meeting_id.clone();
-    feeds.mic(0).send(Event::Pcm(tone(20_000, 3000))).unwrap();
+    feeds.mic(0).send(Event::pcm(tone(20_000, 3000))).unwrap();
     std::thread::sleep(Duration::from_millis(200));
     session.stop().unwrap();
     let deadline = std::time::Instant::now() + Duration::from_secs(5);
@@ -301,8 +301,8 @@ fn a_store_that_refuses_the_final_row_keeps_the_takes_and_ends_failed_not_comple
         )
         .unwrap();
     let id = snapshot.meeting_id.clone();
-    feeds.mic(0).send(Event::Pcm(tone(1000, 3000))).unwrap();
-    feeds.system().send(Event::Pcm(tone(1000, 3000))).unwrap();
+    feeds.mic(0).send(Event::pcm(tone(1000, 3000))).unwrap();
+    feeds.system().send(Event::pcm(tone(1000, 3000))).unwrap();
     std::thread::sleep(Duration::from_millis(400));
     rows.refuse_completed.store(true, Ordering::SeqCst);
     session.stop().unwrap();
@@ -364,8 +364,8 @@ fn a_recovered_meeting_finalises_from_its_takes() {
         .start(policy(), feeds.clone(), engine.clone(), MeetingRow::new())
         .unwrap();
     let id = snapshot.meeting_id.clone();
-    feeds.mic(0).send(Event::Pcm(tone(1000, 3000))).unwrap();
-    feeds.system().send(Event::Pcm(tone(1000, 3000))).unwrap();
+    feeds.mic(0).send(Event::pcm(tone(1000, 3000))).unwrap();
+    feeds.system().send(Event::pcm(tone(1000, 3000))).unwrap();
     std::thread::sleep(Duration::from_millis(400));
     let dir = session.artifacts().dir(&id);
     let kept = tempfile::tempdir().unwrap();
@@ -426,7 +426,7 @@ fn an_engine_without_timestamps_is_refused_by_name_live_and_at_finalisation() {
     let snapshot = session
         .start(policy(), feeds.clone(), engine.clone(), MeetingRow::new())
         .unwrap();
-    feeds.mic(0).send(Event::Pcm(tone(2000, 3000))).unwrap();
+    feeds.mic(0).send(Event::pcm(tone(2000, 3000))).unwrap();
     std::thread::sleep(Duration::from_millis(300));
     session.stop().unwrap();
     assert!(session.wait_idle(Duration::from_secs(5)));

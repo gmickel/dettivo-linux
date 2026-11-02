@@ -13,8 +13,9 @@ use dettivo_session::source::{Source, SourceFactory};
 use dettivo_session::{SessionError, TAIL_STALL_GRACE};
 use support::{policy, rig, tone};
 
-/// Delivers `before` while recording and one 20 ms chunk of speech while
-/// the stop drains, when it acknowledges the stop.
+/// Delivers `before` while recording and, when it acknowledges the stop,
+/// one 20 ms chunk of speech captured before the release but delivered
+/// while the stop drains (a PipeWire quantum in flight).
 struct StopSource {
     acknowledge: bool,
     before: Vec<i16>,
@@ -25,18 +26,22 @@ impl SourceFactory for StopSource {
         let (tx, events) = mpsc::channel();
         let acknowledge = self.acknowledge;
         if !self.before.is_empty() {
-            let _ = tx.send(Event::Pcm(self.before.clone()));
+            let _ = tx.send(Event::pcm(self.before.clone()));
         }
         // The stop request and the worker both stop the source: only the
         // first acknowledges, as a real capture does.
         let stopped = AtomicBool::new(false);
+        let in_flight = Instant::now();
         Ok(Source::Channel {
             events,
             on_stop: Arc::new(move || {
                 if acknowledge && !stopped.swap(true, Ordering::SeqCst) {
                     let tx = tx.clone();
                     std::thread::spawn(move || {
-                        let _ = tx.send(Event::Pcm(tone(320)));
+                        let _ = tx.send(Event::Pcm {
+                            pcm: tone(320),
+                            at: in_flight,
+                        });
                         let _ = tx.send(Event::Ended {
                             reason: EndReason::Stopped,
                         });
@@ -76,14 +81,14 @@ fn audio_a_source_sends_after_its_end_never_counts() {
     let (dir, _, session, engine, _) = rig("never used");
     let source = move |_: u64| {
         let (tx, events) = mpsc::channel();
-        let _ = tx.send(Event::Pcm(vec![0; 1_600]));
+        let _ = tx.send(Event::pcm(vec![0; 1_600]));
         Ok(Source::Channel {
             events,
             on_stop: Arc::new(move || {
                 let _ = tx.send(Event::Ended {
                     reason: EndReason::Stopped,
                 });
-                let _ = tx.send(Event::Pcm(tone(1_600)));
+                let _ = tx.send(Event::pcm(tone(1_600)));
             }),
         })
     };
@@ -167,12 +172,12 @@ fn a_stalled_tail_closes_after_the_grace_and_a_later_sound_never_counts() {
     session
         .start(p, engine.clone(), feed.clone(), None, Instant::now())
         .unwrap();
-    feed.send(Event::Pcm(vec![0; 1_600]));
+    feed.send(Event::pcm(vec![0; 1_600]));
     std::thread::sleep(Duration::from_millis(20));
     let late = feed.clone();
     let thump = std::thread::spawn(move || {
         std::thread::sleep(Duration::from_millis(400));
-        late.send(Event::Pcm(tone(320)));
+        late.send(Event::pcm(tone(320)));
     });
     let released = Instant::now();
     assert_eq!(session.stop().unwrap_err(), SessionError::Cancelled);

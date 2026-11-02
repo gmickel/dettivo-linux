@@ -11,7 +11,7 @@ use crate::SAMPLE_RATE;
 /// How much audio the ring keeps.
 pub const RING_CAPACITY: Duration = Duration::from_secs(10);
 
-/// One delivered chunk and when its first sample was recorded.
+/// One delivered chunk and when its first sample was captured.
 struct Chunk {
     at: Instant,
     pcm: Box<[i16]>,
@@ -42,9 +42,9 @@ impl AudioRing {
         }
     }
 
-    /// Appends a chunk that arrived at `received`; its last sample is
-    /// taken as recorded then. The oldest chunks leave once the ring holds
-    /// more than its capacity without them.
+    /// Appends a chunk whose last sample was captured at `received`. The
+    /// oldest chunks leave once the ring holds more than its capacity
+    /// without them.
     pub fn push(&mut self, received: Instant, pcm: &[i16]) {
         if pcm.is_empty() {
             return;

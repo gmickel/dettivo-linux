@@ -57,6 +57,8 @@ impl Status {
 #[derive(Default)]
 struct Inner {
     feed: Option<ReadyFeed>,
+    /// The device the feed captures; empty for the default source.
+    device: String,
     status: Status,
     retry_at: Option<Instant>,
 }
@@ -116,22 +118,20 @@ impl MicReady {
         self.lock().status.clone()
     }
 
-    /// Brings the ring to what the daemon wants: `wanted` is `Ok` when it
-    /// should be open, else the reason it waits (`None` when the setting
-    /// is off). A ring a take still uses stays as it is; one whose capture
-    /// ended or whose default source moved reopens.
-    pub fn reconcile(
-        &self,
-        wanted: Result<(), Option<String>>,
-        open: impl FnOnce() -> Result<Source, String>,
-    ) {
+    /// Brings the ring to what the daemon wants. A ring a take still uses
+    /// stays as it is. One whose capture ended, whose default source moved
+    /// or that runs on another device than `want.device` reopens; one the
+    /// daemon no longer wants closes.
+    pub fn reconcile(&self, want: Want, open: impl FnOnce(&str) -> Result<Source, String>) {
         let mut g = self.lock();
         if let Some(feed) = &g.feed {
             if feed.tapped() {
                 return;
             }
-            let stale = feed.stale();
-            if stale.is_none() && wanted.is_ok() {
+            let stale = feed
+                .stale()
+                .or_else(|| (g.device != want.device).then(|| "the device changed".to_string()));
+            if stale.is_none() && want.open.is_ok() {
                 return;
             }
             if let Some(feed) = g.feed.take() {
@@ -143,20 +143,26 @@ impl MicReady {
             );
             g.retry_at = None;
         }
-        match wanted {
+        match want.open {
             Err(None) => {
                 g.status = Status::Off;
                 g.retry_at = None;
             }
             Err(Some(why)) => g.status = Status::Closed(why),
+            Ok(()) if !want.may_open => {
+                g.status = Status::Closed("a dictation records on its own capture".into());
+            }
             Ok(()) => {
                 if g.retry_at.is_some_and(|at| Instant::now() < at) {
                     return;
                 }
-                match open().and_then(|src| ReadyFeed::open(src).map_err(|e| e.to_string())) {
+                let opened = open(&want.device)
+                    .and_then(|src| ReadyFeed::open(src).map_err(|e| e.to_string()));
+                match opened {
                     Ok(feed) => {
-                        tracing::info!("microphone ready: open");
+                        tracing::info!(device = %want.device, "microphone ready: open");
                         g.feed = Some(feed);
+                        g.device = want.device;
                         g.status = Status::Open;
                         g.retry_at = None;
                     }
@@ -173,36 +179,57 @@ impl MicReady {
     }
 }
 
+/// What the daemon wants of the ring at one tick.
+pub struct Want {
+    /// `Ok` when it should be open, else why it waits (`None` when the
+    /// setting is off).
+    pub open: Result<(), Option<String>>,
+    /// False while a dictation records on a capture of its own: the ring
+    /// may not open beside it, and an open ring is left as it is.
+    pub may_open: bool,
+    /// The device to capture: the pinned `[audio] input_device` while it
+    /// is present, else empty for the default source.
+    pub device: String,
+}
+
 /// Why the ring should be closed, if it should: `None` inside the error
-/// means the setting is off. A dictation on its own capture keeps the ring
-/// from opening until it ends.
-fn closed_because(
-    setting: bool,
-    blocked: bool,
-    meeting: bool,
-    own_dictation: bool,
-) -> Result<(), Option<String>> {
+/// means the setting is off.
+fn closed_because(setting: bool, blocked: bool, meeting: bool) -> Result<(), Option<String>> {
     let why = match () {
         _ if !setting => return Err(None),
         _ if blocked => "the session is locked",
         _ if meeting => "a meeting is capturing",
-        _ if own_dictation => "a dictation records on its own capture",
         _ => return Ok(()),
     };
     Err(Some(why.into()))
 }
 
-/// One reconciliation under the capture reservation.
+/// One reconciliation under the capture reservation. A pinned device that
+/// is gone leaves the ring on the default source until it returns (R6).
 pub fn tick(daemon: &Daemon) {
     let _reservation = daemon.capture_start_lock();
     let ready = daemon.dictation().ready();
-    let wanted = closed_because(
-        daemon.config().config.audio.keep_microphone_ready,
-        ready.blocked.load(Ordering::Relaxed),
-        daemon.meetings().snapshot().is_some(),
-        daemon.dictation().snapshot().is_some(),
-    );
-    ready.reconcile(wanted, || daemon.dictation().open_microphone(daemon));
+    let audio = daemon.config().config.audio;
+    let pinned = !audio.input_device.is_empty()
+        && daemon
+            .audio()
+            .is_some_and(|a| a.node_named(&audio.input_device).is_some());
+    let want = Want {
+        open: closed_because(
+            audio.keep_microphone_ready,
+            ready.blocked.load(Ordering::Relaxed),
+            daemon.meetings().snapshot().is_some(),
+        ),
+        may_open: daemon.dictation().snapshot().is_none(),
+        device: if pinned {
+            audio.input_device
+        } else {
+            String::new()
+        },
+    };
+    ready.reconcile(want, |device| {
+        daemon.dictation().open_microphone(daemon, device)
+    });
 }
 
 /// Reconciles every [`TICK`] off the runtime's worker threads.

@@ -36,7 +36,7 @@ fn microphone(t0: Instant, speech: (u64, u64), until_ms: u64) -> Source {
             } else {
                 vec![0; 320]
             };
-            if tx.send(Event::Pcm(pcm)).is_err() {
+            if tx.send(Event::pcm(pcm)).is_err() {
                 return;
             }
         }
@@ -163,6 +163,41 @@ fn the_release_tail_keeps_the_last_word() {
     assert!((880..=940).contains(&ms), "{ms} ms: the hold and its tail");
 }
 
+/// R2 and R5: a release that arrived while the start was still busy (a
+/// cold engine) ends the take at the release plus its tail, even though
+/// the ring hands over audio captured until the start finished.
+#[test]
+fn a_release_queued_behind_a_slow_start_ends_the_take_at_its_tail() {
+    let (dir, _, mut session, engine, _) = rig("queued");
+    let takes = Arc::new(Takes::default());
+    session.set_archive(takes.clone());
+    let t0 = Instant::now();
+    let feed = ReadyFeed::open(microphone(t0, (0, 5_000), 5_000)).unwrap();
+    let pressed = t0 + Duration::from_millis(1_000);
+    let released = pressed + Duration::from_millis(400);
+    // The start only gets to run a second after the press.
+    sleep_until(pressed + Duration::from_millis(1_000));
+    let take = feed.take(pressed - PRE_ROLL).expect("the feed is idle");
+    let mut p = policy(dir.path(), true);
+    p.release_tail = POST_RELEASE_TAIL;
+    session
+        .start(
+            p,
+            engine,
+            Arc::new(Once(Mutex::new(Some(take)))),
+            None,
+            pressed,
+        )
+        .unwrap();
+    session.stop_expected(None, released).unwrap();
+    feed.close();
+    let ms = takes.0.lock().unwrap().pop().expect("one take file").len() / 16;
+    assert!(
+        (1_040..=1_060).contains(&ms),
+        "{ms} ms: 450 ms pre-roll, the 400 ms hold and the 200 ms tail"
+    );
+}
+
 /// R3: a release under the minimum hold is a tap: no engine, no take
 /// kept, `cancelled` with reason `tap`, by `stop` and by the hold key's
 /// discard alike.
@@ -208,16 +243,12 @@ fn a_hold_of_the_minimum_is_a_take() {
     let (dir, _, session, engine, feed) = rig("held");
     let mut p = policy(dir.path(), false);
     p.min_hold = Duration::from_millis(300);
-    let pressed = Instant::now() - Duration::from_millis(300);
+    let pressed = Instant::now();
     session
         .start(p, engine, feed.clone(), None, pressed)
         .unwrap();
     feed.speak(200);
-    assert_eq!(
-        session
-            .stop_expected(None, pressed + Duration::from_millis(300))
-            .unwrap()
-            .text,
-        "Held"
-    );
+    let released = pressed + Duration::from_millis(300);
+    sleep_until(released);
+    assert_eq!(session.stop_expected(None, released).unwrap().text, "Held");
 }

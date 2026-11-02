@@ -100,7 +100,7 @@ impl MockCapture {
                         });
                         return;
                     }
-                    if tx.send(Event::Pcm(piece.to_vec())).is_err() {
+                    if tx.send(Event::pcm(piece.to_vec())).is_err() {
                         return;
                     }
                     for (rms, peak) in meter.push(piece) {
@@ -165,7 +165,7 @@ mod tests {
         let capture = MockCapture::open(&path, 50).unwrap();
         let events = capture.events();
         loop {
-            if let Event::Pcm(_) = events.recv().unwrap() {
+            if let Event::Pcm { .. } = events.recv().unwrap() {
                 break;
             }
         }
@@ -173,7 +173,9 @@ mod tests {
         capture.stop();
         for event in events.iter() {
             match event {
-                Event::Pcm(chunk) => panic!("{} samples published after the stop", chunk.len()),
+                Event::Pcm { pcm: chunk, .. } => {
+                    panic!("{} samples published after the stop", chunk.len())
+                }
                 Event::Ended { reason } => {
                     assert_eq!(reason, EndReason::Stopped);
                     return;
@@ -196,7 +198,7 @@ mod tests {
         let mut ended = None;
         for event in capture.events().iter() {
             match event {
-                Event::Pcm(chunk) => pcm += chunk.len(),
+                Event::Pcm { pcm: chunk, .. } => pcm += chunk.len(),
                 Event::Level { rms, .. } => {
                     assert!(rms > 0.2);
                     levels += 1;

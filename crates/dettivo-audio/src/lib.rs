@@ -42,7 +42,13 @@ pub enum Target {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Event {
     /// A chunk of 16 kHz mono signed 16-bit samples, always before `Ended`.
-    Pcm(Vec<i16>),
+    Pcm {
+        /// The samples.
+        pcm: Vec<i16>,
+        /// When the capture delivered the chunk, taken as the time of its
+        /// last sample (`CLOCK_MONOTONIC`).
+        at: std::time::Instant,
+    },
     /// One meter sample over the configured window.
     Level {
         /// Root mean square, 0..1.
@@ -62,6 +68,16 @@ pub enum Event {
         /// Why, for the session layer and the log.
         reason: EndReason,
     },
+}
+
+impl Event {
+    /// A chunk delivered now.
+    pub fn pcm(pcm: Vec<i16>) -> Self {
+        Self::Pcm {
+            pcm,
+            at: std::time::Instant::now(),
+        }
+    }
 }
 
 /// Why a capture ended.

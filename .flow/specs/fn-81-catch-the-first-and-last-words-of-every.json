@@ -8,13 +8,99 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-81-catch-the-first-and-last-words-of-every",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-81-catch-the-first-and-last-words-of-every.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "ae14c3c34163392ddfe6a21b68a550b8f946f5783976d9c791b6fb0d8020d575",
+      "backend": "codex",
+      "base_sha": "a077698d659882327b1eaf576ae18d55dceac909",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-302fa43ede12a2ccca9077965be2139c",
+            "classification": "introduced",
+            "findingId": "finding-302fa43ede12a2ccca9077965be2139c",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a61702c603bfc9de06768107dfcf7f76",
+            "classification": "introduced",
+            "findingId": "finding-a61702c603bfc9de06768107dfcf7f76",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-436c0d3d2983f92d92143b22d7a687d1",
+            "classification": "introduced",
+            "findingId": "finding-436c0d3d2983f92d92143b22d7a687d1",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-81467f959566d1eae568a6fcedf21e07",
+            "classification": "introduced",
+            "findingId": "finding-81467f959566d1eae568a6fcedf21e07",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c5376dac9855c397dccb40b043ef3bb4",
+            "classification": "introduced",
+            "findingId": "finding-c5376dac9855c397dccb40b043ef3bb4",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7de3c60a8cb923e8845a6a3ddcc8a21511447437",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 4143,
+      "output_sha256": "8e6b50d764cc8d84112667e086f2e310914f4ef96608246181a6f47504d01b20",
+      "reservation_id": "572409f97f7841fb9e9d32b37a4d27a8",
+      "round_consumed": true,
+      "scope": "impl:fn-81-catch-the-first-and-last-words-of-every.1",
+      "superseded_by": null,
+      "task": "fn-81-catch-the-first-and-last-words-of-every.1",
+      "timestamp": "2026-11-02T00:42:21.537713Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-81-catch-the-first-and-last-words-of-every.1": 0
+  },
   "spec_path": ".flow/specs/fn-81-catch-the-first-and-last-words-of-every.md",
   "status": "open",
   "title": "Catch the first and last words of every take",
@@ -29,5 +115,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T11:53:00.503028Z"
+  "updated_at": "2026-11-02T00:42:21.541237Z"
 }

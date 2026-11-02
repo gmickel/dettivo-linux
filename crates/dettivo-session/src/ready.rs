@@ -33,6 +33,8 @@ struct FeedState {
     ended: Option<EndReason>,
     /// The default source moved since the feed opened.
     moved: bool,
+    /// When the newest chunk was captured.
+    last_at: Option<Instant>,
 }
 
 /// A running always-ready feed.
@@ -54,6 +56,7 @@ impl ReadyFeed {
             tap: Tap::default(),
             ended: None,
             moved: false,
+            last_at: None,
         }));
         let stop = source.stopper();
         let shared = state.clone();
@@ -77,8 +80,8 @@ impl ReadyFeed {
         }
         let (tx, events) = mpsc::channel();
         let backlog = s.ring.since(since);
-        if !backlog.is_empty() {
-            let _ = tx.send(Event::Pcm(backlog));
+        if let (false, Some(at)) = (backlog.is_empty(), s.last_at) {
+            let _ = tx.send(Event::Pcm { pcm: backlog, at });
         }
         s.tap.generation += 1;
         s.tap.sender = Some(tx);
@@ -142,11 +145,11 @@ fn drain(source: Source, state: &Mutex<FeedState>) {
         let event = source.events().recv();
         let mut s = lock(state);
         match event {
-            Ok(Event::Pcm(pcm)) => {
-                s.ring.push(Instant::now(), &pcm);
-                // A take dropped before its session opened it frees the feed.
+            Ok(Event::Pcm { pcm, at }) => {
+                s.ring.push(at, &pcm);
+                s.last_at = Some(at);
                 if let Some(tx) = &s.tap.sender
-                    && tx.send(Event::Pcm(pcm)).is_err()
+                    && tx.send(Event::Pcm { pcm, at }).is_err()
                 {
                     s.tap.sender = None;
                 }
@@ -155,6 +158,7 @@ fn drain(source: Source, state: &Mutex<FeedState>) {
                 // Audio from the old source never prefixes a later take.
                 s.moved = true;
                 s.ring.clear();
+                s.last_at = None;
                 if let Some(tx) = &s.tap.sender {
                     let _ = tx.send(Event::DeviceChanged { from, to });
                 }

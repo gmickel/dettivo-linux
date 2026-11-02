@@ -266,8 +266,20 @@ impl Dictation {
             mock,
             input_device: daemon.config().config.audio.input_device,
         });
-        self.session
-            .start(policy, engine, source, target, pressed_at)
+        let started = self
+            .session
+            .start(policy, engine, source.clone(), target, pressed_at);
+        // A start refused before it opened its source frees the ring now,
+        // so the next start finds it idle.
+        if let Some(unused) = source
+            .ready
+            .lock()
+            .unwrap_or_else(|p| p.into_inner())
+            .take()
+        {
+            unused.stop();
+        }
+        started
     }
 
     /// The always-ready microphone.
@@ -275,14 +287,14 @@ impl Dictation {
         &self.ready
     }
 
-    /// Opens the microphone the always-ready ring drains.
-    pub fn open_microphone(&self, daemon: &Daemon) -> Result<Source, String> {
-        let audio = &daemon.config().config.audio;
+    /// Opens the microphone the always-ready ring drains: `device`, or the
+    /// default source when it is empty.
+    pub fn open_microphone(&self, daemon: &Daemon, device: &str) -> Result<Source, String> {
         open_capture(
             daemon.audio(),
             mock_microphone().as_deref(),
-            &audio.input_device,
-            audio.level_interval_ms.max(1),
+            device,
+            daemon.config().config.audio.level_interval_ms.max(1),
         )
     }
 

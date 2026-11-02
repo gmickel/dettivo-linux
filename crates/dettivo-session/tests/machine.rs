@@ -99,7 +99,7 @@ fn silence_is_read_from_the_samples_not_the_meter() {
         )
         .unwrap();
     // 40 ms at 0.09 of full scale and no level event at all.
-    feed.send(Event::Pcm(support::tone(640)));
+    feed.send(Event::pcm(support::tone(640)));
     std::thread::sleep(Duration::from_millis(50));
     let t = session.stop().unwrap();
     assert_eq!(t.text, "Short take");
@@ -117,7 +117,7 @@ fn silence_is_read_from_the_samples_not_the_meter() {
             Instant::now(),
         )
         .unwrap();
-    feed.send(Event::Pcm(vec![0i16; 3_200]));
+    feed.send(Event::pcm(vec![0i16; 3_200]));
     feed.send(Event::Level {
         rms: 0.5,
         peak: 0.9,
@@ -146,7 +146,7 @@ fn unarchived_staging_is_discarded_and_silence_skips_the_engine() {
         )
         .unwrap();
     for _ in 0..10 {
-        feed.send(Event::Pcm(vec![0i16; 320]));
+        feed.send(Event::pcm(vec![0i16; 320]));
     }
     feed.send(Event::Level {
         rms: 0.0,

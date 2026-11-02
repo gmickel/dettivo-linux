@@ -36,7 +36,7 @@ fn two_tracks_switch_stop_and_the_journal_says_what_happened() {
     );
     let dir = session.artifacts().dir(&id);
 
-    feeds.mic(0).send(Event::Pcm(vec![1; 1600])).unwrap();
+    feeds.mic(0).send(Event::pcm(vec![1; 1600])).unwrap();
     feeds
         .mic(0)
         .send(Event::Level {
@@ -44,7 +44,7 @@ fn two_tracks_switch_stop_and_the_journal_says_what_happened() {
             peak: 0.5,
         })
         .unwrap();
-    feeds.system().send(Event::Pcm(vec![2; 3200])).unwrap();
+    feeds.system().send(Event::pcm(vec![2; 3200])).unwrap();
     feeds
         .system()
         .send(Event::Level {
@@ -67,8 +67,8 @@ fn two_tracks_switch_stop_and_the_journal_says_what_happened() {
         })
         .unwrap();
     std::thread::sleep(Duration::from_millis(100));
-    feeds.mic(1).send(Event::Pcm(vec![3; 800])).unwrap();
-    feeds.system().send(Event::Pcm(vec![2; 1600])).unwrap();
+    feeds.mic(1).send(Event::pcm(vec![3; 800])).unwrap();
+    feeds.system().send(Event::pcm(vec![2; 1600])).unwrap();
     std::thread::sleep(Duration::from_millis(100));
     let live = session.snapshot().unwrap();
     assert_eq!(live.microphone_takes, 2);
@@ -160,14 +160,14 @@ fn a_loss_with_no_device_keeps_the_system_track_and_no_monitor_is_room_audio() {
     session
         .start(policy(), feeds.clone(), engine.clone(), id)
         .unwrap();
-    feeds.mic(0).send(Event::Pcm(vec![1; 160])).unwrap();
+    feeds.mic(0).send(Event::pcm(vec![1; 160])).unwrap();
     feeds
         .mic(0)
         .send(Event::Ended {
             reason: EndReason::NoSource,
         })
         .unwrap();
-    feeds.system().send(Event::Pcm(vec![2; 1600])).unwrap();
+    feeds.system().send(Event::pcm(vec![2; 1600])).unwrap();
     std::thread::sleep(Duration::from_millis(100));
     session.stop().unwrap();
     assert!(session.wait_idle(Duration::from_secs(5)));
@@ -186,7 +186,7 @@ fn a_loss_with_no_device_keeps_the_system_track_and_no_monitor_is_room_audio() {
         .start(policy(), feeds.clone(), engine, MeetingRow::new())
         .unwrap();
     assert!(!snapshot.system_audio);
-    feeds.mic(0).send(Event::Pcm(vec![1; 160])).unwrap();
+    feeds.mic(0).send(Event::pcm(vec![1; 160])).unwrap();
     std::thread::sleep(Duration::from_millis(50));
     session.stop().unwrap();
     assert!(session.wait_idle(Duration::from_secs(5)));
@@ -206,7 +206,7 @@ fn cancel_removes_the_directory_and_a_write_failure_ends_failed_with_the_takes()
         .start(policy(), feeds.clone(), engine.clone(), MeetingRow::new())
         .unwrap();
     let dir = session.artifacts().dir(&snapshot.meeting_id);
-    feeds.mic(0).send(Event::Pcm(vec![1; 160])).unwrap();
+    feeds.mic(0).send(Event::pcm(vec![1; 160])).unwrap();
     std::thread::sleep(Duration::from_millis(50));
     assert!(dir.join("microphone.wav").is_file());
     let cancelled = session.cancel().unwrap();
@@ -272,8 +272,8 @@ fn a_source_that_opens_later_keeps_its_origin_live_and_in_the_takes() {
     session.start(policy(), feeds.clone(), engine, row).unwrap();
     let dir = session.artifacts().dir(&id);
     // Four seconds of speech on both tracks: enough for a live window.
-    feeds.mic(0).send(Event::Pcm(tone(4000, 8000))).unwrap();
-    feeds.system().send(Event::Pcm(tone(4000, 8000))).unwrap();
+    feeds.mic(0).send(Event::pcm(tone(4000, 8000))).unwrap();
+    feeds.system().send(Event::pcm(tone(4000, 8000))).unwrap();
     std::thread::sleep(Duration::from_millis(1500));
     session.stop().unwrap();
     assert!(session.wait_idle(Duration::from_secs(10)));

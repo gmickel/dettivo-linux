@@ -54,7 +54,7 @@ impl CaptureData {
         for (rms, peak) in self.meter.push(&samples) {
             let _ = self.tx.send(Event::Level { rms, peak });
         }
-        let _ = self.tx.send(Event::Pcm(samples));
+        let _ = self.tx.send(Event::pcm(samples));
     }
 }
 

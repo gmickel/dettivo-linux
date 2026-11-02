@@ -175,7 +175,7 @@ impl Feed {
     pub fn speak(&self, ms: u64) {
         let chunk = tone(320);
         for _ in 0..(ms / 20) {
-            self.send(Event::Pcm(chunk.clone()));
+            self.send(Event::pcm(chunk.clone()));
         }
         self.send(Event::Level {
             rms: 0.1,

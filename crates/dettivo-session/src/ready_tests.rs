@@ -28,13 +28,13 @@ fn a_take_gets_the_pre_roll_then_live_audio_until_its_stop() {
     let (mic, source, _) = channel();
     let feed = ReadyFeed::open(source).unwrap();
     let sent = Instant::now();
-    mic.send(Event::Pcm(vec![1; 16_000])).unwrap();
+    mic.send(Event::pcm(vec![1; 16_000])).unwrap();
     settle();
     let take = feed
         .take(sent - Duration::from_millis(300))
         .expect("the feed is idle");
     let backlog = match take.events().recv().unwrap() {
-        Event::Pcm(pcm) => pcm,
+        Event::Pcm { pcm, .. } => pcm,
         other => panic!("{other:?}"),
     };
     assert!(
@@ -42,8 +42,13 @@ fn a_take_gets_the_pre_roll_then_live_audio_until_its_stop() {
         "the last 300 ms of the second the ring held, trimmed to the sample: {}",
         backlog.len()
     );
-    mic.send(Event::Pcm(vec![2; 320])).unwrap();
-    assert_eq!(take.events().recv().unwrap(), Event::Pcm(vec![2; 320]));
+    let live = Event::pcm(vec![2; 320]);
+    mic.send(live.clone()).unwrap();
+    assert_eq!(
+        take.events().recv().unwrap(),
+        live,
+        "forwarded with its capture stamp"
+    );
     assert!(feed.take(Instant::now()).is_none(), "one take at a time");
     take.stop();
     assert_eq!(
@@ -52,16 +57,17 @@ fn a_take_gets_the_pre_roll_then_live_audio_until_its_stop() {
             reason: EndReason::Stopped
         }
     );
-    mic.send(Event::Pcm(vec![3; 320])).unwrap();
+    mic.send(Event::pcm(vec![3; 320])).unwrap();
     settle();
     assert!(take.events().try_recv().is_err(), "nothing after the stop");
     assert!(!feed.tapped());
     let next = feed.take(Instant::now()).expect("free again");
     take.stop();
-    mic.send(Event::Pcm(vec![4; 320])).unwrap();
+    let next_chunk = Event::pcm(vec![4; 320]);
+    mic.send(next_chunk.clone()).unwrap();
     assert_eq!(
         next.events().recv().unwrap(),
-        Event::Pcm(vec![4; 320]),
+        next_chunk,
         "a stale stop leaves the next take alone"
     );
 }
