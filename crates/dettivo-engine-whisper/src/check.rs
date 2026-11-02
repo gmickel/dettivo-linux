@@ -310,13 +310,28 @@ pub fn settle(finding: &Finding, plain: &[String]) -> Option<Vec<String>> {
             .map(|w| w.norm.as_str())
             .collect();
         let their_letters: String = their_norms[theirs.0..theirs.1].concat();
-        if our_letters != their_letters && !gaps.contains(&(ours, theirs)) {
+        if our_letters != their_letters {
             gaps.push((ours, theirs));
         }
     }
     if gaps.is_empty() {
         return None;
     }
+    // A word inside a multi-word term can anchor, so two suspects' gaps can
+    // overlap; anchors keep both decodes in order, so the union of the two
+    // is one gap on each side.
+    gaps.sort_by_key(|g| g.0);
+    let mut merged: Vec<((usize, usize), (usize, usize))> = Vec::new();
+    for (ours, their) in gaps {
+        match merged.last_mut() {
+            Some((o, t)) if ours.0 < o.1 => {
+                o.1 = o.1.max(ours.1);
+                *t = (t.0.min(their.0), t.1.max(their.1));
+            }
+            _ => merged.push((ours, their)),
+        }
+    }
+    let gaps = merged;
     // Byte edits per segment: (start, end, replacement).
     let mut edits: Vec<Vec<(usize, usize, String)>> = vec![Vec::new(); finding.texts.len()];
     for (ours, their) in gaps {

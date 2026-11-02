@@ -53,7 +53,7 @@ One release Vulkan engine build per level, each through the whole bench with the
 | -0.15 | 9/15 | 0 | 0.000 | target-hyprland-1 77.7 and the three distractors |
 | -0.1 | 9/15 | 0 | 0.000 | target-hyprland-1 77.6 and the three distractors |
 
-At -0.15 and above, target-hyprland-1 is checked and gives way to "Piper Lan". At -0.5 and below, "Omarchy said would arrive" stays. In between, the three distractors come back as the decode without the prompt heard them: "Omar keeps the spare keys in his desk.", "Play and I went to the cinema on Saturday." and "Omar, he said would arrive at noon."
+At -0.15 and above, target-hyprland-1 is checked and gives way to "Piper Lan". At -0.5, "Clef and I went to the cinema" stays, and at -1.0 "Omarchy said would arrive" stays with it. In between, the three distractors come back as the decode without the prompt heard them: "Omar keeps the spare keys in his desk.", "Play and I went to the cinema on Saturday." and "Omar, he said would arrive at noon."
 
 ## The shipped level
 

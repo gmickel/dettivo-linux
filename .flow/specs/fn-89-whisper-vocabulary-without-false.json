@@ -10,13 +10,75 @@
     "fn-84-vocabulary-on-parakeet"
   ],
   "id": "fn-89-whisper-vocabulary-without-false",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-89-whisper-vocabulary-without-false.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "3529116a81aa6e907b1e0c5bb9220944ba22751a584eaf8325df2f6dba3d9d7e",
+      "backend": "codex",
+      "base_sha": "e0071ee5485da488e28358eff3a4860c52bedf9b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6d8403e07cb52e244eda3d578aa55ea4",
+            "classification": "introduced",
+            "findingId": "finding-6d8403e07cb52e244eda3d578aa55ea4",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1f5d778dd0c3578c851aa15c324f7eb8",
+            "classification": "introduced",
+            "findingId": "finding-1f5d778dd0c3578c851aa15c324f7eb8",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2618cc980656668df74cbe889e253be468971db8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1736,
+      "output_sha256": "f86eb9ec2d5dcf76cbbcb119d2d2bd6e6e3c654f5266a26b55375fd4713eda54",
+      "reservation_id": "773a73d09ae149a99e2be3dff7e6cb03",
+      "round_consumed": true,
+      "scope": "impl:fn-89-whisper-vocabulary-without-false.1",
+      "superseded_by": null,
+      "task": "fn-89-whisper-vocabulary-without-false.1",
+      "timestamp": "2026-11-02T10:07:12.555146Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-89-whisper-vocabulary-without-false.1": 0
+  },
   "spec_path": ".flow/specs/fn-89-whisper-vocabulary-without-false.md",
   "status": "open",
   "title": "Whisper vocabulary without false insertions",
@@ -31,5 +93,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T23:42:46.786261Z"
+  "updated_at": "2026-11-02T10:07:12.558100Z"
 }

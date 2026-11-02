@@ -139,6 +139,43 @@ fn a_suspect_the_prompt_free_decode_also_spells_stands() {
     assert_eq!(settle(&echo, &plain(&[" Clef."])), None);
 }
 
+/// Suspects whose gaps overlap, because a word inside a multi-word term
+/// is shared with the prompt-free decode, settle as one gap instead of
+/// two edits that overlap (which panicked).
+#[test]
+fn suspects_with_overlapping_gaps_settle_as_one() {
+    // (terms, prompted words, prompt-free text, settled text)
+    let cases: &[(&[&str], &[&str], &str, &str)] = &[
+        (
+            &["Visual Studio", "Code"],
+            &[" Use", " Visual Studio", " Code."],
+            " Use Visual.",
+            "Use Visual.",
+        ),
+        (
+            &["SapienXT", "Clef"],
+            &[" Sapien XT", " Clef."],
+            " XT.",
+            "XT.",
+        ),
+        (
+            &["New Hampshire", "West End"],
+            &[" New Hampshire", " West End."],
+            " New End.",
+            "New End.",
+        ),
+    ];
+    for &(terms, words, heard, settled) in cases {
+        let pieces: Vec<(&str, f32)> = words
+            .iter()
+            .map(|w| (*w, if w.trim() == "Use" { 0.0 } else { -2.0 }))
+            .collect();
+        let found = take(&[&pieces], terms);
+        assert!(found.needs_plain_decode(), "{words:?}");
+        assert_eq!(settle(&found, &plain(&[heard])), Some(plain(&[settled])));
+    }
+}
+
 /// Tokens that do not spell the segment's text leave no confidence, so
 /// the term is checked rather than trusted.
 #[test]

@@ -88,9 +88,7 @@ pub struct RecognizeParams {
     /// Ask for segment timestamps.
     #[serde(default = "yes")]
     pub timestamps: bool,
-    /// The vocabulary the transcript is rescored towards (Parakeet), or
-    /// whose terms a prompted transcript is checked against (Whisper, which
-    /// reads neither the aliases nor the boost).
+    /// The vocabulary rescored towards (Parakeet) or checked against (Whisper, terms only).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vocabulary: Option<VocabularyBias>,
 }
