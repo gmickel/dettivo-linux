@@ -1,0 +1,200 @@
+{
+  "branch": "fn-89-whisper-vocabulary-without-false",
+  "findings": {
+    "backend": "interactive",
+    "headSha": "9b1f92e2caff950a57decc00e73fd07a47a95511",
+    "items": [
+      {
+        "body": "A take that is one listed name (\"Omarchy.\", \"Clef.\", \"Hyprland.\") is echo-shaped and is replaced by the prompt-free decode, so the misspelling is pasted even when the prompted decode was near-certain (Clef -0.009, Omarchy -0.097). Five-term vocabulary: base e0071ee pasted 7/10 single names, HEAD 1/10, same in two runs; one-term vocabulary: base 1/10, HEAD 0/10. Breaks fn-79 R6 (\"A take that says the one listed term pastes it\") and docs/dictation.md:48 still promises it. Evidence: .flow/tmp/qa-fn-89-whisper-vocabulary-without-false/finding-S6-single-name.md, run1/single-on, run2/single-on, base/single-on, run1/single-one-*, base/single-one-*. (surface: crates/dettivo-engine-whisper/src/check.rs)",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-76e9ea1780a3097f27cf4ff49e25fd5033062fe1cf91d78d7b6b1eb027a073c1",
+        "id": "finding-e76b26bb20e482fa84d8d5d8a2ec59bb",
+        "lastSeenReceiptId": "review-76e9ea1780a3097f27cf4ff49e25fd5033062fe1cf91d78d7b6b1eb027a073c1",
+        "ordinal": 1,
+        "rIds": [
+          "R6"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "title": "QA-fn89-1-single-name-not-pasted"
+      },
+      {
+        "body": "The prompt-free second decode of short single-name takes (Omarchy x2, SapienXT amy) took 804-1210 ms, reproduced on a rerun, against the 150 ms target for clips with a candidate; bench clips stay at 80-122 ms so R4's benchmark median holds. Evidence: .flow/tmp/qa-fn-89-whisper-vocabulary-without-false/finding-S4-single-name-latency.md, run1/single-on, run2/single-on. (surface: crates/dettivo-engine-whisper/src/check.rs)",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-76e9ea1780a3097f27cf4ff49e25fd5033062fe1cf91d78d7b6b1eb027a073c1",
+        "id": "finding-0e38ebbe11815094ee1a4d0af854d84e",
+        "lastSeenReceiptId": "review-76e9ea1780a3097f27cf4ff49e25fd5033062fe1cf91d78d7b6b1eb027a073c1",
+        "ordinal": 2,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-fn89-2-single-name-second-decode-slow"
+      },
+      {
+        "body": "guard-library through the daemon pastes \"during the exam..\" where the bench writes \"exam period.\"; same with the vocabulary off and at base e0071ee, so not caused by fn-89. Evidence: .flow/tmp/qa-fn-89-whisper-vocabulary-without-false/finding-guard-library.md. (surface: dettivod dictation path (Whisper))",
+        "classification": "pre_existing",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-76e9ea1780a3097f27cf4ff49e25fd5033062fe1cf91d78d7b6b1eb027a073c1",
+        "id": "finding-077c030b3e8a8d187bc66fc515da29f3",
+        "lastSeenReceiptId": "review-76e9ea1780a3097f27cf4ff49e25fd5033062fe1cf91d78d7b6b1eb027a073c1",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "QA-fn89-3-exam-period-double-stop"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-76e9ea1780a3097f27cf4ff49e25fd5033062fe1cf91d78d7b6b1eb027a073c1"
+  },
+  "head_sha": "9b1f92e2caff950a57decc00e73fd07a47a95511",
+  "id": "fn-89-whisper-vocabulary-without-false",
+  "mode": "interactive",
+  "open_p0p1": [
+    {
+      "classification": "introduced",
+      "confidence": 100,
+      "file": "crates/dettivo-engine-whisper/src/check.rs",
+      "id": "QA-fn89-1-single-name-not-pasted",
+      "reason": "A take that is one listed name (\"Omarchy.\", \"Clef.\", \"Hyprland.\") is echo-shaped and is replaced by the prompt-free decode, so the misspelling is pasted even when the prompted decode was near-certain (Clef -0.009, Omarchy -0.097). Five-term vocabulary: base e0071ee pasted 7/10 single names, HEAD 1/10, same in two runs; one-term vocabulary: base 1/10, HEAD 0/10. Breaks fn-79 R6 (\"A take that says the one listed term pastes it\") and docs/dictation.md:48 still promises it. Evidence: .flow/tmp/qa-fn-89-whisper-vocabulary-without-false/finding-S6-single-name.md, run1/single-on, run2/single-on, base/single-on, run1/single-one-*, base/single-one-*.",
+      "severity": "P1"
+    }
+  ],
+  "qa_outcome": "NEEDS_WORK",
+  "rid_coverage": {
+    "covered": 5,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "live",
+        "id": "R2"
+      },
+      {
+        "coverage": "live",
+        "id": "R3"
+      },
+      {
+        "coverage": "live",
+        "id": "R4"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R5"
+      }
+    ],
+    "total": 5
+  },
+  "scenarios": [
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run1-all.log",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run1/set-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run1/set-off/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run1/set-on/distractor-omar/engine.log",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run2/set-on/results.tsv"
+      ],
+      "head_sha": "9b1f92e2caff950a57decc00e73fd07a47a95511",
+      "id": "S1-daemon-distractors-and-guards-no-false-insertion",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run1/set-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run2/set-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/base/set-on/results.tsv"
+      ],
+      "head_sha": "9b1f92e2caff950a57decc00e73fd07a47a95511",
+      "id": "S2-daemon-target-recall",
+      "outcome": "PASS",
+      "rids": [
+        "R2"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run1/set-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/base/set-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/base-build.log"
+      ],
+      "head_sha": "9b1f92e2caff950a57decc00e73fd07a47a95511",
+      "id": "S3-term-free-takes-byte-identical-no-second-decode",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run1/set-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run2/set-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/bench/bench.log",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run1/gpu.txt"
+      ],
+      "head_sha": "9b1f92e2caff950a57decc00e73fd07a47a95511",
+      "id": "S4-added-latency-per-clip",
+      "outcome": "PASS",
+      "rids": [
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/bench/bench.log",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/bench/evidence/run-1793618001-1642401/bench-vocabulary/vocabulary-report.json"
+      ],
+      "head_sha": "9b1f92e2caff950a57decc00e73fd07a47a95511",
+      "id": "S5-bench-vocabulary-reproduces-report",
+      "outcome": "PASS",
+      "rids": [
+        "R1",
+        "R2",
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/finding-S6-single-name.md",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run1/single-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run2/single-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/base/single-on/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run2-all.log"
+      ],
+      "head_sha": "9b1f92e2caff950a57decc00e73fd07a47a95511",
+      "id": "S6-single-listed-name-pastes-it",
+      "outcome": "FAIL",
+      "rids": [],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run1/regr-head/results.tsv",
+        ".flow/tmp/qa-fn-89-whisper-vocabulary-without-false/run2-all.log"
+      ],
+      "head_sha": "9b1f92e2caff950a57decc00e73fd07a47a95511",
+      "id": "S7-regression-overlapping-multi-word-suspects",
+      "outcome": "PASS",
+      "rids": [],
+      "run": "live"
+    }
+  ],
+  "timestamp": "2026-11-02T11:16:02Z",
+  "type": "qa_verdict",
+  "verdict": "NEEDS_WORK"
+}
