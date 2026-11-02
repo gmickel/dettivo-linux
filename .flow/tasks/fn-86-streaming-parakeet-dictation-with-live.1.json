@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-86-streaming-parakeet-dictation-with-live",
   "spec_path": ".flow/tasks/fn-86-streaming-parakeet-dictation-with-live.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Streaming Parakeet dictation with live text",
   "updated_at": "2026-11-02T00:46:47.400673Z"
 }

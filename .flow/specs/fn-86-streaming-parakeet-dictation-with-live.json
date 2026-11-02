@@ -186,7 +186,7 @@
     "impl:fn-86-streaming-parakeet-dictation-with-live.1": 0
   },
   "spec_path": ".flow/specs/fn-86-streaming-parakeet-dictation-with-live.md",
-  "status": "open",
+  "status": "done",
   "title": "Streaming Parakeet dictation with live text",
   "tracker": {
     "baseHashFlow": null,
@@ -199,5 +199,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-02T09:11:55.011967Z"
+  "updated_at": "2026-11-02T14:32:37.637771Z"
 }
