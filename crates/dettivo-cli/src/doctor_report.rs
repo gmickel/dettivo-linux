@@ -57,10 +57,7 @@ pub fn human(report: &Value) -> String {
             "capture unavailable".into()
         },
     );
-    row(
-        "microphone ready",
-        microphone_ready(&report["audio"]["microphone_ready"]),
-    );
+    row("microphone ready", microphone_ready(&report["audio"]));
     row("-- daemon", "--".into());
     row(
         "daemon",
@@ -271,12 +268,15 @@ pub fn human(report: &Value) -> String {
 }
 
 /// The always-ready microphone's row (ADR 0092): a capture that could
-/// not open is named here, never as a failed dictation.
-fn microphone_ready(ready: &Value) -> String {
+/// not open is named here, never as a failed dictation. A press opens the
+/// microphone itself only while PipeWire is there.
+fn microphone_ready(audio: &Value) -> String {
+    let ready = &audio["microphone_ready"];
     match ready["state"].as_str() {
         Some("off") | None => "off ([audio] keep_microphone_ready)".into(),
         Some("open") => "open: takes start 450 ms before the press".into(),
         Some("closed") => format!("closed: {}", show(&ready["reason"])),
+        Some(_) if audio["pipewire"] != true => format!("failed: {}", show(&ready["reason"])),
         Some(_) => format!(
             "failed: {}; dictation opens the microphone on press",
             show(&ready["reason"])
@@ -352,13 +352,14 @@ mod tests {
     /// row naming the failure.
     #[test]
     fn the_microphone_ready_row_names_its_state() {
-        let row = |ready: serde_json::Value| {
-            human(&json!({ "audio": { "microphone_ready": ready } }))
+        let row_on = |pipewire: bool, ready: serde_json::Value| {
+            human(&json!({ "audio": { "pipewire": pipewire, "microphone_ready": ready } }))
                 .lines()
                 .find(|l| l.starts_with("microphone ready"))
                 .expect("a microphone ready row")
                 .to_string()
         };
+        let row = |ready: serde_json::Value| row_on(true, ready);
         let failed =
             row(json!({"state": "failed", "reason": "audio device \"usb\" is not present"}));
         assert!(
@@ -372,6 +373,16 @@ mod tests {
         assert!(
             row(json!({"state": "closed", "reason": "the session is locked"}))
                 .contains("closed: the session is locked")
+        );
+        // QA81-3: with PipeWire gone a press cannot open the microphone
+        // either, so the row names PipeWire and promises nothing.
+        let gone = row_on(
+            false,
+            json!({"state": "failed", "reason": "PipeWire is not reachable: PipeWire went away"}),
+        );
+        assert!(
+            gone.ends_with("failed: PipeWire is not reachable: PipeWire went away"),
+            "{gone}"
         );
     }
 }

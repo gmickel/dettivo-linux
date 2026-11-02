@@ -38,7 +38,7 @@ pub fn devices(daemon: &Daemon) -> Result<Value, JsonRpcError> {
                 .collect();
             devices.sort_by(|a, b| a.name.cmp(&b.name));
             DevicesResult {
-                pipewire: true,
+                pipewire: service.connected(),
                 default_source: snapshot.default_source,
                 default_sink: snapshot.default_sink,
                 pinned,
