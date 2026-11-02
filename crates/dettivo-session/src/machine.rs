@@ -223,6 +223,7 @@ impl Session {
             cancel,
             released,
             tap,
+            pressed: pressed_at,
             route,
             dir: self.sessions_dir.join(&job_id),
             publisher: self.publisher.clone(),

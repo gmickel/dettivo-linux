@@ -1,0 +1,165 @@
+{
+  "branch": "fn-90-the-speech-check-runs-during-the-take",
+  "findings": {
+    "backend": "interactive",
+    "headSha": "9b05c7edfff234efae7d27313c444f05c6445943",
+    "items": [
+      {
+        "body": "With stt_idle_seconds under 60 a Parakeet reload after an idle unload skips its warm-up: last_recognized survives the unload, so WARM_UP_SKIP fires for a fresh process. Reproduced on both reloads (runs/fu-idle5). No visible cost on a current shader cache; after a driver or engine update a take past 40 s would compile its own kernels. The default of 300 s cannot trigger it. (surface: crates/dettivo-speech/src/supervisor_warm.rs)",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-d94fa00aa94046072377fd116aa049c9863954590ccdf03f2ef3a6944690a1e4",
+        "id": "finding-b1305137c8c6c9b94b6cffcd486eb808",
+        "lastSeenReceiptId": "review-d94fa00aa94046072377fd116aa049c9863954590ccdf03f2ef3a6944690a1e4",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "F1"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-d94fa00aa94046072377fd116aa049c9863954590ccdf03f2ef3a6944690a1e4"
+  },
+  "head_sha": "9b05c7edfff234efae7d27313c444f05c6445943",
+  "id": "fn-90-the-speech-check-runs-during-the-take",
+  "mode": "interactive",
+  "open_p0p1": [],
+  "qa_outcome": "SHIP",
+  "rid_coverage": {
+    "covered": 5,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "live",
+        "id": "R2"
+      },
+      {
+        "coverage": "live",
+        "id": "R3"
+      },
+      {
+        "coverage": "live",
+        "id": "R4"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R5"
+      }
+    ],
+    "total": 5
+  },
+  "scenarios": [
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/gate-batch.log",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/p1-r1_click/",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/p2-r1_click/",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/p1-r1_thump/",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/p2-r6_silence/"
+      ],
+      "head_sha": "9b05c7edfff234efae7d27313c444f05c6445943",
+      "id": "S1-gate-level (click, thump, silence)",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/gate-batch.log",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/p1-r2_fan_brown/",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/p2-r2_music_bed/",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/p1-r2_breathing/",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/p2-r2_thump_loud/"
+      ],
+      "head_sha": "9b05c7edfff234efae7d27313c444f05c6445943",
+      "id": "S2-gate-voice (fan, music, breathing, loud thump)",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/gate-batch.log",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/p1-r2_whisper/",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/p2-r2_one_word_great/",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/p1-s_short_word/",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/p2-r4_jfk/"
+      ],
+      "head_sha": "9b05c7edfff234efae7d27313c444f05c6445943",
+      "id": "S3-gate-pass (whisper, one word, -45 dB word, short word, hello world, jfk)",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/r2-bench-1/takes.jsonl",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/r2-contention.log",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/r2-rerun60-fn90/takes.jsonl",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/r2-rerun60-goal/takes.jsonl",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/r2-rerun60-fn90b/takes.jsonl",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/r2-contention-2.log"
+      ],
+      "head_sha": "9b05c7edfff234efae7d27313c444f05c6445943",
+      "id": "S4-release-to-text 30/60/120 s",
+      "outcome": "PASS",
+      "rids": [
+        "R2"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/r3-jfk-x3-a/",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/run-notes.log"
+      ],
+      "head_sha": "9b05c7edfff234efae7d27313c444f05c6445943",
+      "id": "S5-no-dropped-audio (34 s take vs fixture)",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/r4-idle61/takes.jsonl",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/r4-idle61/daemon.log",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/r4-contention.log"
+      ],
+      "head_sha": "9b05c7edfff234efae7d27313c444f05c6445943",
+      "id": "S6-first-take-after-idle-unload",
+      "outcome": "PASS",
+      "rids": [
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/runs/reg-cancel-a/cycles.jsonl",
+        ".flow/tmp/qa-fn-90-the-speech-check-runs-during-the-take/reg-cancel-leftover.log"
+      ],
+      "head_sha": "9b05c7edfff234efae7d27313c444f05c6445943",
+      "id": "REG-cancelled-take-then-next-take",
+      "outcome": "PASS",
+      "rids": [],
+      "run": "live"
+    }
+  ],
+  "timestamp": "2026-11-02T16:02:54Z",
+  "type": "qa_verdict",
+  "verdict": "SHIP"
+}

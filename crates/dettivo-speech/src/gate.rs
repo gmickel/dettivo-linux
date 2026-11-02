@@ -5,6 +5,8 @@
 //! two, run only when the level passes, is the Silero voice activity pass:
 //! no voice is silence. Without a voice detector, or when it fails, the
 //! level decides alone. The gate only decides; it never trims a take.
+//! A detector that streams hears the take's voice as it is captured, so
+//! at the release only its last samples remain to run (ADR 0097).
 
 use dettivo_engine_proto::DetectSpeechParams;
 
@@ -20,6 +22,7 @@ pub const VAD_MODEL: (&str, &str) = ("whisper", "silero-vad");
 pub const VAD_PARAMS: DetectSpeechParams = DetectSpeechParams {
     threshold: 0.4,
     min_speech_ms: 160,
+    continues: None,
 };
 
 /// The shortest take a recognizer is given, in milliseconds.
@@ -33,6 +36,21 @@ pub const PARAKEET_TAIL_MS: u32 = 400;
 pub trait VoiceDetector: Send + Sync {
     /// Milliseconds of speech in `pcm` under [`VAD_PARAMS`].
     fn speech_ms(&self, pcm: &[i16]) -> Result<u64, EngineError>;
+
+    /// A pass over one take as it is captured; `None` when this detector
+    /// judges only whole takes.
+    fn stream(&self) -> Option<Box<dyn SpeechStream>> {
+        None
+    }
+}
+
+/// The voice pass over one take, fed as it is captured. What it finds
+/// equals [`VoiceDetector::speech_ms`] over the whole take.
+pub trait SpeechStream: Send {
+    /// Runs `pcm`, the take's next samples.
+    fn feed(&mut self, pcm: &[i16]) -> Result<(), EngineError>;
+    /// Milliseconds of speech in the take: what was fed, then `rest`.
+    fn finish(&mut self, rest: &[i16]) -> Result<u64, EngineError>;
 }
 
 /// Which stage found a take silent.
@@ -88,14 +106,25 @@ pub fn loudest_window_dbfs(pcm: &[i16], sample_rate: u32) -> Option<f32> {
 /// Judges a take: `pcm` is what was captured before the release, so a
 /// sound after it never counts as speech.
 pub fn judge(pcm: &[i16], silence_dbfs: f32, vad: Option<&dyn VoiceDetector>) -> GateVerdict {
+    judge_voice(pcm, silence_dbfs, vad.map(|v| move || v.speech_ms(pcm)))
+}
+
+/// [`judge`] with the voice pass's answer from `voice`, asked only when
+/// the level passed, so a take heard as it was captured passes the same
+/// stages.
+pub fn judge_voice(
+    pcm: &[i16],
+    silence_dbfs: f32,
+    voice: Option<impl FnOnce() -> Result<u64, EngineError>>,
+) -> GateVerdict {
     match loudest_window_dbfs(pcm, SAMPLE_RATE) {
         Some(db) if db >= silence_dbfs => {}
         _ => return GateVerdict::Silence(SilenceReason::Level),
     }
-    let Some(vad) = vad else {
+    let Some(voice) = voice else {
         return GateVerdict::Speech;
     };
-    match vad.speech_ms(pcm) {
+    match voice() {
         Ok(0) => GateVerdict::Silence(SilenceReason::NoVoice),
         Ok(_) => GateVerdict::Speech,
         Err(e) => {
