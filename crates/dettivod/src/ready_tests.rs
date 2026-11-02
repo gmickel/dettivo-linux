@@ -1,5 +1,5 @@
 use super::*;
-use std::sync::atomic::AtomicUsize;
+use std::sync::atomic::{AtomicBool, AtomicUsize};
 use std::sync::mpsc::{self, Sender};
 
 use dettivo_audio::{EndReason, Event};
@@ -150,10 +150,11 @@ fn a_moved_or_lost_device_reopens_and_a_failure_is_reported() {
         Err("audio device \"laptop\" is not present".into())
     });
     assert_eq!(
-        ready.status().wire(),
+        ready.wire(),
         MicrophoneReady {
             state: "failed".into(),
             reason: Some("audio device \"laptop\" is not present".into()),
+            lock_signal: "none".into(),
         }
     );
     ready.reconcile(want(Ok(())), |_| {

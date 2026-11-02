@@ -963,6 +963,8 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "uuid",
+ "wayland-client",
+ "wayland-scanner",
  "zbus",
 ]
 

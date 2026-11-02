@@ -269,13 +269,19 @@ pub fn human(report: &Value) -> String {
 
 /// The always-ready microphone's row (ADR 0092): a capture that could
 /// not open is named here, never as a failed dictation. A press opens the
-/// microphone itself only while PipeWire is there.
+/// microphone itself only while PipeWire is there. An open or waiting ring
+/// says whether a screen lock closes it.
 fn microphone_ready(audio: &Value) -> String {
     let ready = &audio["microphone_ready"];
+    let lock = match ready["lock_signal"].as_str() {
+        Some("compositor") => "closes when the screen locks",
+        Some("logind") => "closes on a lock only where the locker sets logind's LockedHint",
+        _ => "no lock signal: stays open while the screen is locked",
+    };
     match ready["state"].as_str() {
         Some("off") | None => "off ([audio] keep_microphone_ready)".into(),
-        Some("open") => "open: takes start 450 ms before the press".into(),
-        Some("closed") => format!("closed: {}", show(&ready["reason"])),
+        Some("open") => format!("open: takes start 450 ms before the press; {lock}"),
+        Some("closed") => format!("closed: {}; {lock}", show(&ready["reason"])),
         Some(_) if audio["pipewire"] != true => format!("failed: {}", show(&ready["reason"])),
         Some(_) => format!(
             "failed: {}; dictation opens the microphone on press",
@@ -384,5 +390,36 @@ mod tests {
             gone.ends_with("failed: PipeWire is not reachable: PipeWire went away"),
             "{gone}"
         );
+    }
+
+    /// QA81-1: an open ring says whether a screen lock closes it, and
+    /// warns when nothing would.
+    #[test]
+    fn the_microphone_ready_row_names_the_lock_signal() {
+        for (signal, says) in [
+            ("compositor", "closes when the screen locks"),
+            (
+                "logind",
+                "closes on a lock only where the locker sets logind's LockedHint",
+            ),
+            (
+                "none",
+                "no lock signal: stays open while the screen is locked",
+            ),
+        ] {
+            let ready = json!({"state": "open", "reason": null, "lock_signal": signal});
+            let report =
+                human(&json!({ "audio": { "pipewire": true, "microphone_ready": ready } }));
+            let row = report
+                .lines()
+                .find(|l| l.starts_with("microphone ready"))
+                .unwrap();
+            assert!(
+                row.ends_with(&format!(
+                    "open: takes start 450 ms before the press; {says}"
+                )),
+                "{row}"
+            );
+        }
     }
 }

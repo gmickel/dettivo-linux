@@ -2,7 +2,8 @@
 //! user's graphical session from logind (`User.Display` of
 //! `/org/freedesktop/login1/user/self`), whose `LockedHint` and `Active`
 //! properties close the ring while the screen is locked or another
-//! session is in front. Without logind the ring follows the setting alone.
+//! session is in front. Without logind the ring follows the compositor's
+//! lock (`ready_screen.rs`) alone.
 
 use std::sync::Arc;
 
@@ -11,14 +12,19 @@ use zbus::zvariant::OwnedObjectPath;
 use zbus::{Connection, Proxy};
 
 use crate::daemon::Daemon;
+use crate::ready::LockSource;
 
 const LOGIND: &str = "org.freedesktop.login1";
 
 /// Watches the session until the daemon stops.
 pub async fn watch(daemon: Arc<Daemon>) {
     if let Err(e) = follow(&daemon).await {
-        tracing::info!(error = %e, "microphone ready: logind unreachable, the session lock is not followed");
+        tracing::info!(error = %e, "microphone ready: logind unreachable, its session lock is not followed");
     }
+    daemon
+        .dictation()
+        .ready()
+        .set_lock(LockSource::Logind, None);
 }
 
 async fn follow(daemon: &Daemon) -> zbus::Result<()> {
@@ -37,7 +43,10 @@ async fn follow(daemon: &Daemon) -> zbus::Result<()> {
     let mut locked: bool = session.get_property("LockedHint").await?;
     let mut active: bool = session.get_property("Active").await?;
     loop {
-        daemon.dictation().ready().set_blocked(locked || !active);
+        daemon
+            .dictation()
+            .ready()
+            .set_lock(LockSource::Logind, Some(locked || !active));
         tokio::select! {
             Some(change) = locked_changes.next() => locked = change.get().await?,
             Some(change) = active_changes.next() => active = change.get().await?,

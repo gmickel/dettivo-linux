@@ -10,7 +10,7 @@ use crate::daemon::Daemon;
 /// `audio.devices`.
 pub fn devices(daemon: &Daemon) -> Result<Value, JsonRpcError> {
     let pinned = daemon.config().config.audio.input_device.clone();
-    let microphone_ready = daemon.dictation().ready().status().wire();
+    let microphone_ready = daemon.dictation().ready().wire();
     let result = match daemon.audio() {
         None => DevicesResult {
             pipewire: false,
