@@ -1,31 +1,31 @@
 {
   "branch": "fn-91-dettivo-survives-a-compositor-restart",
   "findings": {
-    "backend": "receipt",
-    "headSha": "f577b0b270569054f9f5fdcf5944d1d56b95ae06",
+    "backend": "interactive",
+    "headSha": "6ff03ffbe801a07daba6b845982cf5379133acc2",
     "items": [
       {
-        "body": "HYPRLAND_INSTANCE_SIGNATURE naming a LIVE instance of another Wayland display is used without the display check (other=2 queries, own display's instance 0); matches ADR 0099's 'at first the environment's' rule, but sits against the spec boundary 'match the Wayland display'. Predates fn-91. Memory: .flow/memory/bug/integration/hyprland-user-with-a-mismatched-2026-11-02.md (surface: crates/dettivo-insert/src/instance.rs)",
-        "classification": "pre_existing",
-        "confidence": 50,
-        "firstSeenReceiptId": "review-81d01a31556396347384e66604b25f0add423ddb2ac2545b982e0740f7d183de",
-        "id": "finding-a5306eeccebc225e629383af29cc09ce",
-        "lastSeenReceiptId": "review-81d01a31556396347384e66604b25f0add423ddb2ac2545b982e0740f7d183de",
+        "body": "Environment naming another display's live instance is now correctly ignored, but doctor reports it as 'stale (the compositor restarted)' and the switch log says from=\"none\" instead of both signatures (ADR 0099). Diagnostics only; insertion correct. Memory: .flow/memory/bug/ui/hyprland-user-with-another-displays-2026-11-02.md (surface: crates/dettivo-insert/src/instance.rs)",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-3a221ab545d712fc83f4afe464c20f8689da7ab90a5770df4481a2d286398278",
+        "id": "finding-b9a40f8a50aac924a5578d5d60d84fad",
+        "lastSeenReceiptId": "review-3a221ab545d712fc83f4afe464c20f8689da7ab90a5770df4481a2d286398278",
         "ordinal": 1,
         "rIds": [],
         "severity": "P2",
         "status": "open",
-        "title": "qa-fn91-S2e-env-other-display"
+        "title": "qa-fn91-S2f-env-other-display-reported-as-restart"
       }
     ],
     "reviewKind": "qa",
     "round": 1,
     "schemaVersion": 1,
-    "sourceReceiptId": "review-81d01a31556396347384e66604b25f0add423ddb2ac2545b982e0740f7d183de"
+    "sourceReceiptId": "review-3a221ab545d712fc83f4afe464c20f8689da7ab90a5770df4481a2d286398278"
   },
-  "head_sha": "f577b0b270569054f9f5fdcf5944d1d56b95ae06",
+  "head_sha": "6ff03ffbe801a07daba6b845982cf5379133acc2",
   "id": "fn-91-dettivo-survives-a-compositor-restart",
-  "mode": "receipt",
+  "mode": "interactive",
   "open_p0p1": [],
   "qa_outcome": "SHIP",
   "rid_coverage": {
@@ -53,11 +53,12 @@
   "scenarios": [
     {
       "evidence": [
-        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S1-r1-restart.log",
-        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S1-r1-restart.dettivod.log",
-        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/results-all.log"
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/S1-r1-restart.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/S1-r1-restart.dettivod.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/S1-r1-restart.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/results-s_r2_stale-s_r1_restart-s_reg_absolute_display.log"
       ],
-      "head_sha": "f577b0b270569054f9f5fdcf5944d1d56b95ae06",
+      "head_sha": "6ff03ffbe801a07daba6b845982cf5379133acc2",
       "id": "S1",
       "outcome": "PASS",
       "rids": [
@@ -68,10 +69,11 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S6-down.log",
-        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S6-down.dettivod.log"
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/S6-down.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/S6-down.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/results-s_r1_down.log"
       ],
-      "head_sha": "f577b0b270569054f9f5fdcf5944d1d56b95ae06",
+      "head_sha": "6ff03ffbe801a07daba6b845982cf5379133acc2",
       "id": "S6",
       "outcome": "PASS",
       "rids": [
@@ -82,11 +84,12 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S2-r2-stale.log",
-        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S2-r2-other-only.log",
-        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S2-r2-stale.dettivod.log"
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/S2-r2-stale.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/S2-r2-other-only.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/S2-r2-stale.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/S2-r2-other-only.log"
       ],
-      "head_sha": "f577b0b270569054f9f5fdcf5944d1d56b95ae06",
+      "head_sha": "6ff03ffbe801a07daba6b845982cf5379133acc2",
       "id": "S2",
       "outcome": "PASS",
       "rids": [
@@ -97,10 +100,13 @@
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S2-r2-env-other-live.log",
-        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/finding-S2e.md"
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/S2-r2-env-other-live.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/S2-r2-env-other-live.dettivod.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/S2-r2-env-other-live.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/S2-r2-env-other-live.dettivod.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/finding-S2f.md"
       ],
-      "head_sha": "f577b0b270569054f9f5fdcf5944d1d56b95ae06",
+      "head_sha": "6ff03ffbe801a07daba6b845982cf5379133acc2",
       "id": "S2e",
       "outcome": "PASS",
       "rids": [
@@ -119,7 +125,7 @@
       "rids": [
         "R3"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -132,7 +138,7 @@
       "rids": [
         "R3"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
@@ -147,13 +153,14 @@
       "rids": [
         "R3"
       ],
-      "run": "live"
+      "run": "carried"
     },
     {
       "evidence": [
-        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/R1-reg-absolute-display.log"
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/R1-reg-absolute-display.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/R1-reg-absolute-display.log"
       ],
-      "head_sha": "f577b0b270569054f9f5fdcf5944d1d56b95ae06",
+      "head_sha": "6ff03ffbe801a07daba6b845982cf5379133acc2",
       "id": "REG1",
       "outcome": "PASS",
       "rids": [],
@@ -167,10 +174,10 @@
       "id": "REG2",
       "outcome": "PASS",
       "rids": [],
-      "run": "live"
+      "run": "carried"
     }
   ],
-  "timestamp": "2026-11-02T10:59:19Z",
+  "timestamp": "2026-11-02T11:11:10Z",
   "type": "qa_verdict",
   "verdict": "SHIP"
 }
