@@ -13,7 +13,7 @@
 //! that decode heard in its place, which is nothing when it heard nothing
 //! there.
 //!
-//! Words are read as [`split`] reads them: at spaces and, in scripts
+//! Words are read as [`split()`] reads them: at spaces and, in scripts
 //! written without them, at every character; with the marks a term is
 //! spelt with (`C++`); and never across punctuation between words. A
 //! suspect stands against the prompt-free decode only when that decode
