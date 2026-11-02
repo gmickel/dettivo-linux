@@ -11,7 +11,7 @@
   ],
   "id": "fn-89-whisper-vocabulary-without-false",
   "impl_review_rounds": {
-    "fn-89-whisper-vocabulary-without-false.1": 1
+    "fn-89-whisper-vocabulary-without-false.1": 0
   },
   "next_task": 1,
   "no_plan": true,
@@ -71,9 +71,63 @@
       "task": "fn-89-whisper-vocabulary-without-false.1",
       "timestamp": "2026-11-02T10:07:12.555146Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d39360145d5b9572c9c9909c224af521c2070ce70356d7792d72ec373199b08b",
+      "backend": "codex",
+      "base_sha": "e0071ee5485da488e28358eff3a4860c52bedf9b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6d8403e07cb52e244eda3d578aa55ea4",
+            "classification": "introduced",
+            "findingId": "finding-6d8403e07cb52e244eda3d578aa55ea4",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1f5d778dd0c3578c851aa15c324f7eb8",
+            "classification": "introduced",
+            "findingId": "finding-1f5d778dd0c3578c851aa15c324f7eb8",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "841270997d2ecd94a7ab9812d5e0c8b22438d55c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1157,
+      "output_sha256": "20753cd6979e9061863edd3d55e83407284ed36a1d38a1d28bdac0584f6d9fff",
+      "reservation_id": "540959210acb42bfb7cf9c5aa3c6dd28",
+      "round_consumed": true,
+      "scope": "impl:fn-89-whisper-vocabulary-without-false.1",
+      "superseded_by": null,
+      "task": "fn-89-whisper-vocabulary-without-false.1",
+      "timestamp": "2026-11-02T10:09:04.458798Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-89-whisper-vocabulary-without-false.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -93,5 +147,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-02T10:07:12.558100Z"
+  "updated_at": "2026-11-02T10:09:04.461235Z"
 }
