@@ -11,6 +11,7 @@ mod delivery;
 pub mod display;
 pub mod guards;
 pub mod idle;
+pub mod instance;
 pub mod join;
 pub mod keymap;
 pub mod probe;

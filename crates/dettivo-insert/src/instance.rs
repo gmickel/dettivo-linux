@@ -96,9 +96,8 @@ impl Instances {
                 return Ok(stream);
             }
         }
-        let why = refused.unwrap_or_else(|| {
-            "no Hyprland instance answers for this Wayland display".to_string()
-        });
+        let why = refused
+            .unwrap_or_else(|| "no Hyprland instance answers for this Wayland display".to_string());
         if !state.lost {
             tracing::warn!(reason = %why, "hyprland: no instance answers; the focused window cannot be verified");
             state.lost = true;
@@ -125,5 +124,49 @@ impl Instances {
             signature: in_use,
             environment_signature: environment,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::stand_in::HyprlandStandIn;
+
+    fn session(runtime: &std::path::Path, signature: &str) -> Session {
+        Session {
+            runtime_dir: Some(runtime.to_path_buf()),
+            wayland_display: Some("wl-0".into()),
+            hyprland_signature: Some(signature.into()),
+            ..Session::default()
+        }
+    }
+
+    /// The boundary: a live instance of another display is never
+    /// connected to, and with none of this display live the probe fails
+    /// (the take goes to the clipboard) and the report says so.
+    #[test]
+    fn only_an_instance_of_this_display_is_ever_tried() {
+        let dir = tempfile::Builder::new()
+            .prefix("dtv")
+            .tempdir_in("/tmp")
+            .unwrap();
+        let mut dead = HyprlandStandIn::start(dir.path(), "dead", "wl-0").unwrap();
+        dead.crash();
+        let other = HyprlandStandIn::start(dir.path(), "other", "wl-9").unwrap();
+        let instances = Instances::default();
+        let session = session(dir.path(), "dead");
+        assert!(instances.connect(&session).is_err());
+        assert!(instances.connect(&session).is_err());
+        assert_eq!(other.queries(), 0);
+        let report = instances.report(&session).unwrap();
+        assert_eq!(report.signature, None);
+        assert!(report.environment_stale);
+
+        let _live = HyprlandStandIn::start(dir.path(), "live", "wl-0").unwrap();
+        assert!(instances.connect(&session).is_ok());
+        assert_eq!(
+            instances.report(&session).unwrap().signature.as_deref(),
+            Some("live")
+        );
     }
 }

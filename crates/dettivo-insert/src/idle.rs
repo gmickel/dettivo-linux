@@ -7,15 +7,18 @@
 //! guess (ADR 0091).
 
 use std::collections::VecDeque;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use wayland_client::protocol::{wl_registry, wl_seat};
 use wayland_client::{Connection, Dispatch, QueueHandle, delegate_noop};
+
 use wayland_protocols::ext::idle_notify::v1::client::{
     ext_idle_notification_v1, ext_idle_notifier_v1,
 };
+
+use crate::display::Ended;
 
 /// Input after this long without any counts as new activity.
 pub const IDLE_AFTER: Duration = Duration::from_millis(100);
@@ -123,16 +126,31 @@ impl IdleMonitor {
         }
     }
 
-    /// Starts watching the compositor on the display `socket`.
+    /// Starts watching the compositor on the display `socket`, again
+    /// whenever it comes back after going away (ADR 0100).
     pub fn on(socket: PathBuf) -> Self {
         let monitor = Self::default();
         let seen = monitor.seen.clone();
         let spawned = std::thread::Builder::new()
             .name("input-idle".into())
             .spawn(move || {
-                if let Err(e) = watch(&socket, seen) {
-                    tracing::info!(reason = %e, "no input-idle signal: consecutive dictations are not joined");
-                }
+                let mut last = String::new();
+                crate::display::reconnecting(
+                    &socket,
+                    |conn| match watch(&conn, &seen) {
+                        Watched::Lost(why) => Ended::Lost(why),
+                        Watched::NotOffered(why) => {
+                            tracing::info!(reason = %why, "no input-idle signal: consecutive dictations are not joined");
+                            Ended::Done
+                        }
+                    },
+                    |why| {
+                        if why != last {
+                            tracing::info!(reason = %why, "input-idle signal lost; following the compositor again when it is back");
+                            last = why.to_string();
+                        }
+                    },
+                );
             });
         if let Err(e) = spawned {
             tracing::warn!(error = %e, "input-idle thread not started");
@@ -141,8 +159,13 @@ impl IdleMonitor {
     }
 }
 
-fn watch(socket: &Path, seen: Arc<Mutex<Seen>>) -> Result<(), String> {
-    let conn = crate::display::connect(socket)?;
+/// How watching one connection ended.
+enum Watched {
+    Lost(String),
+    NotOffered(String),
+}
+
+fn watch(conn: &Connection, seen: &Arc<Mutex<Seen>>) -> Watched {
     let mut queue = conn.new_event_queue();
     let qh = queue.handle();
     let _registry = conn.display().get_registry(&qh, ());
@@ -151,11 +174,13 @@ fn watch(socket: &Path, seen: Arc<Mutex<Seen>>) -> Result<(), String> {
         notifier: None,
         seen: seen.clone(),
     };
-    queue
-        .roundtrip(&mut state)
-        .map_err(|e| format!("wayland roundtrip: {e}"))?;
+    if let Err(e) = queue.roundtrip(&mut state) {
+        return Watched::Lost(format!("wayland roundtrip: {e}"));
+    }
     let (Some(seat), Some(notifier)) = (state.seat.clone(), state.notifier.clone()) else {
-        return Err("the compositor offers no ext_idle_notifier_v1 version 2".into());
+        return Watched::NotOffered(
+            "the compositor offers no ext_idle_notifier_v1 version 2".into(),
+        );
     };
     let timeout = u32::try_from(IDLE_AFTER.as_millis()).unwrap_or(u32::MAX);
     let _notification = notifier.get_input_idle_notification(timeout, &seat, &qh, ());
@@ -166,7 +191,7 @@ fn watch(socket: &Path, seen: Arc<Mutex<Seen>>) -> Result<(), String> {
         }
     };
     seen.lock().unwrap_or_else(|p| p.into_inner()).watching = false;
-    Err(ended)
+    Watched::Lost(ended)
 }
 
 #[cfg(test)]

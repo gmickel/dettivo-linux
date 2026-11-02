@@ -16,6 +16,7 @@ use dettivo_proto::runtime::{
 use crate::backend::{self, Backend, Ctx};
 use crate::chain::{self, Candidate, Guards, Refusal, TargetFacts};
 use crate::delivery::{self, Origin};
+use crate::instance::Instances;
 use crate::probe;
 use crate::session::Session;
 use crate::settings::Settings;
@@ -58,6 +59,8 @@ struct UndoRecord {
 /// The daemon's insertion service.
 pub struct Service {
     session_builder: Box<dyn Fn() -> Session + Send + Sync>,
+    /// The Hyprland instance the probes talk to.
+    instances: Instances,
     undo: Mutex<Option<UndoRecord>>,
     /// One insertion at a time: a second request waits for the first to
     /// finish delivering, so two takes never interleave their keys.
@@ -83,6 +86,7 @@ impl Service {
     pub fn new(builder: impl Fn() -> Session + Send + Sync + 'static) -> Self {
         Self {
             session_builder: Box::new(builder),
+            instances: Instances::default(),
             undo: Mutex::new(None),
             insert_lock: Mutex::new(()),
             #[cfg(test)]
@@ -101,7 +105,7 @@ impl Service {
         if let Some(scripted) = self.scripted_probe.lock().unwrap().pop_front() {
             return Self::probed("scripted", settings, scripted);
         }
-        match probe::for_session(session) {
+        match probe::for_session(session, &self.instances) {
             None => Probed {
                 probe: "none",
                 target: None,
@@ -163,6 +167,7 @@ impl Service {
             probe: probed.probe.to_string(),
             backends: candidates.iter().map(Candidate::status).collect(),
             chosen,
+            compositor: self.instances.report(&session),
         }
     }
 

@@ -7,7 +7,6 @@
 
 use std::path::Path;
 use std::sync::Arc;
-use std::time::Duration;
 
 use dettivo_insert::Session;
 use dettivo_insert::display;
@@ -37,9 +36,6 @@ mod protocol {
 
 use protocol::hyprland_lock_notification_v1::{self as notification, HyprlandLockNotificationV1};
 use protocol::hyprland_lock_notifier_v1::HyprlandLockNotifierV1;
-
-/// How long a lost compositor connection waits before the next try.
-const RETRY: Duration = Duration::from_secs(5);
 
 /// Why following the lock stopped.
 #[derive(Debug)]
@@ -135,7 +131,7 @@ pub fn follow(conn: &Connection, report: impl Fn(bool) + 'static) -> Result<(), 
 }
 
 /// Follows the compositor's lock on a thread of its own: a lost
-/// connection is tried again every [`RETRY`], a compositor without lock
+/// connection is tried again until the compositor is back, a compositor without lock
 /// notifications or a session without a Wayland display is left to
 /// logind. The ring stays closed until the first connection reports.
 pub fn watch(daemon: Arc<Daemon>) {
@@ -166,41 +162,35 @@ pub fn watch(daemon: Arc<Daemon>) {
 }
 
 /// Reports the lock of the compositor on the display `socket` through
-/// `set`: `Some` while a connection reports, `None` once it is lost.
+/// `set`: `Some` while a connection reports, `None` once it is lost. A
+/// compositor that went away is reached again when it comes back on the
+/// same display, also after a restart (ADR 0100).
 pub(crate) fn follow_display(socket: &Path, set: impl Fn(Option<bool>) + Clone + 'static) {
     let mut last = String::new();
-    loop {
-        let stop = match display::connect(socket) {
-            Ok(conn) => {
-                let report = set.clone();
-                follow(&conn, move |locked| report(Some(locked)))
-            }
-            Err(_) => {
-                set(None);
-                tracing::info!(
-                    "microphone ready: no Wayland display, the compositor's lock is not followed"
-                );
-                return;
-            }
-        };
-        set(None);
-        match stop {
-            Err(Stop::Lost(why)) => {
-                if why != last {
-                    tracing::info!(
-                        why,
-                        "microphone ready: the compositor's lock is not followed; trying again"
-                    );
-                    last = why;
+    display::reconnecting(
+        socket,
+        |conn| {
+            let report = set.clone();
+            match follow(&conn, move |locked| report(Some(locked))) {
+                Err(Stop::Lost(why)) => display::Ended::Lost(why),
+                Err(Stop::NotOffered) | Ok(()) => {
+                    set(None);
+                    tracing::info!("microphone ready: the compositor offers no lock notifications");
+                    display::Ended::Done
                 }
             }
-            Err(Stop::NotOffered) | Ok(()) => {
-                tracing::info!("microphone ready: the compositor offers no lock notifications");
-                return;
+        },
+        |why| {
+            set(None);
+            if why != last {
+                tracing::info!(
+                    why,
+                    "microphone ready: the compositor's lock is not followed; trying again"
+                );
+                last = why.to_string();
             }
-        }
-        std::thread::sleep(RETRY);
-    }
+        },
+    );
 }
 
 #[cfg(test)]

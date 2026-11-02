@@ -132,6 +132,12 @@ pub fn human(report: &Value) -> String {
             );
         }
     }
+    if report["insertion"]["compositor"].is_object() {
+        row(
+            "compositor",
+            compositor_row(&report["insertion"]["compositor"]),
+        );
+    }
     if report["hotkeys"].is_object() {
         for line in crate::output::hotkeys_lines(&report["hotkeys"]).lines() {
             row("hotkeys", line.into());
@@ -290,6 +296,21 @@ fn microphone_ready(audio: &Value) -> String {
     }
 }
 
+/// The Hyprland instance the daemon talks to, and whether the signature
+/// in its environment is stale (fn-91).
+fn compositor_row(instance: &Value) -> String {
+    let environment = show(&instance["environment_signature"]);
+    match instance["signature"].as_str() {
+        None => format!(
+            "no Hyprland instance answers for this display (the environment names {environment})"
+        ),
+        Some(live) if instance["environment_stale"] == true => format!(
+            "Hyprland instance {live}; the environment's {environment} is stale (the compositor restarted)"
+        ),
+        Some(live) => format!("Hyprland instance {live}"),
+    }
+}
+
 fn show(value: &Value) -> String {
     match value {
         Value::String(text) => text.clone(),
@@ -425,5 +446,32 @@ mod tests {
                 "{row}"
             );
         }
+    }
+
+    /// fn-91 R4: the doctor names the Hyprland instance in use and a stale
+    /// signature in the daemon's environment.
+    #[test]
+    fn the_compositor_row_names_the_instance_and_a_stale_environment() {
+        let row = |instance: serde_json::Value| {
+            human(&json!({ "insertion": { "compositor": instance } }))
+                .lines()
+                .find(|l| l.starts_with("compositor"))
+                .expect("a compositor row")
+                .to_string()
+        };
+        let current =
+            json!({"signature": "abc", "environment_signature": "abc", "environment_stale": false});
+        assert!(row(current).ends_with("Hyprland instance abc"));
+        let stale =
+            json!({"signature": "new", "environment_signature": "old", "environment_stale": true});
+        assert!(row(stale).ends_with(
+            "Hyprland instance new; the environment's old is stale (the compositor restarted)"
+        ));
+        let none =
+            json!({"signature": null, "environment_signature": "old", "environment_stale": true});
+        assert!(row(none).ends_with(
+            "no Hyprland instance answers for this display (the environment names old)"
+        ));
+        assert!(!human(&json!({})).contains("\ncompositor"));
     }
 }

@@ -4,15 +4,19 @@
 //! chords, with the chords as preferred triggers; `Activated` maps to a
 //! press and `Deactivated` to a release. A desktop without the interface,
 //! or one that refuses the request, is reported once with its reason and
-//! never retried here.
+//! never retried here. A portal backend that restarts (Hyprland's exits
+//! with the compositor) loses the session; the shortcuts are bound again
+//! in a new one once it is back.
 
 use std::future::Future;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use ashpd::desktop::CreateSessionOptions;
-use ashpd::desktop::global_shortcuts::{BindShortcutsOptions, GlobalShortcuts, NewShortcut};
+use ashpd::desktop::global_shortcuts::{
+    BindShortcuts, BindShortcutsOptions, GlobalShortcuts, NewShortcut,
+};
+use ashpd::desktop::{CreateSessionOptions, Session};
 use futures_util::StreamExt;
 
 use crate::identity::{FIX, register};
@@ -28,6 +32,12 @@ type SignalBody = (
 
 /// How long the portal may take to answer a bind (a dialog counts).
 const BIND_TIMEOUT: Duration = Duration::from_secs(120);
+
+/// The bus names of the portal backends behind `xdg-desktop-portal`.
+const BACKEND_PREFIX: &str = "org.freedesktop.impl.portal.desktop.";
+
+/// Tries at binding again after a portal backend restarted.
+const REBIND_TRIES: usize = 5;
 
 /// The reason reported when the desktop has no GlobalShortcuts interface.
 pub const NO_INTERFACE: &str = "the desktop portal has no GlobalShortcuts interface";
@@ -168,9 +178,68 @@ impl PortalBackend {
             .collect()
     }
 
+    /// Creates a session and binds `shortcuts` in it.
+    async fn open(
+        portal: &GlobalShortcuts,
+        shortcuts: &[NewShortcut],
+    ) -> Result<(Session<GlobalShortcuts>, BindShortcuts), String> {
+        let session = portal
+            .create_session(CreateSessionOptions::default())
+            .await
+            .map_err(|e| {
+                let refused = format!("portal session refused: {e}");
+                if refused.contains("app id") {
+                    format!("{refused}; {FIX}")
+                } else {
+                    refused
+                }
+            })?;
+        let bound = tokio::time::timeout(
+            BIND_TIMEOUT,
+            portal.bind_shortcuts(&session, shortcuts, None, BindShortcutsOptions::default()),
+        )
+        .await
+        .map_err(|_| "the portal did not answer the bind request".to_string())?
+        .map_err(|e| format!("portal bind refused: {e}"))?
+        .response()
+        .map_err(|e| format!("the portal denied the shortcuts: {e}"))?;
+        Ok((session, bound))
+    }
+
+    /// Binds again in a new session once a portal backend that went away
+    /// is back: the backend that held the session (on Hyprland,
+    /// `xdg-desktop-portal-hyprland`, which exits with the compositor)
+    /// took the bindings with it. A backend still starting gets
+    /// [`REBIND_TRIES`] tries, the wait doubling from 250 ms.
+    async fn rebind(
+        portal: &GlobalShortcuts,
+        shortcuts: &[NewShortcut],
+        stop: &AtomicBool,
+    ) -> Option<Session<GlobalShortcuts>> {
+        let mut wait = Duration::from_millis(250);
+        for _ in 0..REBIND_TRIES {
+            match Self::open(portal, shortcuts).await {
+                Ok((session, _)) => {
+                    tracing::info!("hotkeys: the portal backend restarted; shortcuts bound again");
+                    return Some(session);
+                }
+                Err(e) => {
+                    tracing::warn!(error = %e, "hotkeys: binding again after the portal backend restarted failed")
+                }
+            }
+            if stop.load(Ordering::Relaxed) {
+                return None;
+            }
+            tokio::time::sleep(wait).await;
+            wait *= 2;
+        }
+        None
+    }
+
     /// Registers the app id, creates the session, binds, then delivers
-    /// until `stop`. Closing the session on stop drops its shortcuts, so
-    /// a rebind leaves only the new ids bound.
+    /// until `stop`, binding again whenever a portal backend comes back
+    /// after going away (ADR 0100). Closing the session on stop drops its
+    /// shortcuts, so a rebind leaves only the new ids bound.
     async fn serve(
         address: Option<String>,
         keys: Keys,
@@ -179,35 +248,22 @@ impl PortalBackend {
         ready: std::sync::mpsc::Sender<Result<Registration, String>>,
     ) {
         let shortcuts = Self::shortcuts(&keys);
-        let outcome: Result<_, String> = async {
+        let opened: Result<_, String> = async {
             let connection = portal_connection(address.as_deref()).await?;
             let identity = register(&connection).await?;
-            let portal = shortcuts_on(connection).await?;
-            let session = portal
-                .create_session(CreateSessionOptions::default())
+            let owners = zbus::fdo::DBusProxy::new(&connection)
                 .await
-                .map_err(|e| {
-                    let refused = format!("portal session refused: {e}");
-                    if refused.contains("app id") {
-                        format!("{refused}; {FIX}")
-                    } else {
-                        refused
-                    }
-                })?;
+                .map_err(|e| format!("bus: {e}"))?
+                .receive_name_owner_changed()
+                .await
+                .map_err(|e| format!("bus: {e}"))?;
+            let portal = shortcuts_on(connection).await?;
             // One stream for both signals keeps a press ahead of its release.
-            let mut signals = portal
+            let signals = portal
                 .receive_all_signals()
                 .await
                 .map_err(|e| format!("portal signals: {e}"))?;
-            let bound = tokio::time::timeout(
-                BIND_TIMEOUT,
-                portal.bind_shortcuts(&session, &shortcuts, None, BindShortcutsOptions::default()),
-            )
-            .await
-            .map_err(|_| "the portal did not answer the bind request".to_string())?
-            .map_err(|e| format!("portal bind refused: {e}"))?
-            .response()
-            .map_err(|e| format!("the portal denied the shortcuts: {e}"))?;
+            let (session, bound) = Self::open(&portal, &shortcuts).await?;
             let actions: Vec<Action> = bound
                 .shortcuts()
                 .iter()
@@ -226,44 +282,60 @@ impl PortalBackend {
                 identity: Some(identity),
                 compositor_bound,
             };
-            Ok((session, registration, async move {
-                loop {
-                    tokio::select! {
-                        Some(message) = signals.next() => {
-                            let member = message
-                                .header()
-                                .member()
-                                .map(|m| m.as_str().to_string())
-                                .unwrap_or_default();
-                            let body = message.body().deserialize::<SignalBody>();
-                            let Ok((_, id, _, _)) = body else { continue };
-                            let Some(action) = keys.action_for(&id) else { continue };
-                            match member.as_str() {
-                                "Activated" => handler(HotkeyEvent::Press(action)),
-                                "Deactivated" => handler(HotkeyEvent::Release(action)),
-                                _ => {}
-                            }
-                        }
-                        () = tokio::time::sleep(Duration::from_millis(250)) => {
-                            if stop.load(Ordering::Relaxed) {
-                                return;
-                            }
+            Ok((portal, session, registration, signals, owners))
+        }
+        .await;
+        let (portal, mut session, registration, mut signals, mut owners) = match opened {
+            Ok(opened) => opened,
+            Err(e) => {
+                let _ = ready.send(Err(e));
+                return;
+            }
+        };
+        let _ = ready.send(Ok(registration));
+        // Portal backends seen going away; one coming back gets a rebind.
+        let mut gone = std::collections::HashSet::new();
+        loop {
+            tokio::select! {
+                Some(message) = signals.next() => {
+                    let member = message
+                        .header()
+                        .member()
+                        .map(|m| m.as_str().to_string())
+                        .unwrap_or_default();
+                    let body = message.body().deserialize::<SignalBody>();
+                    let Ok((_, id, _, _)) = body else { continue };
+                    let Some(action) = keys.action_for(&id) else { continue };
+                    match member.as_str() {
+                        "Activated" => handler(HotkeyEvent::Press(action)),
+                        "Deactivated" => handler(HotkeyEvent::Release(action)),
+                        _ => {}
+                    }
+                }
+                Some(change) = owners.next() => {
+                    let Ok(args) = change.args() else { continue };
+                    let name = args.name().to_string();
+                    if !name.starts_with(BACKEND_PREFIX) {
+                        continue;
+                    }
+                    if args.new_owner().is_none() {
+                        gone.insert(name);
+                    } else if gone.remove(&name) {
+                        let _ = session.close().await;
+                        match Self::rebind(&portal, &shortcuts, &stop).await {
+                            Some(new) => session = new,
+                            None => tracing::warn!("hotkeys: the portal shortcuts stay unbound until the portal backend restarts again or the daemon reloads [hotkeys]"),
                         }
                     }
                 }
-            }))
-        }
-        .await;
-        match outcome {
-            Ok((session, registration, deliver)) => {
-                let _ = ready.send(Ok(registration));
-                deliver.await;
-                let _ = session.close().await;
-            }
-            Err(e) => {
-                let _ = ready.send(Err(e));
+                () = tokio::time::sleep(Duration::from_millis(250)) => {
+                    if stop.load(Ordering::Relaxed) {
+                        break;
+                    }
+                }
             }
         }
+        let _ = session.close().await;
     }
 }
 
