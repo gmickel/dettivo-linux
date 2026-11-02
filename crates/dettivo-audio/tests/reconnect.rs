@@ -1,5 +1,7 @@
-//! A PipeWire restart while the daemon runs: a private PipeWire with one
-//! virtual microphone is stopped under a running capture and started
+//! PipeWire coming and going while the daemon runs: the service starts
+//! before a private PipeWire with one virtual microphone exists, refuses
+//! to open naming PipeWire, and connects on its own once PipeWire starts.
+//! The PipeWire is then stopped under a running capture and started
 //! again. The capture ends with an error naming PipeWire, the service says
 //! it is disconnected and refuses to open, and once PipeWire is back it
 //! reconnects on its own and captures again.
@@ -147,7 +149,7 @@ fn hears_audio(capture: &CaptureHandle) -> bool {
 }
 
 #[test]
-fn capture_recovers_after_pipewire_restarts() {
+fn capture_follows_pipewire_starting_late_and_restarting() {
     if !installed("pipewire") || !installed("wireplumber") {
         eprintln!("skipped: pipewire or wireplumber is not installed");
         return;
@@ -166,11 +168,19 @@ fn capture_recovers_after_pipewire_restarts() {
         std::env::set_var("PIPEWIRE_RUNTIME_DIR", dir.path().join("run"));
         std::env::remove_var("PIPEWIRE_REMOTE");
     }
-    private.up();
 
-    let service = AudioService::start().expect("the private PipeWire is reachable");
-    wait_for("the private microphone", Duration::from_secs(5), || {
-        private_default(&service)
+    let service = AudioService::start().expect("the service starts without PipeWire");
+    assert!(!service.connected(), "no PipeWire yet");
+    assert!(
+        matches!(
+            service.open(Target::Node(MIC.into()), 50),
+            Err(CaptureError::NoPipeWire(_))
+        ),
+        "an open before PipeWire starts names PipeWire"
+    );
+    private.up();
+    wait_for("the service to connect", Duration::from_secs(10), || {
+        service.connected() && private_default(&service)
     });
     let capture = open_mic(&service).expect("the private microphone opens");
     assert!(hears_audio(&capture), "audio before the restart");
