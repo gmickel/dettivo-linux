@@ -80,18 +80,15 @@ pub fn resolve(method: &str) -> Option<Handler> {
             dictation::start(daemon, value, at)
         },
         "dictation.toggle" => |daemon, _ctx, value| {
-            let at = std::time::Instant::now();
-            let _: dettivo_proto::catalog::NoParams = params(value)?;
+            let at = dictation::edge_time(value)?;
             dictation::toggle(daemon, at)
         },
         "dictation.press" => |daemon, _ctx, value| {
-            let at = std::time::Instant::now();
-            let _: dettivo_proto::catalog::NoParams = params(value)?;
+            let at = dictation::edge_time(value)?;
             dictation::hold(daemon, crate::hold::Edge::Press, at)
         },
         "dictation.release" => |daemon, _ctx, value| {
-            let at = std::time::Instant::now();
-            let _: dettivo_proto::catalog::NoParams = params(value)?;
+            let at = dictation::edge_time(value)?;
             dictation::hold(daemon, crate::hold::Edge::Release, at)
         },
         "dictation.stop" => |daemon, _ctx, value| {

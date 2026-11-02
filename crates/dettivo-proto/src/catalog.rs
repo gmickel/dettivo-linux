@@ -152,9 +152,9 @@ catalog! {
         "system.version" => (NoParams, system::VersionResult);
         "system.capabilities" => (NoParams, system::CapabilitiesResult);
         "dictation.start" => (dictation::StartParams, dictation::StartResult);
-        "dictation.toggle" => (NoParams, dictation::ToggleResult), linux: true;
-        "dictation.press" => (NoParams, dictation::HoldResult), linux: true;
-        "dictation.release" => (NoParams, dictation::HoldResult), linux: true;
+        "dictation.toggle" => (dictation::EdgeParams, dictation::ToggleResult), linux: true;
+        "dictation.press" => (dictation::EdgeParams, dictation::HoldResult), linux: true;
+        "dictation.release" => (dictation::EdgeParams, dictation::HoldResult), linux: true;
         "dictation.stop" => (dictation::StopParams, dictation::StopResult);
         "dictation.cancel" => (dictation::CancelParams, dictation::CancelResult);
         "dictation.status" => (NoParams, dictation::StatusResult);

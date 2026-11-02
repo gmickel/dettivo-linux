@@ -210,6 +210,33 @@ pub enum ToggleResult {
     Stopped(Box<StopResult>),
 }
 
+/// `dictation.press`, `dictation.release` and `dictation.toggle` params
+/// (Linux addition, ADR 0093): `at_ns` is when the CLI saw the edge, on
+/// `CLOCK_MONOTONIC` in nanoseconds ([`monotonic_ns`]), so a call that
+/// waited before the daemon got to it is still timed from the key.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct EdgeParams {
+    /// `CLOCK_MONOTONIC` nanoseconds when the edge was seen.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub at_ns: Option<u64>,
+}
+
+/// Now on `CLOCK_MONOTONIC`, in nanoseconds: the clock `Instant` reads on
+/// Linux, shared by every process on the machine.
+pub fn monotonic_ns() -> u64 {
+    let mut ts = libc::timespec {
+        tv_sec: 0,
+        tv_nsec: 0,
+    };
+    // SAFETY: a valid out pointer to a timespec for clock_gettime.
+    #[allow(unsafe_code)]
+    unsafe {
+        libc::clock_gettime(libc::CLOCK_MONOTONIC, &mut ts);
+    }
+    (ts.tv_sec as u64) * 1_000_000_000 + ts.tv_nsec as u64
+}
+
 /// `dictation.press` and `dictation.release` result (Linux addition,
 /// ADR 0083): what the hold key did and where it is now. Both verbs are
 /// idempotent: an event the key's state makes meaningless answers `none`.

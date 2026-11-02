@@ -1,12 +1,12 @@
 //! `dictation.start`, `stop`, `cancel`, `status` and the Linux addition
 //! `reinsert_last`.
 
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use dettivo_proto::error::{AppCode, ErrorDetails, JsonRpcError};
 use dettivo_proto::id::Id;
 use dettivo_proto::methods::dictation::{
-    CancelParams, CancelResult, DictationMode, PauseResult, ReinsertLastResult,
+    CancelParams, CancelResult, DictationMode, EdgeParams, PauseResult, ReinsertLastResult,
     SessionTarget as WireTarget, StartParams, StartResult, StatusResult, StopParams, StopResult,
 };
 use dettivo_proto::runtime::{JobState, JobStatus, RefKind, TranscriptRef};
@@ -18,6 +18,30 @@ use super::{json, params};
 use crate::actions;
 
 use crate::daemon::Daemon;
+
+/// The oldest edge time a caller may report: anything older is a clock
+/// from another time namespace or a stale value, and the arrival counts.
+const MAX_EDGE_AGE: Duration = Duration::from_secs(2);
+
+/// When a press, release or toggle happened: the time the CLI saw it
+/// (`at_ns`, ADR 0093) when it gave one, else when the call arrived.
+pub fn edge_time(value: Value) -> Result<Instant, JsonRpcError> {
+    let (arrived, now_ns) = (
+        Instant::now(),
+        dettivo_proto::methods::dictation::monotonic_ns(),
+    );
+    let p: EdgeParams = params(value)?;
+    Ok(edge_instant(arrived, now_ns, p.at_ns))
+}
+
+fn edge_instant(arrived: Instant, now_ns: u64, at_ns: Option<u64>) -> Instant {
+    at_ns
+        .and_then(|at| now_ns.checked_sub(at))
+        .map(Duration::from_nanos)
+        .filter(|age| *age <= MAX_EDGE_AGE)
+        .and_then(|age| arrived.checked_sub(age))
+        .unwrap_or(arrived)
+}
 
 /// The guards a caller captured itself, as a session target. A pid that
 /// is not a number is `INVALID_PARAMS` naming the field.
@@ -207,4 +231,26 @@ pub fn pause(daemon: &Daemon, paused: bool) -> Result<Value, JsonRpcError> {
     daemon.dictation().ready().set_paused(paused);
     crate::ready::tick(daemon);
     json(PauseResult { paused })
+}
+
+#[cfg(test)]
+mod edge_tests {
+    use super::*;
+
+    /// ADR 0093: an edge the CLI saw 300 ms before the call arrived is
+    /// timed from the key; a time from the future or older than 2 s falls
+    /// back to the arrival.
+    #[test]
+    fn an_edge_counts_from_when_the_cli_saw_it() {
+        let arrived = Instant::now();
+        let now = 10_000_000_000;
+        let ms = |n: u64| n * 1_000_000;
+        assert_eq!(
+            edge_instant(arrived, now, Some(now - ms(300))),
+            arrived - Duration::from_millis(300)
+        );
+        assert_eq!(edge_instant(arrived, now, None), arrived);
+        assert_eq!(edge_instant(arrived, now, Some(now + ms(5))), arrived);
+        assert_eq!(edge_instant(arrived, now, Some(now - ms(2_500))), arrived);
+    }
 }
