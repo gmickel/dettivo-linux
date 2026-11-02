@@ -123,10 +123,70 @@
       "task": "fn-90-the-speech-check-runs-during-the-take.1",
       "timestamp": "2026-11-02T12:07:45.058107Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "67d8233909c9225cfd0645db7984ad668adff2fba79654077b38fd71bf95e190",
+      "backend": "codex",
+      "base_sha": "d1af8f3eaf02d14f1b089874ec03e54de0b3935d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7a889162b652bf79c66c1033c762bc14",
+            "classification": "introduced",
+            "findingId": "finding-7a889162b652bf79c66c1033c762bc14",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6c502beeec926bbc29e27ec05b91408e",
+            "classification": "introduced",
+            "findingId": "finding-6c502beeec926bbc29e27ec05b91408e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ef817701b6120fbe53f4da89d8dfdfe8",
+            "classification": "introduced",
+            "findingId": "finding-ef817701b6120fbe53f4da89d8dfdfe8",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "68406541978e5cb27cb85be4f00fa4e45743262d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 822,
+      "output_sha256": "1a2d15a1673ba0b9c7d22e33a626abddaa73fef4e8355394b6f47a44f938d490",
+      "reservation_id": "b90c160b9a8543dfa3340497a9effb20",
+      "round_consumed": true,
+      "scope": "impl:fn-90-the-speech-check-runs-during-the-take.1",
+      "superseded_by": null,
+      "task": "fn-90-the-speech-check-runs-during-the-take.1",
+      "timestamp": "2026-11-02T16:20:49.767758Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-90-the-speech-check-runs-during-the-take.1": 1
+    "impl:fn-90-the-speech-check-runs-during-the-take.1": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -147,5 +207,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-02T16:03:28.632780Z"
+  "updated_at": "2026-11-02T16:20:49.770363Z"
 }
