@@ -2,9 +2,9 @@
 //! ADR 0088): a run of one to four words qualifies when it is a listed
 //! alias, shares most letters with the term or an alias, is a small edit
 //! away from one, or (for a term of five sounds or more) is one consonant
-//! sound off. Case-only differences, inflections of the term, words inside
-//! paths, URLs and addresses, and terms under five letters without an
-//! alias are never candidates.
+//! sound off. Case-only differences, inflections of the term or of a
+//! mishearing of it, words inside paths, URLs and addresses, and terms
+//! under five letters without an alias are never candidates.
 
 use super::sound::{common_letters, edit_distance, key, normalise};
 
@@ -62,6 +62,21 @@ impl Term {
                 heard
                     .strip_prefix(s.as_str())
                     .is_some_and(|rest| rest == "s" || rest == "es")
+            })
+    }
+
+    /// True when `heard` (normalised) is a plural or possessive of a
+    /// mishearing of the term ("hyperlans" for "Hyprland's"): it would
+    /// qualify without its trailing `s` or `es`, and no spelling of the
+    /// term ends in `s`.
+    fn inflected(&self, heard: &str) -> bool {
+        !std::iter::once(&self.norm)
+            .chain(&self.aliases)
+            .any(|s| s.ends_with('s'))
+            && ["s", "es"].iter().any(|tail| {
+                heard
+                    .strip_suffix(tail)
+                    .is_some_and(|stem| self.rank(stem).is_some())
             })
     }
 
@@ -178,6 +193,9 @@ pub fn find(words: &[&str], terms: &[Term]) -> Vec<Candidate> {
             {
                 continue;
             }
+            if term.inflected(&heard) {
+                continue;
+            }
             let Some(rank) = term.rank(&heard) else {
                 continue;
             };
@@ -280,6 +298,32 @@ mod tests {
         }
         assert!(Term::new("Jev", &[]).is_none());
         assert!(Term::new("Jev", &["jeff".into()]).is_some());
+    }
+
+    /// R5: a plural or possessive fused onto a mishearing of the term
+    /// ("Hyperlans" for "Hyprland's") stays as heard, while a term that
+    /// itself ends in `s` still matches a mishearing ending in `s`.
+    #[test]
+    fn an_inflected_mishearing_is_never_a_candidate() {
+        let terms = [
+            term("Hyprland", &["hyper land", "hyperland"]),
+            term("SapienXT", &[]),
+        ];
+        for heard in [
+            "Hyperlans config is short.",
+            "Hyperlan's config is short.",
+            "Both hyperlans crashed",
+            "two Zapian XTs here",
+            "the Zapian XT's dashboard",
+        ] {
+            assert_eq!(spans(heard, &terms), vec![], "{heard}");
+        }
+        assert_eq!(
+            spans("I run Cubernetes at home", &[term("Kubernetes", &[])]),
+            vec![(2, 2, 0)]
+        );
+        // A mishearing followed by a word ending in `s` is still one.
+        assert!(spans("Hyperland draws the windows", &terms).contains(&(0, 0, 0)));
     }
 
     /// R5: words that already are a multi-word term are never rewritten
