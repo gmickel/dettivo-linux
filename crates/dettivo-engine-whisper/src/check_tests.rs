@@ -102,21 +102,15 @@ fn a_lone_listed_name_stands_when_sure() {
     ] {
         assert!(!take(segments, TERMS).needs_plain_decode(), "{segments:?}");
     }
-    // The two names the -0.3 level lost on the single-name set stand at
-    // the lone-name level; the same confidence inside a sentence or in an
-    // echo run is still checked.
-    for segments in [
-        &[&[(" Clef.", -0.416)][..]][..],
-        &[&[(" Hyprland.", -0.411)][..]][..],
-    ] {
-        assert!(!take(segments, TERMS).needs_plain_decode(), "{segments:?}");
-    }
-    for segments in [
-        &[&[(" Hyprland.", -0.46)][..]][..],
-        &[&[(" I use", 0.0), (" Hyprland", -0.411), (" daily.", 0.0)][..]][..],
-    ] {
-        assert!(take(segments, TERMS).needs_plain_decode(), "{segments:?}");
-    }
+    // A lone "Clay." decoded as "Clef," at -0.344 (single-name set,
+    // lone-clay-amy): one name alone keeps the -0.3 level, so it is
+    // checked and becomes what the prompt-free decode heard.
+    let alike = take(&[&[(" Clef,", -0.344)]], TERMS);
+    assert!(alike.needs_plain_decode());
+    assert_eq!(
+        settle(&alike, &plain(&[" Clyde."])),
+        Some(plain(&["Clyde."]))
+    );
     let unsure = take(&[&[(" Hyprland.", -0.6)]], TERMS);
     assert!(unsure.needs_plain_decode());
     assert_eq!(
