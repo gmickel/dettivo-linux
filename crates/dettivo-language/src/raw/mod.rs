@@ -292,7 +292,7 @@ fn ends_sentence(c: char) -> bool {
 enum Mark {
     Push,
     Drop,
-    /// The mark takes the place of the one before it.
+    /// The mark takes the place of the written sentence ends before it.
     Replace,
 }
 
@@ -344,7 +344,12 @@ fn glue(chars: &[(char, bool)]) -> String {
             match settle(&mut result, c, spoken, chars.get(i + 1).map(|m| m.0)) {
                 Mark::Push => result.push((c, spoken)),
                 Mark::Drop => {}
-                Mark::Replace => *result.last_mut().expect("a mark to replace") = (c, spoken),
+                Mark::Replace => {
+                    while result.last().is_some_and(|&(p, s)| ends_sentence(p) && !s) {
+                        result.pop();
+                    }
+                    result.push((c, spoken));
+                }
             }
             // Capitalise after a sentence end.
             if result.last().is_some_and(|&(p, _)| ends_sentence(p)) {

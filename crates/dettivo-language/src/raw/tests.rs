@@ -76,6 +76,7 @@ fn a_spoken_mark_beside_a_written_one_leaves_one_mark() {
             "Meet me at nine, then we go.",
         ),
         ("What?! No way.", "What?! No way."),
+        ("Really?! Period.", "Really."),
         ("Really? Yes, I think so.", "Really? Yes, I think so."),
         ("One, two, three.", "One, two, three."),
     ];
