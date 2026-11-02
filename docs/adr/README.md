@@ -85,17 +85,19 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0078](0078-the-final-bench-keeps-the-sherpa-onnx-set-the-default.md) | The final bench with every labelling rule on keeps the sherpa-onnx set the default and Nemotron opt-in | Accepted 2026-09-28, supersedes 0073's default |
 | [0079](0079-a-release-builds-each-ggml-engine-in-its-own-job.md) | A release builds each ggml engine in its own CI job and assembles the package from them, and NeMo-Speech.cpp links with no undefined symbols | Accepted 2026-09-29, amends 0070 |
 | [0080](0080-whisper-cpp-carries-a-dtw-median-filter-guard.md) | whisper.cpp carries a DTW median-filter guard, a chunk the engine dies on twice becomes a marked gap, and an engine that crashes on the GPU moves to the CPU | Accepted 2026-09-29, amends 0074; amended 2026-09-30 (the GPU is tried again after a hold, crash warnings keep Vulkan exception lines) |
-| [0081](0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md) | A dictation take passes a speech gate before the engine, and its text passes output guards after it | Accepted 2026-11-01, amends 0048; amended by 0082 |
+| [0081](0081-a-dictation-take-passes-a-speech-gate-and-its-text-passes-output-guards.md) | A dictation take passes a speech gate before the engine, and its text passes output guards after it | Accepted 2026-11-01, amends 0048; amended by 0082 and 0095 |
 | [0082](0082-a-take-ends-at-the-stop-within-one-capture-quantum.md) | A dictation take ends at the stop request, within one capture quantum PipeWire may deliver before the stop runs | Accepted 2026-11-01, amends 0081 |
 | [0083](0083-the-hold-key-is-a-daemon-state-machine-and-the-portal-gets-an-app-id.md) | The hold key is a daemon state machine that survives a lost release and locks on a double tap, and the portal gets the app id `dettivo` | Accepted 2026-11-01, amends 0016 |
 | [0084](0084-a-loaded-engine-is-warmed-before-the-first-take.md) | A loaded speech engine is warmed before the first take, idles out after 300 s, and runs four CPU threads on the GPU | Accepted 2026-11-01 |
 | [0085](0085-first-run-recommends-the-model-each-language-transcribes-best.md) | First run recommends the speech model each language transcribes best, from a recorded FLEURS run | Accepted 2026-11-01, amends 0024 |
 | [0086](0086-a-vocabulary-entry-names-how-its-term-is-misheard.md) | A vocabulary entry names how its term is misheard, and only Enhanced reads the aliases | Accepted 2026-11-01; amended by 0088 |
 | [0087](0087-the-term-recall-benchmark-scores-a-vocabulary-on-synthetic-clips.md) | The term-recall benchmark scores a vocabulary on synthetic clips, with the vocabulary off and on | Accepted 2026-11-01 |
-| [0088](0088-parakeet-rescores-its-transcript-towards-the-vocabulary.md) | Parakeet rescores its transcript towards the vocabulary, and a term replaces heard words only where the audio supports it | Accepted 2026-11-01, amends 0086 |
+| [0088](0088-parakeet-rescores-its-transcript-towards-the-vocabulary.md) | Parakeet rescores its transcript towards the vocabulary, and a term replaces heard words only where the audio supports it | Accepted 2026-11-01, amends 0086; amended by 0095 |
 | [0089](0089-decode-time-vocabulary-biasing-is-not-built.md) | Decode-time vocabulary biasing is not built, because it weighs the same scores rescoring already weighs | Accepted 2026-11-01 |
 | [0090](0090-the-first-key-waits-a-fixed-250-ms-after-the-stop.md) | The first key of a dictation waits a fixed 250 ms after the stop, with no key-state source | Accepted 2026-11-01 |
 | [0091](0091-delivery-restores-the-whole-clipboard-joins-continuations-and-ducks-media.md) | Delivery restores the whole clipboard, joins a quiet continuation, prints on request and ducks media past a tap | Accepted 2026-11-01 |
+| [0095](0095-a-listed-term-in-whispers-output-earns-its-place.md) | A listed term in Whisper's output earns its place against the take decoded without the prompt | Accepted 2026-11-02, amends 0081 and 0088 |
+| [0096](0096-the-vocabulary-bench-guards-each-clip-as-dictation-does.md) | The vocabulary bench guards each clip's text as dictation does | Accepted 2026-11-02, amends 0087 |
 
 ## Writing a record
 
