@@ -27,8 +27,13 @@ Tier: implementer (project routing block: claude-opus-5-5) (model: claude-opus-5
 
 stage: impl-review - ran [codex gpt-6.1-sol: NEEDS_WORK (absolute WAYLAND_DISPLAY match P1, idle outage gap P2), both fixed in 3b2b325, re-review SHIP]
 
+
+QA fix (qa-fn91-S2e-env-other-display, P2): the daemon now checks the environment's HYPRLAND_INSTANCE_SIGNATURE against the session's display, as it already did for discovered instances. When that instance's hyprland.lock names another Wayland display (WAYLAND_DISPLAY absolute or relative), the hint is ignored and discovery picks this display's live instance. A lock with no display line, as older Hyprland releases write, keeps the old behaviour; ADR 0099 now says so. The reproduction landed red first in 14a6b79: an_environment_naming_another_display_uses_this_displays_instance names a live instance on wl-9 in the environment while the daemon runs on wl-0, and failed on live.queries() > 0. The fix is 28ebe77, together with the unit test an_environment_instance_whose_lock_names_no_display_is_kept. Checks: cargo test -p dettivo-insert (exit 0), cargo test -p dettivod --test compositor_restart (4/4, exit 0), just lint (exit 0). The QA harness scenario s_r2_stale passed twice. In S2e the wl-9 instance got 0 queries and the wl-0 instance got 2, the compositor block read {signature: live, environment_stale: true}, "x" was typed, and no shim was called. Logs: .flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S2-r2-env-other-live.fix-run1.log and .fix-run2.log.
+
+stage: impl-review - ran [QA fix: codex gpt-6.1-sol at high, base 34dac2b, head 28ebe77: SHIP, 0 findings]
+
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 4c7b3d57df426b00ebd7f9f9d191b107f97d1146, 299d8bdbaa9e20386b7ebfd108609e3bef4455c3, 3b2b32508e27eaf7d0e463a3b044c502571d7fc2
-- Tests: cargo test -p dettivo-insert -p dettivo-hotkeys -p dettivod -p dettivo-cli -p dettivo-proto (isolated, xvfb-session.sh), cargo test -p dettivo-insert; cargo test -p dettivod --test compositor_restart (after review fixes), cargo clippy -D warnings; xtask lint-edges/lint-file-length/lint-deltas/lint-notice; scripts/check-docs.sh; rustdoc -D warnings
+- Commits: 4c7b3d57df426b00ebd7f9f9d191b107f97d1146, 299d8bdbaa9e20386b7ebfd108609e3bef4455c3, 3b2b32508e27eaf7d0e463a3b044c502571d7fc2, 14a6b7994a38ebdc2f5ede6a692202d087d9efaf, 28ebe77b49cdf795d7220a83dfe60827da8a110c
+- Tests: cargo test -p dettivo-insert -p dettivo-hotkeys -p dettivod -p dettivo-cli -p dettivo-proto (isolated, xvfb-session.sh), cargo test -p dettivo-insert; cargo test -p dettivod --test compositor_restart (after review fixes), cargo clippy -D warnings; xtask lint-edges/lint-file-length/lint-deltas/lint-notice; scripts/check-docs.sh; rustdoc -D warnings, QA fix: cargo test -p dettivo-insert; cargo test -p dettivod --test compositor_restart (red at 14a6b79, green at 28ebe77); just lint, QA fix: .flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/harness/qa.py s_r2_stale, twice (S2e other=0, live=2)
 - PRs:
