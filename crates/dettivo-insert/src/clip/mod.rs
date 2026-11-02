@@ -100,13 +100,17 @@ pub fn clip_for(session: &Session) -> Result<Box<dyn Clip>, String> {
     }
 }
 
+/// The prefix of the MIME type marking Dettivo's own text on the Wayland
+/// clipboard.
+pub(crate) const MARKER: &str = "application/x-dettivo-offer-";
+
 /// X11 selection targets that describe the selection instead of holding
-/// its content; a snapshot never reads them.
+/// its content, and Dettivo's own marker; a snapshot never reads them.
 pub(crate) fn is_meta(mime: &str) -> bool {
     matches!(
         mime,
         "TARGETS" | "MULTIPLE" | "TIMESTAMP" | "SAVE_TARGETS" | "DELETE" | "INCR"
-    )
+    ) || mime.starts_with(MARKER)
 }
 
 /// Keeps `offer` when it fits in what is left of the budget, and says

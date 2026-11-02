@@ -1,9 +1,12 @@
 //! The Wayland clipboard through data-control (`wl-clipboard-rs` takes
 //! `ext_data_control_v1` when the compositor has it, else
 //! `zwlr_data_control_v1`). What Dettivo offers is served from a thread
-//! of its own until another client takes the clipboard; that thread's end
-//! is how a restore learns something newer was copied.
+//! of its own until another client takes the clipboard. A restore goes
+//! ahead only while that thread still serves and the clipboard still
+//! offers the marker type Dettivo's text carried: the thread can be stuck
+//! writing to an app that stopped reading, and then misses a newer copy.
 
+use std::collections::HashSet;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -29,6 +32,26 @@ static OWNED: Mutex<Owned> = Mutex::new(Owned {
     generation: 0,
     live: None,
 });
+
+/// The MIME type that marks Dettivo's text of `generation` on the
+/// clipboard; the snapshot never reads it ([`super::is_meta`]).
+fn marker(generation: u64) -> String {
+    format!("{}{}-{generation}", super::MARKER, std::process::id())
+}
+
+impl Owned {
+    /// Whether the text of `generation` is still the clipboard: its
+    /// thread still serves and the offer on the clipboard (`types`, `None`
+    /// when it could not be read) still carries its marker.
+    fn holds(&self, generation: u64, types: Option<&HashSet<String>>) -> bool {
+        self.generation == generation
+            && self
+                .live
+                .as_ref()
+                .is_some_and(|l| l.load(Ordering::Acquire))
+            && types.is_some_and(|t| t.contains(&marker(generation)))
+    }
+}
 
 /// Serves `sources` until another client takes the clipboard; the flag
 /// it returns says whether it still serves.
@@ -91,17 +114,24 @@ impl Clip for WaylandClip {
     }
 
     fn set_text(&self, text: &str) -> Result<Generation, ClipError> {
+        let mut owned = OWNED.lock().unwrap_or_else(|p| p.into_inner());
+        let generation = owned.generation + 1;
         let live = serve(
-            vec![MimeSource {
-                source: Source::Bytes(text.as_bytes().into()),
-                mime_type: copy::MimeType::Text,
-            }],
+            vec![
+                MimeSource {
+                    source: Source::Bytes(text.as_bytes().into()),
+                    mime_type: copy::MimeType::Text,
+                },
+                MimeSource {
+                    source: Source::Bytes(Box::default()),
+                    mime_type: copy::MimeType::Specific(marker(generation)),
+                },
+            ],
             false,
         )?;
-        let mut owned = OWNED.lock().unwrap_or_else(|p| p.into_inner());
-        owned.generation += 1;
+        owned.generation = generation;
         owned.live = Some(live);
-        Ok(Generation(owned.generation))
+        Ok(Generation(generation))
     }
 
     fn restore(
@@ -110,12 +140,8 @@ impl Clip for WaylandClip {
         if_generation: Generation,
     ) -> Result<Restored, ClipError> {
         let mut owned = OWNED.lock().unwrap_or_else(|p| p.into_inner());
-        let ours = owned.generation == if_generation.0
-            && owned
-                .live
-                .as_ref()
-                .is_some_and(|l| l.load(Ordering::Acquire));
-        if !ours {
+        let types = paste::get_mime_types(ClipboardType::Regular, Seat::Unspecified).ok();
+        if !owned.holds(if_generation.0, types.as_ref()) {
             return Ok(Restored::Superseded);
         }
         owned.generation += 1;
@@ -135,5 +161,28 @@ impl Clip for WaylandClip {
             .collect();
         owned.live = Some(serve(sources, true)?);
         Ok(Restored::Restored)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// fn-85 R1: a copy made while Dettivo's serving thread is stuck on an
+    /// app that stopped reading still wins over the restore, because the
+    /// clipboard no longer offers Dettivo's marker.
+    #[test]
+    fn a_newer_copy_wins_even_while_the_old_offer_still_serves() {
+        let owned = Owned {
+            generation: 3,
+            live: Some(Arc::new(AtomicBool::new(true))),
+        };
+        let ours: HashSet<String> = ["text/plain".to_string(), marker(3)].into();
+        let newer: HashSet<String> = ["text/plain".to_string()].into();
+        assert!(owned.holds(3, Some(&ours)));
+        assert!(!owned.holds(3, Some(&newer)), "a newer copy");
+        assert!(!owned.holds(3, None), "an unreadable clipboard");
+        assert!(!owned.holds(2, Some(&ours)), "an older generation");
+        assert!(super::super::is_meta(&marker(3)), "never snapshotted");
     }
 }
