@@ -478,7 +478,7 @@
     "impl:fn-84-vocabulary-on-parakeet.1": 0
   },
   "spec_path": ".flow/specs/fn-84-vocabulary-on-parakeet.md",
-  "status": "open",
+  "status": "done",
   "title": "Vocabulary on Parakeet",
   "tracker": {
     "baseHashFlow": null,
@@ -491,5 +491,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-02T00:45:10.180040Z"
+  "updated_at": "2026-11-02T09:23:02.227759Z"
 }

@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-84-vocabulary-on-parakeet",
   "spec_path": ".flow/tasks/fn-84-vocabulary-on-parakeet.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Vocabulary on Parakeet",
   "updated_at": "2026-11-01T19:22:26.396025Z"
 }
