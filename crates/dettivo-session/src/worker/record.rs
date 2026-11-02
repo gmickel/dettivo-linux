@@ -64,11 +64,13 @@ impl Worker {
         let mut tail: Option<Tail> = None;
         let mut ended: Option<EndReason> = None;
         let mut terminal = false;
-        let check = self
-            .vad
-            .as_ref()
-            .and_then(|v| v.stream())
-            .map(SpeechCheck::start);
+        // The check starts once the press qualifies as a take, with what
+        // was captured until then: a tap never reaches the detector (ADR
+        // 0093). `fed` counts the samples sent to it.
+        let qualifies = self.pressed + self.policy.min_hold;
+        let mut detector = self.vad.as_deref();
+        let mut check: Option<SpeechCheck> = None;
+        let mut fed = 0;
         loop {
             if self.cancel.load(Ordering::Relaxed) {
                 return Ok(Recorded {
@@ -102,13 +104,23 @@ impl Worker {
             match src.events().recv_timeout(wait) {
                 Ok(Event::Pcm { pcm: chunk, at }) => {
                     (heard, arrived) = (Some(at), Instant::now());
-                    // Audio that arrives after the stop is seen may be cut
-                    // from the take, so the check runs it at the release.
-                    if let (None, Some(c)) = (&tail, &check) {
-                        c.feed(&chunk);
-                    }
                     samples.extend_from_slice(&chunk);
                     stamps.push((samples.len(), at));
+                    // Audio that arrives after the stop is seen may be cut
+                    // from the take, so the check runs it at the release.
+                    if tail.is_none() {
+                        if check.is_none()
+                            && arrived >= qualifies
+                            && !self.cancel.load(Ordering::Relaxed)
+                            && let Some(vad) = detector.take()
+                        {
+                            check = vad.stream().map(SpeechCheck::start);
+                        }
+                        if let Some(c) = &check {
+                            c.feed(&samples[fed..]);
+                            fed = samples.len();
+                        }
+                    }
                     let progress = (started.elapsed().as_secs_f64()
                         / self.policy.max_duration.as_secs_f64())
                     .min(1.0);

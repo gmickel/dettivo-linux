@@ -2,7 +2,9 @@
 //! take is captured and never holds the capture up. A check far slower
 //! than the capture still leaves every sample in the take, and what it
 //! heard plus what the release added is the take, in order (R3). A check
-//! that fails leaves the release to judge the whole take (R1).
+//! that fails leaves the release to judge the whole take (R1). A tap
+//! never reaches the detector, and a take that ends on its own, by a
+//! cancel or a lost device, ends its check before the next take can start.
 
 mod support;
 
@@ -183,8 +185,10 @@ impl VoiceDetector for Logged {
     }
 
     fn stream(&self) -> Option<Box<dyn SpeechStream>> {
+        let id = self.streams.fetch_add(1, Ordering::Relaxed);
+        self.log.lock().unwrap().push((id, "stream"));
         Some(Box::new(LoggedStream {
-            id: self.streams.fetch_add(1, Ordering::Relaxed),
+            id,
             log: self.log.clone(),
         }))
     }
@@ -242,4 +246,121 @@ fn a_cancelled_take_check_ends_before_the_next_take_starts() {
         log[first_of_next..].iter().all(|(id, _)| *id == 1),
         "the cancelled take's check ran into the next take: {log:?}"
     );
+}
+
+/// The take after a lost device starts only once the lost take's check
+/// ended, so its piece never lands in the next take's stream.
+#[test]
+fn a_lost_device_take_check_ends_before_the_next_take_starts() {
+    let (dir, _rec, session, engine, feed) = rig("ok");
+    let vad = Arc::new(Logged::default());
+    session.set_vad(Some(vad.clone()));
+    session
+        .start(
+            policy(dir.path(), false),
+            engine.clone(),
+            feed.clone(),
+            None,
+            Instant::now(),
+        )
+        .unwrap();
+    feed.speak(400);
+    std::thread::sleep(Duration::from_millis(50));
+    feed.send(Event::Ended {
+        reason: dettivo_audio::EndReason::DeviceLost("gone".into()),
+    });
+    support::wait_idle(&session);
+    session
+        .start(
+            policy(dir.path(), false),
+            engine.clone(),
+            feed.clone(),
+            None,
+            Instant::now(),
+        )
+        .unwrap();
+    feed.speak(400);
+    std::thread::sleep(Duration::from_millis(50));
+    assert_eq!(session.stop().unwrap().text, "Ok");
+    let log = vad.log.lock().unwrap().clone();
+    let first_of_next = log.iter().position(|(id, _)| *id == 1).unwrap();
+    assert!(
+        log[first_of_next..].iter().all(|(id, _)| *id == 1),
+        "the lost take's check ran into the next take: {log:?}"
+    );
+}
+
+/// ADR 0093: a press under the minimum hold reaches no voice pass, even
+/// when the detector streams.
+#[test]
+fn a_tap_never_reaches_the_speech_check() {
+    for discard in [false, true] {
+        let (dir, _rec, session, engine, feed) = rig("never used");
+        let vad = Arc::new(Logged::default());
+        session.set_vad(Some(vad.clone()));
+        let mut p = policy(dir.path(), false);
+        p.min_hold = Duration::from_millis(300);
+        let pressed = Instant::now();
+        let job = session
+            .start(p, engine.clone(), feed.clone(), None, pressed)
+            .unwrap()
+            .job_id;
+        feed.speak(100);
+        let released = pressed + Duration::from_millis(120);
+        std::thread::sleep(released.saturating_duration_since(Instant::now()));
+        if discard {
+            session.discard_tap(&job).unwrap();
+        } else {
+            assert_eq!(
+                session.stop_expected(None, released).unwrap_err(),
+                SessionError::Cancelled
+            );
+        }
+        assert!(
+            vad.log.lock().unwrap().is_empty(),
+            "the tap reached the detector: {:?}",
+            vad.log.lock().unwrap()
+        );
+        assert!(
+            pressed.elapsed() < Duration::from_millis(300),
+            "the tap waited on a check piece: {:?}",
+            pressed.elapsed()
+        );
+    }
+}
+
+/// The audio captured before the press qualified as a take reaches the
+/// check once it does, ahead of the rest and in order.
+#[test]
+fn the_check_hears_the_audio_from_before_the_minimum_hold() {
+    let (dir, _rec, session, engine, feed) = rig("ok");
+    let vad = heard(Duration::ZERO, false, 900);
+    session.set_vad(Some(vad.clone()));
+    let mut p = policy(dir.path(), false);
+    p.min_hold = Duration::from_millis(300);
+    session
+        .start(p, engine.clone(), feed.clone(), None, Instant::now())
+        .unwrap();
+    let chunks = take();
+    let (early, late) = chunks[..40].split_at(20);
+    for chunk in early {
+        feed.send(Event::pcm(chunk.clone()));
+    }
+    std::thread::sleep(Duration::from_millis(150));
+    assert!(
+        vad.samples.lock().unwrap().is_empty(),
+        "the check ran before the minimum hold"
+    );
+    std::thread::sleep(Duration::from_millis(250));
+    for chunk in late {
+        feed.send(Event::pcm(chunk.clone()));
+    }
+    std::thread::sleep(Duration::from_millis(50));
+    assert_eq!(session.stop().unwrap().text, "Ok");
+    assert_eq!(
+        *vad.samples.lock().unwrap(),
+        chunks[..40].concat(),
+        "the check heard the whole take, in order"
+    );
+    assert_eq!(vad.whole.load(Ordering::Relaxed), 0, "no whole-take pass");
 }

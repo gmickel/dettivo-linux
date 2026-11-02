@@ -44,6 +44,8 @@ pub(crate) struct Worker {
     pub(crate) released: Arc<OnceLock<Instant>>,
     /// A cancel ends the take as a tap.
     pub(crate) tap: Arc<AtomicBool>,
+    /// When the press arrived; the take qualifies `min_hold` after it.
+    pub(crate) pressed: Instant,
     pub(crate) route: Arc<crate::deliver::Route>,
     pub(crate) dir: PathBuf,
     pub(crate) publisher: Arc<dyn Publisher>,
@@ -95,6 +97,9 @@ impl Worker {
             }
         };
         if let Some(exit) = record_exit {
+            // The check ends before the slot frees: the voice process
+            // holds one take's state, and the next take may start at once.
+            drop(check);
             self.cleanup();
             finish_shared(
                 &shared,
