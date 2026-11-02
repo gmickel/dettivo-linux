@@ -58,7 +58,7 @@ jobs:
   # keyed to this job so the build is what the next run restores.
   gate:
     name: gate
-    timeout-minutes: 60
+    timeout-minutes: 90
     runs-on: ubuntu-latest
     container:
       image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6

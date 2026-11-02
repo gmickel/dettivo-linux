@@ -7,6 +7,7 @@
 
 use std::path::Path;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use dettivo_insert::Session;
 use dettivo_insert::display;
@@ -133,7 +134,8 @@ pub fn follow(conn: &Connection, report: impl Fn(bool) + 'static) -> Result<(), 
 /// Follows the compositor's lock on a thread of its own: a lost
 /// connection is tried again until the compositor is back, a compositor without lock
 /// notifications or a session without a Wayland display is left to
-/// logind. The ring stays closed until the first connection reports.
+/// logind. The ring stays closed until the compositor first reports,
+/// across lost connections and retries.
 pub fn watch(daemon: Arc<Daemon>) {
     let set = |d: &Daemon, locked| {
         d.dictation()
@@ -164,14 +166,20 @@ pub fn watch(daemon: Arc<Daemon>) {
 /// Reports the lock of the compositor on the display `socket` through
 /// `set`: `Some` while a connection reports, `None` once it is lost. A
 /// compositor that went away is reached again when it comes back on the
-/// same display, also after a restart (ADR 0100).
+/// same display, also after a restart (ADR 0100). A connection refused
+/// or lost before the compositor's first report leaves the lock pending,
+/// the ring closed, through the retries.
 pub(crate) fn follow_display(socket: &Path, set: impl Fn(Option<bool>) + Clone + 'static) {
     let mut last = String::new();
+    let reported = Arc::new(AtomicBool::new(false));
     display::reconnecting(
         socket,
         |conn| {
-            let report = set.clone();
-            match follow(&conn, move |locked| report(Some(locked))) {
+            let (report, r) = (set.clone(), reported.clone());
+            match follow(&conn, move |locked| {
+                r.store(true, Ordering::Relaxed);
+                report(Some(locked));
+            }) {
                 Err(Stop::Lost(why)) => display::Ended::Lost(why),
                 Err(Stop::NotOffered) | Ok(()) => {
                     set(None);
@@ -181,7 +189,9 @@ pub(crate) fn follow_display(socket: &Path, set: impl Fn(Option<bool>) + Clone +
             }
         },
         |why| {
-            set(None);
+            if reported.load(Ordering::Relaxed) {
+                set(None);
+            }
             if why != last {
                 tracing::info!(
                     why,

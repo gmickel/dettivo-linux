@@ -26,6 +26,7 @@ fn take(engine: &WhisperEngine) {
         language: "en".into(),
         prompt: None,
         timestamps: false,
+        vocabulary: None,
     };
     engine.recognize(request, Duration::from_secs(10)).unwrap();
 }

@@ -23,6 +23,8 @@ enum Start {
     Locked,
     /// `locked` while answering the client's next roundtrip.
     LockedAtNextSync,
+    /// Nothing: the connection drops before any report.
+    Drops,
 }
 
 fn message(object: u32, opcode: u16, args: &[u8]) -> Vec<u8> {
@@ -109,6 +111,10 @@ impl Compositor {
                             Start::Unlocked => {}
                             Start::Locked => self.lock(true),
                             Start::LockedAtNextSync => lock_at_sync = true,
+                            Start::Drops => {
+                                let _ = reader.shutdown(std::net::Shutdown::Both);
+                                return;
+                            }
                         }
                     }
                     _ => {}
@@ -274,4 +280,54 @@ fn the_lock_is_followed_again_after_a_compositor_restart() {
     wait_for("the new compositor's unlock frees the ring", || {
         !ready.blocked()
     });
+}
+
+/// A compositor connection that drops before its first report keeps the
+/// ring closed while the watcher waits to connect again, also through
+/// refused connections, and the locked session the next compositor
+/// reports keeps it closed; losing that connection too leaves the ring
+/// closed.
+#[test]
+fn a_connection_lost_before_its_first_report_keeps_the_ring_closed() {
+    let dir = tempfile::Builder::new()
+        .prefix("dtv")
+        .tempdir_in("/tmp")
+        .unwrap();
+    let socket = dir.path().join("wl");
+    let ready = Arc::new(MicReady::default());
+    ready.lock_pending(LockSource::Compositor);
+    let first = compositor_on(&socket, Start::Drops);
+    let (r, s) = (ready.clone(), socket.clone());
+    std::thread::spawn(move || {
+        follow_display(&s, move |locked| r.set_lock(LockSource::Compositor, locked))
+    });
+    first.recv_timeout(Duration::from_secs(3)).unwrap();
+    // The dropped connection and the refusals after it.
+    let until = Instant::now() + Duration::from_millis(600);
+    while Instant::now() < until {
+        assert!(
+            ready.blocked(),
+            "the ring opened before the compositor reported"
+        );
+        std::thread::sleep(Duration::from_millis(1));
+    }
+
+    let second = compositor_on(&socket, Start::Locked);
+    let second = second.recv_timeout(Duration::from_secs(3)).unwrap();
+    wait_for("the new compositor reports its lock", || {
+        second.notification.lock().unwrap().is_some()
+    });
+    std::thread::sleep(Duration::from_millis(50));
+    assert!(ready.blocked(), "the reported lock closes the ring");
+    second
+        .writer
+        .lock()
+        .unwrap()
+        .shutdown(std::net::Shutdown::Both)
+        .unwrap();
+    std::thread::sleep(Duration::from_millis(300));
+    assert!(
+        ready.blocked(),
+        "a connection lost while locked keeps the ring closed"
+    );
 }

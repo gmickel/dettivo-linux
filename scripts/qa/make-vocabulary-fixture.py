@@ -6,7 +6,10 @@ the Piper voice that speaks it and `say`, the text the voice reads (a term
 is spelt the way it is pronounced, `Sapien X T` for SapienXT). This script
 synthesises each clip with sherpa-onnx's offline TTS and writes
 `<id>.wav` beside the definition, 16 kHz mono 16-bit, silence under the
-floor trimmed from both ends and a short lead and tail added back.
+floor trimmed from both ends and a short lead and tail added back. A clip
+whose `<id>.wav` exists is left alone: synthesis is not byte-reproducible,
+and the benchmark stays comparable across runs only while the existing
+clips stay the same. Delete a clip's file to render it again.
 `dettivo-qa bench vocabulary` reads the clips (ADR 0087).
 
 The voices are the rig's: the Piper `vits-piper-en_US-amy-low` and
@@ -87,13 +90,16 @@ def main():
         clips = json.load(f)["clips"]
     engines = {}
     for clip in clips:
+        path = os.path.join(fixture_dir, f"{clip['id']}.wav")
+        if os.path.exists(path):
+            continue
         name = clip["voice"]
         if name not in engines:
             engines[name] = voice(voices_dir, name)
         audio = engines[name].generate(clip["say"], sid=0, speed=1.0)
         if audio.sample_rate != RATE:
             sys.exit(f"{name}: {audio.sample_rate} Hz, want {RATE}")
-        write(os.path.join(fixture_dir, f"{clip['id']}.wav"), trimmed(pcm(audio.samples)))
+        write(path, trimmed(pcm(audio.samples)))
         print(clip["id"])
 
 
