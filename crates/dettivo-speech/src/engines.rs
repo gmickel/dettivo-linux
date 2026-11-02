@@ -7,12 +7,15 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use dettivo_engine_proto::{
-    Backend, BackendPreference, DetectSpeechResult, LoadParams, RecognizeParams, RecognizeResult,
+    Backend, BackendPreference, DetectSpeechParams, DetectSpeechResult, FeedSpeechParams,
+    FeedSpeechResult, LoadParams, RecognizeParams, RecognizeResult,
 };
+use serde::Serialize;
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 
-use crate::gate::{VAD_PARAMS, VoiceDetector};
-use crate::supervisor::{Supervisor, WARM_UP_SAMPLES};
+use crate::gate::{SpeechStream, VAD_PARAMS, VoiceDetector};
+use crate::supervisor::{PARAKEET_WARM_UP_SAMPLES, Supervisor, WARM_UP_SAMPLES};
 use crate::{Capabilities, EngineError, PreloadSource, RecognizeRequest, SttEngine};
 
 /// The whisper engine binary name.
@@ -96,7 +99,12 @@ impl Shared {
             prompt: None,
             timestamps: false,
         };
-        let pcm = dettivo_engine_proto::pcm_to_bytes(&[0; WARM_UP_SAMPLES]);
+        let samples = if self.binary == PARAKEET_BINARY {
+            PARAKEET_WARM_UP_SAMPLES
+        } else {
+            WARM_UP_SAMPLES
+        };
+        let pcm = dettivo_engine_proto::pcm_to_bytes(&vec![0; samples]);
         let warmed = self.supervisor.warm_up(self.binary, |process| {
             let value = process.call(
                 "recognize",
@@ -268,6 +276,7 @@ impl SttEngine for ParakeetEngine {
 }
 
 /// The Silero voice activity pass over the supervisor, on the CPU.
+#[derive(Clone)]
 pub struct SileroVad {
     supervisor: Arc<Supervisor>,
     model: String,
@@ -278,10 +287,14 @@ impl SileroVad {
     pub fn new(supervisor: Arc<Supervisor>, model: String) -> Self {
         Self { supervisor, model }
     }
-}
 
-impl VoiceDetector for SileroVad {
-    fn speech_ms(&self, pcm: &[i16]) -> Result<u64, EngineError> {
+    /// Sends `name` with `params` and `pcm` to the voice activity process.
+    fn call<R: DeserializeOwned>(
+        &self,
+        name: &str,
+        params: impl Serialize,
+        pcm: &[i16],
+    ) -> Result<R, EngineError> {
         let load = LoadParams {
             model: String::new(),
             backend_preference: BackendPreference::Cpu,
@@ -294,16 +307,68 @@ impl VoiceDetector for SileroVad {
         self.supervisor
             .with_engine_slot(VAD_SLOT, WHISPER_BINARY, load, |process, _| {
                 let value = process.call(
-                    "detect_speech",
-                    serde_json::to_value(VAD_PARAMS).unwrap_or(Value::Null),
+                    name,
+                    serde_json::to_value(params).unwrap_or(Value::Null),
                     &[&pcm],
                     Duration::from_secs(30),
                     |_| {},
                 )?;
-                serde_json::from_value::<DetectSpeechResult>(value)
-                    .map(|r| r.speech_ms)
-                    .map_err(|e| EngineError::Transport(format!("detect_speech response: {e}")))
+                serde_json::from_value::<R>(value)
+                    .map_err(|e| EngineError::Transport(format!("{name} response: {e}")))
             })
+    }
+}
+
+impl VoiceDetector for SileroVad {
+    fn speech_ms(&self, pcm: &[i16]) -> Result<u64, EngineError> {
+        self.call::<DetectSpeechResult>("detect_speech", VAD_PARAMS, pcm)
+            .map(|r| r.speech_ms)
+    }
+
+    fn stream(&self) -> Option<Box<dyn SpeechStream>> {
+        Some(Box::new(SileroStream {
+            vad: self.clone(),
+            fed: 0,
+        }))
+    }
+}
+
+/// One take through the voice activity process as it is captured
+/// (`feed_speech`, then `detect_speech` with `continues`).
+struct SileroStream {
+    vad: SileroVad,
+    /// The samples the process holds for this take.
+    fed: u64,
+}
+
+impl SpeechStream for SileroStream {
+    fn feed(&mut self, pcm: &[i16]) -> Result<(), EngineError> {
+        let start = self.fed == 0;
+        let fed: FeedSpeechResult =
+            self.vad
+                .call("feed_speech", FeedSpeechParams { start }, pcm)?;
+        if fed.samples != self.fed + pcm.len() as u64 {
+            return Err(EngineError::Transport(format!(
+                "feed_speech holds {} samples, not {}",
+                fed.samples,
+                self.fed + pcm.len() as u64
+            )));
+        }
+        self.fed = fed.samples;
+        Ok(())
+    }
+
+    fn finish(&mut self, rest: &[i16]) -> Result<u64, EngineError> {
+        if self.fed == 0 {
+            return self.vad.speech_ms(rest);
+        }
+        let params = DetectSpeechParams {
+            continues: Some(self.fed),
+            ..VAD_PARAMS
+        };
+        self.vad
+            .call::<DetectSpeechResult>("detect_speech", params, rest)
+            .map(|r| r.speech_ms)
     }
 }
 

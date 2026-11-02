@@ -26,6 +26,7 @@ use crate::{
     Transcript,
 };
 
+mod check;
 mod record;
 use record::Recorded;
 
@@ -77,6 +78,7 @@ impl Worker {
             exit: record_exit,
             capture_ms,
             stopped,
+            check,
         } = match outcome {
             Ok(v) => v,
             Err(exit) => {
@@ -111,7 +113,18 @@ impl Worker {
             Some("loading engine".into()),
         );
         let transcribe_started = Instant::now();
-        let verdict = gate::judge(&samples, self.policy.silence_dbfs, self.vad.as_deref());
+        // The voice pass ran during the take; the release runs only what
+        // it has not heard, or the whole take when it could not.
+        let verdict = gate::judge_voice(
+            &samples,
+            self.policy.silence_dbfs,
+            self.vad.as_deref().map(|vad| {
+                || match check.and_then(|c| c.finish(&samples)) {
+                    Some(ms) => Ok(ms),
+                    None => vad.speech_ms(&samples),
+                }
+            }),
+        );
         // A cancel during the voice pass reached no engine to stop.
         if self.cancel.load(Ordering::Relaxed) {
             self.cleanup();

@@ -11,7 +11,7 @@ rust-version.workspace = true
 dettivo-engine-proto.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-whisper-rs.workspace = true
+whisper-rs = { workspace = true, features = ["raw-api"] }
 hound.workspace = true
 clap.workspace = true
 tracing.workspace = true

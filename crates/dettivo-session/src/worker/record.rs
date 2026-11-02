@@ -14,6 +14,7 @@ use std::time::{Duration, Instant};
 use dettivo_audio::takes::TakeWriter;
 use dettivo_audio::{EndReason, Event};
 
+use super::check::SpeechCheck;
 use super::{Worker, elapsed_ms};
 use crate::finish::{Exit, SharedState};
 use crate::source::Source;
@@ -31,6 +32,8 @@ pub(super) struct Recorded {
     pub(super) capture_ms: u64,
     /// When the stop was observed.
     pub(super) stopped: Instant,
+    /// The speech check that ran during the take, when the detector streams.
+    pub(super) check: Option<SpeechCheck>,
 }
 
 /// The release tail once a stop was seen.
@@ -61,6 +64,11 @@ impl Worker {
         let mut tail: Option<Tail> = None;
         let mut ended: Option<EndReason> = None;
         let mut terminal = false;
+        let check = self
+            .vad
+            .as_ref()
+            .and_then(|v| v.stream())
+            .map(SpeechCheck::start);
         loop {
             if self.cancel.load(Ordering::Relaxed) {
                 return Ok(Recorded {
@@ -69,6 +77,7 @@ impl Worker {
                     exit: Some(self.cancelled()),
                     capture_ms: 0,
                     stopped: Instant::now(),
+                    check: None,
                 });
             }
             if tail.is_none() && self.stop.load(Ordering::Relaxed) {
@@ -93,6 +102,11 @@ impl Worker {
             match src.events().recv_timeout(wait) {
                 Ok(Event::Pcm { pcm: chunk, at }) => {
                     (heard, arrived) = (Some(at), Instant::now());
+                    // Audio that arrives after the stop is seen may be cut
+                    // from the take, so the check runs it at the release.
+                    if let (None, Some(c)) = (&tail, &check) {
+                        c.feed(&chunk);
+                    }
                     samples.extend_from_slice(&chunk);
                     stamps.push((samples.len(), at));
                     let progress = (started.elapsed().as_secs_f64()
@@ -187,6 +201,7 @@ impl Worker {
             exit,
             capture_ms: elapsed_ms(released),
             stopped: released,
+            check,
         })
     }
 }

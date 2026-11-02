@@ -5083,10 +5083,16 @@ struct whisper_vad_context * whisper_vad_init_with_params(
     return vctx;
 }
 
-bool whisper_vad_detect_speech(
+// Dettivo patch (ADR 0097): the detection body takes `reset`. With it the
+// LSTM state and the probabilities start over, as upstream always does.
+// Without it the samples continue the audio detected so far: the state
+// carries over and their probabilities are appended, so audio fed in whole
+// windows ends with the probabilities one call over all of it computes.
+static bool whisper_vad_detect_speech_impl(
         struct whisper_vad_context * vctx,
         const float * samples,
-        int n_samples) {
+        int n_samples,
+        bool reset) {
     int n_chunks = n_samples / vctx->n_window;
     if (n_samples % vctx->n_window != 0) {
         n_chunks += 1;  // Add one more chunk for remaining samples.
@@ -5095,10 +5101,14 @@ bool whisper_vad_detect_speech(
     WHISPER_LOG_INFO("%s: detecting speech in %d samples\n", __func__, n_samples);
     WHISPER_LOG_INFO("%s: n_chunks: %d\n", __func__, n_chunks);
 
-    // Reset LSTM hidden/cell states
-    ggml_backend_buffer_clear(vctx->buffer, 0);
+    if (reset) {
+        // Reset LSTM hidden/cell states
+        ggml_backend_buffer_clear(vctx->buffer, 0);
+        vctx->probs.clear();
+    }
 
-    vctx->probs.resize(n_chunks);
+    const size_t offset = vctx->probs.size();
+    vctx->probs.resize(offset + n_chunks);
     WHISPER_LOG_INFO("%s: props size: %u\n", __func__, n_chunks);
 
     std::vector<float> window(vctx->n_window, 0.0f);
@@ -5152,7 +5162,7 @@ bool whisper_vad_detect_speech(
         }
 
         // Get the probability for this chunk.
-        ggml_backend_tensor_get(prob, &vctx->probs[i], 0, sizeof(float));
+        ggml_backend_tensor_get(prob, &vctx->probs[offset + i], 0, sizeof(float));
 
         //WHISPER_LOG_DEBUG("chunk %d: p = %7.3f\n", i, probs[i]);
     }
@@ -5163,6 +5173,25 @@ bool whisper_vad_detect_speech(
     ggml_backend_sched_reset(sched);
 
     return true;
+}
+
+bool whisper_vad_detect_speech(
+        struct whisper_vad_context * vctx,
+        const float * samples,
+        int n_samples) {
+    return whisper_vad_detect_speech_impl(vctx, samples, n_samples, true);
+}
+
+// Dettivo patch (ADR 0097): detection over audio as it arrives. `reset`
+// starts a new stream; otherwise `samples` continue it. Every call but the
+// last must carry whole windows (512 samples), since a partial window is
+// padded with silence as the end of the audio.
+extern "C" bool dettivo_vad_detect_speech_more(
+        struct whisper_vad_context * vctx,
+        const float * samples,
+        int n_samples,
+        bool reset) {
+    return whisper_vad_detect_speech_impl(vctx, samples, n_samples, reset);
 }
 
 int whisper_vad_segments_n_segments(struct whisper_vad_segments * segments) {
