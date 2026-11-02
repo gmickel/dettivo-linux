@@ -1,10 +1,10 @@
 # 0094. Streaming dictation passes its gate only for two-minute takes
 
-Status: Proposed 2026-11-02. Records fn-86's measurement gate (R1); whether to build streaming awaits a decision.
+Status: Accepted 2026-11-02 by Gordon Mickel. Records fn-86's measurement gate (R1) and closes fn-86 without streaming; fn-90 takes on the two-minute miss.
 
 ## What this gives you
 
-A Parakeet dictation of up to a minute on the reference GPU already shows its text within 0.73 s of the release, measured through the daemon. A two-minute take waits 1.08-1.23 s. fn-86 makes streaming conditional on long takes passing 1 s, so the gate is met by two-minute takes and by nothing shorter. This record gives the numbers, the reason the pinned engine cannot stream the dictation models as the spec assumes, and the two ways forward.
+A Parakeet dictation of up to a minute on the reference GPU already shows its text within 0.73 s of the release, measured through the daemon. A two-minute take waits 1.08-1.23 s. fn-86 makes streaming conditional on long takes passing 1 s, so the gate is met by two-minute takes and by nothing shorter. Dictation stays offline: streaming is not built. The two-minute miss goes to fn-90, which runs the speech check during the take. This record gives the numbers, the reason the pinned engine cannot stream the dictation models as the spec assumes, and why the smaller change won.
 
 ## Situation
 
@@ -61,16 +61,16 @@ parakeet.cpp v0.5.0 has a streaming C API (`parakeet_capi_stream_begin`, `_feed`
 
 ## Decision
 
-Proposed, pending a human call on which way fn-86 goes.
+fn-86 closes with this record, and streaming is not built. Gordon Mickel chose option B on 2026-11-02. fn-90 carries its follow-on work: run the Silero speech check incrementally during the take, so its verdict is ready at the release, and find and fix the stalls of the first take after idle.
 
 - **The gate is met for two-minute takes only.** Release-to-text has a p50 of 1,157 ms at 120 s. At 30 s and 60 s it stays at or under 731 ms, and the 60 s p50 of 683 ms already meets R2's target without streaming.
-- **Option A, build streaming as specified.** Streaming the TDT models means writing a buffered decoder in `dettivo-engine-parakeet`. Every 1.04 s it would re-run the offline model over a window of 5.6 s of left context, the 1.04 s chunk and 1.04 s of lookahead, keeping the words whose timestamps fall in the chunk. The alternative is a cache-aware model, which changes the dictation model and is a product choice. On top of the decoder, R2-R7 add the four `stream.*` requests, the session feed during the hold, pause capping, the four fallbacks with a persisted `fallback` reason in History, the `dictation.partial` event, the pill's two-weight text, the meeting yield rule and their tests and docs. After the release, a two-minute take would still wait for the 0.2 s tail and the 0.34 s Silero pass over the whole take.
-- **Option B, close fn-86 and move the speech gate off the serial path.** The Silero pass runs over the whole take before recognition starts and costs 336 ms at 120 s, more than the 80-230 ms by which two-minute takes miss 1 s. Running it during the hold, or beside recognition, would bring those takes under 1 s without a stream. That change needs its own spec. Live partial text would not be built.
-- The recommendation is B. Two-minute takes are 2 of 93 takes in History, takes of up to a minute already meet R2, and A adds a decoder and protocol surface whose accuracy the WER fixtures have not judged.
+- **Option A, build streaming as specified (not chosen).** Streaming the TDT models means writing a buffered decoder in `dettivo-engine-parakeet`. Every 1.04 s it would re-run the offline model over a window of 5.6 s of left context, the 1.04 s chunk and 1.04 s of lookahead, keeping the words whose timestamps fall in the chunk. The alternative is a cache-aware model, which changes the dictation model and is a product choice. On top of the decoder, R2-R7 add the four `stream.*` requests, the session feed during the hold, pause capping, the four fallbacks with a persisted `fallback` reason in History, the `dictation.partial` event, the pill's two-weight text, the meeting yield rule and their tests and docs. After the release, a two-minute take would still wait for the 0.2 s tail and the 0.34 s Silero pass over the whole take.
+- **Option B, close fn-86 and move the speech gate off the serial path (chosen).** The Silero pass runs over the whole take before recognition starts and costs 336 ms at 120 s, more than the 80-230 ms by which two-minute takes miss 1 s. Running it during the hold, or beside recognition, would bring those takes under 1 s without a stream. That change is fn-90. Live partial text is not built.
+- B was recommended and chosen. Two-minute takes are 2 of 93 takes in History, takes of up to a minute already meet R2, and A adds a decoder and protocol surface whose accuracy the WER fixtures have not judged.
 
 ## Consequences
 
-- Until the decision lands, dictation keeps the whole-take path for every engine and backend, and fn-86 stays open.
+- Dictation keeps the whole-take path for every engine and backend. Parakeet recognises a take after the release, not while the key is held, and the pill shows no partial text.
 - After the release, a take on the reference GPU waits about 0.2 s of release tail, 2.6-2.8 ms per second of audio for the speech gate and 3-5 ms per second of audio for recognition. This split comes from the two tables and was not profiled inside the daemon.
 - On the CPU, recognition alone passes 1 s at 30 s and reaches 2.3 s at 60 s. fn-86 rules out CPU streaming, because re-encoding overlapping windows costs more than it saves, and either option keeps that.
-- The first take after the engine went idle waited 1.1-3.1 s in History, which includes loading the model. Stalls of 1.7-3.9 s also hit four warm takes there, with no recorded cause. Their size does not follow the take length, so neither option removes them.
+- The first take after the engine went idle waited 1.1-3.1 s in History, which includes loading the model. Stalls of 1.7-3.9 s also hit four warm takes there, with no recorded cause. Their size does not follow the take length, so streaming would not have removed them. fn-90 investigates the stalls of the first take after idle.
