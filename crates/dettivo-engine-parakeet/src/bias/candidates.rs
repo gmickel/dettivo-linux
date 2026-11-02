@@ -7,7 +7,9 @@
 //! across punctuation, and terms under five letters without an alias are
 //! never candidates.
 
-use dettivo_engine_proto::sound::{common_letters, edit_distance, ends_run, key, normalise};
+use dettivo_engine_proto::sound::{
+    common_letters, edit_distance, ends_run, is_term_mark, key, marked, normalise,
+};
 
 /// The most words a candidate span covers.
 pub const MAX_SPAN_WORDS: usize = 4;
@@ -34,7 +36,10 @@ impl Term {
     /// The term ready for matching; `None` for a term matching skips: one
     /// under five letters with no alias, or one with no letters at all.
     pub fn new(text: &str, aliases: &[String]) -> Option<Self> {
-        let norm = normalise(text);
+        // The term's own spelling keeps its marks, so a heard `C` or `C#`
+        // is never `C++`; its spoken aliases are letters only.
+        let norm = marked(text);
+        let letters = normalise(text).chars().count();
         let given: Vec<String> = aliases
             .iter()
             .map(|a| normalise(a))
@@ -42,7 +47,7 @@ impl Term {
             .collect();
         // A spelling that normalises to the term itself (`A W S` for
         // `AWS`) still counts as one: the term matches it as it stands.
-        if norm.is_empty() || (norm.chars().count() < MIN_TERM_LETTERS && given.is_empty()) {
+        if letters == 0 || (letters < MIN_TERM_LETTERS && given.is_empty()) {
             return None;
         }
         let aliases: Vec<String> = given.into_iter().filter(|a| *a != norm).collect();
@@ -236,7 +241,7 @@ pub fn find(words: &[&str], terms: &[Term], eligible: &[bool], limit: usize) -> 
         let heard = joined(first, last + 1);
         let as_written = words[first..=last]
             .join(" ")
-            .trim_end_matches(|c: char| c.is_ascii_punctuation())
+            .trim_end_matches(|c: char| c.is_ascii_punctuation() && !is_term_mark(c))
             .to_lowercase();
         let possessive = possessive(words[last]);
         for (index, term) in terms.iter().enumerate() {

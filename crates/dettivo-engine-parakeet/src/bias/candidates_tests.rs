@@ -221,3 +221,20 @@ fn unrelated_words_are_not_candidates_and_the_count_is_capped() {
     let many = "detectiv ".repeat(20);
     assert_eq!(spans(&many, &terms).len(), MAX_CANDIDATES);
 }
+
+/// A term's marks are part of its spelling: a heard `C` or `C#` is not
+/// `C++`, a `C++` already heard stays as it is, and the spoken alias
+/// still finds the term.
+#[test]
+fn a_term_spelt_with_marks_matches_only_with_its_marks() {
+    let terms = [term("C++", &["see plus plus"])];
+    assert_eq!(spans("I write C code", &terms), vec![]);
+    assert_eq!(spans("I write C# code", &terms), vec![]);
+    assert_eq!(spans("I write C++.", &terms), vec![]);
+    assert_eq!(spans("I write see plus plus", &terms), vec![(2, 4, 0)]);
+    // A longer term still matches its heard letters.
+    assert_eq!(
+        spans("open notepad now", &[term("Notepad++", &[])]),
+        vec![(1, 1, 0)]
+    );
+}
