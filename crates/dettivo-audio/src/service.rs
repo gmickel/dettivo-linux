@@ -64,10 +64,11 @@ impl Audio {
         if self.connected.load(Ordering::SeqCst) {
             return;
         }
-        if self.graph.take().is_some() {
+        if let Some(dead) = self.graph.take() {
             for (_, mut c) in self.captures.drain() {
                 c.end(EndReason::Error(LOST.into()));
             }
+            drop(dead);
         } else if self.last_try.elapsed() < RECONNECT {
             return;
         }

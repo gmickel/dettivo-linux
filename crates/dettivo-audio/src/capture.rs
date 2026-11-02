@@ -29,8 +29,9 @@ use startup::Watch;
 pub struct Capture {
     events: Option<Receiver<Event>>,
     tx: Sender<Event>,
-    stream: StreamRc,
-    _listener: StreamListener<CaptureData>,
+    /// Destroyed under the loop's lock when the capture ends, as
+    /// PipeWire requires of every stream.
+    stream: Option<(StreamRc, StreamListener<CaptureData>)>,
     loop_: pw::thread_loop::ThreadLoopRc,
     stopped: Arc<AtomicBool>,
     ended_sent: Arc<Mutex<bool>>,
@@ -271,8 +272,7 @@ impl Capture {
         Ok(Self {
             events: Some(rx),
             tx,
-            stream,
-            _listener: listener,
+            stream: Some((stream, listener)),
             loop_: graph.loop_.clone(),
             stopped,
             ended_sent,
@@ -300,7 +300,11 @@ impl Capture {
         self.watcher_stop.store(true, Ordering::Relaxed);
         {
             let _guard = self.loop_.lock();
-            let _ = self.stream.disconnect();
+            if let Some((stream, listener)) = self.stream.take() {
+                let _ = stream.disconnect();
+                drop(listener);
+                drop(stream);
+            }
         }
         if let Some(handle) = self.watcher.take() {
             let _ = handle.join();
