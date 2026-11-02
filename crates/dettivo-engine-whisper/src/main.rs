@@ -40,7 +40,8 @@ struct Cli {
     #[arg(long)]
     prompt: Option<String>,
     /// Vocabulary the prompted output is checked against (CLI mode): a JSON
-    /// list of `{"term": ...}`; only the terms are read (ADR 0095).
+    /// list of `{"term": ..., "aliases": [...]}`; a lone name is kept when
+    /// the prompt-free decode sounds like the term or an alias (ADR 0095).
     #[arg(long, value_name = "JSON")]
     vocabulary: Option<String>,
     /// Optional VAD model (CLI mode).

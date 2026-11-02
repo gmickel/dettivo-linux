@@ -17,12 +17,35 @@ fn segment(pieces: &[(&str, f32)]) -> (String, Vec<Token>) {
     (pieces.iter().map(|p| p.0).collect(), tokens)
 }
 
+/// The bench vocabulary's `sounds_like` spellings (fixtures/vocabulary).
+const ALIASES: &[(&str, &[&str])] = &[
+    ("Omarchy", &["oh marky", "omar key"]),
+    ("Hyprland", &["hyper land", "hyperland"]),
+    ("Clef", &["clay", "cleff"]),
+    ("SapienXT", &["sapient x t", "sapien xt"]),
+];
+
+fn bias(terms: &[&str]) -> Vec<BiasTerm> {
+    terms
+        .iter()
+        .map(|t| BiasTerm {
+            term: t.to_string(),
+            aliases: ALIASES
+                .iter()
+                .find(|(term, _)| term == t)
+                .map_or(&[][..], |(_, a)| a)
+                .iter()
+                .map(|a| a.to_string())
+                .collect(),
+        })
+        .collect()
+}
+
 /// A whole take, each piece certain unless it carries its own probability.
 fn take(segments: &[&[(&str, f32)]], terms: &[&str]) -> Finding {
     let (texts, tokens): (Vec<String>, Vec<Vec<Token>>) =
         segments.iter().map(|s| segment(s)).unzip();
-    let terms: Vec<String> = terms.iter().map(|t| t.to_string()).collect();
-    find(&texts, &tokens, &terms)
+    find(&texts, &tokens, &bias(terms))
 }
 
 fn plain(texts: &[&str]) -> Vec<String> {
@@ -111,12 +134,47 @@ fn a_lone_listed_name_stands_when_sure() {
         settle(&alike, &plain(&[" Clyde."])),
         Some(plain(&["Clyde."]))
     );
-    let unsure = take(&[&[(" Hyprland.", -0.6)]], TERMS);
-    assert!(unsure.needs_plain_decode());
-    assert_eq!(
-        settle(&unsure, &plain(&[" Hyperland."])),
-        Some(plain(&["Hyperland."]))
-    );
+}
+
+/// An unsure lone name stays when the prompt-free decode heard something
+/// that sounds like it or one of its aliases, and gives way to what that
+/// decode heard when it does not; a term inside a sentence never stays by
+/// sound.
+#[test]
+fn an_unsure_lone_name_stays_only_when_the_plain_decode_sounds_like_it() {
+    // (prompted segments, prompt-free text, settled: None keeps the term)
+    let cases: &[(&[&[(&str, f32)]], &str, Option<&str>)] = &[
+        (&[&[(" Hyprland.", -0.411)]], " Hyperland.", None),
+        (&[&[(" Omarchy.", -0.6)]], " Oh, Marky.", None),
+        (&[&[(" Clef.", -0.416)]], " Pleph.", None),
+        (
+            &[&[(" Book the room.", -0.1)], &[(" Hyprland.", -0.5)]],
+            " Book the room. Hyper land.",
+            None,
+        ),
+        (&[&[(" Clef,", -0.344)]], " Clyde.", Some("Clyde.")),
+        (&[&[(" Omarchy.", -0.5)]], " Omar.", Some("Omar.")),
+        (&[&[(" Clef.", -0.416)]], " Blah.", Some("Blah.")),
+        (&[&[(" Omarchy.", -0.5)]], "", Some("")),
+        (
+            &[&[(" I bound the key in", 0.0), (" Hyprland.", -0.6)]],
+            " I bound the key in Hyperland.",
+            Some("I bound the key in Hyperland."),
+        ),
+    ];
+    for &(segments, heard, settled) in cases {
+        let found = take(segments, TERMS);
+        assert!(found.needs_plain_decode(), "{segments:?}");
+        let want = settled.map(|s| {
+            let mut texts = vec![String::new(); segments.len()];
+            if segments.len() > 1 {
+                texts[0] = "Book the room.".into();
+            }
+            texts[segments.len() - 1] = s.to_string();
+            texts
+        });
+        assert_eq!(settle(&found, &plain(&[heard])), want, "{segments:?} {heard:?}");
+    }
 }
 
 /// R1: a segment, or the sentences closing one, made only of two or more
@@ -215,6 +273,5 @@ fn suspects_with_overlapping_gaps_settle_as_one() {
 fn tokens_that_do_not_spell_the_text_leave_the_term_unsure() {
     let (text, mut tokens) = segment(&[(" Ask the Clef team.", 0.0)]);
     tokens[0].bytes.pop();
-    let terms = vec!["Clef".to_string()];
-    assert!(find(&[text], &[tokens], &terms).needs_plain_decode());
+    assert!(find(&[text], &[tokens], &bias(&["Clef"])).needs_plain_decode());
 }

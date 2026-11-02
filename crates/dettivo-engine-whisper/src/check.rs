@@ -7,12 +7,16 @@
 //! sentences closing one, made of listed terms alone) or when the mean log
 //! probability of its tokens is under [`MIN_MEAN_LOGPROB`]. Suspects are
 //! settled against the same take decoded without the prompt: a span that
-//! decode also spells stays, any other gives way to what that decode heard
-//! in its place, which is nothing when it heard nothing there.
+//! decode also spells stays, and so does a lone name (one term alone in
+//! its segment) when that decode heard something that sounds like it or
+//! one of its aliases ([`MIN_SOUND_ALIKE`]). Any other gives way to what
+//! that decode heard in its place, which is nothing when it heard nothing
+//! there.
 
 use std::time::Instant;
 
-use dettivo_engine_proto::EngineError;
+use dettivo_engine_proto::sound::{alike, normalise};
+use dettivo_engine_proto::{BiasTerm, EngineError};
 
 use crate::words::{Spoken, Token};
 
@@ -20,17 +24,13 @@ use crate::words::{Spoken, Token};
 /// prompt-free decode agreeing (ADR 0095 has the measurement).
 pub const MIN_MEAN_LOGPROB: f32 = -0.3;
 
+/// How alike ([`alike`]) the prompt-free decode's words must sound to an
+/// unsure lone name, or one of its aliases, for the name to stay (ADR 0095
+/// has the measurement).
+pub const MIN_SOUND_ALIKE: f32 = 0.6;
+
 /// The most words one term span covers ("Sapien X T" is three).
 const MAX_SPAN_WORDS: usize = 4;
-
-/// Lower-case letters and digits only: "SapienXT", "Sapien XT" and
-/// "sapien-xt" spell one term.
-fn norm(text: &str) -> String {
-    text.chars()
-        .filter(|c| c.is_alphanumeric())
-        .flat_map(char::to_lowercase)
-        .collect()
-}
 
 /// One whitespace-separated word of a segment.
 #[derive(Debug, Clone)]
@@ -45,11 +45,19 @@ struct Word {
 }
 
 /// A run of words that spells a listed term: first and last word,
-/// inclusive, counted over the whole take.
+/// inclusive, counted over the whole take, and the term's index.
 #[derive(Debug, Clone, Copy, PartialEq)]
 struct Span {
     first: usize,
     last: usize,
+    term: usize,
+}
+
+/// A span the prompt-free decode settles, and whether it is a lone name.
+#[derive(Debug, Clone, Copy)]
+struct Suspect {
+    span: Span,
+    lone: bool,
 }
 
 /// What the check found in the prompted decode.
@@ -58,7 +66,9 @@ pub struct Finding {
     texts: Vec<String>,
     words: Vec<Word>,
     spans: Vec<Span>,
-    suspects: Vec<Span>,
+    suspects: Vec<Suspect>,
+    /// Each term's spellings, normalised: the term, then its aliases.
+    spellings: Vec<Vec<String>>,
 }
 
 impl Finding {
@@ -80,7 +90,7 @@ impl Finding {
 pub fn run(
     texts: &[String],
     spoken: &[Spoken],
-    terms: &[String],
+    terms: &[BiasTerm],
     plain: impl FnOnce() -> Result<Vec<String>, EngineError>,
 ) -> Result<Option<Vec<String>>, EngineError> {
     let started = Instant::now();
@@ -110,22 +120,36 @@ pub fn run(
 
 /// The term spans and the suspects among them in a decode whose segments
 /// have `texts` (as whisper.cpp returned them, untrimmed) and `tokens`.
-pub fn find(texts: &[String], tokens: &[Vec<Token>], terms: &[String]) -> Finding {
+pub fn find(texts: &[String], tokens: &[Vec<Token>], terms: &[BiasTerm]) -> Finding {
+    let spellings: Vec<Vec<String>> = terms
+        .iter()
+        .map(|t| {
+            std::iter::once(&t.term)
+                .chain(&t.aliases)
+                .map(|s| normalise(s))
+                .filter(|s| !s.is_empty())
+                .collect()
+        })
+        .collect();
     let words = split(texts);
-    let spans = spans(&words, terms);
+    let spans = spans(&words, &spellings);
     let suspects = spans
         .iter()
         .copied()
-        .filter(|&s| {
-            let echo = echo_shaped(s, &words, &spans);
-            let mean_logprob = confidence(s, &words, texts, tokens);
+        .filter_map(|span| {
+            let run = alone(span, &words, &spans);
+            let echo = run >= 2;
+            let mean_logprob = confidence(span, &words, texts, tokens);
             tracing::debug!(
-                first_word = s.first,
+                first_word = span.first,
                 echo,
                 mean_logprob,
                 "vocabulary candidate"
             );
-            echo || mean_logprob < MIN_MEAN_LOGPROB
+            (echo || mean_logprob < MIN_MEAN_LOGPROB).then_some(Suspect {
+                span,
+                lone: run == 1,
+            })
         })
         .collect();
     Finding {
@@ -133,6 +157,7 @@ pub fn find(texts: &[String], tokens: &[Vec<Token>], terms: &[String]) -> Findin
         words,
         spans,
         suspects,
+        spellings,
     }
 }
 
@@ -145,7 +170,7 @@ fn split(texts: &[String]) -> Vec<Word> {
                 seg,
                 start,
                 end: start + w.len(),
-                norm: norm(w),
+                norm: normalise(w),
                 closes: w.ends_with(['.', '!', '?']),
             });
         }
@@ -156,13 +181,9 @@ fn split(texts: &[String]) -> Vec<Word> {
 /// The term spans in `words`, left to right, none overlapping: one to
 /// [`MAX_SPAN_WORDS`] words of one segment whose letters spell a term, or
 /// the term with `s` (a plural, or a possessive once the apostrophe goes).
-/// The longest run wins.
-fn spans(words: &[Word], terms: &[String]) -> Vec<Span> {
-    let terms: Vec<String> = terms
-        .iter()
-        .map(|t| norm(t))
-        .filter(|t| !t.is_empty())
-        .collect();
+/// Only the term itself (the first of its `spellings`) is looked for. The
+/// longest run wins.
+fn spans(words: &[Word], spellings: &[Vec<String>]) -> Vec<Span> {
     let mut found = Vec::new();
     let mut i = 0;
     while i < words.len() {
@@ -174,13 +195,18 @@ fn spans(words: &[Word], terms: &[String]) -> Vec<Span> {
             }
             spelt.push_str(&words[last].norm);
             let spells = |t: &String| spelt == *t || spelt.strip_suffix('s') == Some(t.as_str());
-            if !words[i].norm.is_empty() && terms.iter().any(spells) {
-                hit = Some(last);
+            let term = spellings.iter().position(|s| s.first().is_some_and(spells));
+            if let (false, Some(term)) = (words[i].norm.is_empty(), term) {
+                hit = Some((last, term));
             }
         }
         match hit {
-            Some(last) => {
-                found.push(Span { first: i, last });
+            Some((last, term)) => {
+                found.push(Span {
+                    first: i,
+                    last,
+                    term,
+                });
                 i = last + 1;
             }
             None => i += 1,
@@ -227,11 +253,12 @@ fn confidence(span: Span, words: &[Word], texts: &[String], tokens: &[Vec<Token>
     }
 }
 
-/// True when the span sits in a run of two or more term spans that closes
-/// its segment and opens it or follows a sentence's end. One term alone
-/// is a name said on its own as often as an echo, so its confidence
-/// decides.
-fn echo_shaped(span: Span, words: &[Word], spans: &[Span]) -> bool {
+/// How many term spans make up the run the span sits in when that run
+/// closes its segment and opens it or follows a sentence's end; 0 when it
+/// does not. A run of two or more is echo-shaped. One term alone is a
+/// lone name, said on its own as often as an echo, so its confidence and
+/// its sound decide.
+fn alone(span: Span, words: &[Word], spans: &[Span]) -> usize {
     let in_span = |w: usize| spans.iter().any(|s| s.first <= w && w <= s.last);
     let seg = words[span.first].seg;
     let same = |w: &Word| w.seg == seg;
@@ -249,7 +276,7 @@ fn echo_shaped(span: Span, words: &[Word], spans: &[Span]) -> bool {
         .iter()
         .filter(|s| s.first >= start && words[s.first].seg == seg)
         .count();
-    closes_segment && opens && run >= 2
+    if closes_segment && opens { run } else { 0 }
 }
 
 /// The longest common subsequence of `a` and `b`, as matched index pairs.
@@ -289,7 +316,7 @@ fn lcs(a: &[&str], b: &[&str]) -> Vec<(usize, usize)> {
 pub fn settle(finding: &Finding, plain: &[String]) -> Option<Vec<String>> {
     let words = &finding.words;
     let theirs: Vec<&str> = plain.iter().flat_map(|t| t.split_whitespace()).collect();
-    let their_norms: Vec<String> = theirs.iter().map(|w| norm(w)).collect();
+    let their_norms: Vec<String> = theirs.iter().map(|w| normalise(w)).collect();
     let ours: Vec<&str> = words.iter().map(|w| w.norm.as_str()).collect();
     let their_refs: Vec<&str> = their_norms.iter().map(String::as_str).collect();
     let mut anchor = vec![None; words.len()];
@@ -298,7 +325,7 @@ pub fn settle(finding: &Finding, plain: &[String]) -> Option<Vec<String>> {
     }
     // (our gap, their gap), each a half-open word range.
     let mut gaps: Vec<((usize, usize), (usize, usize))> = Vec::new();
-    for s in &finding.suspects {
+    for &Suspect { span: s, .. } in &finding.suspects {
         if (s.first..=s.last).all(|w| anchor[w].is_some()) {
             continue;
         }

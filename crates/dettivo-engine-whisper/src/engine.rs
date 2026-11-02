@@ -320,8 +320,7 @@ impl SpeechEngine for Engine {
         // A prompted take's listed terms are checked (ADR 0095).
         let revised = match (&params.vocabulary, prompt) {
             (Some(vocabulary), Some(_)) => {
-                let terms: Vec<String> = vocabulary.terms.iter().map(|t| t.term.clone()).collect();
-                check::run(&texts, &spoken, &terms, || {
+                check::run(&texts, &spoken, &vocabulary.terms, || {
                     self.decode(context, &mut state, &audio, &detected, None, false)
                         .map(|(texts, _)| texts)
                 })?
