@@ -416,7 +416,7 @@ pub fn settle(finding: &Finding, plain: &[String]) -> Option<Vec<String>> {
         .zip(edits)
         .map(|(text, mut edits)| {
             let mut text = text.clone();
-            edits.sort_by(|a, b| b.0.cmp(&a.0));
+            edits.sort_by_key(|a| std::cmp::Reverse(a.0));
             for (start, end, with) in edits {
                 text.replace_range(start..end, &with);
             }
