@@ -44,7 +44,7 @@ The options measured:
 
 ## Decision
 
-Parakeet's warm-up recognises 90 s of silence (`dettivo_engine_proto::warm_up::PARAKEET_SAMPLES`, 1,440,000 samples). Whisper keeps 30 s, the one window it decodes. The warm-up still runs only on a GPU backend, so fn-80's rule that a CPU load needs no warm-up holds. It still yields to a take that asked first, and it is still skipped within 60 s of a recognition (ADR 0084).
+Parakeet's warm-up recognises 90 s of silence (`dettivo_engine_proto::warm_up::PARAKEET_SAMPLES`, 1,440,000 samples). Whisper keeps 30 s, the one window it decodes. The warm-up still runs only on a GPU backend, so fn-80's rule that a CPU load needs no warm-up holds. It still yields to a take that asked first, and it is still skipped within 60 s of a recognition by the running engine process (ADR 0084).
 
 Ruled out: a warm-up per length class (three passes cost more than one 90 s pass and need the class edges kept in step with ggml); a longer default `stt_idle_seconds`.
 
@@ -52,7 +52,7 @@ Ruled out: a warm-up per length class (three passes cost more than one 90 s pass
 
 - On a current cache, the stall of the first take after an idle unload no longer reproduces, with either warm-up. In the daemon (`stt_idle_seconds = 61`, so the warm-up runs on each reload), the preload at the press loaded the model in 573-682 ms and finished the 90 s warm-up 663-927 ms into the take. The first 3 s take after each of five unloads took 266-267 ms against 358-481 ms for the takes after it. With the 30 s warm-up it was 275-279 ms against 314-476 ms. fn-80's preload at the press had already removed the stall that History recorded for the first take after idle. What remains is the compile after a cache reset, and this record moves that compile into the warm-up.
 - A take that ends while the 90 s warm-up runs waits for the rest of it: up to about 0.27 s on a current cache, and up to 15 s on the first load after an update, when that take would otherwise have compiled its own kernels anyway.
-- The bench tool's `first_insert` warm-up (`crates/dettivo-qa/src/bench/engine_client.rs`) still uses 30 s; it times the 11 s fixture only.
+- The bench tool's warm-up (`crates/dettivo-qa/src/bench/engine_client.rs`) sends each engine the same silence the supervisor does, read from `dettivo_engine_proto::warm_up`, so the bench times the warm-up the daemon runs.
 - For Parakeet the silent warm-up is enough: after it, on an empty cache, the first takes of real speech ran at their warm time (3 s in 30 ms, 20 s in 77 ms). Whisper differs: its text decoder's kernels compile only on a decode that produces words, so its first take on an empty cache stays the exception ADR 0084 accepts, about 1.2 s (fn-89's measurement). This record leaves Whisper's warm-up as it was.
 - The first load after a driver update or a new build still compiles every kernel once: 15 s of warm-up on the reference GPU. A take that ends during it waits, as the first take after an update always did. Nothing in Dettivo can fill the driver's cache ahead of that load.
 - Not found: why the 2026-10-27 3.7 s take stalled after a 2.5 s take that morning ran in 32 ms. The store does not record the backend or whether the engine reloaded between them.
