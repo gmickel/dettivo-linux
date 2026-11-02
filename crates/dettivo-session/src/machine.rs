@@ -83,7 +83,7 @@ pub struct Session {
     /// its start; without it the level stage decides alone.
     vad: Mutex<Option<Arc<dyn VoiceDetector>>>,
     /// A hold-key release still waiting to be settled ([`Session::release_waiting`]).
-    release_waiting: Arc<Mutex<Option<Instant>>>,
+    release_waiting: Arc<Mutex<Vec<Instant>>>,
 }
 
 impl Session {
@@ -135,14 +135,26 @@ impl Session {
     }
 
     /// Notes a hold-key release that arrived `at` and waits behind a
-    /// slow start or discard; `None` once the hold key settled it. While
-    /// one that would make the take a tap waits, the take's speech check
-    /// does not start (ADR 0097: a tap never reaches the detector).
-    pub fn release_waiting(&self, at: Option<Instant>) {
-        *self
+    /// slow start or discard (noting it twice keeps one); `settled` once
+    /// the hold key acted on it. While one that would make the take a tap
+    /// waits, the take's speech check does not start (ADR 0097: a tap
+    /// never reaches the detector).
+    pub fn release_waiting(&self, at: Instant) {
+        let mut waiting = self
             .release_waiting
             .lock()
-            .unwrap_or_else(|p| p.into_inner()) = at;
+            .unwrap_or_else(|p| p.into_inner());
+        if !waiting.contains(&at) {
+            waiting.push(at);
+        }
+    }
+
+    /// The release that arrived `at` acted; it no longer holds the check.
+    pub fn release_settled(&self, at: Instant) {
+        self.release_waiting
+            .lock()
+            .unwrap_or_else(|p| p.into_inner())
+            .retain(|w| *w != at);
     }
 
     /// Starts a session for a press that arrived at `pressed_at`: the

@@ -150,8 +150,17 @@ impl Hotkeys {
             self.set("none", Vec::new(), Some(e.to_string()), None);
             return;
         }
+        let queued = Arc::downgrade(daemon);
         let handler: dettivo_hotkeys::Handler = Arc::new(move |event: HotkeyEvent| {
-            if tx.send((event, Instant::now())).is_err() {
+            let at = Instant::now();
+            // A hold release is noted as it queues, so a tap behind a slow
+            // start never starts its speech check (ADR 0097).
+            if event == HotkeyEvent::Release(dettivo_hotkeys::Action::PushToTalk)
+                && let Some(d) = queued.upgrade()
+            {
+                d.dictation().release_waiting(at);
+            }
+            if tx.send((event, at)).is_err() {
                 tracing::debug!("hotkeys: action worker gone; event dropped");
             }
         });

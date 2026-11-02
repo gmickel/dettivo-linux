@@ -47,7 +47,7 @@ pub(crate) struct Worker {
     /// When the press arrived; the take qualifies `min_hold` after it.
     pub(crate) pressed: Instant,
     /// A hold-key release waiting behind the start, shared with the session.
-    pub(crate) release_waiting: Arc<std::sync::Mutex<Option<Instant>>>,
+    pub(crate) release_waiting: Arc<std::sync::Mutex<Vec<Instant>>>,
     pub(crate) route: Arc<crate::deliver::Route>,
     pub(crate) dir: PathBuf,
     pub(crate) publisher: Arc<dyn Publisher>,

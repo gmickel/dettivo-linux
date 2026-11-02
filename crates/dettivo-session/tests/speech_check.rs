@@ -378,9 +378,13 @@ fn a_release_waiting_behind_a_slow_start_keeps_the_check_back() {
         session.set_vad(Some(vad.clone()));
         let mut p = policy(dir.path(), false);
         p.min_hold = Duration::from_millis(300);
-        // The press arrived 400 ms ago; its release came 120 ms in.
+        // The press arrived 400 ms ago; its release came 120 ms in, and a
+        // second press's release at 350 ms waits behind it too.
         let pressed = Instant::now() - Duration::from_millis(400);
-        session.release_waiting(Some(pressed + Duration::from_millis(120)));
+        let released = pressed + Duration::from_millis(120);
+        let later = pressed + Duration::from_millis(350);
+        session.release_waiting(released);
+        session.release_waiting(later);
         let job = session
             .start(p, engine.clone(), feed.clone(), None, pressed)
             .unwrap()
@@ -393,7 +397,7 @@ fn a_release_waiting_behind_a_slow_start_keeps_the_check_back() {
             vad.log.lock().unwrap()
         );
         if lock {
-            session.release_waiting(None);
+            session.release_settled(released);
             feed.speak(100);
             let started = Instant::now();
             while vad.log.lock().unwrap().is_empty() {
@@ -403,7 +407,7 @@ fn a_release_waiting_behind_a_slow_start_keeps_the_check_back() {
             session.cancel_expected(Some(&job)).unwrap();
         } else {
             session.discard_tap(&job).unwrap();
-            session.release_waiting(None);
+            session.release_settled(released);
             assert!(
                 vad.log.lock().unwrap().is_empty(),
                 "the tap reached the detector"

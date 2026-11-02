@@ -341,10 +341,15 @@ impl Dictation {
             .stop_expected(Some(expected_job_id), released_at)
     }
 
-    /// Notes a hold-key release waiting behind a start (`None` once
-    /// settled), so a tap's speech check never starts meanwhile.
-    pub fn release_waiting(&self, at: Option<Instant>) {
+    /// Notes a hold-key release waiting behind a start, so a tap's
+    /// speech check never starts meanwhile.
+    pub fn release_waiting(&self, at: Instant) {
         self.session.release_waiting(at);
+    }
+
+    /// The release that arrived `at` acted.
+    pub fn release_settled(&self, at: Instant) {
+        self.session.release_settled(at);
     }
 
     /// Drops the named take as a tap.

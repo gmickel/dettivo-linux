@@ -48,9 +48,10 @@ pub trait Takes {
     fn start(&self, at: Instant) -> Result<String, JsonRpcError>;
     /// Drops the take a tap started.
     fn discard(&self, job: &str);
-    /// Notes a release that arrived `at` and waits for its turn; `None`
-    /// once it acted.
-    fn release_waiting(&self, at: Option<Instant>);
+    /// Notes a release that arrived `at` and waits for its turn.
+    fn release_waiting(&self, at: Instant);
+    /// The release that arrived `at` acted.
+    fn release_settled(&self, at: Instant);
     /// Tells the pill `job` is locked, only while it still records; false
     /// when it ended meanwhile.
     fn lock(&self, job: &str) -> bool;
@@ -71,8 +72,11 @@ impl Takes for Daemon {
             tracing::debug!(error = %e, "hold key: the tapped take was already gone");
         }
     }
-    fn release_waiting(&self, at: Option<Instant>) {
+    fn release_waiting(&self, at: Instant) {
         self.dictation().release_waiting(at);
+    }
+    fn release_settled(&self, at: Instant) {
+        self.dictation().release_settled(at);
     }
     fn lock(&self, job: &str) -> bool {
         self.dictation()
@@ -122,9 +126,10 @@ impl HoldKey {
     /// `pause_media`) is timed as the person pressed it.
     pub fn on(&self, takes: &impl Takes, edge: Edge, at: Instant) -> Result<Outcome, JsonRpcError> {
         // A release that waits behind a slow start keeps the take's
-        // speech check back until it acted (ADR 0097).
+        // speech check back until it acted (ADR 0097); the portal and
+        // evdev path noted it already when it queued the edge.
         if edge == Edge::Release {
-            takes.release_waiting(Some(at));
+            takes.release_waiting(at);
         }
         let ticket = self.tickets.fetch_add(1, Ordering::SeqCst);
         let mut q = self.inner.lock().unwrap_or_else(|p| p.into_inner());
@@ -134,7 +139,7 @@ impl HoldKey {
         let mut turn = Turn { q, key: self };
         let outcome = self.step(&mut turn.q.inner, takes, edge, at);
         if edge == Edge::Release {
-            takes.release_waiting(None);
+            takes.release_settled(at);
         }
         outcome
     }
