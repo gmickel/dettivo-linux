@@ -2,8 +2,9 @@
 //! capture (the PipeWire proxies are single-threaded), and the rest of the
 //! daemon talks to it through `Send` handles over channels. When PipeWire
 //! goes away the thread ends every capture with an error naming it and
-//! connects again once PipeWire is back, so a PipeWire restart never
-//! needs a daemon restart.
+//! connects again once PipeWire is back, and a PipeWire absent when the
+//! service starts is connected once it appears, so neither a PipeWire
+//! restart nor a late PipeWire needs a daemon restart.
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -17,6 +18,9 @@ use crate::{CaptureError, EndReason, Event, Target};
 
 /// How often the audio thread tries PipeWire again while it is gone.
 const RECONNECT: Duration = Duration::from_secs(1);
+
+/// Why an open fails before PipeWire was ever reached.
+const ABSENT: &str = "PipeWire is not running";
 
 #[derive(Debug)]
 enum Cmd {
@@ -54,6 +58,9 @@ struct Audio {
     captures: HashMap<u64, Capture>,
     next_id: u64,
     last_try: Instant,
+    /// Why an open fails while there is no graph: [`ABSENT`] until the
+    /// first connection, [`LOST`] after one went away.
+    why: &'static str,
 }
 
 impl Audio {
@@ -65,6 +72,7 @@ impl Audio {
             return;
         }
         if let Some(dead) = self.graph.take() {
+            self.why = LOST;
             for (_, mut c) in self.captures.drain() {
                 c.end(EndReason::Error(LOST.into()));
             }
@@ -84,7 +92,7 @@ impl Audio {
         let graph = self
             .graph
             .as_ref()
-            .ok_or_else(|| CaptureError::NoPipeWire(LOST.into()))?;
+            .ok_or_else(|| CaptureError::NoPipeWire(self.why.into()))?;
         let mut c = Capture::open(graph, target, level_interval_ms)?;
         let id = self.next_id;
         self.next_id += 1;
@@ -125,42 +133,35 @@ impl Audio {
 }
 
 impl AudioService {
-    /// Connects to PipeWire on a new thread; `NoPipeWire` when it is absent.
+    /// Starts the audio thread and tries PipeWire once before returning,
+    /// so [`connected`](Self::connected) is current. A PipeWire that is
+    /// absent now is tried again every [`RECONNECT`]; meanwhile opens
+    /// fail with `NoPipeWire`. Errs only when the thread cannot start.
     pub fn start() -> Result<Self, CaptureError> {
         let (cmds, rx) = mpsc::channel::<Cmd>();
-        let (ready_tx, ready_rx) = mpsc::channel::<Result<(), CaptureError>>();
+        let (ready_tx, ready_rx) = mpsc::channel::<()>();
         let connected = Arc::new(AtomicBool::new(false));
         let alive = connected.clone();
         std::thread::Builder::new()
             .name("dettivo-audio".into())
             .spawn(move || {
-                let graph = match Graph::connect(alive.clone()) {
-                    Ok(g) => {
-                        let _ = ready_tx.send(Ok(()));
-                        g
-                    }
-                    Err(e) => {
-                        let _ = ready_tx.send(Err(e));
-                        return;
-                    }
-                };
+                let graph = Graph::connect(alive.clone()).ok();
+                let _ = ready_tx.send(());
                 Audio {
-                    graph: Some(graph),
+                    graph,
                     connected: alive,
                     captures: HashMap::new(),
                     next_id: 1,
                     last_try: Instant::now(),
+                    why: ABSENT,
                 }
                 .run(&rx);
             })
             .map_err(|e| CaptureError::NoPipeWire(e.to_string()))?;
-        match ready_rx.recv_timeout(Duration::from_secs(5)) {
-            Ok(Ok(())) => Ok(Self { cmds, connected }),
-            Ok(Err(e)) => Err(e),
-            Err(_) => Err(CaptureError::NoPipeWire(
-                "the audio thread did not answer".into(),
-            )),
-        }
+        ready_rx
+            .recv_timeout(Duration::from_secs(5))
+            .map_err(|_| CaptureError::NoPipeWire("the audio thread did not answer".into()))?;
+        Ok(Self { cmds, connected })
     }
 
     /// True while the service is connected to PipeWire: false from the

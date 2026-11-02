@@ -113,9 +113,10 @@ fn write_and_reload(daemon: &Daemon, text: &str) -> Result<(), JsonRpcError> {
 pub fn set(daemon: &Daemon, params_value: Value) -> Result<Value, JsonRpcError> {
     let p: SetParams = params(params_value)?;
     if p.key == "audio.input_device" {
-        if let (Some(name), Some(service)) =
-            (p.value.as_str().filter(|s| !s.is_empty()), daemon.audio())
-        {
+        if let (Some(name), Some(service)) = (
+            p.value.as_str().filter(|s| !s.is_empty()),
+            daemon.audio().filter(|a| a.connected()),
+        ) {
             if service.node_named(name).is_none() {
                 return Err(invalid(ValidationError {
                     key: Some(p.key.clone()),
