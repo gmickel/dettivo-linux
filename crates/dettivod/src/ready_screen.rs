@@ -5,8 +5,12 @@
 //! always-ready microphone on an Omarchy lock. A compositor that does not
 //! offer the protocol leaves the lock to logind (`ready_session.rs`).
 
+use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
+
+use dettivo_insert::Session;
+use dettivo_insert::display;
 
 use wayland_client::protocol::wl_registry;
 use wayland_client::{Connection, Dispatch, QueueHandle};
@@ -135,7 +139,7 @@ pub fn follow(conn: &Connection, report: impl Fn(bool) + 'static) -> Result<(), 
 /// notifications or a session without a Wayland display is left to
 /// logind. The ring stays closed until the first connection reports.
 pub fn watch(daemon: Arc<Daemon>) {
-    let ready = |d: &Daemon, locked| {
+    let set = |d: &Daemon, locked| {
         d.dictation()
             .ready()
             .set_lock(LockSource::Compositor, locked)
@@ -144,50 +148,58 @@ pub fn watch(daemon: Arc<Daemon>) {
         .dictation()
         .ready()
         .lock_pending(LockSource::Compositor);
+    let Some(socket) = Session::from_env(None, false).wayland_socket() else {
+        set(&daemon, None);
+        tracing::info!(
+            "microphone ready: no Wayland display, the compositor's lock is not followed"
+        );
+        return;
+    };
     let d = daemon.clone();
     let spawned = std::thread::Builder::new()
         .name("dettivo-screen-lock".into())
-        .spawn(move || {
-            let mut last = String::new();
-            loop {
-                let stop = match Connection::connect_to_env() {
-                    Ok(conn) => {
-                        let d = daemon.clone();
-                        follow(&conn, move |locked| {
-                            d.dictation()
-                                .ready()
-                                .set_lock(LockSource::Compositor, Some(locked));
-                        })
-                    }
-                    Err(wayland_client::ConnectError::NoCompositor) => {
-                        ready(&daemon, None);
-                        tracing::info!("microphone ready: no Wayland display, the compositor's lock is not followed");
-                        return;
-                    }
-                    Err(e) => Err(Stop::Lost(e.to_string())),
-                };
-                daemon
-                    .dictation()
-                    .ready()
-                    .set_lock(LockSource::Compositor, None);
-                match stop {
-                    Err(Stop::Lost(why)) => {
-                        if why != last {
-                            tracing::info!(why, "microphone ready: the compositor's lock is not followed; trying again");
-                            last = why;
-                        }
-                    }
-                    Err(Stop::NotOffered) | Ok(()) => {
-                        tracing::info!("microphone ready: the compositor offers no lock notifications");
-                        return;
-                    }
-                }
-                std::thread::sleep(RETRY);
-            }
-        });
+        .spawn(move || follow_display(&socket, move |locked| set(&d, locked)));
     if let Err(e) = spawned {
-        ready(&d, None);
+        set(&daemon, None);
         tracing::error!(error = %e, "microphone ready: the screen lock watcher did not start");
+    }
+}
+
+/// Reports the lock of the compositor on the display `socket` through
+/// `set`: `Some` while a connection reports, `None` once it is lost.
+pub(crate) fn follow_display(socket: &Path, set: impl Fn(Option<bool>) + Clone + 'static) {
+    let mut last = String::new();
+    loop {
+        let stop = match display::connect(socket) {
+            Ok(conn) => {
+                let report = set.clone();
+                follow(&conn, move |locked| report(Some(locked)))
+            }
+            Err(_) => {
+                set(None);
+                tracing::info!(
+                    "microphone ready: no Wayland display, the compositor's lock is not followed"
+                );
+                return;
+            }
+        };
+        set(None);
+        match stop {
+            Err(Stop::Lost(why)) => {
+                if why != last {
+                    tracing::info!(
+                        why,
+                        "microphone ready: the compositor's lock is not followed; trying again"
+                    );
+                    last = why;
+                }
+            }
+            Err(Stop::NotOffered) | Ok(()) => {
+                tracing::info!("microphone ready: the compositor offers no lock notifications");
+                return;
+            }
+        }
+        std::thread::sleep(RETRY);
     }
 }
 

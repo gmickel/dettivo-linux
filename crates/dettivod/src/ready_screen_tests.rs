@@ -216,3 +216,62 @@ fn a_session_locked_at_start_never_opens_the_ring() {
         assert_eq!(*reports.lock().unwrap(), [(true, true)]);
     }
 }
+
+/// A fake compositor serving the first client that connects on `socket`.
+fn compositor_on(socket: &Path, start: Start) -> std::sync::mpsc::Receiver<Arc<Compositor>> {
+    let _ = std::fs::remove_file(socket);
+    let listener = std::os::unix::net::UnixListener::bind(socket).unwrap();
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let (server, _) = listener.accept().unwrap();
+        // One client only: a later connection is refused, as by a
+        // compositor that crashed.
+        drop(listener);
+        let compositor = Arc::new(Compositor {
+            writer: Mutex::new(server.try_clone().unwrap()),
+            notification: Mutex::new(None),
+        });
+        let _ = tx.send(compositor.clone());
+        compositor.serve(server, true, start);
+    });
+    rx
+}
+
+/// fn-91 R3: the compositor restarts on the same display. While it is
+/// down the socket refuses connections; the watcher keeps trying and
+/// follows the new compositor's lock once it is up.
+#[test]
+fn the_lock_is_followed_again_after_a_compositor_restart() {
+    let dir = tempfile::Builder::new()
+        .prefix("dtv")
+        .tempdir_in("/tmp")
+        .unwrap();
+    let socket = dir.path().join("wl");
+    let ready = Arc::new(MicReady::default());
+    ready.lock_pending(LockSource::Compositor);
+    let first = compositor_on(&socket, Start::Unlocked);
+    let (r, s) = (ready.clone(), socket.clone());
+    std::thread::spawn(move || {
+        follow_display(&s, move |locked| r.set_lock(LockSource::Compositor, locked))
+    });
+    let first = first.recv_timeout(Duration::from_secs(3)).unwrap();
+    wait_for("the first compositor reports", || !ready.blocked());
+    first.lock(true);
+    wait_for("the first compositor's lock", || ready.blocked());
+
+    // The crash: the connection drops, the socket file stays and refuses.
+    first
+        .writer
+        .lock()
+        .unwrap()
+        .shutdown(std::net::Shutdown::Both)
+        .unwrap();
+    std::thread::sleep(Duration::from_millis(600));
+    assert!(ready.blocked(), "a lost compositor keeps the last lock");
+
+    let second = compositor_on(&socket, Start::Unlocked);
+    second.recv_timeout(Duration::from_secs(3)).unwrap();
+    wait_for("the new compositor's unlock frees the ring", || {
+        !ready.blocked()
+    });
+}

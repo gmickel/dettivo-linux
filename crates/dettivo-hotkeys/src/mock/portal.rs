@@ -6,7 +6,9 @@
 //! session is refused (`NotAllowed`) to a connection that registered no
 //! app id, and a registration after the connection's first request is
 //! refused. [`MockOptions`] leaves the registry out (an older portal) or
-//! answers binds with no triggers (Hyprland's portal).
+//! answers binds with no triggers (Hyprland's portal). The backend's bus
+//! name can restart the way `xdg-desktop-portal-hyprland` does with the
+//! compositor, taking its sessions with it.
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -18,6 +20,10 @@ use zbus::zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Type, Value, as_va
 use zbus::{Connection, interface};
 
 use super::Served;
+
+/// The bus name of the portal backend behind the mock (the frontend's
+/// `org.freedesktop.impl.portal.desktop.*`).
+const BACKEND: &str = "org.freedesktop.impl.portal.desktop.mock";
 
 /// How the mock portal behaves.
 #[derive(Debug, Clone, Copy)]
@@ -385,7 +391,35 @@ impl MockPortal {
             },
             address.to_string(),
         )?;
-        Ok(Self { served, state })
+        let portal = Self { served, state };
+        portal.own_backend(true)?;
+        Ok(portal)
+    }
+
+    /// Takes (`true`) or gives up the backend's bus name.
+    fn own_backend(&self, own: bool) -> Result<(), String> {
+        let conn = self.served.connection.clone();
+        self.served.run(async move {
+            if own {
+                conn.request_name(BACKEND).await.map(|_| ())
+            } else {
+                conn.release_name(BACKEND).await.map(|_| ())
+            }
+            .map_err(|e| e.to_string())
+        })?
+    }
+
+    /// The portal backend restarts, as `xdg-desktop-portal-hyprland` does
+    /// with the compositor: its bus name goes away with every session and
+    /// binding, then comes back empty.
+    pub fn restart_backend(&self) -> Result<(), String> {
+        self.own_backend(false)?;
+        {
+            let mut s = self.state.lock().unwrap_or_else(|p| p.into_inner());
+            s.sessions.clear();
+            s.bound.clear();
+        }
+        self.own_backend(true)
     }
 
     /// The app ids registered, in order.

@@ -96,6 +96,17 @@ impl Session {
         legacy.exists().then_some(legacy)
     }
 
+    /// The Wayland display's socket: `WAYLAND_DISPLAY` itself when it is
+    /// a path, else that name under `XDG_RUNTIME_DIR`, as libwayland
+    /// resolves it.
+    pub fn wayland_socket(&self) -> Option<PathBuf> {
+        let display = Path::new(self.wayland_display.as_deref()?);
+        if display.is_absolute() {
+            return Some(display.to_path_buf());
+        }
+        Some(self.runtime_dir.as_ref()?.join(display))
+    }
+
     /// True when a Wayland display is reachable.
     pub fn is_wayland(&self) -> bool {
         self.wayland_display.is_some()

@@ -7,6 +7,7 @@
 //! guess (ADR 0091).
 
 use std::collections::VecDeque;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -111,12 +112,25 @@ impl IdleMonitor {
     /// Starts watching on the session's Wayland display. Without one, or
     /// without the notifier, the monitor answers `None`.
     pub fn start() -> Self {
+        match crate::Session::from_env(None, false).wayland_socket() {
+            Some(socket) => Self::on(socket),
+            None => {
+                tracing::info!(
+                    "no input-idle signal: no Wayland display, consecutive dictations are not joined"
+                );
+                Self::default()
+            }
+        }
+    }
+
+    /// Starts watching the compositor on the display `socket`.
+    pub fn on(socket: PathBuf) -> Self {
         let monitor = Self::default();
         let seen = monitor.seen.clone();
         let spawned = std::thread::Builder::new()
             .name("input-idle".into())
             .spawn(move || {
-                if let Err(e) = watch(seen) {
+                if let Err(e) = watch(&socket, seen) {
                     tracing::info!(reason = %e, "no input-idle signal: consecutive dictations are not joined");
                 }
             });
@@ -127,8 +141,8 @@ impl IdleMonitor {
     }
 }
 
-fn watch(seen: Arc<Mutex<Seen>>) -> Result<(), String> {
-    let conn = Connection::connect_to_env().map_err(|e| format!("wayland: {e}"))?;
+fn watch(socket: &Path, seen: Arc<Mutex<Seen>>) -> Result<(), String> {
+    let conn = crate::display::connect(socket)?;
     let mut queue = conn.new_event_queue();
     let qh = queue.handle();
     let _registry = conn.display().get_registry(&qh, ());
@@ -173,5 +187,40 @@ mod tests {
         assert_eq!(monitor.active_between(t0, t(100)), Some(true));
         assert_eq!(monitor.active_between(t(50), t(100)), Some(false));
         assert_eq!(monitor.active_between(t0, t(50)), Some(false));
+    }
+
+    fn watching(monitor: &IdleMonitor) -> bool {
+        let now = Instant::now();
+        monitor.active_between(now, now).is_some()
+    }
+
+    fn wait_for(what: &str, done: impl Fn() -> bool) {
+        let until = Instant::now() + Duration::from_secs(3);
+        while !done() {
+            assert!(Instant::now() < until, "{what}");
+            std::thread::sleep(Duration::from_millis(10));
+        }
+    }
+
+    /// fn-91 R3: the compositor restarts on the same display; the watch
+    /// drops with the old one and follows the new one, so joins come
+    /// back without a daemon restart.
+    #[test]
+    fn the_input_idle_watch_follows_a_restarted_compositor() {
+        use crate::stand_in::{Global, WaylandStandIn};
+        let dir = tempfile::Builder::new()
+            .prefix("dtv")
+            .tempdir_in("/tmp")
+            .unwrap();
+        let socket = dir.path().join("wl");
+        let globals = [Global::Seat, Global::IdleNotifier];
+        let mut first = WaylandStandIn::start(&socket, &globals).unwrap();
+        let monitor = IdleMonitor::on(socket.clone());
+        wait_for("the first compositor is watched", || watching(&monitor));
+        first.crash();
+        wait_for("a lost compositor gives no answer", || !watching(&monitor));
+        std::thread::sleep(Duration::from_millis(300));
+        let _second = WaylandStandIn::start(&socket, &globals).unwrap();
+        wait_for("the new compositor is watched", || watching(&monitor));
     }
 }
