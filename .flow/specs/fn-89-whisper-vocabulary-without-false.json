@@ -123,10 +123,78 @@
       "task": "fn-89-whisper-vocabulary-without-false.1",
       "timestamp": "2026-11-02T10:09:04.458798Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2c5aa65bf36d55ddc41c0c5f75070f3564bba2759b6bc682d003341c1ffef42d",
+      "backend": "codex",
+      "base_sha": "02252885c9aad02c3d49a45c0cffa1edeba55fa3",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6d8403e07cb52e244eda3d578aa55ea4",
+            "classification": "introduced",
+            "findingId": "finding-6d8403e07cb52e244eda3d578aa55ea4",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a80a4b231a1f98040668dd37fac1a879",
+            "classification": "introduced",
+            "findingId": "finding-a80a4b231a1f98040668dd37fac1a879",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3d61ed83ea576cd1214b4cff6bab32b4",
+            "classification": "introduced",
+            "findingId": "finding-3d61ed83ea576cd1214b4cff6bab32b4",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1f5d778dd0c3578c851aa15c324f7eb8",
+            "classification": "introduced",
+            "findingId": "finding-1f5d778dd0c3578c851aa15c324f7eb8",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "2b527e6e90a13c069754948761e5ed50b73ce19b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1450,
+      "output_sha256": "7f8e91d68245c297a60bea2609b40e92df20549ba312d2df2c333192d1f79506",
+      "reservation_id": "43c9b98d9b0f45a7ad77f070c0c1b5b8",
+      "round_consumed": true,
+      "scope": "impl:fn-89-whisper-vocabulary-without-false.1",
+      "superseded_by": null,
+      "task": "fn-89-whisper-vocabulary-without-false.1",
+      "timestamp": "2026-11-02T11:51:03.654067Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-89-whisper-vocabulary-without-false.1": 1
+    "impl:fn-89-whisper-vocabulary-without-false.1": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -147,5 +215,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-02T10:10:47.859515Z"
+  "updated_at": "2026-11-02T11:51:03.657655Z"
 }

@@ -29,6 +29,10 @@ fn a_spoken_stop_beside_the_engines_own_ends_the_sentence_once() {
             "Meet me at 9, then we go.",
         ),
         ("is it done question mark.", "Is it done?"),
+        (
+            "send me the report period. then go.",
+            "Send me the report. Then go.",
+        ),
         ("wait ellipsis", "Wait..."),
         ("Wait... then go.", "Wait... Then go."),
     ];

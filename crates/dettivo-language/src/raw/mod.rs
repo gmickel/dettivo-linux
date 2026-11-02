@@ -272,11 +272,9 @@ fn punctuate(text: &str) -> String {
                 && result.ends_with(['.', '?', '!'])
                 && !result.ends_with("..")
                 && chars.get(i + 1) != Some(&'.');
-            if doubled {
-                i += 1;
-                continue;
+            if !doubled {
+                result.push(c);
             }
-            result.push(c);
             // Capitalise after a sentence end.
             if matches!(c, '.' | '?' | '!') {
                 let mut j = i + 1;
