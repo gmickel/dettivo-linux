@@ -49,6 +49,8 @@ pub enum Stop {
 struct Watch {
     report: Box<dyn Fn(bool)>,
     notification: Option<HyprlandLockNotificationV1>,
+    /// The compositor reported a lock state.
+    reported: bool,
 }
 
 impl Dispatch<wl_registry::WlRegistry, ()> for Watch {
@@ -67,9 +69,6 @@ impl Dispatch<wl_registry::WlRegistry, ()> for Watch {
             && state.notification.is_none()
         {
             let notifier: HyprlandLockNotifierV1 = registry.bind(name, 1, qh, ());
-            // Unlocked until the compositor says otherwise: it sends
-            // `locked` at once for a session that is locked already.
-            (state.report)(false);
             state.notification = Some(notifier.get_lock_notification(qh, ()));
         }
     }
@@ -96,6 +95,7 @@ impl Dispatch<HyprlandLockNotificationV1, ()> for Watch {
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
+        state.reported = true;
         match event {
             notification::Event::Locked => (state.report)(true),
             notification::Event::Unlocked => (state.report)(false),
@@ -113,10 +113,17 @@ pub fn follow(conn: &Connection, report: impl Fn(bool) + 'static) -> Result<(), 
     let mut watch = Watch {
         report: Box::new(report),
         notification: None,
+        reported: false,
     };
     queue.roundtrip(&mut watch).map_err(|e| lost(&e))?;
     if watch.notification.is_none() {
         return Err(Stop::NotOffered);
+    }
+    // The compositor sends `locked` at once for a session that is locked
+    // already; a roundtrip without it means unlocked.
+    queue.roundtrip(&mut watch).map_err(|e| lost(&e))?;
+    if !watch.reported {
+        (watch.report)(false);
     }
     loop {
         queue.blocking_dispatch(&mut watch).map_err(|e| lost(&e))?;
@@ -126,8 +133,18 @@ pub fn follow(conn: &Connection, report: impl Fn(bool) + 'static) -> Result<(), 
 /// Follows the compositor's lock on a thread of its own: a lost
 /// connection is tried again every [`RETRY`], a compositor without lock
 /// notifications or a session without a Wayland display is left to
-/// logind.
+/// logind. The ring stays closed until the first connection reports.
 pub fn watch(daemon: Arc<Daemon>) {
+    let ready = |d: &Daemon, locked| {
+        d.dictation()
+            .ready()
+            .set_lock(LockSource::Compositor, locked)
+    };
+    daemon
+        .dictation()
+        .ready()
+        .lock_pending(LockSource::Compositor);
+    let d = daemon.clone();
     let spawned = std::thread::Builder::new()
         .name("dettivo-screen-lock".into())
         .spawn(move || {
@@ -143,6 +160,7 @@ pub fn watch(daemon: Arc<Daemon>) {
                         })
                     }
                     Err(wayland_client::ConnectError::NoCompositor) => {
+                        ready(&daemon, None);
                         tracing::info!("microphone ready: no Wayland display, the compositor's lock is not followed");
                         return;
                     }
@@ -168,6 +186,7 @@ pub fn watch(daemon: Arc<Daemon>) {
             }
         });
     if let Err(e) = spawned {
+        ready(&d, None);
         tracing::error!(error = %e, "microphone ready: the screen lock watcher did not start");
     }
 }

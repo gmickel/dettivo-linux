@@ -14,6 +14,17 @@ use crate::ready::MicReady;
 
 const NOTIFIER: &str = "hyprland_lock_notifier_v1";
 
+/// What the compositor tells a new lock notification.
+#[derive(Clone, Copy, PartialEq)]
+enum Start {
+    /// Nothing: the session is unlocked.
+    Unlocked,
+    /// `locked` at once.
+    Locked,
+    /// `locked` while answering the client's next roundtrip.
+    LockedAtNextSync,
+}
+
 fn message(object: u32, opcode: u16, args: &[u8]) -> Vec<u8> {
     let size = 8 + args.len() as u32;
     let mut m = object.to_ne_bytes().to_vec();
@@ -55,10 +66,11 @@ impl Compositor {
     }
 
     /// Answers the client's requests: globals (with the lock notifier when
-    /// `offer`), roundtrips, the bind and the notification, sending
-    /// `locked` at once when the session `starts_locked`.
-    fn serve(&self, mut reader: UnixStream, offer: bool, starts_locked: bool) {
+    /// `offer`), roundtrips, the bind and the notification, telling the
+    /// notification what `start` says.
+    fn serve(&self, mut reader: UnixStream, offer: bool, start: Start) {
         let (mut registry, mut notifier) = (0, 0);
+        let mut lock_at_sync = false;
         let mut buf = Vec::new();
         let mut chunk = [0u8; 4096];
         while let Ok(n @ 1..) = reader.read(&mut chunk) {
@@ -82,6 +94,9 @@ impl Compositor {
                         }
                     }
                     (1, 0) => {
+                        if std::mem::take(&mut lock_at_sync) {
+                            self.lock(true);
+                        }
                         let callback = word(&msg, 8);
                         self.send(&message(callback, 0, &0u32.to_ne_bytes()));
                         self.send(&message(1, 1, &callback.to_ne_bytes()));
@@ -90,8 +105,10 @@ impl Compositor {
                     (o, 1) if o == notifier && notifier != 0 => {
                         let id = word(&msg, 8);
                         *self.notification.lock().unwrap() = Some(id);
-                        if starts_locked {
-                            self.lock(true);
+                        match start {
+                            Start::Unlocked => {}
+                            Start::Locked => self.lock(true),
+                            Start::LockedAtNextSync => lock_at_sync = true,
                         }
                     }
                     _ => {}
@@ -102,14 +119,14 @@ impl Compositor {
 }
 
 /// A client connection to a fake compositor serving on its own thread.
-fn connect(offer: bool, starts_locked: bool) -> (Connection, Arc<Compositor>) {
+fn connect(offer: bool, start: Start) -> (Connection, Arc<Compositor>) {
     let (client, server) = UnixStream::pair().unwrap();
     let compositor = Arc::new(Compositor {
         writer: Mutex::new(server.try_clone().unwrap()),
         notification: Mutex::new(None),
     });
     let c = compositor.clone();
-    std::thread::spawn(move || c.serve(server, offer, starts_locked));
+    std::thread::spawn(move || c.serve(server, offer, start));
     (Connection::from_socket(client).unwrap(), compositor)
 }
 
@@ -126,9 +143,10 @@ fn wait_for(what: &str, mut done: impl FnMut() -> bool) {
 /// connected; a compositor lost while locked keeps the ring blocked.
 #[test]
 fn the_compositor_lock_blocks_the_ring() {
-    for starts_locked in [false, true] {
+    for start in [Start::Unlocked, Start::Locked] {
+        let starts_locked = start == Start::Locked;
         let ready = Arc::new(MicReady::default());
-        let (conn, compositor) = connect(true, starts_locked);
+        let (conn, compositor) = connect(true, start);
         let r = ready.clone();
         let following = std::thread::spawn(move || {
             follow(&conn, move |locked| {
@@ -166,11 +184,35 @@ fn the_compositor_lock_blocks_the_ring() {
 #[test]
 fn a_compositor_without_lock_notifications_is_not_followed() {
     let ready = Arc::new(MicReady::default());
-    let (conn, _compositor) = connect(false, false);
+    let (conn, _compositor) = connect(false, Start::Unlocked);
     let r = ready.clone();
     let stop = follow(&conn, move |locked| {
         r.set_lock(LockSource::Compositor, Some(locked));
     });
     assert!(matches!(stop, Err(Stop::NotOffered)), "{stop:?}");
     assert_eq!(ready.lock_signal(), "none");
+}
+
+/// QA81-5: a daemon that starts under a lock never sees an unlock before
+/// the compositor's first `locked`, however late inside the first
+/// roundtrip it comes, and the ring waits for the compositor meanwhile.
+#[test]
+fn a_session_locked_at_start_never_opens_the_ring() {
+    for start in [Start::Locked, Start::LockedAtNextSync] {
+        let ready = Arc::new(MicReady::default());
+        ready.lock_pending(LockSource::Compositor);
+        assert!(ready.blocked(), "the ring waits for the first report");
+        let reports = Arc::new(Mutex::new(Vec::new()));
+        let (conn, _compositor) = connect(true, start);
+        let (r, seen) = (ready.clone(), reports.clone());
+        std::thread::spawn(move || {
+            follow(&conn, move |locked| {
+                r.set_lock(LockSource::Compositor, Some(locked));
+                seen.lock().unwrap().push((locked, r.blocked()));
+            })
+        });
+        wait_for("the first report", || !reports.lock().unwrap().is_empty());
+        std::thread::sleep(Duration::from_millis(50));
+        assert_eq!(*reports.lock().unwrap(), [(true, true)]);
+    }
 }

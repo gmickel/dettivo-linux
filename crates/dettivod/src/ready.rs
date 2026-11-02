@@ -80,6 +80,8 @@ pub enum LockSource {
 const UNFOLLOWED: u8 = 0;
 const UNLOCKED: u8 = 1;
 const LOCKED: u8 = 2;
+/// Followed, but nothing reported yet: the ring stays closed.
+const PENDING: u8 = 3;
 
 /// The ring's owner.
 #[derive(Default)]
@@ -143,6 +145,12 @@ impl MicReady {
         }
     }
 
+    /// Marks `source` as followed before its first report: the ring
+    /// stays closed until it reports an unlock or is no longer followed.
+    pub fn lock_pending(&self, source: LockSource) {
+        self.locks[source as usize].store(PENDING, Ordering::Relaxed);
+    }
+
     /// Pauses (`true`) or resumes the ring; the next tick applies it.
     pub fn set_paused(&self, paused: bool) {
         if self.paused.swap(paused, Ordering::Relaxed) != paused {
@@ -150,11 +158,12 @@ impl MicReady {
         }
     }
 
-    /// True while any source reports the session locked.
+    /// True while any source reports the session locked or has not
+    /// reported yet.
     pub fn blocked(&self) -> bool {
         self.locks
             .iter()
-            .any(|l| l.load(Ordering::Relaxed) == LOCKED)
+            .any(|l| matches!(l.load(Ordering::Relaxed), LOCKED | PENDING))
     }
 
     /// The source that catches every lock: `compositor`, else `logind`
