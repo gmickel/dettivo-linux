@@ -17,7 +17,7 @@ use dettivo_core::config::schema::WhileDictating;
 
 /// A take must record this long before media is touched: the hold key's
 /// minimum hold (ADR 0083), under which a tap is discarded.
-pub const TAP: Duration = Duration::from_millis(300);
+pub const TAP: Duration = dettivo_hotkeys::hold::MIN_HOLD;
 /// The ducked level of the default sink.
 pub const DUCK_LEVEL: f32 = 0.20;
 /// The most one ramp step moves the volume, in hundredths: a user change
