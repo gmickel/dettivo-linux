@@ -1,6 +1,6 @@
 # 0086. A vocabulary entry names how its term is misheard, and only Enhanced reads the aliases
 
-Status: Accepted 2026-11-01
+Status: Accepted 2026-11-01; amended by 0088 (Parakeet reads the aliases too)
 
 ## What this gives you
 

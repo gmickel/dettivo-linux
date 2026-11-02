@@ -66,22 +66,29 @@ pub fn chunks(len: usize) -> Vec<(usize, usize)> {
     }
 }
 
+/// The time chunk `i` of `ranges` owns, `[lower, upper)` in absolute
+/// milliseconds: from the midpoint of the overlap before it to the
+/// midpoint of the overlap after it.
+pub fn owned(ranges: &[(usize, usize)], i: usize) -> (u64, u64) {
+    let (start, end) = ranges[i];
+    let lower = match i.checked_sub(1) {
+        None => 0,
+        Some(p) => ms(start + (ranges[p].1 - start) / 2),
+    };
+    let upper = ranges
+        .get(i + 1)
+        .map_or(u64::MAX, |(next, _)| ms(*next + (end - *next) / 2));
+    (lower, upper)
+}
+
 /// Words from consecutive chunks (each already offset to absolute time),
-/// merged at the midpoint of every overlap: the earlier chunk keeps the
-/// words that start before it, the later chunk the rest.
+/// merged at the midpoint of every overlap: each chunk keeps the words
+/// that start in the time it [`owned`].
 pub fn stitch(chunks: &[(usize, usize, Vec<Word>)]) -> Vec<Word> {
+    let ranges: Vec<(usize, usize)> = chunks.iter().map(|(s, e, _)| (*s, *e)).collect();
     let mut out: Vec<Word> = Vec::new();
-    for (i, (start, _end, words)) in chunks.iter().enumerate() {
-        let lower = if i == 0 {
-            0
-        } else {
-            let prev_end = chunks[i - 1].1;
-            ms(*start + (prev_end - *start) / 2)
-        };
-        let upper = chunks
-            .get(i + 1)
-            .map(|(next_start, _, _)| ms(*next_start + (chunks[i].1 - *next_start) / 2))
-            .unwrap_or(u64::MAX);
+    for (i, (_, _, words)) in chunks.iter().enumerate() {
+        let (lower, upper) = owned(&ranges, i);
         out.extend(
             words
                 .iter()
@@ -191,6 +198,15 @@ mod tests {
         let out = stitch(&[(0, 16_000 * 60, first), (16_000 * 58, 16_000 * 118, second)]);
         let texts: Vec<&str> = out.iter().map(|w| w.text.as_str()).collect();
         assert_eq!(texts, ["a", "b", "c", "d"]);
+    }
+
+    #[test]
+    fn each_chunk_owns_the_time_between_its_overlap_midpoints() {
+        let ranges = chunks(16_000 * 150);
+        assert_eq!(owned(&ranges, 0), (0, 59_000));
+        assert_eq!(owned(&ranges, 1), (59_000, 117_000));
+        assert_eq!(owned(&ranges, 2), (117_000, u64::MAX));
+        assert_eq!(owned(&[(0, 16_000)], 0), (0, u64::MAX));
     }
 
     #[test]

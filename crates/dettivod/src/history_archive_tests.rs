@@ -35,6 +35,7 @@ fn rejected_dictation_archive_removes_only_its_new_artifacts() {
             language: "en".into(),
             mode: "raw".into(),
             vocabulary: vec![],
+            vocabulary_boost: Default::default(),
             replacements: vec![],
             spoken_punctuation: true,
             protect_tokens: true,

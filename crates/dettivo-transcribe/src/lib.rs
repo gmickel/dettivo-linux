@@ -17,6 +17,9 @@ pub mod merger;
 pub mod source;
 
 pub use dettivo_engine_proto::{Segment, Word};
+/// The padding a dictation take gets before recognition, for the QA
+/// vocabulary bench, which reaches the speech layer through this crate.
+pub use dettivo_speech::gate::pad_for_engine;
 pub use job::{JobError, Progress, Request, Stage, run};
 pub use source::{AudioSource, WavSource};
 
