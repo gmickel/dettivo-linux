@@ -48,7 +48,7 @@ Two dictations into the same window read as one sentence when the second continu
 
 "I wrote the report" followed by "And then I left." types " and then I left." The join reads only Dettivo's own last delivery and never the text in the window. The window is the one the probe named when the key went down, identity included, so a second window of the same app does not join.
 
-Dettivo learns whether you gave input in between from the compositor's input-idle notification (`ext_idle_notifier_v1` version 2): any key or pointer input that follows 100 ms without input, between the last delivery and 1 s before the next take started, counts as input. The 1 s leaves out the key that started the take. A compositor without that protocol version gives no signal, and then nothing is joined. A take that went to the clipboard, or a `reinsert-last`, is never joined. `[dictation] join_continuations = false` types every dictation as it is.
+Dettivo learns whether you gave input in between from the compositor's input-idle notification (`ext_idle_notifier_v1` version 2): any key or pointer input that follows 100 ms without input counts as input. In the second before the take started, one such burst is the chord that started it and is left out; a second burst, such as typing that paused before you pressed the chord, counts as input. A chord whose keys you press more than 100 ms apart counts as two bursts, and that take is typed as it is. A compositor without that protocol version gives no signal, and then nothing is joined. A take that went to the clipboard, or a `reinsert-last`, is never joined. `[dictation] join_continuations = false` types every dictation as it is.
 
 ## After a compositor restart
 

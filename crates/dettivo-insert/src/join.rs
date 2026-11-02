@@ -16,8 +16,12 @@ use crate::idle::InputActivity;
 /// How long after a delivery the next dictation may continue it.
 pub const JOIN_WINDOW: Duration = Duration::from_secs(30);
 
-/// Input this close before a take starts is the hotkey that started it.
+/// Input this close before a take starts may be the hotkey that started
+/// it: one burst of input inside it is the chord, a second one is typing.
 pub const HOTKEY_GRACE: Duration = Duration::from_secs(1);
+
+/// How late after the press the chord's own burst may be recorded.
+const CHORD_LATENESS: Duration = Duration::from_millis(50);
 
 /// The words lowercased when a take continues a sentence.
 const FUNCTION_WORDS: &[&str] = &["The", "And", "But", "So", "Or", "A", "An"];
@@ -58,12 +62,17 @@ impl Continuation {
     }
 
     /// A take started at `at`: whether the user gave any input since the
-    /// last delivery, leaving out the hotkey that started the take.
+    /// last delivery, leaving out the hotkey that started the take. Input
+    /// before [`HOTKEY_GRACE`] is typing; inside it, the burst of input
+    /// that pressed the chord is left out, and any other burst is typing.
     pub fn take_started(&self, at: Instant) {
         let mut last = self.last.lock().unwrap_or_else(|p| p.into_inner());
         if let Some(l) = last.as_mut() {
-            let until = at.checked_sub(HOTKEY_GRACE).unwrap_or(at);
-            l.typed_since = self.activity.active_between(l.at, until) != Some(false);
+            let grace = at.checked_sub(HOTKEY_GRACE).unwrap_or(at).max(l.at);
+            let chord_end = (at + CHORD_LATENESS).min(Instant::now().max(at));
+            let before = self.activity.inputs_between(l.at, grace);
+            let inside = self.activity.inputs_between(grace, chord_end);
+            l.typed_since = !matches!((before, inside), (Some(0), Some(0 | 1)));
         }
     }
 
@@ -152,8 +161,8 @@ mod tests {
 
     struct Fixed(Option<bool>);
     impl InputActivity for Fixed {
-        fn active_between(&self, _: Instant, _: Instant) -> Option<bool> {
-            self.0
+        fn inputs_between(&self, _: Instant, _: Instant) -> Option<usize> {
+            self.0.map(usize::from)
         }
     }
 
@@ -194,5 +203,40 @@ mod tests {
         c.delivered(None, "copied, not typed", Instant::now());
         c.take_started(Instant::now());
         assert_eq!(c.text_for(Some(&place("0x1")), "And so"), "And so");
+    }
+
+    /// Input bursts at the given times, as the idle watch records them.
+    struct Bursts(Vec<Instant>);
+    impl InputActivity for Bursts {
+        fn inputs_between(&self, from: Instant, until: Instant) -> Option<usize> {
+            Some(self.0.iter().filter(|&&r| r > from && r < until).count())
+        }
+    }
+
+    /// fn-85 R3: typing that paused before the start chord disables the
+    /// join even inside the hotkey's second; the chord alone, as one burst
+    /// of input, still joins.
+    #[test]
+    fn typing_just_before_the_chord_disables_the_join() {
+        let t0 = Instant::now();
+        let ms = |n| t0 + Duration::from_millis(n);
+        let press = ms(5_000);
+        for (bursts, joined) in [
+            (vec![ms(4_950)], true),
+            (vec![ms(4_400), ms(4_950)], false),
+            (vec![ms(3_000), ms(4_950)], false),
+            (vec![], true),
+        ] {
+            let c = Continuation::new(Arc::new(Bursts(bursts.clone())));
+            c.delivered(Some(place("0x1")), "I wrote the report", ms(1_000));
+            c.take_started(press);
+            let text = c.text_for(Some(&place("0x1")), "And then I left.");
+            let expected = if joined {
+                " and then I left."
+            } else {
+                "And then I left."
+            };
+            assert_eq!(text, expected, "{bursts:?}");
+        }
     }
 }

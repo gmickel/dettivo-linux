@@ -28,9 +28,9 @@ const KEEP: Duration = Duration::from_secs(120);
 
 /// Input activity between two moments.
 pub trait InputActivity: Send + Sync {
-    /// True when input arrived after `from` and before `until`; `None`
-    /// when no source reports input.
-    fn active_between(&self, from: Instant, until: Instant) -> Option<bool>;
+    /// How many bursts of input (input after a quiet spell) began after
+    /// `from` and before `until`; `None` when no source reports input.
+    fn inputs_between(&self, from: Instant, until: Instant) -> Option<usize>;
 }
 
 #[derive(Default)]
@@ -48,11 +48,14 @@ pub struct IdleMonitor {
 }
 
 impl InputActivity for IdleMonitor {
-    fn active_between(&self, from: Instant, until: Instant) -> Option<bool> {
+    fn inputs_between(&self, from: Instant, until: Instant) -> Option<usize> {
         let seen = self.seen.lock().unwrap_or_else(|p| p.into_inner());
-        seen.watching_since
-            .filter(|&since| since <= from)
-            .map(|_| seen.resumed.iter().any(|&r| r > from && r < until))
+        seen.watching_since.filter(|&since| since <= from).map(|_| {
+            seen.resumed
+                .iter()
+                .filter(|&&r| r > from && r < until)
+                .count()
+        })
     }
 }
 
@@ -209,20 +212,20 @@ mod tests {
         let monitor = IdleMonitor::default();
         let t0 = Instant::now();
         let t = |ms| t0 + Duration::from_millis(ms);
-        assert_eq!(monitor.active_between(t0, t(100)), None, "no source");
+        assert_eq!(monitor.inputs_between(t0, t(100)), None, "no source");
         {
             let mut seen = monitor.seen.lock().unwrap();
             seen.watching_since = Some(t0);
             seen.resumed.push_back(t(50));
         }
-        assert_eq!(monitor.active_between(t0, t(100)), Some(true));
-        assert_eq!(monitor.active_between(t(50), t(100)), Some(false));
-        assert_eq!(monitor.active_between(t0, t(50)), Some(false));
+        assert_eq!(monitor.inputs_between(t0, t(100)), Some(1));
+        assert_eq!(monitor.inputs_between(t(50), t(100)), Some(0));
+        assert_eq!(monitor.inputs_between(t0, t(50)), Some(0));
     }
 
     fn watching(monitor: &IdleMonitor) -> bool {
         let now = Instant::now();
-        monitor.active_between(now, now).is_some()
+        monitor.inputs_between(now, now).is_some()
     }
 
     fn wait_for(what: &str, done: impl Fn() -> bool) {
@@ -256,6 +259,6 @@ mod tests {
         wait_for("the new compositor is watched", || watching(&monitor));
         // Input during the outage went unseen: a span across it has no
         // answer, so it never reads as a quiet continuation.
-        assert_eq!(monitor.active_between(outage, Instant::now()), None);
+        assert_eq!(monitor.inputs_between(outage, Instant::now()), None);
     }
 }

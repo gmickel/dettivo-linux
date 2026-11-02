@@ -239,8 +239,8 @@ mod tests {
 
     struct Quiet;
     impl dettivo_insert::idle::InputActivity for Quiet {
-        fn active_between(&self, _: std::time::Instant, _: std::time::Instant) -> Option<bool> {
-            Some(false)
+        fn inputs_between(&self, _: std::time::Instant, _: std::time::Instant) -> Option<usize> {
+            Some(0)
         }
     }
 
