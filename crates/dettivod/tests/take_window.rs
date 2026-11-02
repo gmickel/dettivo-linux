@@ -183,23 +183,22 @@ fn a_meeting_takes_the_microphone_over_from_the_ring_and_hands_it_back() {
         "no reopen mid-meeting"
     );
     daemon.result("meetings.stop", json!({"meeting_id": id}));
-    // The meeting's capture ends once its live path has transcribed the
-    // tails of both tracks, engine work that takes seconds on a loaded
-    // runner; the handoff under test is what follows that end.
-    logged(&daemon, "meeting capture ended", ENGINE);
+    // The ring reopens once the meeting's streams stopped, without
+    // waiting for the stop to transcribe the tails of both tracks.
+    logged(&daemon, "meeting streams stopped", ENGINE);
     wait_ready(&daemon, "open");
 
     // The reopen is logged before `audio.devices` reports it, but its line
-    // may still be crossing the pipe: wait for an open after the end.
-    let reopened_after_end = |log: &str| {
-        log.split_once("meeting capture ended")
+    // may still be crossing the pipe: wait for an open after the stop.
+    let reopened_after_stop = |log: &str| {
+        log.split_once("meeting streams stopped")
             .is_some_and(|(_, after)| after.contains("microphone ready: open"))
     };
     assert!(
-        wait_for(Duration::from_secs(10), || reopened_after_end(
+        wait_for(Duration::from_secs(10), || reopened_after_stop(
             &daemon.log()
         )),
-        "reopened after the meeting's capture ended:\n{}",
+        "reopened after the meeting's streams stopped:\n{}",
         daemon.log()
     );
     let log = daemon.log();

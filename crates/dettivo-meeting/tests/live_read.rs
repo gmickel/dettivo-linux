@@ -257,3 +257,34 @@ fn reads_at_a_high_rate_leave_the_takes_and_the_checkpoint_unchanged() {
         assert_eq!(samples, (1900 + 2000 + 3000) * 16, "{sidecar}");
     }
 }
+
+/// The meeting's capture ends before what is left of its live transcript
+/// is transcribed: the snapshot says so while the stop still flushes, so
+/// the always-ready microphone (ADR 0092) need not wait for the flush.
+#[test]
+fn the_capture_ends_before_the_live_tail_is_transcribed() {
+    let (session, _log, _rows, feeds, _dir) = setup(Feeds::new(false, false));
+    let engine = FakeEngine::new(Duration::from_millis(400));
+    session
+        .start(policy(), feeds.clone(), engine, MeetingRow::new())
+        .unwrap();
+    speech(&feeds, 1500);
+    assert!(session.snapshot().is_some_and(|s| s.capturing));
+    let mut seen = Vec::new();
+    std::thread::scope(|scope| {
+        scope.spawn(|| session.stop().unwrap());
+        let deadline = Instant::now() + Duration::from_secs(20);
+        while let Some(s) = session.snapshot() {
+            assert!(Instant::now() < deadline, "{seen:?}");
+            if seen.last() != Some(&s.capturing) {
+                seen.push(s.capturing);
+            }
+            std::thread::sleep(Duration::from_millis(2));
+        }
+    });
+    assert_eq!(
+        seen,
+        [true, false],
+        "the flush runs after the capture ended"
+    );
+}

@@ -39,6 +39,9 @@ pub struct Snapshot {
     pub microphone_takes: u32,
     /// True while the system track records.
     pub system_audio: bool,
+    /// True until the worker has stopped the meeting's streams; false
+    /// while a stop still transcribes what is left of the live transcript.
+    pub capturing: bool,
     /// Final live segments so far.
     pub live_segment_count: u64,
     /// The end of the last final live segment.
@@ -213,6 +216,7 @@ impl Session {
             duration_ms: 0,
             microphone_takes: 0,
             system_audio: system.is_ok(),
+            capturing: true,
             live_segment_count: 0,
             live_last_end_ms: 0,
             error: None,

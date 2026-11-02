@@ -7,7 +7,8 @@
 //! it until `resume`. Every change happens under the
 //! capture reservation, so the ring never runs beside another capture of
 //! the microphone: a meeting start closes it before the meeting opens its
-//! streams, and it reopens once the meeting's capture ended. A ring that
+//! streams, and it reopens once the meeting's capture ended, before the
+//! stop transcribes what is left of the live transcript. A ring that
 //! cannot open is reported by `audio.devices` and `dettivo doctor`; a
 //! dictation then opens the microphone on press, as with the setting off.
 
@@ -298,7 +299,7 @@ pub fn tick(daemon: &Daemon) {
             audio.keep_microphone_ready,
             ready.paused.load(Ordering::Relaxed),
             ready.blocked(),
-            daemon.meetings().snapshot().is_some(),
+            daemon.meetings().snapshot().is_some_and(|m| m.capturing),
         ),
         may_open: daemon.dictation().snapshot().is_none(),
         device: if pinned {
