@@ -44,7 +44,9 @@ struct Slot {
     /// The loaded model has run an inference (the warm-up or a take), so
     /// its GPU kernels are compiled; a new load clears it.
     warm: bool,
-    /// When the last real recognition finished.
+    /// When the running process last finished a real recognition; a new
+    /// process clears it, so the warm-up skip never counts a take served
+    /// by a process that is gone (ADR 0084).
     last_recognized: Option<Instant>,
 }
 
@@ -247,6 +249,7 @@ impl Supervisor {
             s.process = Some(EngineProcess::spawn(&path, settings.force_cpu)?);
             s.loaded = None;
             s.params = None;
+            s.last_recognized = None;
             self.transition(
                 s,
                 EngineTransition {
