@@ -156,7 +156,14 @@ pub fn watch(daemon: Arc<Daemon>) {
     let d = daemon.clone();
     let spawned = std::thread::Builder::new()
         .name("dettivo-screen-lock".into())
-        .spawn(move || follow_display(&socket, move |locked| set(&d, locked)));
+        .spawn(move || {
+            let p = d.clone();
+            follow_display(
+                &socket,
+                move |locked| set(&d, locked),
+                move || p.dictation().ready().lock_pending(LockSource::Compositor),
+            )
+        });
     if let Err(e) = spawned {
         set(&daemon, None);
         tracing::error!(error = %e, "microphone ready: the screen lock watcher did not start");
@@ -164,12 +171,18 @@ pub fn watch(daemon: Arc<Daemon>) {
 }
 
 /// Reports the lock of the compositor on the display `socket` through
-/// `set`: `Some` while a connection reports, `None` once it is lost. A
-/// compositor that went away is reached again when it comes back on the
-/// same display, also after a restart (ADR 0100). A connection refused
-/// or lost before the compositor's first report leaves the lock pending,
-/// the ring closed, through the retries.
-pub(crate) fn follow_display(socket: &Path, set: impl Fn(Option<bool>) + Clone + 'static) {
+/// `set`: `Some` while a connection reports, `None` once the compositor
+/// offers no lock notifications. A compositor that went away is reached
+/// again when it comes back on the same display, also after a restart
+/// (ADR 0100). A connection refused or lost before the compositor's
+/// first report leaves the lock pending, the ring closed, through the
+/// retries; one lost after an unlock calls `pending`, so the ring stays
+/// closed until the next compositor reports, and a lock it saw stays.
+pub(crate) fn follow_display(
+    socket: &Path,
+    set: impl Fn(Option<bool>) + Clone + 'static,
+    pending: impl Fn() + 'static,
+) {
     let mut last = String::new();
     let reported = Arc::new(AtomicBool::new(false));
     display::reconnecting(
@@ -189,8 +202,8 @@ pub(crate) fn follow_display(socket: &Path, set: impl Fn(Option<bool>) + Clone +
             }
         },
         |why| {
-            if reported.load(Ordering::Relaxed) {
-                set(None);
+            if reported.swap(false, Ordering::Relaxed) {
+                pending();
             }
             if why != last {
                 tracing::info!(

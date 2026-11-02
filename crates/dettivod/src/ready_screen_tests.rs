@@ -256,9 +256,13 @@ fn the_lock_is_followed_again_after_a_compositor_restart() {
     let ready = Arc::new(MicReady::default());
     ready.lock_pending(LockSource::Compositor);
     let first = compositor_on(&socket, Start::Unlocked);
-    let (r, s) = (ready.clone(), socket.clone());
+    let (r, p, s) = (ready.clone(), ready.clone(), socket.clone());
     std::thread::spawn(move || {
-        follow_display(&s, move |locked| r.set_lock(LockSource::Compositor, locked))
+        follow_display(
+            &s,
+            move |locked| r.set_lock(LockSource::Compositor, locked),
+            move || p.lock_pending(LockSource::Compositor),
+        )
     });
     let first = first.recv_timeout(Duration::from_secs(3)).unwrap();
     wait_for("the first compositor reports", || !ready.blocked());
@@ -297,9 +301,13 @@ fn a_connection_lost_before_its_first_report_keeps_the_ring_closed() {
     let ready = Arc::new(MicReady::default());
     ready.lock_pending(LockSource::Compositor);
     let first = compositor_on(&socket, Start::Drops);
-    let (r, s) = (ready.clone(), socket.clone());
+    let (r, p, s) = (ready.clone(), ready.clone(), socket.clone());
     std::thread::spawn(move || {
-        follow_display(&s, move |locked| r.set_lock(LockSource::Compositor, locked))
+        follow_display(
+            &s,
+            move |locked| r.set_lock(LockSource::Compositor, locked),
+            move || p.lock_pending(LockSource::Compositor),
+        )
     });
     first.recv_timeout(Duration::from_secs(3)).unwrap();
     // The dropped connection and the refusals after it.
@@ -330,4 +338,48 @@ fn a_connection_lost_before_its_first_report_keeps_the_ring_closed() {
         ready.blocked(),
         "a connection lost while locked keeps the ring closed"
     );
+}
+
+/// A compositor lost while unlocked closes the ring until the next one
+/// reports, so a compositor that comes back locked never finds the
+/// microphone open.
+#[test]
+fn a_compositor_lost_while_unlocked_closes_the_ring_until_the_next_reports() {
+    let dir = tempfile::Builder::new()
+        .prefix("dtv")
+        .tempdir_in("/tmp")
+        .unwrap();
+    let socket = dir.path().join("wl");
+    let ready = Arc::new(MicReady::default());
+    ready.lock_pending(LockSource::Compositor);
+    let first = compositor_on(&socket, Start::Unlocked);
+    let (r, p, s) = (ready.clone(), ready.clone(), socket.clone());
+    std::thread::spawn(move || {
+        follow_display(
+            &s,
+            move |locked| r.set_lock(LockSource::Compositor, locked),
+            move || p.lock_pending(LockSource::Compositor),
+        )
+    });
+    let first = first.recv_timeout(Duration::from_secs(3)).unwrap();
+    wait_for("the first compositor reports", || !ready.blocked());
+    first
+        .writer
+        .lock()
+        .unwrap()
+        .shutdown(std::net::Shutdown::Both)
+        .unwrap();
+    wait_for("the lost compositor closes the ring", || ready.blocked());
+    let second = compositor_on(&socket, Start::Locked);
+    let second = second.recv_timeout(Duration::from_secs(3)).unwrap();
+    wait_for("the new compositor reports its lock", || {
+        second.notification.lock().unwrap().is_some()
+    });
+    std::thread::sleep(Duration::from_millis(50));
+    assert!(
+        ready.blocked(),
+        "the locked compositor keeps the ring closed"
+    );
+    second.lock(false);
+    wait_for("its unlock frees the ring", || !ready.blocked());
 }
