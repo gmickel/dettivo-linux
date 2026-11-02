@@ -87,9 +87,32 @@ fn an_unsure_term_gives_way_to_the_prompt_free_words() {
     );
 }
 
-/// R1: a segment, or the sentences closing one, made only of listed terms
-/// is an echo however sure the decoder was; it becomes what the
-/// prompt-free decode heard there, or nothing.
+/// fn-79 R6: one listed name said on its own pastes it when the decoder
+/// was sure of it, alone in the take or closing it after a sentence, so
+/// it asks for no second decode; an unsure one is still checked.
+#[test]
+fn a_lone_listed_name_stands_when_sure() {
+    for segments in [
+        &[&[(" Clef.", -0.009)][..]][..],
+        &[&[(" Omarchy.", -0.097)][..]][..],
+        &[
+            &[(" Book the room.", -0.1)][..],
+            &[(" Hyprland.", -0.2)][..],
+        ][..],
+    ] {
+        assert!(!take(segments, TERMS).needs_plain_decode(), "{segments:?}");
+    }
+    let unsure = take(&[&[(" Hyprland.", -0.6)]], TERMS);
+    assert!(unsure.needs_plain_decode());
+    assert_eq!(
+        settle(&unsure, &plain(&[" Hyperland."])),
+        Some(plain(&["Hyperland."]))
+    );
+}
+
+/// R1: a segment, or the sentences closing one, made only of two or more
+/// listed terms is an echo however sure the decoder was; it becomes what
+/// the prompt-free decode heard there, or nothing.
 #[test]
 fn an_echo_of_listed_terms_is_replaced_or_dropped() {
     let whole = take(&[&[(" Omarchy,", 0.0), (" Hyprland.", 0.0)]], TERMS);
@@ -109,7 +132,7 @@ fn an_echo_of_listed_terms_is_replaced_or_dropped() {
         Some(plain(&["Book the room."]))
     );
     let own_segment = take(
-        &[&[(" Book the room.", -0.1)], &[(" Hyprland.", 0.0)]],
+        &[&[(" Book the room.", -0.1)], &[(" Clef, Hyprland.", 0.0)]],
         TERMS,
     );
     assert_eq!(
@@ -135,8 +158,9 @@ fn a_suspect_the_prompt_free_decode_also_spells_stands() {
         settle(&found, &plain(&[" Send it to Sapien XT today."])),
         None
     );
-    let echo = take(&[&[(" Clef.", 0.0)]], TERMS);
-    assert_eq!(settle(&echo, &plain(&[" Clef."])), None);
+    let lone = take(&[&[(" Clef.", -1.0)]], TERMS);
+    assert!(lone.needs_plain_decode());
+    assert_eq!(settle(&lone, &plain(&[" Clef."])), None);
 }
 
 /// Suspects whose gaps overlap, because a word inside a multi-word term

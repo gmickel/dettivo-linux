@@ -227,8 +227,10 @@ fn confidence(span: Span, words: &[Word], texts: &[String], tokens: &[Vec<Token>
     }
 }
 
-/// True when the span sits in a run of term spans that closes its segment
-/// and opens it or follows a sentence's end.
+/// True when the span sits in a run of two or more term spans that closes
+/// its segment and opens it or follows a sentence's end. One term alone
+/// is a name said on its own as often as an echo, so its confidence
+/// decides.
 fn echo_shaped(span: Span, words: &[Word], spans: &[Span]) -> bool {
     let in_span = |w: usize| spans.iter().any(|s| s.first <= w && w <= s.last);
     let seg = words[span.first].seg;
@@ -242,7 +244,12 @@ fn echo_shaped(span: Span, words: &[Word], spans: &[Span]) -> bool {
     while start > 0 && same(&words[start - 1]) && in_span(start - 1) {
         start -= 1;
     }
-    closes_segment && (start == 0 || !same(&words[start - 1]) || words[start - 1].closes)
+    let opens = start == 0 || !same(&words[start - 1]) || words[start - 1].closes;
+    let run = spans
+        .iter()
+        .filter(|s| s.first >= start && words[s.first].seg == seg)
+        .count();
+    closes_segment && opens && run >= 2
 }
 
 /// The longest common subsequence of `a` and `b`, as matched index pairs.
