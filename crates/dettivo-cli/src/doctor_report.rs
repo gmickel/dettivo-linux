@@ -280,7 +280,11 @@ fn engine_state(engine: &Value) -> String {
     } else if engine["degraded"] == true {
         format!("DEGRADED after {} crashes", show(&engine["crashes"]))
     } else if engine["running"] == true {
-        format!("running on {}", show(&engine["backend"]))
+        format!(
+            "running on {}, {}",
+            show(&engine["backend"]),
+            crate::speech_lines::warmth(engine)
+        )
     } else if engine["path"].is_string() {
         "ready, not running".into()
     } else {

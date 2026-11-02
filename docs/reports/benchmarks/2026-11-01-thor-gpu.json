@@ -1,0 +1,1423 @@
+{
+  "schema_version": 1,
+  "generated_unix": 1793554771,
+  "date": "2026-11-01",
+  "git_sha": "27a966695060a280a7bdfebbad5bb37d3360570a",
+  "quick": false,
+  "iterations": 10,
+  "tier": "gpu",
+  "tier_reason": "a Vulkan device is installed and dettivo-engine-whisper runs on it",
+  "forced_cpu": false,
+  "notes": [
+    "the insert leg of first_insert runs through the mock inserter; the dictation pack's first_insert_timing measures the real chain"
+  ],
+  "host": {
+    "hostname": "thor",
+    "cpu": "AMD Ryzen 9 7950X3D 16-Core Processor",
+    "memory_bytes": 66563436544,
+    "kernel": "7.2.8-9-omarchy",
+    "gpu": {
+      "name": "NVIDIA GeForce RTX 4090",
+      "driver": "NVIDIA",
+      "driver_info": "615.78.08",
+      "kind": "discrete"
+    },
+    "gpu_reason": null
+  },
+  "load_average": {
+    "start": [
+      6.06,
+      3.65,
+      4.03
+    ],
+    "end": [
+      3.33,
+      3.35,
+      3.56
+    ]
+  },
+  "engines": [
+    {
+      "binary": "dettivo-engine-whisper",
+      "path": "target/vulkan/debug/dettivo-engine-whisper"
+    },
+    {
+      "binary": "dettivo-engine-parakeet",
+      "path": "target/vulkan/debug/dettivo-engine-parakeet"
+    },
+    {
+      "binary": "dettivo-engine-llm",
+      "path": "target/vulkan/debug/dettivo-engine-llm"
+    }
+  ],
+  "models": [
+    {
+      "provider": "whisper",
+      "id": "large-v3-turbo",
+      "path": "/home/gordon/.local/share/dettivo/models/whisper/large-v3-turbo/ggml-large-v3-turbo.bin",
+      "sha256": "317eb69c11673c9de1e1f0d459b253999804ec71ac4c23c17ecf5fbe24e259a1"
+    },
+    {
+      "provider": "parakeet",
+      "id": "parakeet-v3",
+      "path": "/home/gordon/.local/share/dettivo/models/parakeet/parakeet-v3/tdt-0.6b-v3-q8_0.gguf",
+      "sha256": "4d69a4a6683f4f2d952bad794c1357ca6eb628027695b4699c5a9ad4cd07d757"
+    },
+    {
+      "provider": "llm",
+      "id": "qwen3-4b-instruct-2507",
+      "path": "/home/gordon/.local/share/dettivo/models/llm/qwen3-4b-instruct-2507/Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+      "sha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597"
+    }
+  ],
+  "fixtures": [
+    {
+      "name": "jfk.wav",
+      "path": "/home/gordon/.local/share/dettivo/models/fixtures/jfk.wav",
+      "sha256": "59dfb9a4acb36fe2a2affc14bacbee2920ff435cb13cc314a08c13f66ba7860e",
+      "bytes": 352078
+    },
+    {
+      "name": "long.wav",
+      "path": "qa-evidence/run-1793554771-957294/bench/long.wav",
+      "sha256": "089b2e3c57963d986f894df4dadb17a2bd67a08996ce9fe1980ef4505d62d21f",
+      "bytes": 9856044
+    },
+    {
+      "name": "polish-goldens",
+      "path": "/home/gordon/work/dettivo-linux-wt/fn-80-a-fast-first-dictation-and-the-right/crates/dettivo-language/tests/goldens/polish_fallback.json",
+      "sha256": "634d1aaea646af9424c78239765d783a81131044286929b58d0e8a1db4fbd309",
+      "bytes": 5839
+    }
+  ],
+  "steps": [
+    {
+      "name": "first_insert",
+      "status": "measured",
+      "reason": null,
+      "comparison": {
+        "nfr": "NFR-1",
+        "metric": "first_insert_p50",
+        "unit": "ms",
+        "target": 1000.0,
+        "initial": 1000.0,
+        "direction": "at_most",
+        "value": 296.0,
+        "met": true
+      },
+      "results": [
+        {
+          "backend": "vulkan",
+          "cold_met": true,
+          "cold_ms": 330,
+          "cold_ratio": 1.114864864864865,
+          "failures": [],
+          "figure": 296.0,
+          "insert_leg": "mock",
+          "met": true,
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "qualified": true,
+          "reason": "Vulkan backend built in and a device is installed; ggml enumerates 2 Vulkan device(s)",
+          "runs": [
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": true,
+              "insert_ms": 0,
+              "job_id": "job_dict_1",
+              "outcome": "inserted",
+              "total_ms": 330,
+              "transcribe_ms": 309
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_2",
+              "outcome": "inserted",
+              "total_ms": 296,
+              "transcribe_ms": 275
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_3",
+              "outcome": "inserted",
+              "total_ms": 290,
+              "transcribe_ms": 269
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_4",
+              "outcome": "inserted",
+              "total_ms": 263,
+              "transcribe_ms": 242
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_5",
+              "outcome": "inserted",
+              "total_ms": 251,
+              "transcribe_ms": 230
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_6",
+              "outcome": "inserted",
+              "total_ms": 402,
+              "transcribe_ms": 380
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_7",
+              "outcome": "inserted",
+              "total_ms": 337,
+              "transcribe_ms": 316
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_8",
+              "outcome": "inserted",
+              "total_ms": 297,
+              "transcribe_ms": 275
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_9",
+              "outcome": "inserted",
+              "total_ms": 281,
+              "transcribe_ms": 260
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_10",
+              "outcome": "inserted",
+              "total_ms": 312,
+              "transcribe_ms": 291
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_11",
+              "outcome": "inserted",
+              "total_ms": 308,
+              "transcribe_ms": 286
+            }
+          ],
+          "split_p50": {
+            "capture_ms": 0,
+            "insert_ms": 0,
+            "transcribe_ms": 275
+          },
+          "warm": {
+            "iterations": 10,
+            "max": 402,
+            "min": 251,
+            "p50": 296,
+            "p95": 402,
+            "samples": [
+              296,
+              290,
+              263,
+              251,
+              402,
+              337,
+              297,
+              281,
+              312,
+              308
+            ]
+          },
+          "warm_completed": 10,
+          "warm_required": 10,
+          "warm_wait_ms": 2210
+        },
+        {
+          "backend": "vulkan",
+          "cold_met": true,
+          "cold_ms": 149,
+          "cold_ratio": 0.8054054054054054,
+          "failures": [],
+          "figure": 185.0,
+          "insert_leg": "mock",
+          "met": true,
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "qualified": true,
+          "reason": "Vulkan backend built in and a device is installed (Vulkan0)",
+          "runs": [
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": true,
+              "insert_ms": 0,
+              "job_id": "job_dict_1",
+              "outcome": "inserted",
+              "total_ms": 149,
+              "transcribe_ms": 128
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_2",
+              "outcome": "inserted",
+              "total_ms": 181,
+              "transcribe_ms": 160
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_3",
+              "outcome": "inserted",
+              "total_ms": 185,
+              "transcribe_ms": 164
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_4",
+              "outcome": "inserted",
+              "total_ms": 195,
+              "transcribe_ms": 174
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_5",
+              "outcome": "inserted",
+              "total_ms": 194,
+              "transcribe_ms": 173
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_6",
+              "outcome": "inserted",
+              "total_ms": 197,
+              "transcribe_ms": 176
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_7",
+              "outcome": "inserted",
+              "total_ms": 139,
+              "transcribe_ms": 118
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_8",
+              "outcome": "inserted",
+              "total_ms": 172,
+              "transcribe_ms": 151
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_9",
+              "outcome": "inserted",
+              "total_ms": 182,
+              "transcribe_ms": 161
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_10",
+              "outcome": "inserted",
+              "total_ms": 193,
+              "transcribe_ms": 172
+            },
+            {
+              "backend": "mock",
+              "capture_ms": 0,
+              "cold": false,
+              "insert_ms": 0,
+              "job_id": "job_dict_11",
+              "outcome": "inserted",
+              "total_ms": 191,
+              "transcribe_ms": 170
+            }
+          ],
+          "split_p50": {
+            "capture_ms": 0,
+            "insert_ms": 0,
+            "transcribe_ms": 164
+          },
+          "warm": {
+            "iterations": 10,
+            "max": 197,
+            "min": 139,
+            "p50": 185,
+            "p95": 197,
+            "samples": [
+              181,
+              185,
+              195,
+              194,
+              197,
+              139,
+              172,
+              182,
+              193,
+              191
+            ]
+          },
+          "warm_completed": 10,
+          "warm_required": 10,
+          "warm_wait_ms": 2405
+        }
+      ],
+      "duration_ms": 231414
+    },
+    {
+      "name": "warm_up",
+      "status": "measured",
+      "reason": null,
+      "comparison": null,
+      "results": [
+        {
+          "backend": "vulkan",
+          "cold_take_ms": 574,
+          "idle_vram_mib": 865,
+          "load_ms": 366,
+          "loaded_take_ms": 208,
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "warm": {
+            "iterations": 10,
+            "max": 180,
+            "min": 175,
+            "p50": 178,
+            "p95": 180,
+            "samples": [
+              178,
+              175,
+              176,
+              178,
+              180,
+              178,
+              178,
+              176,
+              179,
+              177
+            ]
+          },
+          "warm_up_ms": 204,
+          "warmed_met": true,
+          "warmed_ratio": 1.0337078651685394,
+          "warmed_take_ms": 184
+        },
+        {
+          "backend": "vulkan",
+          "cold_take_ms": 757,
+          "idle_vram_mib": 954,
+          "load_ms": 664,
+          "loaded_take_ms": 93,
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "warm": {
+            "iterations": 10,
+            "max": 72,
+            "min": 66,
+            "p50": 68,
+            "p95": 72,
+            "samples": [
+              71,
+              71,
+              71,
+              68,
+              68,
+              66,
+              69,
+              72,
+              68,
+              68
+            ]
+          },
+          "warm_up_ms": 142,
+          "warmed_met": true,
+          "warmed_ratio": 1.0147058823529411,
+          "warmed_take_ms": 69
+        }
+      ],
+      "duration_ms": 9759
+    },
+    {
+      "name": "gpu_threads",
+      "status": "measured",
+      "reason": null,
+      "comparison": null,
+      "results": [
+        {
+          "backend": "vulkan",
+          "counts": [
+            {
+              "threads": 1,
+              "warm": {
+                "iterations": 10,
+                "max": 205,
+                "min": 195,
+                "p50": 197,
+                "p95": 205,
+                "samples": [
+                  205,
+                  197,
+                  195,
+                  197,
+                  196,
+                  198,
+                  200,
+                  196,
+                  198,
+                  199
+                ]
+              }
+            },
+            {
+              "threads": 2,
+              "warm": {
+                "iterations": 10,
+                "max": 192,
+                "min": 181,
+                "p50": 184,
+                "p95": 192,
+                "samples": [
+                  192,
+                  186,
+                  181,
+                  183,
+                  184,
+                  183,
+                  188,
+                  184,
+                  184,
+                  183
+                ]
+              }
+            },
+            {
+              "threads": 4,
+              "warm": {
+                "iterations": 10,
+                "max": 183,
+                "min": 176,
+                "p50": 178,
+                "p95": 183,
+                "samples": [
+                  183,
+                  178,
+                  177,
+                  176,
+                  180,
+                  178,
+                  182,
+                  180,
+                  177,
+                  177
+                ]
+              }
+            },
+            {
+              "threads": 8,
+              "warm": {
+                "iterations": 10,
+                "max": 182,
+                "min": 172,
+                "p50": 175,
+                "p95": 182,
+                "samples": [
+                  182,
+                  177,
+                  175,
+                  172,
+                  172,
+                  175,
+                  177,
+                  174,
+                  174,
+                  176
+                ]
+              }
+            },
+            {
+              "threads": 16,
+              "warm": {
+                "iterations": 10,
+                "max": 179,
+                "min": 173,
+                "p50": 174,
+                "p95": 179,
+                "samples": [
+                  179,
+                  176,
+                  175,
+                  173,
+                  173,
+                  173,
+                  175,
+                  175,
+                  173,
+                  174
+                ]
+              }
+            }
+          ],
+          "fastest": 16,
+          "model": "large-v3-turbo",
+          "provider": "whisper"
+        },
+        {
+          "backend": "vulkan",
+          "counts": [
+            {
+              "threads": 1,
+              "warm": {
+                "iterations": 10,
+                "max": 73,
+                "min": 67,
+                "p50": 68,
+                "p95": 73,
+                "samples": [
+                  68,
+                  67,
+                  72,
+                  70,
+                  67,
+                  68,
+                  70,
+                  67,
+                  70,
+                  73
+                ]
+              }
+            },
+            {
+              "threads": 2,
+              "warm": {
+                "iterations": 10,
+                "max": 73,
+                "min": 67,
+                "p50": 69,
+                "p95": 73,
+                "samples": [
+                  71,
+                  69,
+                  72,
+                  69,
+                  67,
+                  69,
+                  67,
+                  70,
+                  73,
+                  68
+                ]
+              }
+            },
+            {
+              "threads": 4,
+              "warm": {
+                "iterations": 10,
+                "max": 72,
+                "min": 66,
+                "p50": 68,
+                "p95": 72,
+                "samples": [
+                  67,
+                  68,
+                  69,
+                  71,
+                  67,
+                  68,
+                  66,
+                  70,
+                  72,
+                  68
+                ]
+              }
+            },
+            {
+              "threads": 8,
+              "warm": {
+                "iterations": 10,
+                "max": 72,
+                "min": 67,
+                "p50": 69,
+                "p95": 72,
+                "samples": [
+                  69,
+                  68,
+                  72,
+                  68,
+                  67,
+                  68,
+                  70,
+                  70,
+                  69,
+                  69
+                ]
+              }
+            },
+            {
+              "threads": 16,
+              "warm": {
+                "iterations": 10,
+                "max": 73,
+                "min": 67,
+                "p50": 68,
+                "p95": 73,
+                "samples": [
+                  67,
+                  67,
+                  73,
+                  69,
+                  67,
+                  68,
+                  71,
+                  70,
+                  73,
+                  67
+                ]
+              }
+            }
+          ],
+          "fastest": 1,
+          "model": "parakeet-v3",
+          "provider": "parakeet"
+        }
+      ],
+      "duration_ms": 20150
+    },
+    {
+      "name": "stt_throughput",
+      "status": "measured",
+      "reason": null,
+      "comparison": {
+        "nfr": "NFR-4",
+        "metric": "stt_realtime_factor",
+        "unit": "x realtime",
+        "target": 20.0,
+        "initial": 10.0,
+        "direction": "at_least",
+        "value": 64.75,
+        "met": true
+      },
+      "results": [
+        {
+          "audio_ms": 308000,
+          "backend": "vulkan",
+          "clip_wall_ms": 725,
+          "figure": 64.75,
+          "iterations": 1,
+          "met": true,
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "realtime_factor": 64.75,
+          "reason": "backend=Vulkan reason=Vulkan backend built in and a device is installed; ggml enumerates 2 Vulkan device(s) timing=Dtw",
+          "wall_ms": 4757
+        },
+        {
+          "audio_ms": 308000,
+          "backend": "vulkan",
+          "clip_wall_ms": 817,
+          "figure": 121.59,
+          "iterations": 1,
+          "met": true,
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "realtime_factor": 121.59,
+          "reason": "backend=Vulkan reason=Vulkan backend built in and a device is installed (Vulkan0) model_name=\"nvidia/parakeet-tdt-0.6b-v3\"",
+          "wall_ms": 2533
+        }
+      ],
+      "duration_ms": 8998
+    },
+    {
+      "name": "llm_rewrite",
+      "status": "measured",
+      "reason": "recorded; no NFR names a rewrite budget beyond [llm] timeout_ms",
+      "comparison": null,
+      "results": [
+        {
+          "backend": "vulkan",
+          "latency": {
+            "iterations": 18,
+            "max": 1433,
+            "min": 1015,
+            "p50": 1055,
+            "p95": 1433,
+            "samples": [
+              1228,
+              1015,
+              1293,
+              1115,
+              1173,
+              1433,
+              1022,
+              1025,
+              1032,
+              1041,
+              1105,
+              1049,
+              1048,
+              1095,
+              1107,
+              1042,
+              1055,
+              1198
+            ]
+          },
+          "load_ms": 990,
+          "model": "qwen3-4b-instruct-2507",
+          "provider": "llm",
+          "rewrites": [
+            {
+              "case": "applies_basic_rewrite_for_command_like_input",
+              "finish_reason": "stop",
+              "tokens": 31,
+              "tokens_per_second": 130.3,
+              "wall_ms": 1228
+            },
+            {
+              "case": "removes_common_fillers_when_enabled",
+              "finish_reason": "stop",
+              "tokens": 6,
+              "tokens_per_second": 240.0,
+              "wall_ms": 1015
+            },
+            {
+              "case": "leaves_sentence_punctuation_untouched_when_smart_punctuation_disabled",
+              "finish_reason": "stop",
+              "tokens": 43,
+              "tokens_per_second": 141.9,
+              "wall_ms": 1293
+            },
+            {
+              "case": "applies_post_processors_when_provided",
+              "finish_reason": "stop",
+              "tokens": 31,
+              "tokens_per_second": 248.0,
+              "wall_ms": 1115
+            },
+            {
+              "case": "applies_common_grammar_fixes_when_enabled",
+              "finish_reason": "stop",
+              "tokens": 16,
+              "tokens_per_second": 87.4,
+              "wall_ms": 1173
+            },
+            {
+              "case": "uses_question_mark_for_question_like_input",
+              "finish_reason": "stop",
+              "tokens": 68,
+              "tokens_per_second": 153.5,
+              "wall_ms": 1433
+            },
+            {
+              "case": "uses_question_mark_for_conversational_question_lead",
+              "finish_reason": "stop",
+              "tokens": 9,
+              "tokens_per_second": 281.3,
+              "wall_ms": 1022
+            },
+            {
+              "case": "uses_question_mark_for_german_question_lead",
+              "finish_reason": "stop",
+              "tokens": 14,
+              "tokens_per_second": 400.0,
+              "wall_ms": 1025
+            },
+            {
+              "case": "uses_question_mark_for_arabic_question_lead",
+              "finish_reason": "stop",
+              "tokens": 9,
+              "tokens_per_second": 214.3,
+              "wall_ms": 1032
+            },
+            {
+              "case": "uses_question_mark_for_japanese_question_suffix",
+              "finish_reason": "stop",
+              "tokens": 9,
+              "tokens_per_second": 176.5,
+              "wall_ms": 1041
+            },
+            {
+              "case": "eval_english_cleanup",
+              "finish_reason": "stop",
+              "tokens": 11,
+              "tokens_per_second": 95.7,
+              "wall_ms": 1105
+            },
+            {
+              "case": "eval_code_command",
+              "finish_reason": "stop",
+              "tokens": 28,
+              "tokens_per_second": 474.6,
+              "wall_ms": 1049
+            },
+            {
+              "case": "eval_chat_question",
+              "finish_reason": "stop",
+              "tokens": 9,
+              "tokens_per_second": 155.2,
+              "wall_ms": 1048
+            },
+            {
+              "case": "eval_spanish_cleanup",
+              "finish_reason": "stop",
+              "tokens": 12,
+              "tokens_per_second": 114.3,
+              "wall_ms": 1095
+            },
+            {
+              "case": "eval_german_question",
+              "finish_reason": "stop",
+              "tokens": 17,
+              "tokens_per_second": 145.3,
+              "wall_ms": 1107
+            },
+            {
+              "case": "eval_arabic_question",
+              "finish_reason": "stop",
+              "tokens": 9,
+              "tokens_per_second": 173.1,
+              "wall_ms": 1042
+            },
+            {
+              "case": "eval_mixed_language",
+              "finish_reason": "stop",
+              "tokens": 12,
+              "tokens_per_second": 184.6,
+              "wall_ms": 1055
+            },
+            {
+              "case": "eval_mention_path_preserved",
+              "finish_reason": "stop",
+              "tokens": 13,
+              "tokens_per_second": 62.5,
+              "wall_ms": 1198
+            }
+          ],
+          "system_prompt_sha256": "6c14d0bb449bf5e12000a0cd9afb3ae57b996cf5f0d7712a8e15a331cdf7a76c",
+          "tokens_per_second_p50": 155.2
+        }
+      ],
+      "duration_ms": 22109
+    },
+    {
+      "name": "idle_footprint",
+      "status": "measured",
+      "reason": null,
+      "comparison": {
+        "nfr": "NFR-6",
+        "metric": "daemon_idle_rss",
+        "unit": "bytes",
+        "target": 62914560.0,
+        "initial": 62914560.0,
+        "direction": "at_most",
+        "value": 55590912.0,
+        "met": true
+      },
+      "results": [
+        {
+          "engines": [
+            {
+              "backend": "vulkan",
+              "binary": "dettivo-engine-whisper",
+              "loaded_memory_bytes": 195608576,
+              "unloaded": true,
+              "unloaded_after_ms": 20009
+            },
+            {
+              "backend": "vulkan",
+              "binary": "dettivo-engine-llm",
+              "loaded_memory_bytes": 514342912,
+              "unloaded": true,
+              "unloaded_after_ms": 20009
+            }
+          ],
+          "idle_seconds": 10,
+          "idled_ms": 300000,
+          "llm_model": "qwen3-4b-instruct-2507",
+          "llm_probe": "polish.test answered with model \"qwen3-4b-instruct-2507\"",
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "rss": {
+            "iterations": 28,
+            "max": 55590912,
+            "min": 55586816,
+            "p50": 55590912,
+            "p95": 55590912,
+            "samples": [
+              55586816,
+              55586816,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912,
+              55590912
+            ]
+          },
+          "rss_idle_bytes": 55590912,
+          "rss_loaded_bytes": 55689216,
+          "still_alive": []
+        }
+      ],
+      "duration_ms": 311581
+    },
+    {
+      "name": "startup",
+      "status": "measured",
+      "reason": "app first frame: dettivo-app is not built",
+      "comparison": {
+        "nfr": "NFR-8",
+        "metric": "socket_ready_p50",
+        "unit": "ms",
+        "target": 300.0,
+        "initial": 300.0,
+        "direction": "at_most",
+        "value": 202.0,
+        "met": true
+      },
+      "results": [
+        {
+          "app_first_frame_met": null,
+          "app_first_frame_ms": null,
+          "app_reason": "dettivo-app is not built",
+          "app_rss_kb_after_5s": null,
+          "socket_ready": {
+            "iterations": 10,
+            "max": 203,
+            "min": 202,
+            "p50": 202,
+            "p95": 203,
+            "samples": [
+              202,
+              202,
+              203,
+              202,
+              202,
+              202,
+              203,
+              202,
+              202,
+              203
+            ]
+          }
+        }
+      ],
+      "duration_ms": 2033
+    },
+    {
+      "name": "language_wer",
+      "status": "measured",
+      "reason": null,
+      "comparison": null,
+      "results": [
+        {
+          "backend": "vulkan",
+          "language": "de",
+          "model": "parakeet-ultra",
+          "provider": "parakeet",
+          "rank": 1,
+          "realtime_factor": 162.7,
+          "utterances": 100,
+          "wer": 4.2
+        },
+        {
+          "backend": "vulkan",
+          "language": "de",
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "rank": 2,
+          "realtime_factor": 159.8,
+          "utterances": 100,
+          "wer": 4.8
+        },
+        {
+          "backend": "vulkan",
+          "language": "de",
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "rank": 3,
+          "realtime_factor": 70.0,
+          "utterances": 100,
+          "wer": 5.2
+        },
+        {
+          "backend": "vulkan",
+          "language": "en",
+          "model": "parakeet-v2",
+          "provider": "parakeet",
+          "rank": 1,
+          "realtime_factor": 139.0,
+          "utterances": 100,
+          "wer": 4.1
+        },
+        {
+          "backend": "vulkan",
+          "language": "en",
+          "model": "parakeet-ultra",
+          "provider": "parakeet",
+          "rank": 2,
+          "realtime_factor": 137.1,
+          "utterances": 100,
+          "wer": 4.5
+        },
+        {
+          "backend": "vulkan",
+          "language": "en",
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "rank": 3,
+          "realtime_factor": 125.9,
+          "utterances": 100,
+          "wer": 5.1
+        },
+        {
+          "backend": "vulkan",
+          "language": "en",
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "rank": 4,
+          "realtime_factor": 55.8,
+          "utterances": 100,
+          "wer": 4.5
+        },
+        {
+          "backend": "vulkan",
+          "language": "en",
+          "model": "base.en",
+          "provider": "whisper",
+          "rank": 5,
+          "realtime_factor": 107.4,
+          "utterances": 100,
+          "wer": 8.3
+        },
+        {
+          "backend": "vulkan",
+          "language": "en",
+          "model": "tiny.en",
+          "provider": "whisper",
+          "rank": 6,
+          "realtime_factor": 126.1,
+          "utterances": 100,
+          "wer": 10.1
+        },
+        {
+          "backend": "vulkan",
+          "language": "es",
+          "model": "parakeet-ultra",
+          "provider": "parakeet",
+          "rank": 1,
+          "realtime_factor": 147.3,
+          "utterances": 100,
+          "wer": 2.9
+        },
+        {
+          "backend": "vulkan",
+          "language": "es",
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "rank": 2,
+          "realtime_factor": 144.4,
+          "utterances": 100,
+          "wer": 3.3
+        },
+        {
+          "backend": "vulkan",
+          "language": "es",
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "rank": 3,
+          "realtime_factor": 60.2,
+          "utterances": 100,
+          "wer": 3.1
+        },
+        {
+          "backend": "vulkan",
+          "language": "fr",
+          "model": "parakeet-ultra",
+          "provider": "parakeet",
+          "rank": 1,
+          "realtime_factor": 135.6,
+          "utterances": 100,
+          "wer": 4.8
+        },
+        {
+          "backend": "vulkan",
+          "language": "fr",
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "rank": 2,
+          "realtime_factor": 127.3,
+          "utterances": 100,
+          "wer": 5.9
+        },
+        {
+          "backend": "vulkan",
+          "language": "fr",
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "rank": 3,
+          "realtime_factor": 54.2,
+          "utterances": 100,
+          "wer": 5.9
+        },
+        {
+          "backend": "vulkan",
+          "language": "it",
+          "model": "parakeet-ultra",
+          "provider": "parakeet",
+          "rank": 1,
+          "realtime_factor": 167.7,
+          "utterances": 100,
+          "wer": 2.4
+        },
+        {
+          "backend": "vulkan",
+          "language": "it",
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "rank": 2,
+          "realtime_factor": 167.4,
+          "utterances": 100,
+          "wer": 2.9
+        },
+        {
+          "backend": "vulkan",
+          "language": "it",
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "rank": 3,
+          "realtime_factor": 69.0,
+          "utterances": 100,
+          "wer": 3.1
+        },
+        {
+          "backend": "vulkan",
+          "language": "nl",
+          "model": "parakeet-ultra",
+          "provider": "parakeet",
+          "rank": 1,
+          "realtime_factor": 128.2,
+          "utterances": 100,
+          "wer": 6.9
+        },
+        {
+          "backend": "vulkan",
+          "language": "nl",
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "rank": 2,
+          "realtime_factor": 128.6,
+          "utterances": 100,
+          "wer": 7.3
+        },
+        {
+          "backend": "vulkan",
+          "language": "nl",
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "rank": 3,
+          "realtime_factor": 49.5,
+          "utterances": 100,
+          "wer": 6.2
+        },
+        {
+          "backend": "vulkan",
+          "language": "pl",
+          "model": "parakeet-ultra",
+          "provider": "parakeet",
+          "rank": 1,
+          "realtime_factor": 121.0,
+          "utterances": 100,
+          "wer": 6.9
+        },
+        {
+          "backend": "vulkan",
+          "language": "pl",
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "rank": 2,
+          "realtime_factor": 48.1,
+          "utterances": 100,
+          "wer": 6.2
+        },
+        {
+          "backend": "vulkan",
+          "language": "pl",
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "rank": 3,
+          "realtime_factor": 121.8,
+          "utterances": 100,
+          "wer": 7.7
+        },
+        {
+          "backend": "vulkan",
+          "language": "pt",
+          "model": "parakeet-ultra",
+          "provider": "parakeet",
+          "rank": 1,
+          "realtime_factor": 163.4,
+          "utterances": 100,
+          "wer": 4.5
+        },
+        {
+          "backend": "vulkan",
+          "language": "pt",
+          "model": "parakeet-v3",
+          "provider": "parakeet",
+          "rank": 2,
+          "realtime_factor": 158.0,
+          "utterances": 100,
+          "wer": 5.0
+        },
+        {
+          "backend": "vulkan",
+          "language": "pt",
+          "model": "large-v3-turbo",
+          "provider": "whisper",
+          "rank": 3,
+          "realtime_factor": 66.7,
+          "utterances": 100,
+          "wer": 4.4
+        }
+      ],
+      "duration_ms": 381552
+    }
+  ],
+  "targets": [
+    {
+      "nfr": "NFR-1",
+      "metric": "first_insert_p50",
+      "unit": "ms",
+      "direction": "at_most",
+      "initial": 1000.0,
+      "calibrated": 1000.0
+    },
+    {
+      "nfr": "NFR-2",
+      "metric": "first_insert_p50",
+      "unit": "ms",
+      "direction": "at_most",
+      "initial": 2500.0,
+      "calibrated": 1500.0
+    },
+    {
+      "nfr": "NFR-4",
+      "metric": "stt_realtime_factor",
+      "unit": "x realtime",
+      "direction": "at_least",
+      "initial": 10.0,
+      "calibrated": 20.0
+    },
+    {
+      "nfr": "NFR-4",
+      "metric": "diarization_realtime_factor",
+      "unit": "x realtime",
+      "direction": "at_least",
+      "initial": 4.0,
+      "calibrated": 4.0
+    },
+    {
+      "nfr": "NFR-5",
+      "metric": "stt_realtime_factor",
+      "unit": "x realtime",
+      "direction": "at_least",
+      "initial": 2.0,
+      "calibrated": 5.0
+    },
+    {
+      "nfr": "NFR-6",
+      "metric": "daemon_idle_rss",
+      "unit": "bytes",
+      "direction": "at_most",
+      "initial": 62914560.0,
+      "calibrated": 62914560.0
+    },
+    {
+      "nfr": "NFR-8",
+      "metric": "socket_ready_p50",
+      "unit": "ms",
+      "direction": "at_most",
+      "initial": 300.0,
+      "calibrated": 300.0
+    },
+    {
+      "nfr": "NFR-8",
+      "metric": "app_first_frame",
+      "unit": "ms",
+      "direction": "at_most",
+      "initial": 300.0,
+      "calibrated": 300.0
+    }
+  ]
+}

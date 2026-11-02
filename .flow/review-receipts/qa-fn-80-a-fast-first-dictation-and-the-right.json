@@ -1,0 +1,291 @@
+{
+  "branch": "fn-80-a-fast-first-dictation-and-the-right",
+  "findings": {
+    "backend": "interactive",
+    "headSha": "571a8d364524ca17dfdcb6138c3d6c70ed7b8648",
+    "items": [
+      {
+        "body": "With [dictation] language = en and no model on disk, first run correctly preselects Parakeet v2 (RECOMMENDED, word error 4.1 %), but the recommendation adds a fifth speech row and the Models step overflows: the Enhanced 'Use Ollama instead' row draws over the footer note and next to Back / Continue. Reproduced twice; German (4 rows) is clean. Memory: .flow/memory/bug/ui/english-first-run-user-sees-the-models-2026-11-01.md. Evidence: .flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6b-en-models.png, r6b2-en-models.png (surface: qt/host/app/first_run_models.cpp (Models step rows) / first-run Models QML layout)",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-e7da19954818e79759c9fe0035fe64c4bc78d8ba8c212139438c0b574ca7d090",
+        "id": "finding-6ffc07e88e6d2e98118477f4b075e28f",
+        "lastSeenReceiptId": "review-11458670f938d60b3f9301d353da81d8f0c540934b2360ffa13cda6b22bd14b7",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P1",
+        "status": "fixed",
+        "title": "QA-fn80-1"
+      },
+      {
+        "body": "English Models step (5 speech rows, 1280x820): Tab to Back scrolls only until Back meets the window's bottom edge, so the footer note's last line ('file.') stays half-clipped; the wheel scrolls further and shows the whole footer. No overlap. Reproduced on two runs. Memory: .flow/memory/bug/ui/keyboard-user-tabbing-to-the-english-2026-11-01.md. Evidence: .flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/rc-s6b-en-tab8.png, rc-s6b2-en-tab8.png (surface: qt/qml/Dettivo/app/OnboardingRoute.qml (focus scroll-into-view) / ModelsStep.qml footer)",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-5b31ae2062d912f59ecbc0eca30a5d751fd47899f5ea17b46c4338b2303d7301",
+        "id": "finding-8c64fb90efa9f718577d2dea8e2706f0",
+        "lastSeenReceiptId": "review-11458670f938d60b3f9301d353da81d8f0c540934b2360ffa13cda6b22bd14b7",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P2",
+        "status": "fixed",
+        "title": "QA-fn80-2"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 3,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-11458670f938d60b3f9301d353da81d8f0c540934b2360ffa13cda6b22bd14b7",
+    "supersedesReceiptId": "review-5b31ae2062d912f59ecbc0eca30a5d751fd47899f5ea17b46c4338b2303d7301"
+  },
+  "head_sha": "571a8d364524ca17dfdcb6138c3d6c70ed7b8648",
+  "id": "fn-80-a-fast-first-dictation-and-the-right",
+  "mode": "interactive",
+  "open_p0p1": [],
+  "qa_outcome": "SHIP",
+  "rid_coverage": {
+    "covered": 6,
+    "rids": [
+      {
+        "coverage": "carried",
+        "id": "R1"
+      },
+      {
+        "coverage": "carried",
+        "id": "R2"
+      },
+      {
+        "coverage": "carried",
+        "id": "R3"
+      },
+      {
+        "coverage": "carried",
+        "id": "R4"
+      },
+      {
+        "coverage": "carried",
+        "id": "R5"
+      },
+      {
+        "coverage": "live",
+        "id": "R6"
+      }
+    ],
+    "total": 6
+  },
+  "scenarios": [
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-daemon.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-steps.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-events.jsonl"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S1-warm-up-after-load",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-daemon.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3b-daemon.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3b-steps.log"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S1b-skip-within-60s",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r1b-0.4-daemon.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r1b-0.6-daemon.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r1b-0.8-daemon.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r1b-0.2-daemon.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r1b-0.65-daemon.log"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S1c-take-during-warm-up",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-events.jsonl",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-steps.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-daemon.log"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S1d-warm-up-leaves-no-text",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r2-run1.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r2-run2.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r2-run3.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r2-run4.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r2-gpu.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/bench-run1",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/bench-run4"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S2-first-take-after-start-vs-warm",
+      "outcome": "PASS",
+      "rids": [
+        "R2"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r13-steps.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3b-steps.log"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S3-status-doctor-cold-loaded-warm",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r45-warm_up.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/bench-warm_up"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S4-adr-latencies-vram-idle-default",
+      "outcome": "PASS",
+      "rids": [
+        "R4"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r45-gpu_threads.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/bench-gpu_threads"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S5-gpu-thread-default",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6a-de-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6a-de-tab7.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6a-de-top.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6a-de-scrolled.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6a-de-steps.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6a-de-app.log"
+      ],
+      "head_sha": "571a8d364524ca17dfdcb6138c3d6c70ed7b8648",
+      "id": "S6a-first-run-german",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6b-en-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6b-en-tab8.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6b2-en-tab8.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6b2-en-tab8-footer-crop.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6b-en-top.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6b-en-scrolled.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6b2-en-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6b2-en-scrolled.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6b-en-steps.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6b-en-app.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6b2-en-steps.log"
+      ],
+      "head_sha": "571a8d364524ca17dfdcb6138c3d6c70ed7b8648",
+      "id": "S6b-first-run-english",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6c-auto-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6c-auto-scrolled.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6c-auto-steps.log",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6c-auto-app.log"
+      ],
+      "head_sha": "571a8d364524ca17dfdcb6138c3d6c70ed7b8648",
+      "id": "S6c-first-run-auto-locale-de_CH",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6d-ja-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6d-ja-scrolled.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6d-ja-steps.log"
+      ],
+      "head_sha": "571a8d364524ca17dfdcb6138c3d6c70ed7b8648",
+      "id": "S6d-first-run-uncovered-language-ja",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6e-existing-models.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6e-existing-scrolled.png",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6e-existing-config-before.sha",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6e-existing-config-after.sha",
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r3-s6e-existing-steps.log"
+      ],
+      "head_sha": "571a8d364524ca17dfdcb6138c3d6c70ed7b8648",
+      "id": "S6e-existing-install-keeps-selection",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-80-a-fast-first-dictation-and-the-right/r6a-de-steps.log"
+      ],
+      "head_sha": "2abd06245d1d768e9a73c6bbe6e7ae9693931bcd",
+      "id": "S6f-cli-providers-language",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "carried"
+    }
+  ],
+  "timestamp": "2026-11-01T22:23:15Z",
+  "type": "qa_verdict",
+  "verdict": "SHIP"
+}

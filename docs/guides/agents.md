@@ -35,14 +35,14 @@ dettivo  Talk to the Dettivo daemon
 ├─ events* --follow --topic --count  Follow the event stream (events.subscribe + events.notify), one JSON line per event
 ├─ speech*  speech.* methods
 │  ├─ engines*  speech.engines: every engine binary, found or not, running or not
-│  ├─ providers*  speech.providers.list: providers, their models and readiness
+│  ├─ providers* --language  speech.providers.list: providers, their models and readiness; with --language, the speech models ranked for that language by word error rate
 │  ├─ selection*  speech.selection.get / set: the dictation and meeting model
 │  │  ├─ get*  Print the selection in force
 │  │  └─ set* --provider --model --meeting-model --parakeet-model  Change the provider, the model or the meeting model
 │  ├─ download* --model --provider --wait  speech.models.download: fetch and verify a catalogue model
 │  ├─ cancel* --model --provider  speech.models.cancel: stop a download, keeping the partial file
 │  ├─ delete* --model --provider --force  speech.models.delete: remove a model from disk
-│  └─ status* --provider --follow  speech.models.status: every model's readiness
+│  └─ status* --provider --follow  speech.models.status: every model's readiness, then whether each speech engine is cold, loaded or warm
 ├─ insert --mode --text --kind --id --expected-target-bundle-id --expected-target-pid  Insert text into the focused window (insert.perform); `undo` and `target` are Linux additions
 │  ├─ undo*  Take the last insertion back (insert.undo, within the undo window)
 │  └─ target*  Show the focused window and every backend's availability (insert.target)

@@ -52,6 +52,18 @@ pub struct EngineRow {
     pub figure: Option<f64>,
     /// Whether the p50 meets the tier's target.
     pub met: Option<bool>,
+    /// The first take after the daemon started over the warm p50, once
+    /// the row qualifies (ADR 0084).
+    #[serde(default)]
+    pub cold_ratio: Option<f64>,
+    /// `cold_ratio` within `warmth::WARM_FACTOR`: the first take is within
+    /// 20% of a warm one.
+    #[serde(default)]
+    pub cold_met: Option<bool>,
+    /// How long after the daemon answered its ping the start-up preload
+    /// reported the engine warm; the first take starts then.
+    #[serde(default)]
+    pub warm_wait_ms: Option<u64>,
 }
 
 /// Qualifies every row against `iterations` warm runs and the target:
@@ -68,6 +80,12 @@ pub fn qualify(rows: &mut [EngineRow], iterations: usize, target: &nfr::Target) 
             .then(|| row.warm.as_ref().map(|w| w.p50 as f64))
             .flatten();
         row.met = row.figure.map(|f| target.met(f));
+        row.cold_ratio = row
+            .figure
+            .filter(|f| *f > 0.0)
+            .zip(row.cold_ms)
+            .map(|(warm, cold)| cold as f64 / warm);
+        row.cold_met = row.cold_ratio.map(|r| r <= super::warmth::WARM_FACTOR);
         if !row.qualified {
             incomplete.push(format!(
                 "{}: {} of {} warm runs completed; {}",
@@ -188,6 +206,7 @@ fn measure(
     let target = daemon.call("insert.target", json!({}))?;
     let pid = u32::try_from(target["target"]["pid"].as_u64().unwrap_or(0)).unwrap_or(0);
     let tap = EventTap::subscribe(&daemon.handle.socket)?;
+    let warm_wait_ms = wait_warm(&daemon, provider)?;
     let mut runs = Vec::new();
     let mut failures = Vec::new();
     for i in 0..=bench.iterations() {
@@ -235,9 +254,37 @@ fn measure(
         qualified: false,
         figure: None,
         met: None,
+        cold_ratio: None,
+        cold_met: None,
+        warm_wait_ms: Some(warm_wait_ms),
     };
     Ok((row, tier))
 }
+
+/// Waits until the start-up preload reports `provider`'s engine warm
+/// (`speech.engines`), the state a first dictation after daemon start
+/// meets once the daemon has had its moment; at most `WARM_WAIT`.
+fn wait_warm(daemon: &BenchDaemon, provider: &str) -> Result<u64, String> {
+    let binary = format!("dettivo-engine-{provider}");
+    let started = std::time::Instant::now();
+    while started.elapsed() < WARM_WAIT {
+        let warm = daemon
+            .engines()?
+            .iter()
+            .any(|e| e["binary"] == json!(binary) && e["warm"] == json!(true));
+        if warm {
+            return Ok(u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX));
+        }
+        std::thread::sleep(std::time::Duration::from_millis(200));
+    }
+    Err(format!(
+        "{binary} was not warm {} s after start",
+        WARM_WAIT.as_secs()
+    ))
+}
+
+/// The longest the first take waits for the start-up preload.
+const WARM_WAIT: std::time::Duration = std::time::Duration::from_secs(120);
 
 #[cfg(test)]
 mod tests {
@@ -285,6 +332,9 @@ mod tests {
             qualified: false,
             figure: None,
             met: None,
+            cold_ratio: None,
+            cold_met: None,
+            warm_wait_ms: None,
         }
     }
 
@@ -303,6 +353,11 @@ mod tests {
             assert_eq!(row.warm.as_ref().map(|w| w.iterations), Some(ok));
             assert_eq!(row.failures.len(), 10 - ok);
             assert_eq!(row.warm_required, 10);
+            // The first take is held against the warm p50 only with a figure.
+            assert_eq!(row.cold_ratio.is_some(), expect_figure, "{ok} of 10");
+            if expect_figure {
+                assert_eq!(row.cold_met, Some(false), "900 ms against a ~505 ms p50");
+            }
             if !expect_figure {
                 assert!(
                     incomplete[0].starts_with(&format!("whisper: {ok} of 10 warm runs completed;")),

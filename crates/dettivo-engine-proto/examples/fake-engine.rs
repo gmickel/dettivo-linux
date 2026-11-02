@@ -15,7 +15,11 @@
 //! answers that as an `internal` error instead, as parakeet.cpp does.
 //! Either marker is read again on every `recognize`, so removing it frees
 //! the GPU; a `gpu-has-room` file makes a load report `vulkan` and serve
-//! requests.
+//! requests on it, or on the CPU with an `infer-on-cpu` file beside it, as
+//! an engine that moved itself for want of GPU memory reports. With a
+//! `record-loads` file beside it, each `load` appends its backend
+//! preference to `loads.log`; with `record-recognizes`, each `recognize`
+//! appends its sample count to `recognizes.log`.
 //! `diarize` answers one turn per second of audio, alternating two
 //! speakers, after one `progress` event. Speaks the protocol on
 //! stdin/stdout exactly like a real engine.
@@ -185,6 +189,15 @@ fn main() {
                     .parent()
                     .unwrap()
                     .to_path_buf();
+                if dir.join("record-recognizes").exists() {
+                    let mut log = std::fs::OpenOptions::new()
+                        .create(true)
+                        .append(true)
+                        .open(dir.join("recognizes.log"))
+                        .unwrap();
+                    let samples = attachments.first().map_or(0, |a| a.len() / 2);
+                    writeln!(log, "{samples}").unwrap();
+                }
                 let full = dir.join("gpu-oom-on-request").exists()
                     || dir.join("gpu-oom-error-on-request").exists();
                 if on_gpu && full {
@@ -215,7 +228,7 @@ fn main() {
                         "language": language,
                         "segments": [{"start_ms": 0, "end_ms": samples * 1000 / 16_000, "text": "fake"}],
                         "duration_ms": samples * 1000 / 16_000,
-                        "backend": "cpu"
+                        "backend": if on_gpu && !dir.join("infer-on-cpu").exists() { "vulkan" } else { "cpu" }
                     }),
                 )
             }

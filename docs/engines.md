@@ -143,16 +143,17 @@ The engine frame reader and writer share a 460,800,000-byte aggregate attachment
 - after `[engines] stt_idle_seconds` without a request (`llm_idle_seconds` for the language model engine; the diarization engine idles out with the speech engines), `unload` and end the process; an engine that does not answer the `unload` is ended all the same and the log says so;
 - after a crash, restart on the next request with backoff (1, 2, 4, 8 seconds); three crashes in a row mark the engine degraded until a load succeeds, and `dettivo doctor` says so;
 - preloads from `startup`, `model_selection` and `session_start` coalesce into one load, never download, and fail without failing the caller;
+- after a preload's load, one silent `recognize` (30 s of zeros, the longest window Whisper decodes at once; Parakeet compiles its long-input kernels only for input that long) warms an engine loaded on a GPU backend, so the first take does not pay for the GPU kernels the first inference prepares. A model loaded on the CPU compiles nothing on its first inference, so it runs no warm-up and reads warm once loaded. The result is discarded and only its time is logged (`engine warmed up warm_up_ms=...`). The warm-up is skipped when the engine recognised within the last 60 s, and a take that asked before it could start runs instead of it, so a take waits at most for a warm-up already running ([ADR 0084](adr/0084-a-loaded-engine-is-warmed-before-the-first-take.md));
 - a session freezes its engine and model at start.
 
 Status and capability-tier requests use a published snapshot while inference holds a slot, so they return without waiting for the job. A busy slot's resident-memory figure is its last observation. Idle reaping skips an occupied slot and checks it on the next pass (ADR 0055).
 
 ## Watching engines
 
-`dettivo speech engines` (the `speech.engines` method, a Linux addition) lists every engine binary the daemon knows: where it was found, whether it runs, the loaded model, the backend of the last load and why, the crash count and the degraded flag. `dettivo doctor` prints the same rows and exits 1 while an engine is degraded:
+`dettivo speech engines` (the `speech.engines` method, a Linux addition) lists every engine binary the daemon knows: where it was found, whether it runs, the loaded model, the backend of the last load and why, the crash count, the degraded flag and `warm`, whether the loaded model has run an inference since it loaded. An engine reads cold when it runs no model, loaded when its model has not run yet (the next take pays for the kernels), and warm otherwise; the `engine.state` event announces the step to warm with the state `warm`. `dettivo speech status` ends with one line per speech engine in those words (`engine dettivo-engine-whisper warm on vulkan`), and `dettivo doctor` prints the rows and exits 1 while an engine is degraded:
 
 ```
-engine    dettivo-engine-whisper running /home/you/.local/share/dettivo/models/whisper/large-v3-turbo/ggml-large-v3-turbo.bin on vulkan
+engine    dettivo-engine-whisper running on vulkan, warm
 engine    dettivo-engine-parakeet found, not running
 engine    dettivo-engine-llm found, not running
 engine    dettivo-engine-diarize found, not running

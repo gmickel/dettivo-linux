@@ -13,7 +13,7 @@ FocusFlickable {
     property var firstRun: null
     property var status: null
     contentWidth: width
-    contentHeight: Math.max(height, Theme.appWindowHeight)
+    contentHeight: Math.max(height, Theme.appWindowHeight, stepLoader.y + stepLoader.implicitHeight + stepLoader.anchors.bottomMargin)
 
     readonly property string step: root.firstRun ? root.firstRun.step : "keys"
     readonly property int stepIndex: root.firstRun ? root.firstRun.stepIndex : 0
