@@ -159,6 +159,8 @@ catalog! {
         "dictation.cancel" => (dictation::CancelParams, dictation::CancelResult);
         "dictation.status" => (NoParams, dictation::StatusResult);
         "dictation.reinsert_last" => (NoParams, dictation::ReinsertLastResult), linux: true;
+        "dictation.pause" => (NoParams, dictation::PauseResult), linux: true;
+        "dictation.resume" => (NoParams, dictation::PauseResult), linux: true;
         "meetings.start" => (meetings::StartParams, meetings::StartResult);
         "meetings.stop" => (meetings::MeetingIdParams, meetings::StopResult);
         "meetings.cancel" => (meetings::MeetingIdParams, meetings::CancelResult);

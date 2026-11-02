@@ -3,14 +3,15 @@
 //! session's ring while it is idle, the graphical session is active and
 //! unlocked, and no meeting captures. The lock comes from logind
 //! (`ready_session.rs`) and from the compositor (`ready_screen.rs`); either
-//! one reporting a lock closes the ring. Every change happens under the
+//! one reporting a lock closes the ring. `dettivo dictation pause` closes
+//! it until `resume`. Every change happens under the
 //! capture reservation, so the ring never runs beside another capture of
 //! the microphone: a meeting start closes it before the meeting opens its
 //! streams, and it reopens once the meeting's capture ended. A ring that
 //! cannot open is reported by `audio.devices` and `dettivo doctor`; a
 //! dictation then opens the microphone on press, as with the setting off.
 
-use std::sync::atomic::{AtomicU8, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{Duration, Instant};
 
@@ -86,6 +87,8 @@ pub struct MicReady {
     inner: Mutex<Inner>,
     /// What each [`LockSource`] last reported, by its index.
     locks: [AtomicU8; 2],
+    /// `dictation.pause` until `dictation.resume`; never persisted.
+    paused: AtomicBool,
 }
 
 impl MicReady {
@@ -133,6 +136,13 @@ impl MicReady {
         };
         if self.locks[source as usize].swap(state, Ordering::Relaxed) != state {
             tracing::info!(?source, ?locked, "microphone ready: session lock changed");
+        }
+    }
+
+    /// Pauses (`true`) or resumes the ring; the next tick applies it.
+    pub fn set_paused(&self, paused: bool) {
+        if self.paused.swap(paused, Ordering::Relaxed) != paused {
+            tracing::info!(paused, "microphone ready: pause changed");
         }
     }
 
@@ -239,11 +249,20 @@ pub struct Want {
     pub device: String,
 }
 
+/// Why the ring is closed while Dettivo is paused.
+pub const PAUSED: &str = "paused until dettivo dictation resume";
+
 /// Why the ring should be closed, if it should: `None` inside the error
 /// means the setting is off.
-fn closed_because(setting: bool, blocked: bool, meeting: bool) -> Result<(), Option<String>> {
+fn closed_because(
+    setting: bool,
+    paused: bool,
+    blocked: bool,
+    meeting: bool,
+) -> Result<(), Option<String>> {
     let why = match () {
         _ if !setting => return Err(None),
+        _ if paused => PAUSED,
         _ if blocked => "the session is locked",
         _ if meeting => "a meeting is capturing",
         _ => return Ok(()),
@@ -264,6 +283,7 @@ pub fn tick(daemon: &Daemon) {
     let want = Want {
         open: closed_because(
             audio.keep_microphone_ready,
+            ready.paused.load(Ordering::Relaxed),
             ready.blocked(),
             daemon.meetings().snapshot().is_some(),
         ),

@@ -6,8 +6,8 @@ use std::time::Instant;
 use dettivo_proto::error::{AppCode, ErrorDetails, JsonRpcError};
 use dettivo_proto::id::Id;
 use dettivo_proto::methods::dictation::{
-    CancelParams, CancelResult, DictationMode, ReinsertLastResult, SessionTarget as WireTarget,
-    StartParams, StartResult, StatusResult, StopResult,
+    CancelParams, CancelResult, DictationMode, PauseResult, ReinsertLastResult,
+    SessionTarget as WireTarget, StartParams, StartResult, StatusResult, StopResult,
 };
 use dettivo_proto::runtime::{JobState, JobStatus, RefKind, TranscriptRef};
 use dettivo_session::machine::Snapshot;
@@ -183,4 +183,14 @@ pub fn reinsert_last(daemon: &Daemon) -> Result<Value, JsonRpcError> {
         },
         insertion,
     })
+}
+
+/// `dictation.pause` and `dictation.resume` (Linux additions, ADR 0092):
+/// the always-ready microphone closes before the answer, unless a take
+/// still taps it, which closes it once the take stops; a resume lets it
+/// reopen.
+pub fn pause(daemon: &Daemon, paused: bool) -> Result<Value, JsonRpcError> {
+    daemon.dictation().ready().set_paused(paused);
+    crate::ready::tick(daemon);
+    json(PauseResult { paused })
 }

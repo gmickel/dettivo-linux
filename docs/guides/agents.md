@@ -23,7 +23,7 @@ dettivo  Talk to the Dettivo daemon
 │  ├─ validate*  Validate the file on disk, naming the key and line of a problem
 │  ├─ print-default*  Print the fully commented default file
 │  └─ keys*  List every key with its section, type, default and meaning
-├─ dictation  dictation.* methods: start, stop, cancel, status, toggle, press, release, reinsert-last
+├─ dictation  dictation.* methods: start, stop, cancel, status, toggle, press, release, reinsert-last, pause, resume
 │  ├─ start --language --mode --expected-target-bundle-id --expected-target-pid  dictation.start
 │  ├─ stop  dictation.stop: finish the take, transcribe and insert
 │  ├─ cancel  dictation.cancel: drop the session
@@ -31,7 +31,9 @@ dettivo  Talk to the Dettivo daemon
 │  ├─ toggle*  Start when idle, stop when a session runs (Linux addition)
 │  ├─ press*  dictation.press: the hold key went down; it also finishes a take whose release was lost (Linux addition)
 │  ├─ release*  dictation.release: the hold key came up; a double tap locks instead (Linux addition)
-│  └─ reinsert-last*  dictation.reinsert_last: insert the last transcript again (Linux addition)
+│  ├─ reinsert-last*  dictation.reinsert_last: insert the last transcript again (Linux addition)
+│  ├─ pause*  dictation.pause: keep the always-ready microphone closed until resume (Linux addition)
+│  └─ resume*  dictation.resume: let the always-ready microphone open again (Linux addition)
 ├─ events* --follow --topic --count  Follow the event stream (events.subscribe + events.notify), one JSON line per event
 ├─ speech*  speech.* methods
 │  ├─ engines*  speech.engines: every engine binary, found or not, running or not

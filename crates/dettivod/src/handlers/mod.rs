@@ -108,6 +108,14 @@ pub fn resolve(method: &str) -> Option<Handler> {
             let _: dettivo_proto::catalog::NoParams = params(value)?;
             dictation::reinsert_last(daemon)
         },
+        "dictation.pause" => |daemon, _ctx, value| {
+            let _: dettivo_proto::catalog::NoParams = params(value)?;
+            dictation::pause(daemon, true)
+        },
+        "dictation.resume" => |daemon, _ctx, value| {
+            let _: dettivo_proto::catalog::NoParams = params(value)?;
+            dictation::pause(daemon, false)
+        },
         "meetings.start" => |daemon, _ctx, value| meetings::start(daemon, value),
         "meetings.stop" => |daemon, _ctx, value| meetings::stop(daemon, value),
         "meetings.cancel" => |daemon, _ctx, value| meetings::cancel(daemon, value),

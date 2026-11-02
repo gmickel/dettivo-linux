@@ -256,6 +256,10 @@ pub enum DictationCmd {
     Release,
     /// dictation.reinsert_last: insert the last transcript again (Linux addition).
     ReinsertLast,
+    /// dictation.pause: keep the always-ready microphone closed until resume (Linux addition)
+    Pause,
+    /// dictation.resume: let the always-ready microphone open again (Linux addition)
+    Resume,
 }
 
 /// The `dictation.start` params. A mode the binding did not name stays
@@ -300,6 +304,8 @@ pub fn dictation(cli: &Cli, client: &Client, what: &DictationCmd) -> Result<(), 
         DictationCmd::Toggle => ("dictation.toggle", json!({})),
         DictationCmd::Press => ("dictation.press", json!({})),
         DictationCmd::Release => ("dictation.release", json!({})),
+        DictationCmd::Pause => ("dictation.pause", json!({})),
+        DictationCmd::Resume => ("dictation.resume", json!({})),
     };
     let result = client.call(method, params)?;
     output::result(cli, method, &result);

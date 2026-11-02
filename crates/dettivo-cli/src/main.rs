@@ -94,7 +94,7 @@ pub enum Command {
         #[command(subcommand)]
         what: commands::ConfigCmd,
     },
-    /// dictation.* methods: start, stop, cancel, status, toggle, press, release, reinsert-last.
+    /// dictation.* methods: start, stop, cancel, status, toggle, press, release, reinsert-last, pause, resume.
     Dictation {
         /// Which dictation verb.
         #[command(subcommand)]

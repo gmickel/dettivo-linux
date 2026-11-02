@@ -81,11 +81,15 @@ fn the_meeting_handoff_never_captures_the_microphone_twice() {
         mic.open().unwrap()
     };
     assert_eq!(ready.status(), Status::Closed(MEETING.into()));
-    ready.reconcile(want(closed_because(true, false, true)), |_| mic.open());
+    ready.reconcile(want(closed_because(true, false, false, true)), |_| {
+        mic.open()
+    });
     assert_eq!(mic.live(), 1, "the meeting's capture alone");
 
     meeting.stop();
-    ready.reconcile(want(closed_because(true, false, false)), |_| mic.open());
+    ready.reconcile(want(closed_because(true, false, false, false)), |_| {
+        mic.open()
+    });
     assert_eq!((ready.status(), mic.live()), (Status::Open, 1));
     assert_eq!(mic.most.load(Ordering::SeqCst), 1);
 }
@@ -96,13 +100,19 @@ fn the_meeting_handoff_never_captures_the_microphone_twice() {
 fn disable_and_lock_close_the_ring() {
     let mic = Arc::new(Microphone::default());
     let ready = MicReady::default();
-    ready.reconcile(want(closed_because(false, false, false)), |_| mic.open());
+    ready.reconcile(want(closed_because(false, false, false, false)), |_| {
+        mic.open()
+    });
     assert_eq!((ready.status(), mic.live()), (Status::Off, 0));
     ready.reconcile(want(Ok(())), |_| mic.open());
-    ready.reconcile(want(closed_because(false, false, false)), |_| mic.open());
+    ready.reconcile(want(closed_because(false, false, false, false)), |_| {
+        mic.open()
+    });
     assert_eq!((ready.status(), mic.live()), (Status::Off, 0), "disabled");
     ready.reconcile(want(Ok(())), |_| mic.open());
-    ready.reconcile(want(closed_because(true, true, false)), |_| mic.open());
+    ready.reconcile(want(closed_because(true, false, true, false)), |_| {
+        mic.open()
+    });
     assert_eq!(
         (ready.status(), mic.live()),
         (Status::Closed("the session is locked".into()), 0)
@@ -117,7 +127,7 @@ fn a_take_keeps_the_ring_until_it_stops() {
     let ready = MicReady::default();
     ready.reconcile(want(Ok(())), |_| mic.open());
     let take = ready.take(Instant::now()).expect("open and idle");
-    let locked = closed_because(true, true, false);
+    let locked = closed_because(true, false, true, false);
     ready.reconcile(want(locked.clone()), |_| mic.open());
     assert_eq!(mic.live(), 1, "the take still records");
     take.stop();
@@ -166,17 +176,22 @@ fn a_moved_or_lost_device_reopens_and_a_failure_is_reported() {
 
 #[test]
 fn the_ring_waits_for_the_first_reason_that_applies() {
-    assert_eq!(closed_because(false, true, true), Err(None));
+    assert_eq!(closed_because(false, false, true, true), Err(None));
     for (blocked, meeting, why) in [
         (true, true, "the session is locked"),
         (false, true, MEETING),
     ] {
         assert_eq!(
-            closed_because(true, blocked, meeting),
+            closed_because(true, false, blocked, meeting),
             Err(Some(why.into()))
         );
     }
-    assert_eq!(closed_because(true, false, false), Ok(()));
+    assert_eq!(closed_because(true, false, false, false), Ok(()));
+    assert_eq!(
+        closed_because(true, true, true, true),
+        Err(Some(PAUSED.into())),
+        "a pause outranks a lock and a meeting"
+    );
 }
 
 /// A take on the ring ends its tap when it stops recording; while it is

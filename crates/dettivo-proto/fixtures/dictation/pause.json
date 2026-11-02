@@ -1,0 +1,17 @@
+{
+  "capabilities": {},
+  "method": "dictation.pause",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "dictation.pause",
+    "params": {}
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "paused": true
+    }
+  }
+}

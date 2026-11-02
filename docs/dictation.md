@@ -13,10 +13,12 @@ dettivo dictation toggle                   # one binding for both
 dettivo dictation cancel                   # drop the take
 dettivo dictation status                   # is a session active, what is it doing
 dettivo dictation reinsert-last            # hand the last transcript over again
+dettivo dictation pause                    # close the always-ready microphone until resume
+dettivo dictation resume                   # let it open again
 dettivo events --follow --topic dictation.state --topic audio.level
 ```
 
-`press`, `release`, `toggle` and `reinsert-last` are Linux additions; the other verbs map one to one to `dictation.start`, `stop`, `cancel` and `status`. `press` and `release` feed the daemon's hold key, which finishes a take whose release the compositor dropped, ignores a repeating key and locks recording after a double tap ([docs/hotkeys.md](hotkeys.md#what-a-press-does)); `start` and `stop` act on the session directly. `dettivo setup hyprland` (or `sway`, `niri`) writes these bindings for you with the chords from `[hotkeys]`, and on GNOME and KDE the daemon binds the same actions through the portal ([docs/hotkeys.md](hotkeys.md)). `events --follow` subscribes and prints one JSON line per notification (`--json` prints the raw `params` object; `--count N` stops after N events).
+`press`, `release`, `toggle`, `reinsert-last`, `pause` and `resume` are Linux additions; the other verbs map one to one to `dictation.start`, `stop`, `cancel` and `status`. `press` and `release` feed the daemon's hold key, which finishes a take whose release the compositor dropped, ignores a repeating key and locks recording after a double tap ([docs/hotkeys.md](hotkeys.md#what-a-press-does)); `start` and `stop` act on the session directly. `dettivo setup hyprland` (or `sway`, `niri`) writes these bindings for you with the chords from `[hotkeys]`, and on GNOME and KDE the daemon binds the same actions through the portal ([docs/hotkeys.md](hotkeys.md)). `events --follow` subscribes and prints one JSON line per notification (`--json` prints the raw `params` object; `--count N` stops after N events).
 
 ## The session
 
@@ -49,7 +51,7 @@ Both the tail and the tap rule apply whatever the setting says.
 - **The microphone indicator stays lit** whenever the daemon runs, the session is unlocked and no meeting records.
 - The ten seconds never leave the daemon. No event, method or file carries them, and the daemon overwrites them continuously. Only the take, from 450 ms before the press to 200 ms after the release, is written, and History keeps it under `[history] keep_audio` and `audio_retention_days` as before.
 
-The daemon closes the capture when you turn the setting off, while the screen is locked or your session is switched away, and while a meeting records. A meeting start closes it before the meeting opens the microphone, and it reopens once the meeting's capture has ended, so the microphone is never captured twice.
+The daemon closes the capture when you turn the setting off, while the screen is locked or your session is switched away, while a meeting records, and while you pause it. `dettivo dictation pause` closes it before it returns and keeps it closed until `dettivo dictation resume` or the daemon restarts; the configuration stays as it is, and a key press still dictates, opening the microphone for that take only. A meeting start closes it before the meeting opens the microphone, and it reopens once the meeting's capture has ended, so the microphone is never captured twice.
 
 The daemon hears of a lock from Hyprland, which reports every locker, Omarchy's lock screen included, and from logind's `LockedHint`, which GNOME and KDE set. On another desktop whose locker leaves logind alone, the capture stays open while the screen is locked. `dettivo doctor` shows which one the daemon follows: `closes when the screen locks` on Hyprland, a warning that only lockers setting `LockedHint` count, or `no lock signal` when it has neither.
 
