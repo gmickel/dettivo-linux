@@ -16,7 +16,7 @@ Hyprland keeps one directory per instance under `$XDG_RUNTIME_DIR/hypr/<signatur
 
 `crates/dettivo-insert/src/instance.rs` owns the instance in use for the daemon's insertion service.
 
-- The environment's signature is a hint. The probe connects to the instance in use, which at first is the environment's.
+- The environment's signature is a hint. The probe connects to the instance in use, which at first is the environment's, unless that instance's `hyprland.lock` names a different Wayland display; then the hint is ignored and the search below runs at once. A lock with no display line, as older Hyprland releases write, cannot be checked, so the environment's instance is used as before.
 - When that connection is refused or the socket is missing, the daemon reads every `hyprland.lock` under `$XDG_RUNTIME_DIR/hypr/`, keeps the instances whose second line equals the daemon's `WAYLAND_DISPLAY`, and connects to them newest lock first. The first that accepts becomes the instance in use, and its connection carries the query. The search runs on every refused connection, never on a timer.
 - An instance of another Wayland display is never connected to, and nothing outside this user's runtime directory is read. With no instance of this display answering, the probe fails and the existing rule holds: an unverifiable target gets the clipboard only.
 - The log says `hyprland: switched to the live instance` once per switch, with both signatures, and warns once when no instance answers.
@@ -24,7 +24,7 @@ Hyprland keeps one directory per instance under `$XDG_RUNTIME_DIR/hypr/<signatur
 
 ## Consequences
 
-- The first probe after a restart costs one refused connection and one directory read before it reaches the new instance. `crates/dettivod/tests/compositor_restart.rs` restarts a stand-in Hyprland and Wayland compositor under a running daemon and types the next insertion through the pinned virtual keyboard within 2 s; a second test starts a daemon with a dead signature in its environment.
+- The first probe after a restart costs one refused connection and one directory read before it reaches the new instance. `crates/dettivod/tests/compositor_restart.rs` restarts a stand-in Hyprland and Wayland compositor under a running daemon and types the next insertion through the pinned virtual keyboard within 2 s; a second test starts a daemon with a dead signature in its environment, and a third with the signature of a live instance on another display, which is never queried.
 - A Hyprland older than the `hyprland.lock` file with the display line is never matched, so it keeps the old behaviour after a restart: the clipboard until the daemon starts with a current signature.
 - The daemon keeps a stale signature in its own environment. Child processes it starts inherit the stale value; none of them talks to Hyprland today.
 - A daemon started without `HYPRLAND_INSTANCE_SIGNATURE` at all still does not look for Hyprland. The rule repairs a stale hint and never guesses that a session is Hyprland.

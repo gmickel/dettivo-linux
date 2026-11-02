@@ -6,10 +6,12 @@
 //! instances under `$XDG_RUNTIME_DIR/hypr/` whose `hyprland.lock` names
 //! this session's Wayland display are tried newest first, and the first
 //! that accepts is the one in use from then on. An instance of another
-//! display, or outside this user's runtime directory, is never tried.
+//! display, or outside this user's runtime directory, is never tried; that
+//! holds for the environment's instance too, unless its lock names no
+//! display (an older Hyprland), which keeps the hint as it is.
 
 use std::os::unix::net::UnixStream;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::SystemTime;
 
@@ -31,9 +33,28 @@ pub struct Instances {
     state: Mutex<State>,
 }
 
+/// The display socket an instance's `hyprland.lock` names: Hyprland writes
+/// its pid, then its Wayland display's name, a socket under the runtime
+/// directory. `None` when the lock is unreadable or has no display line.
+fn lock_display(runtime: &Path, lock: &Path) -> Option<PathBuf> {
+    let text = std::fs::read_to_string(lock).ok()?;
+    let name = text.lines().nth(1)?.trim();
+    (!name.is_empty()).then(|| runtime.join(name))
+}
+
+/// True when the instance's lock names a display other than the session's.
+/// A lock without a display line cannot say, so the instance is not ruled
+/// out.
+fn of_another_display(session: &Session, signature: &str) -> bool {
+    let (Some(runtime), Some(display)) = (&session.runtime_dir, session.wayland_socket()) else {
+        return false;
+    };
+    let lock = runtime.join("hypr").join(signature).join("hyprland.lock");
+    lock_display(runtime, &lock).is_some_and(|named| named != display)
+}
+
 /// The instances under the runtime directory whose display socket is the
-/// session's,
-/// other than `skip`, newest first by their lock file.
+/// session's, other than `skip`, newest first by their lock file.
 fn live_candidates(session: &Session, skip: Option<&str>) -> Vec<(String, PathBuf)> {
     let (Some(runtime), Some(display)) = (&session.runtime_dir, session.wayland_socket()) else {
         return Vec::new();
@@ -50,10 +71,7 @@ fn live_candidates(session: &Session, skip: Option<&str>) -> Vec<(String, PathBu
             }
             let dir = entry.path();
             let lock = dir.join("hyprland.lock");
-            let text = std::fs::read_to_string(&lock).ok()?;
-            // Hyprland writes its pid, then its Wayland display's name,
-            // which names a socket under the runtime directory.
-            if text.lines().nth(1).map(|name| runtime.join(name.trim())) != Some(display.clone()) {
+            if lock_display(runtime, &lock).as_ref() != Some(&display) {
                 return None;
             }
             let socket = dir.join(".socket.sock");
@@ -74,7 +92,8 @@ impl Instances {
         let hint = state
             .in_use
             .clone()
-            .or_else(|| session.hyprland_signature.clone());
+            .or_else(|| session.hyprland_signature.clone())
+            .filter(|signature| !of_another_display(session, signature));
         let mut refused = None;
         if let Some(path) = hint.as_deref().and_then(|s| session.hyprland_socket(s)) {
             match UnixStream::connect(&path) {
@@ -175,5 +194,28 @@ mod tests {
                 Some("live")
             );
         }
+    }
+
+    /// An older Hyprland's lock names no display, so the environment's
+    /// instance cannot be checked and is used as before.
+    #[test]
+    fn an_environment_instance_whose_lock_names_no_display_is_kept() {
+        let dir = tempfile::Builder::new()
+            .prefix("dtv")
+            .tempdir_in("/tmp")
+            .unwrap();
+        let _old = HyprlandStandIn::start(dir.path(), "old", "wl-0").unwrap();
+        std::fs::write(dir.path().join("hypr/old/hyprland.lock"), "1\n").unwrap();
+        let session = Session {
+            runtime_dir: Some(dir.path().to_path_buf()),
+            wayland_display: Some("wl-1".into()),
+            hyprland_signature: Some("old".into()),
+            ..Session::default()
+        };
+        let instances = Instances::default();
+        assert!(instances.connect(&session).is_ok());
+        let report = instances.report(&session).unwrap();
+        assert_eq!(report.signature.as_deref(), Some("old"));
+        assert!(!report.environment_stale);
     }
 }
