@@ -15,6 +15,7 @@ pub mod host;
 pub mod host_diarize;
 pub mod host_llm;
 pub mod messages;
+mod speech_messages;
 
 /// Package name of this crate, as declared in its manifest.
 pub const CRATE_NAME: &str = env!("CARGO_PKG_NAME");
