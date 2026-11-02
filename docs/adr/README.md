@@ -100,6 +100,8 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0093](0093-a-take-runs-from-the-pre-roll-to-the-release-tail-and-a-tap-is-no-take.md) | A take runs from 450 ms before the press to 200 ms after the release, and a press under 300 ms is a tap that reaches no engine | Accepted 2026-11-02, amends 0082 and 0083 |
 | [0097](0097-the-speech-check-hears-the-take-while-it-is-captured.md) | The speech check hears the take while it is captured, carrying the Silero state across pieces, so the release runs only the last samples and the verdict is unchanged | Accepted 2026-11-02, amends 0081 |
 | [0098](0098-parakeet-warms-up-on-its-longest-single-pass.md) | Parakeet warms up on its longest single pass, 90 s, so no take compiles its own GPU kernels after a driver or engine update | Accepted 2026-11-02, amends 0084 |
+| [0099](0099-the-live-hyprland-instance-is-found-again-on-every-refused-connection.md) | The live Hyprland instance is found again on every refused connection, matched by the session's Wayland display | Accepted 2026-11-02 |
+| [0100](0100-every-compositor-connection-comes-back-after-a-compositor-restart.md) | Every compositor connection comes back after a compositor restart, the portal shortcuts included | Accepted 2026-11-02 |
 
 ## Writing a record
 

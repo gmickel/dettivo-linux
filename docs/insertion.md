@@ -50,6 +50,26 @@ Two dictations into the same window read as one sentence when the second continu
 
 Dettivo learns whether you gave input in between from the compositor's input-idle notification (`ext_idle_notifier_v1` version 2): any key or pointer input that follows 100 ms without input, between the last delivery and 1 s before the next take started, counts as input. The 1 s leaves out the key that started the take. A compositor without that protocol version gives no signal, and then nothing is joined. A take that went to the clipboard, or a `reinsert-last`, is never joined. `[dictation] join_continuations = false` types every dictation as it is.
 
+## After a compositor restart
+
+When Hyprland restarts (a crash, its watchdog, a reload gone wrong), the next dictation types into the focused window again within 2 s of the new compositor being up, with no daemon restart ([ADR 0099](adr/0099-the-live-hyprland-instance-is-found-again-on-every-refused-connection.md), [ADR 0100](adr/0100-every-compositor-connection-comes-back-after-a-compositor-restart.md)).
+
+- The restarted compositor has a new instance signature, while the daemon's environment, and the systemd user environment uwsm wrote at login, keep the old one. The focus probe treats `HYPRLAND_INSTANCE_SIGNATURE` as a hint. When its socket refuses the connection, the probe reads `$XDG_RUNTIME_DIR/hypr/*/hyprland.lock`, takes the instances whose Wayland display is the daemon's `WAYLAND_DISPLAY`, and uses the newest one that accepts. It searches again on every refused connection. The journal says `hyprland: switched to the live instance` once per switch, with the old and new signatures.
+- An instance of another Wayland display is never used. With no instance of this display answering, the target cannot be verified and the take goes to the clipboard, as before.
+- The virtual keyboard and the clipboard connect for each insertion, so they reach the new compositor on their own. The screen-lock watcher and the input-idle watch that joins dictations reconnect within 2 s of the compositor's return.
+
+`dettivo doctor` and `dettivo insert target --json` (the `compositor` block) name the instance in use and the one the environment names:
+
+```
+compositor Hyprland instance 7c2a…_1762075000_123; the environment's 7c2a…_1762060000_456 is stale (the compositor restarted)
+```
+
+When the environment names a live instance of another display, such as a nested Hyprland, the row says so instead:
+
+```
+compositor Hyprland instance 7c2a…_1762075000_123; the environment's 9f1b…_1762070000_789 belongs to another display
+```
+
 ## Undo
 
 `dettivo insert undo` remains available as a protocol operation, but the built-in backends report `undo_supported = false` and refuse with `unsupported_backend`. Synthesizing Shift+Left and Delete cannot verify the inserted range after cursor movement, intervening typing or a same-process window switch. The OSD offers "copy again" instead. A future backend must identify the range or use an application transaction before advertising undo ([ADR 0054](adr/0054-delete-duplicate-work-and-keep-one-owner.md)).
