@@ -7,8 +7,10 @@
 //! clips, terms inserted into distractor and guard clips, and the word
 //! error rate of the guard clips. A term counts only as a whole-word,
 //! case-insensitive match of its own spelling; an alias is never a hit.
+//! The single-name set under `single/` holds one word said on its own: a
+//! listed name, or a sound-alike that must not become one (ADR 0095).
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
@@ -16,6 +18,9 @@ use crate::pack::wer::{wer, words};
 
 /// The fixture set, relative to the repository root.
 pub const FIXTURE_DIR: &str = "crates/dettivo-qa/fixtures/vocabulary";
+/// The single-name set, relative to [`FIXTURE_DIR`]; it is primed with
+/// the vocabulary of the main set.
+pub const SINGLE_DIR: &str = "single";
 
 /// One vocabulary entry of the fixture set, the `config.toml` shape.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -56,10 +61,15 @@ pub struct Clip {
 /// `set.json`.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Set {
-    /// The vocabulary a pass with the vocabulary on primes the engine with.
+    /// The vocabulary a pass with the vocabulary on primes the engine with;
+    /// the single-name set carries none of its own.
+    #[serde(default)]
     pub vocabulary: Vec<Entry>,
     /// Every clip.
     pub clips: Vec<Clip>,
+    /// The directory holding `set.json` and the clips.
+    #[serde(skip)]
+    pub dir: PathBuf,
 }
 
 impl Set {
@@ -68,7 +78,12 @@ impl Set {
         let path = dir.join("set.json");
         let text =
             std::fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?;
-        serde_json::from_str(&text).map_err(|e| format!("{}: {e}", path.display()))
+        let set: Self =
+            serde_json::from_str(&text).map_err(|e| format!("{}: {e}", path.display()))?;
+        Ok(Self {
+            dir: dir.to_path_buf(),
+            ..set
+        })
     }
 }
 
@@ -221,6 +236,7 @@ mod tests {
                 clip("g1", Kind::Guard, None, "Rain is expected."),
                 clip("g2", Kind::Guard, None, "Bring an umbrella."),
             ],
+            dir: PathBuf::new(),
         }
     }
 
@@ -349,5 +365,32 @@ mod tests {
         let score = score(&set, &perfect);
         assert_eq!(score.term_recall, (15, 15));
         assert_eq!((score.false_insertions, score.guard_wer), (0, 0.0));
+    }
+
+    /// Two voices say each listed name alone and each lone sound-alike.
+    #[test]
+    fn the_single_name_set_has_two_lone_takes_a_name_and_ten_sound_alikes() {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("fixtures/vocabulary");
+        let vocabulary = Set::load(&dir).unwrap().vocabulary;
+        let set = Set {
+            vocabulary,
+            ..Set::load(&dir.join(SINGLE_DIR)).unwrap()
+        };
+        for entry in &set.vocabulary {
+            let names = set.clips.iter().filter(|c| c.term == Some(entry.term.clone()));
+            assert_eq!(names.count(), 2, "{}", entry.term);
+        }
+        let alikes = set.clips.iter().filter(|c| c.kind == Kind::Distractor);
+        assert_eq!(alikes.count(), 10);
+        for clip in &set.clips {
+            assert!(set.dir.join(format!("{}.wav", clip.id)).is_file(), "{}", clip.id);
+        }
+        let perfect: Vec<(String, String)> = set
+            .clips
+            .iter()
+            .map(|c| (c.id.clone(), c.text.clone()))
+            .collect();
+        let score = score(&set, &perfect);
+        assert_eq!((score.term_recall, score.false_insertions), ((10, 10), 0));
     }
 }

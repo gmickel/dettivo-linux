@@ -2,8 +2,10 @@
 //! set through each speech engine's CLI mode, once with the vocabulary off
 //! and once on, scored and written as one report. Each clip reaches the
 //! engine padded as a dictation take is, and its text passes the output
-//! guards a take's text passes (ADR 0096). `--out <dir>` also files it as
-//! `vocabulary-<date>-<host>.json` with a Markdown table beside it.
+//! guards a take's text passes (ADR 0096). Whisper also runs the
+//! single-name set with the vocabulary on (ADR 0095). `--out <dir>` also
+//! files it as `vocabulary-<date>-<host>.json` with a Markdown table
+//! beside it.
 
 use std::path::{Path, PathBuf};
 
@@ -11,7 +13,9 @@ use dettivo_engine_proto::RecognizeResult;
 use dettivo_transcribe::guards;
 use serde::{Deserialize, Serialize};
 
-use super::vocabulary::{Entry, FIXTURE_DIR, Set, VocabularyScore, prompt_args, rescoring, score};
+use super::vocabulary::{
+    Entry, FIXTURE_DIR, SINGLE_DIR, Set, VocabularyScore, prompt_args, rescoring, score,
+};
 use super::{Options, Status, date_of, host, throughput, unix_now};
 
 /// The report's shape version.
@@ -141,6 +145,9 @@ pub struct VocabularyReport {
     pub vocabulary: Vec<Entry>,
     /// Every row.
     pub rows: Vec<Row>,
+    /// Whisper with the vocabulary on over the single-name set.
+    #[serde(default)]
+    pub single_name: Vec<Row>,
 }
 
 /// `wav` padded for `provider` as dictation pads a take, written into
@@ -199,7 +206,6 @@ fn pass(
     } else {
         Vec::new()
     };
-    let dir = opts.repo_root.join(FIXTURE_DIR);
     let model_arg = model.path.to_string_lossy().into_owned();
     let mut row = Row::without(provider, &model.id, on, Status::Measured, String::new());
     row.reason = None;
@@ -210,7 +216,7 @@ fn pass(
         throughput::cli(binary, &args, opts.cpu)
     };
     for clip in &set.clips {
-        let wav = dir.join(format!("{}.wav", clip.id));
+        let wav = set.dir.join(format!("{}.wav", clip.id));
         // As in dictation: an empty padded take runs once more as captured.
         let outcome = prepare(&wav, provider, padded_dir).and_then(|padded| {
             let mut wall_ms = 0;
@@ -268,36 +274,44 @@ pub fn run(opts: &Options) -> Result<(VocabularyReport, PathBuf), String> {
     std::fs::create_dir_all(&run_dir).map_err(|e| format!("{}: {e}", run_dir.display()))?;
     let fixture_dir = opts.repo_root.join(FIXTURE_DIR);
     let set = Set::load(&fixture_dir)?;
+    let single = Set {
+        vocabulary: set.vocabulary.clone(),
+        ..Set::load(&fixture_dir.join(SINGLE_DIR))?
+    };
     let engines = host::engine_binaries(&opts.repo_root, opts.engines_dir.as_deref());
     let models = host::Models::resolve(&opts.repo_root, opts.models_dir.as_deref())?;
-    let mut rows = Vec::new();
-    for provider in PROVIDERS {
+    let measure = |set: &Set, provider: &str, on: bool| -> Result<Row, String> {
         let binary_name = format!("dettivo-engine-{provider}");
         let binary = engines.iter().find(|e| e.binary == binary_name);
+        let row = match (models.get(provider), binary) {
+            (Err(why), _) => Row::without(provider, "", on, Status::Skipped, why),
+            (Ok(model), None) => Row::without(
+                provider,
+                &model.id,
+                on,
+                Status::Skipped,
+                format!("{binary_name} is not built"),
+            ),
+            (Ok(model), Some(b)) => {
+                let padded_dir = run_dir.join("padded").join(provider);
+                std::fs::create_dir_all(&padded_dir)
+                    .map_err(|e| format!("{}: {e}", padded_dir.display()))?;
+                pass(opts, set, &padded_dir, &b.path, model, provider, on)
+            }
+        };
+        eprintln!(
+            "bench vocabulary: {provider} vocabulary={on} {:?}",
+            row.status
+        );
+        Ok(row)
+    };
+    let mut rows = Vec::new();
+    for provider in PROVIDERS {
         for on in [false, true] {
-            let row = match (models.get(provider), binary) {
-                (Err(why), _) => Row::without(provider, "", on, Status::Skipped, why),
-                (Ok(model), None) => Row::without(
-                    provider,
-                    &model.id,
-                    on,
-                    Status::Skipped,
-                    format!("{binary_name} is not built"),
-                ),
-                (Ok(model), Some(b)) => {
-                    let padded_dir = run_dir.join("padded").join(provider);
-                    std::fs::create_dir_all(&padded_dir)
-                        .map_err(|e| format!("{}: {e}", padded_dir.display()))?;
-                    pass(opts, &set, &padded_dir, &b.path, model, provider, on)
-                }
-            };
-            eprintln!(
-                "bench vocabulary: {provider} vocabulary={on} {:?}",
-                row.status
-            );
-            rows.push(row);
+            rows.push(measure(&set, provider, on)?);
         }
     }
+    let single_name = vec![measure(&single, "whisper", true)?];
     let report = VocabularyReport {
         schema_version: SCHEMA_VERSION,
         generated_unix: started,
@@ -310,6 +324,7 @@ pub fn run(opts: &Options) -> Result<(VocabularyReport, PathBuf), String> {
             .unwrap_or_default(),
         vocabulary: set.vocabulary.clone(),
         rows,
+        single_name,
     };
     let json = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())? + "\n";
     let path = run_dir.join("vocabulary-report.json");
@@ -326,10 +341,10 @@ pub fn run(opts: &Options) -> Result<(VocabularyReport, PathBuf), String> {
     Ok((report, path))
 }
 
-/// The table a person reads: one line per row.
+/// The tables a person reads: one line per row.
 pub fn markdown(report: &VocabularyReport) -> String {
     let mut out = format!(
-        "# Vocabulary term recall, {} on {}\n\n`dettivo-qa bench vocabulary` at `{}`{}. Each clip's text has passed dictation's output guards. Term recall counts target clips whose term came back spelt exactly; false insertions count terms in distractor and guard clips; guard WER is the word error rate over the guard clips; time added is what Parakeet's rescoring or Whisper's term check added, the median over clips with a candidate span and the most on a clip without one.\n\n| Engine | Model | Backend | Vocabulary | Term recall | False insertions | Guard WER | Time added |\n|---|---|---|---|---|---|---|---|\n",
+        "# Vocabulary term recall, {} on {}\n\n`dettivo-qa bench vocabulary` at `{}`{}. Each clip's text has passed dictation's output guards. Term recall counts target clips whose term came back spelt exactly; false insertions count terms in distractor and guard clips; guard WER is the word error rate over the guard clips; time added is what Parakeet's rescoring or Whisper's term check added, the median over clips with a candidate span and the most on a clip without one.\n\n",
         report.date,
         report.hostname,
         report.git_sha.get(..12).unwrap_or(&report.git_sha),
@@ -339,7 +354,20 @@ pub fn markdown(report: &VocabularyReport) -> String {
             ""
         },
     );
-    for row in &report.rows {
+    out.push_str(&table(&report.rows));
+    if !report.single_name.is_empty() {
+        out.push_str("\n## Single names\n\nOne word said on its own, with the same vocabulary. Term recall counts listed names that came back; false insertions count lone sound-alikes that became a term. The set has no guard clips.\n\n");
+        out.push_str(&table(&report.single_name));
+    }
+    out
+}
+
+/// One table of `rows`.
+fn table(rows: &[Row]) -> String {
+    let mut out = String::from(
+        "| Engine | Model | Backend | Vocabulary | Term recall | False insertions | Guard WER | Time added |\n|---|---|---|---|---|---|---|---|\n",
+    );
+    for row in rows {
         let on = if row.vocabulary { "on" } else { "off" };
         let cells = match (&row.score, &row.reason) {
             (Some(s), _) => format!(
@@ -384,7 +412,8 @@ pub fn command(opts: &Options, json: bool) -> u8 {
                 print!("{}", markdown(&report));
                 println!("\n  report: {}", path.display());
             }
-            u8::from(report.rows.iter().any(|r| r.status == Status::Failed))
+            let rows = report.rows.iter().chain(&report.single_name);
+            u8::from(rows.into_iter().any(|r| r.status == Status::Failed))
         }
         Err(e) => {
             eprintln!("bench vocabulary: {e}");
