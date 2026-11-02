@@ -173,6 +173,12 @@ pub trait HotkeyBackend: Send + Sync {
     fn start(&self, handler: Handler) -> Result<Registration, String>;
     /// Releases the bindings and ends the delivery thread.
     fn stop(&self);
+    /// What the running backend delivers now, when that can change after
+    /// `start` (the portal binds again after its backend restarts): `Err`
+    /// names why nothing is bound. `None` keeps what `start` returned.
+    fn current(&self) -> Option<Result<Registration, String>> {
+        None
+    }
 }
 
 /// The chords of the four actions, as `[hotkeys]` names them.

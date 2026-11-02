@@ -6,21 +6,23 @@
 //! or one that refuses the request, is reported once with its reason and
 //! never retried here. A portal backend that restarts (Hyprland's exits
 //! with the compositor) loses the session; the shortcuts are bound again
-//! in a new one once it is back.
+//! in a new one once it is back, a refusal of that bind is final, and the
+//! outcome is what [`HotkeyBackend::current`] reports.
 
 use std::future::Future;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use ashpd::desktop::global_shortcuts::{
-    BindShortcuts, BindShortcutsOptions, GlobalShortcuts, NewShortcut,
-};
-use ashpd::desktop::{CreateSessionOptions, Session};
+use ashpd::desktop::global_shortcuts::{GlobalShortcuts, NewShortcut};
 use futures_util::StreamExt;
 
-use crate::identity::{FIX, register};
+use bind::{STOP_POLL, Unbound, close};
+
+use crate::identity::register;
 use crate::{Action, Availability, Handler, HotkeyBackend, HotkeyEvent, Keys, Registration};
+
+mod bind;
 
 /// `Activated` and `Deactivated`: session, shortcut id, timestamp, options.
 type SignalBody = (
@@ -147,7 +149,11 @@ pub struct PortalBackend {
 struct Running {
     stop: Arc<AtomicBool>,
     thread: std::thread::JoinHandle<()>,
+    current: Current,
 }
+
+/// What the session delivers now, shared with the delivery thread.
+type Current = Arc<Mutex<Result<Registration, String>>>;
 
 impl PortalBackend {
     /// A backend binding `keys` as the preferred triggers.
@@ -178,73 +184,17 @@ impl PortalBackend {
             .collect()
     }
 
-    /// Creates a session and binds `shortcuts` in it.
-    async fn open(
-        portal: &GlobalShortcuts,
-        shortcuts: &[NewShortcut],
-    ) -> Result<(Session<GlobalShortcuts>, BindShortcuts), String> {
-        let session = portal
-            .create_session(CreateSessionOptions::default())
-            .await
-            .map_err(|e| {
-                let refused = format!("portal session refused: {e}");
-                if refused.contains("app id") {
-                    format!("{refused}; {FIX}")
-                } else {
-                    refused
-                }
-            })?;
-        let bound = tokio::time::timeout(
-            BIND_TIMEOUT,
-            portal.bind_shortcuts(&session, shortcuts, None, BindShortcutsOptions::default()),
-        )
-        .await
-        .map_err(|_| "the portal did not answer the bind request".to_string())?
-        .map_err(|e| format!("portal bind refused: {e}"))?
-        .response()
-        .map_err(|e| format!("the portal denied the shortcuts: {e}"))?;
-        Ok((session, bound))
-    }
-
-    /// Binds again in a new session once a portal backend that went away
-    /// is back: the backend that held the session (on Hyprland,
-    /// `xdg-desktop-portal-hyprland`, which exits with the compositor)
-    /// took the bindings with it. A backend still starting gets
-    /// [`REBIND_TRIES`] tries, the wait doubling from 250 ms.
-    async fn rebind(
-        portal: &GlobalShortcuts,
-        shortcuts: &[NewShortcut],
-        stop: &AtomicBool,
-    ) -> Option<Session<GlobalShortcuts>> {
-        let mut wait = Duration::from_millis(250);
-        for _ in 0..REBIND_TRIES {
-            match Self::open(portal, shortcuts).await {
-                Ok((session, _)) => {
-                    tracing::info!("hotkeys: the portal backend restarted; shortcuts bound again");
-                    return Some(session);
-                }
-                Err(e) => {
-                    tracing::warn!(error = %e, "hotkeys: binding again after the portal backend restarted failed")
-                }
-            }
-            if stop.load(Ordering::Relaxed) {
-                return None;
-            }
-            tokio::time::sleep(wait).await;
-            wait *= 2;
-        }
-        None
-    }
-
     /// Registers the app id, creates the session, binds, then delivers
     /// until `stop`, binding again whenever a portal backend comes back
-    /// after going away (ADR 0100). Closing the session on stop drops its
-    /// shortcuts, so a rebind leaves only the new ids bound.
+    /// after going away (ADR 0100) and keeping `current` to what the
+    /// session delivers. Closing the session on stop drops its shortcuts,
+    /// so a rebind leaves only the new ids bound.
     async fn serve(
         address: Option<String>,
         keys: Keys,
         handler: Handler,
         stop: Arc<AtomicBool>,
+        current: Current,
         ready: std::sync::mpsc::Sender<Result<Registration, String>>,
     ) {
         let shortcuts = Self::shortcuts(&keys);
@@ -263,35 +213,21 @@ impl PortalBackend {
                 .receive_all_signals()
                 .await
                 .map_err(|e| format!("portal signals: {e}"))?;
-            let (session, bound) = Self::open(&portal, &shortcuts).await?;
-            let actions: Vec<Action> = bound
-                .shortcuts()
-                .iter()
-                .filter_map(|s| keys.action_for(s.id()))
-                .collect();
-            // Hyprland's portal assigns no keys: the user binds them in the
-            // compositor's configuration, which the snippet does.
-            let compositor_bound = !bound.shortcuts().is_empty()
-                && bound
-                    .shortcuts()
-                    .iter()
-                    .all(|s| s.trigger_description().is_empty());
-            let registration = Registration {
-                backend: "portal",
-                bound: actions,
-                identity: Some(identity),
-                compositor_bound,
-            };
-            Ok((portal, session, registration, signals, owners))
+            let (session, bound) = Self::open(&portal, &shortcuts, &stop)
+                .await
+                .map_err(Unbound::reason)?;
+            let registration = Self::registration(&keys, identity, &bound);
+            Ok((portal, session, identity, registration, signals, owners))
         }
         .await;
-        let (portal, mut session, registration, mut signals, mut owners) = match opened {
+        let (portal, mut session, identity, registration, mut signals, mut owners) = match opened {
             Ok(opened) => opened,
             Err(e) => {
                 let _ = ready.send(Err(e));
                 return;
             }
         };
+        *current.lock().unwrap_or_else(|p| p.into_inner()) = Ok(registration.clone());
         let _ = ready.send(Ok(registration));
         // Portal backends seen going away; one coming back gets a rebind.
         let mut gone = std::collections::HashSet::new();
@@ -320,22 +256,38 @@ impl PortalBackend {
                     }
                     if args.new_owner().is_none() {
                         gone.insert(name);
-                    } else if gone.remove(&name) {
-                        let _ = session.close().await;
-                        match Self::rebind(&portal, &shortcuts, &stop).await {
-                            Some(new) => session = new,
-                            None => tracing::warn!("hotkeys: the portal shortcuts stay unbound until the portal backend restarts again or the daemon reloads [hotkeys]"),
-                        }
+                        continue;
                     }
+                    if !gone.remove(&name) {
+                        continue;
+                    }
+                    close(&session).await;
+                    let now = match Self::rebind(&portal, &shortcuts, &stop).await {
+                        Ok((new, bound)) => {
+                            tracing::info!("hotkeys: the portal backend restarted; shortcuts bound again");
+                            session = new;
+                            Ok(Self::registration(&keys, identity, &bound))
+                        }
+                        Err(Unbound::Stopped) => break,
+                        Err(e) => {
+                            let e = format!(
+                                "the shortcuts were not bound again after the portal backend restarted: {}",
+                                e.reason()
+                            );
+                            tracing::warn!(error = %e, "hotkeys: the portal shortcuts stay unbound until the portal backend restarts again or the daemon reloads [hotkeys]");
+                            Err(e)
+                        }
+                    };
+                    *current.lock().unwrap_or_else(|p| p.into_inner()) = now;
                 }
-                () = tokio::time::sleep(Duration::from_millis(250)) => {
+                () = tokio::time::sleep(STOP_POLL * 5) => {
                     if stop.load(Ordering::Relaxed) {
                         break;
                     }
                 }
             }
         }
-        let _ = session.close().await;
+        close(&session).await;
     }
 }
 
@@ -354,6 +306,8 @@ impl HotkeyBackend for PortalBackend {
         let stop = Arc::new(AtomicBool::new(false));
         let (tx, rx) = std::sync::mpsc::channel();
         let stop_flag = stop.clone();
+        let current: Current = Arc::new(Mutex::new(Err("the portal is binding".to_string())));
+        let shared = current.clone();
         let thread = std::thread::Builder::new()
             .name("hotkeys-portal".into())
             .spawn(move || {
@@ -367,7 +321,7 @@ impl HotkeyBackend for PortalBackend {
                         return;
                     }
                 };
-                runtime.block_on(Self::serve(address, keys, handler, stop_flag, tx));
+                runtime.block_on(Self::serve(address, keys, handler, stop_flag, shared, tx));
             })
             .map_err(|e| format!("portal thread: {e}"))?;
         let registration = rx
@@ -375,8 +329,11 @@ impl HotkeyBackend for PortalBackend {
             .unwrap_or_else(|_| Err("the portal thread ended before binding".to_string()));
         match registration {
             Ok(r) => {
-                *self.running.lock().unwrap_or_else(|p| p.into_inner()) =
-                    Some(Running { stop, thread });
+                *self.running.lock().unwrap_or_else(|p| p.into_inner()) = Some(Running {
+                    stop,
+                    thread,
+                    current,
+                });
                 Ok(r)
             }
             Err(e) => {
@@ -396,5 +353,11 @@ impl HotkeyBackend for PortalBackend {
             r.stop.store(true, Ordering::Relaxed);
             let _ = r.thread.join();
         }
+    }
+
+    fn current(&self) -> Option<Result<Registration, String>> {
+        let running = self.running.lock().unwrap_or_else(|p| p.into_inner());
+        let r = running.as_ref()?;
+        Some(r.current.lock().unwrap_or_else(|p| p.into_inner()).clone())
     }
 }
