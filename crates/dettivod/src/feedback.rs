@@ -31,6 +31,8 @@ pub fn sound_allowed(sounds: bool, meeting_active: bool) -> bool {
 pub enum Effect {
     /// Capture began: media, start cue.
     Started,
+    /// Capture stopped and transcription follows: a tap leaves media.
+    Stopped,
     /// The session ended well or was cancelled: media back, stop cue.
     Ended,
     /// The session failed: media back, error cue.
@@ -42,6 +44,7 @@ pub enum Effect {
 pub fn effect_of(change: &StateChange) -> Option<Effect> {
     match (change.state, change.previous) {
         (State::Recording, State::Idle) => Some(Effect::Started),
+        (State::Transcribing | State::Inserting, State::Recording) => Some(Effect::Stopped),
         (State::Cancelled, _) => Some(Effect::Ended),
         (State::Failed, _) => Some(Effect::Failed),
         (State::Idle, State::Cancelled | State::Failed | State::Idle) => None,
@@ -87,6 +90,7 @@ impl Feedback {
                 self.media.started(while_dictating);
                 self.cue(sounds, Cue::Start);
             }
+            Effect::Stopped => self.media.stopped(),
             Effect::Ended | Effect::Failed => {
                 self.media.ended();
                 self.cue(
@@ -138,7 +142,7 @@ mod tests {
         );
         assert_eq!(
             effect_of(&change(State::Transcribing, State::Recording)),
-            None
+            Some(Effect::Stopped)
         );
         assert_eq!(
             effect_of(&change(State::Inserting, State::Transcribing)),

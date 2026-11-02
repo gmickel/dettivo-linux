@@ -19,6 +19,18 @@ struct Sink {
     sets: Vec<f32>,
     user_at: Option<(usize, f32)>,
     user_before: Option<(usize, f32)>,
+    fault: Option<(usize, Fault)>,
+}
+
+/// A `wpctl` run that fails once, once the sink has taken n changes.
+#[derive(Debug, Clone, Copy)]
+enum Fault {
+    /// The read fails.
+    Get,
+    /// The move fails and does not land.
+    Change,
+    /// The move lands, then the run fails, as a killed one can.
+    ChangeLanded,
 }
 
 #[derive(Default)]
@@ -53,10 +65,34 @@ impl Volume for Fake {
         Ok(self.0.lock().unwrap().default.clone())
     }
     fn get(&self, sink: &str) -> Result<(f32, bool), String> {
+        let mut failed = false;
+        self.with(sink, |s| {
+            if let Some((n, Fault::Get)) = s.fault
+                && s.sets.len() == n
+            {
+                s.fault = None;
+                failed = true;
+            }
+        });
         let s = self.sink(sink);
+        if failed {
+            return Err("wpctl get-volume: no answer".into());
+        }
         Ok((s.volume, s.muted))
     }
     fn change(&self, sink: &str, by: f32) -> Result<(), String> {
+        let mut failed = None;
+        self.with(sink, |s| {
+            if let Some((n, fault @ (Fault::Change | Fault::ChangeLanded))) = s.fault
+                && s.sets.len() == n
+            {
+                s.fault = None;
+                failed = Some(fault);
+            }
+        });
+        if let Some(Fault::Change) = failed {
+            return Err("wpctl set-volume: exit 1".into());
+        }
         self.with(sink, |s| {
             if let Some((n, user)) = s.user_before
                 && s.sets.len() + 1 == n
@@ -71,7 +107,10 @@ impl Volume for Fake {
                 s.volume = user;
             }
         });
-        Ok(())
+        match failed {
+            Some(_) => Err("wpctl set-volume: no answer within 2 s".into()),
+            None => Ok(()),
+        }
     }
     fn mute(&self, sink: &str, muted: bool) -> Result<(), String> {
         self.with(sink, |s| s.muted = muted);
@@ -238,6 +277,33 @@ fn a_volume_set_between_a_steps_read_and_its_set_stays_within_a_step() {
     }
 }
 
+/// A `wpctl` run that fails during the duck is no user change: the end
+/// still ramps back what the duck lowered, no step over 0.04 (Bugbot on
+/// PR #44).
+#[test]
+fn a_duck_that_fails_mid_ramp_is_still_put_back() {
+    for fault in [Fault::Get, Fault::Change, Fault::ChangeLanded] {
+        let volume = sinks(0.8);
+        volume.with("a", |s| s.fault = Some((5, fault)));
+        take(
+            &volume,
+            &FakePlayers::default(),
+            WhileDictating::Duck,
+            || {},
+        );
+        let a = volume.sink("a");
+        assert!((a.volume - 0.8).abs() < 1e-6, "{fault:?}: {a:?}");
+        assert!(a.sets.len() > 5, "{fault:?}: the duck lowered it: {a:?}");
+        let moves = std::iter::once(0.8)
+            .chain(a.sets.iter().copied())
+            .collect::<Vec<_>>();
+        assert!(
+            moves.windows(2).all(|w| (w[1] - w[0]).abs() <= 0.04 + 1e-4),
+            "{fault:?}: {moves:?}"
+        );
+    }
+}
+
 /// The default sink changing during the take leaves the new one alone:
 /// the restore goes to the sink Dettivo lowered or muted.
 #[test]
@@ -270,6 +336,36 @@ fn a_tap_never_touches_media() {
         let (tx, thread) = spawn(&volume, &players);
         tx.send(Msg::Started(action)).unwrap();
         std::thread::sleep(TAP / 3);
+        end(&tx);
+        drop(tx);
+        thread.join().unwrap();
+        let a = volume.sink("a");
+        assert!(a.sets.is_empty() && !a.muted, "{action:?}");
+        assert!(players.0.lock().unwrap().is_empty(), "{action:?}");
+    }
+}
+
+/// A take whose capture stops within the tap window touches nothing,
+/// though its end comes later, after transcription (Copilot on PR #44).
+#[test]
+fn a_take_stopped_within_the_tap_never_touches_media() {
+    for action in [
+        WhileDictating::Duck,
+        WhileDictating::Mute,
+        WhileDictating::Pause,
+    ] {
+        let (volume, players) = (sinks(0.8), FakePlayers::default());
+        let (tx, thread) = spawn(&volume, &players);
+        tx.send(Msg::Started(action)).unwrap();
+        std::thread::sleep(TAP / 3);
+        tx.send(Msg::Stopped).unwrap();
+        std::thread::sleep(TAP + duck_time());
+        let a = volume.sink("a");
+        assert!(
+            a.sets.is_empty() && !a.muted,
+            "{action:?} while transcribing"
+        );
+        assert!(players.0.lock().unwrap().is_empty(), "{action:?}");
         end(&tx);
         drop(tx);
         thread.join().unwrap();

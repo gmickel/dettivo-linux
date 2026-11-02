@@ -1,13 +1,15 @@
 //! What a dictation does to playing media (`[audio] while_dictating`,
 //! ADR 0091): nothing, pause the MPRIS players, duck the default sink to
-//! 20 % along a smoothstep ramp whose steps move at most 0.04, or mute it. It acts only once a take has
-//! recorded past [`TAP`], so a tap the hold key discards never touches
+//! 20 % along a smoothstep ramp whose steps move at most 0.04, or mute
+//! it. It acts only once a take has recorded past [`TAP`], so a tap,
+//! discarded by the hold key or stopped and transcribed, never touches
 //! media, and it runs on a thread of its own, so capture never waits for
 //! it. At the end it puts back only what it changed, on the sink it
-//! changed: a volume or mute the user changed during the take stays. The
-//! end waits for that restore before the take's slot frees, and a meeting
-//! starts only on a free slot, so nothing changes under a meeting's
-//! recording of the default sink's monitor.
+//! changed, also after a failed `wpctl` run: a volume or mute the user
+//! changed during the take stays. The end waits for that restore before
+//! the take's slot frees, and a meeting starts only on a free slot, so
+//! nothing changes under a meeting's recording of the default sink's
+//! monitor.
 
 use std::sync::Mutex;
 use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender};
@@ -145,6 +147,8 @@ pub fn effective(while_dictating: WhileDictating, pause_media: bool) -> WhileDic
 
 enum Msg {
     Started(WhileDictating),
+    /// Capture stopped; the take goes on to its end.
+    Stopped,
     /// The take ended; the sender hears once media is back.
     Ended(Sender<()>),
 }
@@ -181,6 +185,12 @@ impl Media {
         let _ = self.send(Msg::Started(action));
     }
 
+    /// Capture stopped and the take goes on to transcription: one stopped
+    /// within [`TAP`] never touches media.
+    pub fn stopped(&self) {
+        let _ = self.send(Msg::Stopped);
+    }
+
     /// The take ended (completed, cancelled or failed): returns once the
     /// media work of the take is done and media is back, so the session
     /// holds its slot, and a meeting stays out, until then. Every MPRIS
@@ -202,24 +212,27 @@ fn run(rx: &Receiver<Msg>, volume: &dyn Volume, players: &dyn Players) {
     while let Ok(msg) = rx.recv() {
         let action = match msg {
             Msg::Started(action) => action,
+            Msg::Stopped => continue,
             Msg::Ended(done) => {
                 let _ = done.send(());
                 continue;
             }
         };
-        match rx.recv_timeout(TAP) {
+        let changed = match rx.recv_timeout(TAP) {
             Ok(Msg::Ended(done)) => {
                 let _ = done.send(());
                 continue;
             }
             Err(RecvTimeoutError::Disconnected) => return,
-            Ok(Msg::Started(_)) | Err(RecvTimeoutError::Timeout) => {}
-        }
-        let changed = apply(action, volume, players);
+            // Capture stopped within the tap: a tap, though transcribing
+            // goes on, so nothing is touched and the end is awaited.
+            Ok(Msg::Stopped) => Changed::Nothing,
+            Ok(Msg::Started(_)) | Err(RecvTimeoutError::Timeout) => apply(action, volume, players),
+        };
         let done = loop {
             match rx.recv() {
                 Ok(Msg::Ended(done)) => break Some(done),
-                Ok(Msg::Started(_)) => {}
+                Ok(Msg::Started(_) | Msg::Stopped) => {}
                 Err(_) => break None,
             }
         };
@@ -250,9 +263,19 @@ fn apply(action: WhileDictating, volume: &dyn Volume, players: &dyn Players) -> 
             }
             Ok(match ramp(volume, &sink, from, to) {
                 Ok(()) => Changed::Ducked { sink, from, to },
-                Err(why) => {
-                    tracing::info!(reason = %why, "duck stopped: the volume is left as it is");
+                Err(Stop::User) => {
+                    tracing::info!("duck stopped: the user changed the volume");
                     Changed::Nothing
+                }
+                // Not the user's: the end puts back what was lowered.
+                Err(Stop::Failed { at, why }) => {
+                    tracing::warn!(error = %why, "duck stopped short");
+                    let to = at as f32 / 100.0;
+                    if at == cents(from) {
+                        Changed::Nothing
+                    } else {
+                        Changed::Ducked { sink, from, to }
+                    }
                 }
             })
         }),
@@ -279,7 +302,10 @@ fn restore(changed: Changed, volume: &dyn Volume, players: &dyn Players) {
             if (now - to).abs() > SAME {
                 return Ok(());
             }
-            ramp(volume, &sink, to, from)
+            ramp(volume, &sink, to, from).or_else(|stop| match stop {
+                Stop::User => Ok(()),
+                Stop::Failed { why, .. } => Err(why),
+            })
         }),
     };
     if let Err(e) = done {
@@ -299,26 +325,44 @@ fn steps(distance: i32) -> u32 {
     (distance.unsigned_abs() * 3).div_ceil(2 * MAX_STEP).max(1)
 }
 
+/// Why a ramp stopped short.
+enum Stop {
+    /// The user changed the volume: it stays.
+    User,
+    /// A `wpctl` run failed with the volume at `at` hundredths, where
+    /// Dettivo's last step left it.
+    Failed { at: i32, why: String },
+}
+
 /// Moves the sink's volume from `from` to `to` along a smoothstep, in
 /// hundredths, no step more than [`MAX_STEP`], [`STEP`] apart; gives up
 /// when the volume is not the one the last step left, because the user
-/// changed it. Each step is a relative move: `wpctl` has no
-/// compare-and-set, and a volume the user sets between a step's read and
-/// its move is then moved by that one step instead of replaced, so the
-/// next read sees it.
-fn ramp(volume: &dyn Volume, sink: &str, from: f32, to: f32) -> Result<(), String> {
+/// changed it, or when a `wpctl` run fails. Each step is a relative
+/// move: `wpctl` has no compare-and-set, and a volume the user sets
+/// between a step's read and its move is then moved by that one step
+/// instead of replaced, so the next read sees it.
+fn ramp(volume: &dyn Volume, sink: &str, from: f32, to: f32) -> Result<(), Stop> {
     let (start, distance) = (cents(from), cents(to) - cents(from));
     let n = steps(distance);
     let mut last = start;
+    let now = |sink| volume.get(sink).map(|(v, _)| cents(v));
     for step in 1..=n {
-        let (now, _) = volume.get(sink)?;
-        if cents(now) != last {
-            return Err("the volume was changed during the ramp".into());
+        match now(sink) {
+            Ok(now) if now != last => return Err(Stop::User),
+            Ok(_) => {}
+            Err(why) => return Err(Stop::Failed { at: last, why }),
         }
         let t = step as f32 / n as f32;
         let next = start + (distance as f32 * t * t * (3.0 - 2.0 * t)).round() as i32;
-        if next != last {
-            volume.change(sink, (next - last) as f32 / 100.0)?;
+        if next != last
+            && let Err(why) = volume.change(sink, (next - last) as f32 / 100.0)
+        {
+            // A killed run may have landed its move first.
+            return Err(match now(sink) {
+                Ok(now) if now == next => Stop::Failed { at: next, why },
+                Ok(now) if now != last => Stop::User,
+                _ => Stop::Failed { at: last, why },
+            });
         }
         last = next;
         std::thread::sleep(STEP);
