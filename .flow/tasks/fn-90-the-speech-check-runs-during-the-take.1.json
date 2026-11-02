@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-90-the-speech-check-runs-during-the-take",
   "spec_path": ".flow/tasks/fn-90-the-speech-check-runs-during-the-take.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement The speech check runs during the take",
   "updated_at": "2026-11-02T10:10:24.174696Z"
 }

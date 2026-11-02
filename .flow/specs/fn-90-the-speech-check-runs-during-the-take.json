@@ -134,7 +134,7 @@
     "impl:fn-90-the-speech-check-runs-during-the-take.1": 0
   },
   "spec_path": ".flow/specs/fn-90-the-speech-check-runs-during-the-take.md",
-  "status": "open",
+  "status": "done",
   "title": "The speech check runs during the take",
   "tracker": {
     "baseHashFlow": null,
@@ -147,5 +147,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-02T12:23:28.929033Z"
+  "updated_at": "2026-11-02T16:03:28.632780Z"
 }
