@@ -44,7 +44,7 @@ The options measured:
 
 ## Decision
 
-Parakeet's warm-up recognises 90 s of silence (`PARAKEET_WARM_UP_SAMPLES`, 1,440,000 samples). Whisper keeps 30 s, the one window it decodes. The warm-up still runs only on a GPU backend, so fn-80's rule that a CPU load needs no warm-up holds. It still yields to a take that asked first, and it is still skipped within 60 s of a recognition (ADR 0084).
+Parakeet's warm-up recognises 90 s of silence (`dettivo_engine_proto::warm_up::PARAKEET_SAMPLES`, 1,440,000 samples). Whisper keeps 30 s, the one window it decodes. The warm-up still runs only on a GPU backend, so fn-80's rule that a CPU load needs no warm-up holds. It still yields to a take that asked first, and it is still skipped within 60 s of a recognition (ADR 0084).
 
 Ruled out: a warm-up per length class (three passes cost more than one 90 s pass and need the class edges kept in step with ggml); a longer default `stt_idle_seconds`.
 

@@ -28,7 +28,7 @@ mod recovery;
 mod warm;
 pub use recovery::GPU_RETRY_CAP;
 use recovery::{Fallback, Route, record_crash};
-pub use warm::{PARAKEET_WARM_UP_SAMPLES, RequestGuard, WARM_UP_SAMPLES, WARM_UP_SKIP};
+pub use warm::{RequestGuard, WARM_UP_SKIP};
 
 struct Slot {
     process: Option<EngineProcess>,

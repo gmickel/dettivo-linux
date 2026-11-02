@@ -15,13 +15,13 @@ use serde::de::DeserializeOwned;
 use serde_json::Value;
 
 use crate::gate::{SpeechStream, VAD_PARAMS, VoiceDetector};
-use crate::supervisor::{PARAKEET_WARM_UP_SAMPLES, Supervisor, WARM_UP_SAMPLES};
+use crate::supervisor::Supervisor;
 use crate::{Capabilities, EngineError, PreloadSource, RecognizeRequest, SttEngine};
 
 /// The whisper engine binary name.
 pub const WHISPER_BINARY: &str = "dettivo-engine-whisper";
 /// The parakeet engine binary name.
-pub const PARAKEET_BINARY: &str = "dettivo-engine-parakeet";
+pub const PARAKEET_BINARY: &str = dettivo_engine_proto::warm_up::PARAKEET_BINARY;
 /// The language model engine binary name.
 pub const LLM_BINARY: &str = "dettivo-engine-llm";
 /// The diarization engine binary name (ADR 0035).
@@ -100,11 +100,7 @@ impl Shared {
             timestamps: false,
             vocabulary: None,
         };
-        let samples = if self.binary == PARAKEET_BINARY {
-            PARAKEET_WARM_UP_SAMPLES
-        } else {
-            WARM_UP_SAMPLES
-        };
+        let samples = dettivo_engine_proto::warm_up::samples(self.binary);
         let pcm = dettivo_engine_proto::pcm_to_bytes(&vec![0; samples]);
         let warmed = self.supervisor.warm_up(self.binary, |process| {
             let value = process.call(

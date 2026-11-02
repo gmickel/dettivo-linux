@@ -11,11 +11,8 @@ use std::sync::mpsc::{self, RecvTimeoutError};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use dettivo_engine_proto::{Frame, Kind, pcm_to_bytes, read_frame, write_frame};
+use dettivo_engine_proto::{Frame, Kind, pcm_to_bytes, read_frame, warm_up, write_frame};
 use serde_json::{Value, json};
-
-/// The warm-up's silence, as the supervisor sends it: 30 s at 16 kHz.
-pub const WARM_UP_SAMPLES: usize = 480_000;
 
 /// The longest one request may take, its frames written and its answer
 /// read: a large model's load or the warm-up on the CPU finishes well
@@ -29,6 +26,8 @@ pub struct EngineClient {
     reader: BufReader<ChildStdout>,
     next_id: u64,
     limit: Duration,
+    /// The silence the supervisor's warm-up sends this engine.
+    warm_up_samples: usize,
 }
 
 impl EngineClient {
@@ -57,6 +56,9 @@ impl EngineClient {
             reader,
             next_id: 1,
             limit: CALL_TIMEOUT,
+            warm_up_samples: warm_up::samples(
+                &binary.file_name().unwrap_or_default().to_string_lossy(),
+            ),
         })
     }
 
@@ -149,9 +151,10 @@ impl EngineClient {
         Ok((result, at.elapsed()))
     }
 
-    /// The warm-up the supervisor runs after a load: 30 s of silence.
+    /// The warm-up the supervisor runs after a load: the same silence it
+    /// sends this engine (`dettivo_engine_proto::warm_up`).
     pub fn warm_up(&mut self) -> Result<Duration, String> {
-        self.recognize(&[0; WARM_UP_SAMPLES], "en")
+        self.recognize(&vec![0; self.warm_up_samples], "en")
             .map(|(_, took)| took)
     }
 }

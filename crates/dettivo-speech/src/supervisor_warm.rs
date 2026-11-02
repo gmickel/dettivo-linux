@@ -17,16 +17,6 @@ use crate::process::EngineProcess;
 /// No warm-up when the engine recognised this recently.
 pub const WARM_UP_SKIP: Duration = Duration::from_secs(60);
 
-/// The warm-up's silence: 30 s at 16 kHz, the longest window Whisper
-/// decodes at once (ADR 0084).
-pub const WARM_UP_SAMPLES: usize = 480_000;
-
-/// Parakeet's warm-up: 90 s, the longest input it runs in one pass. Its
-/// Vulkan kernels differ by input length, and a shorter warm-up leaves
-/// the first take past 30 s to compile its own, 2.5-2.9 s on the reference
-/// GPU after a driver or engine update emptied the shader cache (ADR 0098).
-pub const PARAKEET_WARM_UP_SAMPLES: usize = 1_440_000;
-
 /// Why an inference's backend differs from the one the model loaded on.
 const INFERENCE_FALLBACK: &str = "the GPU had no room for an inference, CPU fallback";
 
