@@ -226,6 +226,15 @@ mod tests {
         assert_eq!(written("Yahoo!", "yahoo!\""), "Yahoo!\"");
     }
 
+    /// A heard word that already spells the term's own marks (`C++.`)
+    /// gives only its closing marks, never a second copy of the term's.
+    #[test]
+    fn a_heard_word_spelling_the_terms_marks_adds_none_of_them() {
+        assert_eq!(written("C++", "C++."), "C++.");
+        assert_eq!(written("C++", "c++,"), "C++,");
+        assert_eq!(written("C#", "C#)"), "C#)");
+    }
+
     /// A multi-word term comes back as timed words, never one word.
     #[test]
     fn a_multi_word_term_is_one_timed_word_per_word() {

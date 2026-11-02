@@ -102,6 +102,21 @@ fn a_lone_listed_name_stands_when_sure() {
     ] {
         assert!(!take(segments, TERMS).needs_plain_decode(), "{segments:?}");
     }
+    // The two names the -0.3 level lost on the single-name set stand at
+    // the lone-name level; the same confidence inside a sentence or in an
+    // echo run is still checked.
+    for segments in [
+        &[&[(" Clef.", -0.416)][..]][..],
+        &[&[(" Hyprland.", -0.411)][..]][..],
+    ] {
+        assert!(!take(segments, TERMS).needs_plain_decode(), "{segments:?}");
+    }
+    for segments in [
+        &[&[(" Hyprland.", -0.46)][..]][..],
+        &[&[(" I use", 0.0), (" Hyprland", -0.411), (" daily.", 0.0)][..]][..],
+    ] {
+        assert!(take(segments, TERMS).needs_plain_decode(), "{segments:?}");
+    }
     let unsure = take(&[&[(" Hyprland.", -0.6)]], TERMS);
     assert!(unsure.needs_plain_decode());
     assert_eq!(
