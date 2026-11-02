@@ -17,6 +17,10 @@ Item {
     readonly property bool downloading: root.models ? root.models.downloading : false
     readonly property string enhanced: root.models ? root.models.enhanced : "none"
 
+    // The height the rows need above the footer: OnboardingRoute scrolls
+    // when it exceeds the window (five speech rows for English).
+    implicitHeight: enhancedList.y + enhancedList.height + Theme.space6 + footer.implicitHeight
+
     PageHeader {
         id: header
         anchors.left: parent.left
@@ -169,6 +173,7 @@ Item {
     }
 
     FirstRunFooter {
+        id: footer
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right

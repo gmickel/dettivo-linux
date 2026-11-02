@@ -55,7 +55,8 @@
       "model": null,
       "path": "/usr/bin/dettivo-engine-diarize",
       "reason": null,
-      "running": false
+      "running": false,
+      "warm": false
     },
     "model": "diarize/diarization",
     "model_readiness": null
@@ -71,7 +72,8 @@
       "model": null,
       "path": "/usr/bin/dettivo-engine-whisper",
       "reason": null,
-      "running": false
+      "running": false,
+      "warm": false
     },
     {
       "backend": null,
@@ -83,7 +85,8 @@
       "model": null,
       "path": "/usr/bin/dettivo-engine-parakeet",
       "reason": null,
-      "running": false
+      "running": false,
+      "warm": false
     },
     {
       "backend": null,
@@ -95,7 +98,8 @@
       "model": null,
       "path": "/usr/bin/dettivo-engine-llm",
       "reason": null,
-      "running": false
+      "running": false,
+      "warm": false
     },
     {
       "backend": null,
@@ -107,7 +111,8 @@
       "model": null,
       "path": "/usr/bin/dettivo-engine-diarize",
       "reason": null,
-      "running": false
+      "running": false,
+      "warm": false
     }
   ],
   "environment": {

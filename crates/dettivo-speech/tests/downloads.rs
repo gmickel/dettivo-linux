@@ -46,6 +46,7 @@ fn entry(url: &str, sha: &str) -> ModelEntry {
         default: false,
         available: true,
         recommended_for: None,
+        language_wer: Vec::new(),
         unpack: None,
         files: Vec::new(),
     }

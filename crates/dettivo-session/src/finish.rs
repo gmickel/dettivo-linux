@@ -1,11 +1,12 @@
-//! How a take ends: its completion, set once and waited on by every
-//! stopper, and the terminal state the worker publishes.
+//! How one take ends: the outcome every stopper of the take waits on,
+//! the slots the worker shares with the session, and the exit that
+//! reports the final state, retires the slot and completes the take.
 
 use std::sync::{Arc, Condvar, Mutex};
 
 use dettivo_speech::gate::SilenceReason;
 
-use super::{Active, Session, while_recording};
+use crate::machine::Active;
 use crate::{Publisher, State, StateChange, Transcript};
 
 /// How a take ended.
@@ -13,6 +14,8 @@ use crate::{Publisher, State, StateChange, Transcript};
 pub(crate) enum Outcome {
     Completed(Box<Transcript>),
     Cancelled,
+    /// The speech gate found the take silent.
+    Silence,
     Failed(String),
 }
 
@@ -35,7 +38,7 @@ impl Completion {
     }
 
     /// Waits until the take ended.
-    pub(super) fn wait(&self) -> Outcome {
+    pub(crate) fn wait(&self) -> Outcome {
         let mut g = self.outcome.lock().unwrap_or_else(|p| p.into_inner());
         loop {
             if let Some(o) = g.as_ref() {
@@ -53,16 +56,6 @@ pub(crate) struct SharedState {
     pub(crate) active: Arc<Mutex<Option<Active>>>,
     pub(crate) last: Arc<Mutex<Option<Transcript>>>,
     pub(crate) completion: Arc<Completion>,
-}
-
-impl Session {
-    pub(super) fn shared(&self, completion: Arc<Completion>) -> SharedState {
-        SharedState {
-            active: self.active.clone(),
-            last: self.last.clone(),
-            completion,
-        }
-    }
 }
 
 pub(crate) enum Exit {
@@ -100,7 +93,8 @@ pub(crate) fn finish_shared(
             Outcome::Completed(Box::new(t))
         }
         (Exit::Completed(_), None) => Outcome::Failed("no transcript".into()),
-        (Exit::Cancelled | Exit::Tap | Exit::Silence(_), _) => Outcome::Cancelled,
+        (Exit::Cancelled | Exit::Tap, _) => Outcome::Cancelled,
+        (Exit::Silence(_), _) => Outcome::Silence,
         (Exit::Failed(r), _) => Outcome::Failed(r.clone()),
     };
     let completion = match &outcome {
@@ -121,7 +115,7 @@ pub(crate) fn finish_shared(
         ),
         _ => (None, None, None),
     };
-    while_recording::mark_ending(&shared.active);
+    crate::machine::while_recording::mark_ending(&shared.active);
     let mut change = StateChange::plain(job_id, state, previous, reason.clone());
     (change.insertion, change.first_words, change.timings) = completion;
     (change.mode, change.notice, change.policy_hash) = polish;

@@ -15,6 +15,7 @@ use dettivo_audio::mock::MockCapture;
 use dettivo_audio::service::AudioService;
 use dettivo_core::config::Loaded;
 use dettivo_core::paths::Paths;
+use dettivo_insert::join::Continuation;
 use dettivo_language::policy::RulesConfig;
 use dettivo_proto::events::{
     AudioLevelPayload, DictationInsertion, DictationStatePayload, DictationTimings, LevelSource,
@@ -161,6 +162,9 @@ impl SourceFactory for DaemonSource {
 pub struct Dictation {
     session: Session,
     ready: MicReady,
+    /// Told when a take starts, so a join knows whether the user typed
+    /// since the last delivery (ADR 0091).
+    joins: Option<Arc<Continuation>>,
 }
 
 impl Dictation {
@@ -188,7 +192,13 @@ impl Dictation {
         Self {
             session,
             ready: MicReady::default(),
+            joins: None,
         }
+    }
+
+    /// The continuation each take start is reported to.
+    pub fn set_continuation(&mut self, joins: Arc<Continuation>) {
+        self.joins = Some(joins);
     }
 
     /// The inserter in force (the chain; its mock backend in QA mode).
@@ -279,7 +289,11 @@ impl Dictation {
         {
             unused.stop();
         }
-        started
+        let started = started?;
+        if let Some(joins) = &self.joins {
+            joins.take_started(started.started);
+        }
+        Ok(started)
     }
 
     /// The always-ready microphone.
@@ -308,6 +322,12 @@ impl Dictation {
     /// `released_at`.
     pub fn stop(&self, released_at: Instant) -> Result<Transcript, SessionError> {
         self.session.stop_expected(None, released_at)
+    }
+
+    /// Stops and finishes the session without inserting, for the stop
+    /// that arrived at `released_at`.
+    pub fn stop_print(&self, released_at: Instant) -> Result<Transcript, SessionError> {
+        self.session.stop_print(released_at)
     }
 
     /// Stops the named take without affecting a replacement session.

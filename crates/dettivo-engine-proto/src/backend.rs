@@ -55,6 +55,25 @@ pub fn choose(
     }
 }
 
+/// CPU threads a speech engine runs on when the GPU does the heavy work
+/// and the load names no count (ADR 0085): only the decoder and the
+/// glue run on the CPU there, and more workers only spin.
+pub const GPU_THREADS: u32 = 4;
+
+/// The CPU threads for a speech engine's inference: the load's `threads`
+/// when it names a count, `GPU_THREADS` on a GPU backend, else the core
+/// count capped at eight.
+pub fn speech_threads(requested: Option<u32>, backend: Backend) -> i32 {
+    let count = match requested.filter(|n| *n > 0) {
+        Some(n) => n,
+        None if backend != Backend::Cpu => GPU_THREADS,
+        None => std::thread::available_parallelism()
+            .map(|n| n.get().min(8) as u32)
+            .unwrap_or(4),
+    };
+    i32::try_from(count).unwrap_or(i32::MAX)
+}
+
 /// The refusal an engine answers when `backend_preference = vulkan` and
 /// the load did not land on a Vulkan device: the reason, never a CPU
 /// result.
@@ -110,5 +129,14 @@ mod tests {
             }
         }
         assert!(strict_vulkan_refused("x").contains("backend_preference = vulkan"));
+    }
+
+    #[test]
+    fn a_named_thread_count_wins_and_the_gpu_takes_its_own_default() {
+        assert_eq!(speech_threads(Some(3), Backend::Vulkan), 3);
+        assert_eq!(speech_threads(Some(3), Backend::Cpu), 3);
+        assert_eq!(speech_threads(None, Backend::Vulkan), GPU_THREADS as i32);
+        assert_eq!(speech_threads(Some(0), Backend::Vulkan), GPU_THREADS as i32);
+        assert!((1..=8).contains(&speech_threads(None, Backend::Cpu)));
     }
 }

@@ -23,8 +23,12 @@ mod status;
 
 #[path = "supervisor_recovery.rs"]
 mod recovery;
+
+#[path = "supervisor_warm.rs"]
+mod warm;
 pub use recovery::GPU_RETRY_CAP;
 use recovery::{Fallback, Route, record_crash};
+pub use warm::{RequestGuard, WARM_UP_SAMPLES, WARM_UP_SKIP};
 
 struct Slot {
     process: Option<EngineProcess>,
@@ -37,6 +41,11 @@ struct Slot {
     fallback: Fallback,
     crashes: u32,
     next_allowed: Instant,
+    /// The loaded model has run an inference (the warm-up or a take), so
+    /// its GPU kernels are compiled; a new load clears it.
+    warm: bool,
+    /// When the last real recognition finished.
+    last_recognized: Option<Instant>,
 }
 
 /// The supervisor.
@@ -45,6 +54,9 @@ pub struct Supervisor {
     slots: Mutex<HashMap<String, Arc<Mutex<Slot>>>>,
     snapshots: Mutex<HashMap<String, EngineStatus>>,
     hook: Mutex<Option<StateHook>>,
+    /// Real requests per engine that have asked and not finished; a
+    /// warm-up yields to them.
+    pending: Mutex<HashMap<String, usize>>,
 }
 
 impl Supervisor {
@@ -55,6 +67,7 @@ impl Supervisor {
             slots: Mutex::new(HashMap::new()),
             snapshots: Mutex::new(HashMap::new()),
             hook: Mutex::new(None),
+            pending: Mutex::new(HashMap::new()),
         })
     }
 
@@ -100,6 +113,8 @@ impl Supervisor {
                     fallback: Fallback::default(),
                     crashes: 0,
                     next_allowed: Instant::now(),
+                    warm: false,
+                    last_recognized: None,
                 }))
             })
             .clone()
@@ -172,6 +187,20 @@ impl Supervisor {
         params: LoadParams,
         f: impl FnOnce(&mut EngineProcess, &LoadedResult) -> Result<T, EngineError>,
     ) -> Result<T, EngineError> {
+        self.with_slot_then(name, binary, params, f, |_, _, _| {})
+    }
+
+    /// `with_engine_slot`, then `then` on a success while the slot is
+    /// still locked, so what `f` proved about the loaded engine is never
+    /// recorded against a load that followed it.
+    fn with_slot_then<T>(
+        &self,
+        name: &str,
+        binary: &str,
+        params: LoadParams,
+        f: impl FnOnce(&mut EngineProcess, &LoadedResult) -> Result<T, EngineError>,
+        then: impl FnOnce(&Self, &mut Slot, &T),
+    ) -> Result<T, EngineError> {
         let settings = self.settings();
         let slot = self.slot(name);
         let mut s = slot.lock().unwrap_or_else(|p| p.into_inner());
@@ -183,6 +212,9 @@ impl Supervisor {
             Route::Asked => {}
         }
         let result = self.with_locked((name, binary), params, &settings, &mut s, f);
+        if let Ok(value) = &result {
+            then(self, &mut s, value);
+        }
         self.remember(name, &mut s);
         result
     }
@@ -263,6 +295,7 @@ impl Supervisor {
                     }
                     tracing::info!(engine = binary, backend = ?loaded.backend, "engine loaded");
                     s.crashes = 0;
+                    s.warm = false;
                     let transition = EngineTransition {
                         binary: binary.to_string(),
                         state: "loaded",

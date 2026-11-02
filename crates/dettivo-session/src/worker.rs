@@ -20,7 +20,7 @@ use dettivo_core::config::vocabulary_schema;
 use dettivo_language::pipeline::{Mode, Settings};
 use dettivo_language::provider::LocalEngine;
 
-use crate::machine::{Exit, SharedState, finish_shared};
+use crate::finish::{Exit, SharedState, finish_shared};
 use crate::{
     Archive, Inserter, Policy, Publisher, SessionTarget, SessionTimings, State, StateChange,
     Transcript,
@@ -43,6 +43,7 @@ pub(crate) struct Worker {
     pub(crate) released: Arc<OnceLock<Instant>>,
     /// A cancel ends the take as a tap.
     pub(crate) tap: Arc<AtomicBool>,
+    pub(crate) route: Arc<crate::deliver::Route>,
     pub(crate) dir: PathBuf,
     pub(crate) publisher: Arc<dyn Publisher>,
     pub(crate) inserter: Arc<dyn Inserter>,
@@ -75,6 +76,7 @@ impl Worker {
             duration_ms,
             exit: record_exit,
             capture_ms,
+            stopped,
         } = match outcome {
             Ok(v) => v,
             Err(exit) => {
@@ -246,11 +248,13 @@ impl Worker {
         }
         self.set(&shared, State::Inserting, 0.9, None);
         let insert_started = Instant::now();
-        let insertion = if text.is_empty() {
-            None
-        } else {
-            Some(self.inserter.insert(&text, self.target.as_ref()))
-        };
+        let insertion = crate::deliver::deliver(
+            &*self.inserter,
+            &text,
+            self.target.as_ref(),
+            self.route.printing(),
+            stopped,
+        );
         let timings = SessionTimings {
             capture_ms,
             transcribe_ms,

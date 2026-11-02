@@ -22,7 +22,8 @@
           "model": "/home/user/.local/share/dettivo/models/whisper/large-v3-turbo/ggml-large-v3-turbo.bin",
           "path": "/usr/bin/dettivo-engine-whisper",
           "reason": "Vulkan backend built in and a device is installed",
-          "running": true
+          "running": true,
+          "warm": true
         },
         {
           "backend": null,
@@ -34,7 +35,8 @@
           "model": null,
           "path": null,
           "reason": null,
-          "running": false
+          "running": false,
+          "warm": false
         },
         {
           "backend": null,
@@ -46,7 +48,8 @@
           "model": null,
           "path": "/usr/bin/dettivo-engine-llm",
           "reason": null,
-          "running": false
+          "running": false,
+          "warm": false
         }
       ]
     }

@@ -96,8 +96,7 @@ pub fn resolve(method: &str) -> Option<Handler> {
         },
         "dictation.stop" => |daemon, _ctx, value| {
             let at = std::time::Instant::now();
-            let _: dettivo_proto::catalog::NoParams = params(value)?;
-            dictation::stop(daemon, at)
+            dictation::stop(daemon, value, at)
         },
         "dictation.cancel" => |daemon, _ctx, value| dictation::cancel(daemon, value),
         "dictation.status" => |daemon, _ctx, value| {
@@ -200,8 +199,8 @@ pub fn resolve(method: &str) -> Option<Handler> {
             audio::devices(daemon)
         },
         "speech.providers.list" => |daemon, _ctx, value| {
-            let _: dettivo_proto::catalog::NoParams = params(value)?;
-            speech::providers_list(daemon)
+            let p: dettivo_proto::methods::speech::ProvidersListParams = params(value)?;
+            speech::providers_list(daemon, p.language.as_deref())
         },
         "speech.selection.get" => |daemon, _ctx, value| {
             let _: dettivo_proto::catalog::NoParams = params(value)?;
