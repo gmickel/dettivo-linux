@@ -1,21 +1,24 @@
-//! What a session does to the rest of the desktop (FR-H5, FR-H6): pauses
-//! the MPRIS players that were playing when capture starts and resumes
-//! them when it ends, and plays the start, stop and error cues. Both are
-//! off by default, read from `[hotkeys]` at each transition, and silent
-//! during a meeting.
+//! What a session does to the rest of the desktop (FR-H5, FR-H6): hands
+//! the take's start and end to the media service (`[audio]
+//! while_dictating`, ADR 0091), and plays the start, stop and error cues.
+//! Both are off by default, read at each transition, and silent during a
+//! meeting.
 
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, RwLock};
 
 use dettivo_audio::playback::{Cue, Player};
 use dettivo_core::config::Loaded;
+use dettivo_core::config::schema::WhileDictating;
 use dettivo_session::{State, StateChange};
+
+use crate::media::{self, Media};
 
 /// The service.
 pub struct Feedback {
     config: Arc<RwLock<Loaded>>,
     player: Player,
-    paused: Mutex<Vec<String>>,
+    media: Media,
 }
 
 /// True when a cue may play: sounds are on and no meeting runs.
@@ -26,11 +29,13 @@ pub fn sound_allowed(sounds: bool, meeting_active: bool) -> bool {
 /// What a transition asks for.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Effect {
-    /// Capture began: pause media, start cue.
+    /// Capture began: media, start cue.
     Started,
-    /// The session ended well or was cancelled: resume media, stop cue.
+    /// Capture stopped and transcription follows: a tap leaves media.
+    Stopped,
+    /// The session ended well or was cancelled: media back, stop cue.
     Ended,
-    /// The session failed: resume media, error cue.
+    /// The session failed: media back, error cue.
     Failed,
 }
 
@@ -39,6 +44,7 @@ pub enum Effect {
 pub fn effect_of(change: &StateChange) -> Option<Effect> {
     match (change.state, change.previous) {
         (State::Recording, State::Idle) => Some(Effect::Started),
+        (State::Transcribing | State::Inserting, State::Recording) => Some(Effect::Stopped),
         (State::Cancelled, _) => Some(Effect::Ended),
         (State::Failed, _) => Some(Effect::Failed),
         (State::Idle, State::Cancelled | State::Failed | State::Idle) => None,
@@ -54,7 +60,7 @@ impl Feedback {
         Self {
             config,
             player: Player::new(cache_dir, mock_log),
-            paused: Mutex::new(Vec::new()),
+            media: Media::new(Box::new(media::Wpctl), Box::new(media::Mpris)),
         }
     }
 
@@ -64,11 +70,12 @@ impl Feedback {
         false
     }
 
-    fn settings(&self) -> (bool, bool) {
+    fn settings(&self) -> (WhileDictating, bool) {
         let loaded = self.config.read().unwrap_or_else(|p| p.into_inner());
+        let c = &loaded.config;
         (
-            loaded.config.hotkeys.pause_media,
-            loaded.config.hotkeys.sounds,
+            media::effective(c.audio.while_dictating, c.hotkeys.pause_media),
+            c.hotkeys.sounds,
         )
     }
 
@@ -77,27 +84,15 @@ impl Feedback {
         let Some(effect) = effect_of(change) else {
             return;
         };
-        let (pause_media, sounds) = self.settings();
+        let (while_dictating, sounds) = self.settings();
         match effect {
             Effect::Started => {
-                if pause_media {
-                    match dettivo_hotkeys::mpris::pause_playing_blocking(None) {
-                        Ok(names) => {
-                            *self.paused.lock().unwrap_or_else(|p| p.into_inner()) = names;
-                        }
-                        Err(e) => tracing::warn!(error = %e, "mpris: players not paused"),
-                    }
-                }
+                self.media.started(while_dictating);
                 self.cue(sounds, Cue::Start);
             }
+            Effect::Stopped => self.media.stopped(),
             Effect::Ended | Effect::Failed => {
-                let names: Vec<String> =
-                    std::mem::take(&mut *self.paused.lock().unwrap_or_else(|p| p.into_inner()));
-                if !names.is_empty() {
-                    if let Err(e) = dettivo_hotkeys::mpris::resume_blocking(None, &names) {
-                        tracing::warn!(error = %e, "mpris: players not resumed");
-                    }
-                }
+                self.media.ended();
                 self.cue(
                     sounds,
                     if effect == Effect::Failed {
@@ -147,7 +142,7 @@ mod tests {
         );
         assert_eq!(
             effect_of(&change(State::Transcribing, State::Recording)),
-            None
+            Some(Effect::Stopped)
         );
         assert_eq!(
             effect_of(&change(State::Inserting, State::Transcribing)),

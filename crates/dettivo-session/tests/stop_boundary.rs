@@ -100,7 +100,7 @@ fn the_capture_ends_at_the_stop_request_and_nothing_after_it_counts() {
         )
         .unwrap();
     std::thread::sleep(Duration::from_millis(50));
-    assert_eq!(session.stop().unwrap_err(), SessionError::Cancelled);
+    assert_eq!(session.stop().unwrap_err(), SessionError::NoSpeech);
     assert_eq!(
         *stopped_on.lock().unwrap(),
         Some(std::thread::current().id())
@@ -181,7 +181,7 @@ fn a_sound_that_arrives_after_the_stop_while_the_worker_waits_is_tail() {
         std::thread::sleep(Duration::from_millis(10));
         late.send(Event::Pcm(tone(320)));
     });
-    assert_eq!(session.stop().unwrap_err(), SessionError::Cancelled);
+    assert_eq!(session.stop().unwrap_err(), SessionError::NoSpeech);
     thump.join().unwrap();
     assert_eq!(engine.calls.load(std::sync::atomic::Ordering::Relaxed), 0);
 }

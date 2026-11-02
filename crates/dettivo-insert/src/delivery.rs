@@ -61,11 +61,14 @@ pub(crate) struct Delivered {
     pub typed: Option<(&'static str, usize)>,
 }
 
-/// Runs the chosen backends over `text` in `order`.
+/// Runs the chosen backends over `text` in `order`; a clipboard-only
+/// backend copies `copied` instead, the text as dictated when `text`
+/// joins it to the previous take, since a copy joins nothing (ADR 0091).
 pub(crate) fn deliver(
     candidates: &[Candidate<'_>],
     order: &[String],
     text: &str,
+    copied: &str,
     clipboard_only_requested: bool,
     ctx: &Ctx<'_>,
 ) -> Delivered {
@@ -76,6 +79,11 @@ pub(crate) fn deliver(
             .find(|c| c.backend.name() == name)
             .map(|c| c.backend)
             .expect("chosen backend exists");
+        let text = if backend.kind() == Kind::ClipboardOnly {
+            copied
+        } else {
+            text
+        };
         let started = Instant::now();
         match backend.insert(text, ctx) {
             Ok(performed) => {
@@ -198,6 +206,7 @@ mod tests {
         deliver(
             &candidates,
             &["first".to_string(), "second".to_string()],
+            "hello",
             "hello",
             false,
             &ctx,

@@ -82,6 +82,7 @@ Exit codes, from the contract:
 | 3 | Permission denied: `UNAUTHORIZED_CLIENT` or a socket the user cannot open |
 | 4 | Invalid command or arguments, including `INVALID_PARAMS` from the daemon |
 | 5 | Timeout |
+| 6 | No speech: `dettivo dictation stop` or `stop --print` on a take the speech gate found silent (Linux addition) |
 
 `dettivo doctor` is the one report to paste into an issue: everything about this machine that decides whether dictation works and how fast, grouped for a person and in one stable shape for a script. It exits 0 when the daemon answers, the configuration is valid and no engine is degraded, 1 otherwise; an unreachable daemon still prints the machine rows. `--json` carries these keys on every machine (a value the machine lacks is `null`, a block keeps its keys), and `crates/dettivo-cli/tests/goldens/doctor.json` pins the shape the way the contract replay levels machine-specific results:
 

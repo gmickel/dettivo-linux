@@ -21,7 +21,7 @@ use dettivo_core::config::vocabulary_schema;
 use dettivo_language::pipeline::{Mode, Settings};
 use dettivo_language::provider::LocalEngine;
 
-use crate::machine::{Exit, SharedState, finish_shared};
+use crate::finish::{Exit, SharedState, finish_shared};
 use crate::{
     Archive, Inserter, Level, Policy, Publisher, SessionTarget, SessionTimings, State, StateChange,
     Transcript,
@@ -35,6 +35,8 @@ struct Recorded {
     exit: Option<Exit>,
     /// From the stop being observed to the take being final.
     capture_ms: u64,
+    /// When the stop was observed.
+    stopped: Instant,
 }
 
 fn elapsed_ms(since: Instant) -> u64 {
@@ -47,6 +49,7 @@ pub(crate) struct Worker {
     pub(crate) engine: Arc<dyn SttEngine>,
     pub(crate) stop: Arc<AtomicBool>,
     pub(crate) cancel: Arc<AtomicBool>,
+    pub(crate) route: Arc<crate::deliver::Route>,
     pub(crate) dir: PathBuf,
     pub(crate) publisher: Arc<dyn Publisher>,
     pub(crate) inserter: Arc<dyn Inserter>,
@@ -79,6 +82,7 @@ impl Worker {
             duration_ms,
             exit: record_exit,
             capture_ms,
+            stopped,
         } = match outcome {
             Ok(v) => v,
             Err(exit) => {
@@ -250,11 +254,13 @@ impl Worker {
         }
         self.set(&shared, State::Inserting, 0.9, None);
         let insert_started = Instant::now();
-        let insertion = if text.is_empty() {
-            None
-        } else {
-            Some(self.inserter.insert(&text, self.target.as_ref()))
-        };
+        let insertion = crate::deliver::deliver(
+            &*self.inserter,
+            &text,
+            self.target.as_ref(),
+            self.route.printing(),
+            stopped,
+        );
         let timings = SessionTimings {
             capture_ms,
             transcribe_ms,
@@ -322,6 +328,7 @@ impl Worker {
                     duration_ms: 0,
                     exit: Some(Exit::Cancelled),
                     capture_ms: 0,
+                    stopped: Instant::now(),
                 });
             }
             if self.stop.load(Ordering::Relaxed) || started.elapsed() >= self.policy.max_duration {
@@ -420,6 +427,7 @@ impl Worker {
             duration_ms,
             exit,
             capture_ms: elapsed_ms(released),
+            stopped: released,
         })
     }
 

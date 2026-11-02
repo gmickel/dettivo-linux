@@ -2,13 +2,17 @@
 //! the window captured at the session's start as the guard, so the text
 //! only lands where the user was when the key went down (S-08 guards). A
 //! mismatch at insertion time is reported as a failed insertion with a
-//! `CONFLICT` reason; the transcript is kept either way.
+//! `CONFLICT` reason; the transcript is kept either way. A take that
+//! continues the previous one in the same window is joined to it first
+//! (ADR 0091).
 
+use std::borrow::Cow;
 use std::sync::{Arc, RwLock};
 
 use dettivo_core::config::Loaded;
 use dettivo_insert::chain::Guards;
-use dettivo_insert::{Inserter as ChainInsert, Request, Service};
+use dettivo_insert::join::{Continuation, Place};
+use dettivo_insert::{Inserter as ChainInsert, Request, Service, Settings};
 use dettivo_proto::capabilities::InsertMode;
 use dettivo_proto::runtime::{InsertionMethod, InsertionOutcome, InsertionResult, TargetApp};
 use dettivo_session::{Inserter, SessionTarget, no_context_pack};
@@ -20,21 +24,68 @@ pub struct ChainInserter {
     service: Arc<Service>,
     config: Arc<RwLock<Loaded>>,
     self_target: Arc<SelfTargetAllowance>,
+    joins: Arc<Continuation>,
 }
 
 impl ChainInserter {
-    /// Over the daemon's service, configuration and self-target allowance.
+    /// Over the daemon's service, configuration, self-target allowance
+    /// and the last delivery a continuation joins.
     pub fn new(
         service: Arc<Service>,
         config: Arc<RwLock<Loaded>>,
         self_target: Arc<SelfTargetAllowance>,
+        joins: Arc<Continuation>,
     ) -> Self {
         Self {
             service,
             config,
             self_target,
+            joins,
         }
     }
+}
+
+/// The `[insert]` settings of a configuration snapshot.
+pub fn insert_settings(loaded: &Loaded) -> Settings {
+    let insert = loaded.config.insert.clone();
+    Settings {
+        backend: insert.backend,
+        paste_keys: insert.paste_keys,
+        terminal_app_ids: insert.terminal_app_ids,
+        self_app_ids: insert.self_app_ids,
+        inter_key_delay_ms: insert.inter_key_delay_ms,
+        restore_clipboard: insert.restore_clipboard,
+        clipboard_restore_delay_ms: insert.clipboard_restore_delay_ms,
+        undo_window_ms: insert.undo_window_ms,
+    }
+}
+
+/// When the text landed: now, or for a paste whose clipboard was put
+/// back, before the restore delay, so typing during that delay counts as
+/// input after the delivery.
+fn landed(result: &InsertionResult, settings: &Settings) -> std::time::Instant {
+    let now = std::time::Instant::now();
+    let pasted = result
+        .backend
+        .as_ref()
+        .is_some_and(|b| b.name == "clipboard_paste");
+    if pasted && settings.restore_clipboard {
+        let delay = std::time::Duration::from_millis(settings.clipboard_restore_delay_ms);
+        now.checked_sub(delay).unwrap_or(now)
+    } else {
+        now
+    }
+}
+
+/// The window a take was captured in, when the probe named it whole: a
+/// join needs the window itself, not only its process.
+fn place_of(target: Option<&SessionTarget>) -> Option<Place> {
+    let t = target.filter(|t| !t.unverified)?;
+    Some(Place {
+        app_id: t.app_id.clone()?,
+        pid: t.pid,
+        window: t.window.clone()?,
+    })
 }
 
 /// The result for a guard mismatch.
@@ -82,8 +133,20 @@ pub fn annotate(mut result: InsertionResult, target: Option<&SessionTarget>) -> 
 
 impl Inserter for ChainInserter {
     fn insert(&self, text: &str, target: Option<&SessionTarget>) -> InsertionResult {
-        let settings =
-            crate::daemon::insert_settings(&self.config.read().unwrap_or_else(|p| p.into_inner()));
+        let (settings, join) = {
+            let loaded = self.config.read().unwrap_or_else(|p| p.into_inner());
+            (
+                insert_settings(&loaded),
+                loaded.config.dictation.join_continuations,
+            )
+        };
+        let place = place_of(target);
+        let dictated = text;
+        let text = if join {
+            self.joins.text_for(place.as_ref(), dictated)
+        } else {
+            Cow::Borrowed(dictated)
+        };
         let pid = target.and_then(|t| t.pid).map(|p| p.to_string());
         // The allowance covers the app's own window ids only: a take whose
         // key went down over the pill or the sheet is refused as ever.
@@ -91,7 +154,10 @@ impl Inserter for ChainInserter {
             .and_then(|t| t.app_id.as_deref())
             .is_some_and(|id| APP_IDS.iter().any(|a| a.eq_ignore_ascii_case(id)));
         let request = Request {
-            text,
+            text: &text,
+            // Only a delivery into the verified window joins; a copy
+            // carries the take as dictated.
+            as_dictated: Some(dictated).filter(|d| *d != text),
             mode: mode_for(target),
             guards: Guards {
                 app_id: target.and_then(|t| t.app_id.as_deref()),
@@ -100,13 +166,17 @@ impl Inserter for ChainInserter {
             },
             allow_self_target: app_window && self.self_target.armed(),
         };
-        match self.service.insert(&settings, &request) {
+        let result = match self.service.insert(&settings, &request) {
             Ok(result) => annotate(result, target),
             Err(message) => {
                 tracing::info!(reason = %message, "insertion refused: the focus moved since the session started");
                 conflict_result(target, &message)
             }
-        }
+        };
+        let typed = result.outcome == InsertionOutcome::Inserted;
+        self.joins
+            .delivered(place.filter(|_| typed), &text, landed(&result, &settings));
+        result
     }
 }
 
@@ -148,5 +218,124 @@ mod tests {
         assert_eq!(annotate(copied(), Some(&verified)).reason, None);
         assert_eq!(mode_for(None), InsertMode::Raw);
         assert_eq!(annotate(copied(), None).reason, None);
+    }
+
+    /// A paste lands before the restore delay, so typing during the delay
+    /// is input after the delivery; typed text lands at once.
+    #[test]
+    fn a_restored_paste_landed_before_its_restore_delay() {
+        let mut result = copied();
+        let settings = Settings::default();
+        let now = std::time::Instant::now();
+        assert!(landed(&result, &settings) >= now);
+        result.backend = Some(dettivo_proto::runtime::InsertionBackend {
+            name: "clipboard_paste".into(),
+            latency_ms: 600,
+            undo_supported: false,
+        });
+        let delay = std::time::Duration::from_millis(settings.clipboard_restore_delay_ms);
+        assert!(landed(&result, &settings) <= now - delay + std::time::Duration::from_millis(50));
+    }
+
+    struct Quiet;
+    impl dettivo_insert::idle::InputActivity for Quiet {
+        fn active_between(&self, _: std::time::Instant, _: std::time::Instant) -> Option<bool> {
+            Some(false)
+        }
+    }
+
+    /// fn-85 R3 through the chain: a second quiet take into the window
+    /// the first one was typed into continues it; `join_continuations =
+    /// false` types it as it is, and an unverified origin never joins.
+    #[test]
+    fn a_quiet_second_take_continues_the_first_unless_joins_are_off() {
+        for join in [true, false] {
+            let dir = tempfile::tempdir().unwrap();
+            let file = dir.path().join("inserted.txt");
+            let mock = dettivo_insert::Mock {
+                inserted_file: file.clone(),
+            };
+            let service = Arc::new(Service::new(move || dettivo_insert::Session {
+                mock: Some(mock.clone()),
+                ..dettivo_insert::Session::default()
+            }));
+            let mut loaded = Loaded::load(&dir.path().join("none.toml"), |_| None);
+            loaded.config.dictation.join_continuations = join;
+            let joins = Arc::new(Continuation::new(Arc::new(Quiet)));
+            let inserter = ChainInserter::new(
+                service,
+                Arc::new(RwLock::new(loaded)),
+                Arc::new(SelfTargetAllowance::default()),
+                joins.clone(),
+            );
+            let target = SessionTarget {
+                app_id: Some(dettivo_insert::probe::MOCK_APP_ID.into()),
+                pid: Some(dettivo_insert::probe::MOCK_PID),
+                window: Some("mock-window".into()),
+                unverified: false,
+            };
+            inserter.insert("I wrote the report", Some(&target));
+            joins.take_started(std::time::Instant::now());
+            inserter.insert("And then I left.", Some(&target));
+            joins.take_started(std::time::Instant::now());
+            inserter.insert("Unrelated", Some(&SessionTarget::unverified()));
+            let typed = std::fs::read_to_string(&file).unwrap();
+            let second = if join {
+                " and then I left."
+            } else {
+                "And then I left."
+            };
+            assert_eq!(
+                typed.lines().take(2).collect::<Vec<_>>(),
+                ["I wrote the report", second],
+                "join_continuations = {join}"
+            );
+        }
+    }
+
+    /// A continuation the chain can only copy is copied as dictated: a
+    /// clipboard-only delivery never joins, so it carries no leading
+    /// space or lowered capital, and it ends the run of joined takes.
+    #[test]
+    fn a_continuation_that_falls_back_to_the_clipboard_is_copied_standalone() {
+        let dir = tempfile::tempdir().unwrap();
+        let file = dir.path().join("inserted.txt");
+        let mock = dettivo_insert::Mock {
+            inserted_file: file.clone(),
+        };
+        let service = Arc::new(Service::new(move || dettivo_insert::Session {
+            mock: Some(mock.clone()),
+            ..dettivo_insert::Session::default()
+        }));
+        let mut loaded = Loaded::load(&dir.path().join("none.toml"), |_| None);
+        loaded.config.dictation.join_continuations = true;
+        let config = Arc::new(RwLock::new(loaded));
+        let joins = Arc::new(Continuation::new(Arc::new(Quiet)));
+        let inserter = ChainInserter::new(
+            service,
+            config.clone(),
+            Arc::new(SelfTargetAllowance::default()),
+            joins.clone(),
+        );
+        let target = SessionTarget {
+            app_id: Some(dettivo_insert::probe::MOCK_APP_ID.into()),
+            pid: Some(dettivo_insert::probe::MOCK_PID),
+            window: Some("mock-window".into()),
+            unverified: false,
+        };
+        inserter.insert("I wrote the report", Some(&target));
+        joins.take_started(std::time::Instant::now());
+        // The typing backends are gone: only the clipboard is left.
+        config.write().unwrap().config.insert.backend = "mock_clipboard".into();
+        let copied = inserter.insert("And then I left.", Some(&target));
+        assert_eq!(copied.outcome, InsertionOutcome::CopiedToClipboard);
+        config.write().unwrap().config.insert.backend = "auto".into();
+        joins.take_started(std::time::Instant::now());
+        inserter.insert("So it goes", Some(&target));
+        let lines = std::fs::read_to_string(&file).unwrap();
+        assert_eq!(
+            lines.lines().collect::<Vec<_>>(),
+            ["I wrote the report", "And then I left.", "So it goes"]
+        );
     }
 }

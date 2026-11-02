@@ -120,7 +120,7 @@ fn silence_is_read_from_the_samples_not_the_meter() {
         peak: 0.9,
     });
     std::thread::sleep(Duration::from_millis(50));
-    assert_eq!(session.stop().unwrap_err(), SessionError::Cancelled);
+    assert_eq!(session.stop().unwrap_err(), SessionError::NoSpeech);
     assert_eq!(engine.calls.load(Ordering::Relaxed), 0);
     assert_eq!(
         support::silence_reason(&rec).as_deref(),
@@ -144,7 +144,7 @@ fn unarchived_staging_is_discarded_and_silence_skips_the_engine() {
         peak: 0.001,
     });
     std::thread::sleep(Duration::from_millis(50));
-    assert_eq!(session.stop().unwrap_err(), SessionError::Cancelled);
+    assert_eq!(session.stop().unwrap_err(), SessionError::NoSpeech);
     assert_eq!(
         engine.calls.load(Ordering::Relaxed),
         0,

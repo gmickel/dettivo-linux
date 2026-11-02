@@ -25,7 +25,7 @@ dettivo  Talk to the Dettivo daemon
 │  └─ keys*  List every key with its section, type, default and meaning
 ├─ dictation  dictation.* methods: start, stop, cancel, status, toggle, press, release, reinsert-last
 │  ├─ start --language --mode --expected-target-bundle-id --expected-target-pid  dictation.start
-│  ├─ stop  dictation.stop: finish the take, transcribe and insert
+│  ├─ stop --print  dictation.stop: finish the take, transcribe and insert
 │  ├─ cancel  dictation.cancel: drop the session
 │  ├─ status  dictation.status
 │  ├─ toggle*  Start when idle, stop when a session runs (Linux addition)
@@ -185,5 +185,6 @@ Anything that speaks HTTP sends `GET` or `POST` to `http://127.0.0.1:45831/v1/{n
 | 3 | Permission denied by the peer check or the token. |
 | 4 | Invalid command or arguments. |
 | 5 | Timeout (`--timeout-ms`, default 5000) or an interrupted operation. |
+| 6 | No speech: `dettivo dictation stop` or `stop --print` on a take the speech gate found silent (a Linux addition). |
 
 With `--json`, a daemon failure prints its unchanged JSON-RPC error object on standard output. A locally detected failure prints `{ "error": { "code": -32603, "message": "...", "data": { "origin": "cli", "exit_code": 4 } } }`, with the actual exit code. Scripts branch on `error.data.origin` for local errors and `error.data.app_code` for daemon errors. Commands that already return a structured diagnostic report retain that single report on failure. `--quiet` suppresses stdout while stderr retains the failure message, and `mcp serve` reserves stdout for framed MCP messages (ADR 0055).

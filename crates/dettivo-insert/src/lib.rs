@@ -6,8 +6,11 @@
 
 pub mod backend;
 pub mod chain;
+pub mod clip;
 mod delivery;
 pub mod guards;
+pub mod idle;
+pub mod join;
 pub mod keymap;
 pub mod probe;
 pub mod service;

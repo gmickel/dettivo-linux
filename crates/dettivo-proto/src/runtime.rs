@@ -151,6 +151,9 @@ pub enum InsertionOutcome {
     CopiedToClipboard,
     /// Insertion failed entirely.
     Failed,
+    /// Linux addition: the text went to the caller of `dictation.stop`
+    /// with `print` and to no window.
+    Printed,
 }
 
 /// Which mechanism performed the insertion.
@@ -163,6 +166,8 @@ pub enum InsertionMethod {
     FallbackCopy,
     /// Clipboard-only mode was requested.
     ClipboardOnly,
+    /// Linux addition: nothing was inserted; the stop printed the text.
+    Printed,
 }
 
 /// The focused application at the time of insertion.

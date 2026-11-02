@@ -71,8 +71,9 @@ inter_key_delay_ms = 2
 # Put the previous clipboard back after a clipboard insertion.
 restore_clipboard = true
 # How long the restore waits for the target to take the paste, in
-# milliseconds. A clipboard the user changed meanwhile is left alone.
-clipboard_restore_delay_ms = 300
+# milliseconds. Every type the clipboard offered (an image, rich text, a
+# file list) comes back; a copy made meanwhile is left alone.
+clipboard_restore_delay_ms = 500
 # How long after an insertion `dettivo insert undo` may take it back.
 undo_window_ms = 5000
 
@@ -152,6 +153,11 @@ level_interval_ms = 50
 # monitor and follows the default when it changes; a sink's node name pins
 # that sink's monitor.
 system_source = "default_monitor"
+# What a dictation does to playing media once the key is held past a tap:
+# "nothing", "pause" (MPRIS players), "duck" (the default output to 20 %)
+# or "mute". Nothing changes while a meeting records. [hotkeys]
+# pause_media = true reads as "pause".
+while_dictating = "nothing"
 
 [dictation]
 # Language code (en, de, ...) or auto.
@@ -180,6 +186,11 @@ silence_dbfs = -50.0
 # Whole-word replacements applied after recognition, case-insensitive:
 # replacements = { teh = "the", dettivo = "Dettivo" }
 replacements = {}
+# A dictation into the window the previous one landed in, within 30 s and
+# with no typing in between, continues it: one joining space, and a
+# capital only after a sentence end. Needs the compositor's input-idle
+# signal; false types every dictation as it is.
+join_continuations = true
 
 [history]
 # Keep the take of every finished dictation beside its item, under
@@ -343,7 +354,8 @@ toggle = "SUPER CTRL, X"
 cancel = "SUPER CTRL, Escape"
 # Insert the last transcript again.
 reinsert = "SUPER CTRL SHIFT, X"
-# Pause playing MPRIS players while capturing and resume them after.
+# Pause playing MPRIS players while capturing and resume them after; the
+# same as [audio] while_dictating = "pause".
 pause_media = false
 # Play a short sound on start, stop and error (never during a meeting).
 sounds = false

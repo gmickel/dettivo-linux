@@ -93,6 +93,16 @@ pub struct StartResult {
     pub job: JobStatus,
 }
 
+/// `dictation.stop` params (Linux addition): `print` finishes the take
+/// without inserting and returns the text in the result.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StopParams {
+    /// Return the text instead of inserting it.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub print: bool,
+}
+
 /// `dictation.stop` result.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -107,6 +117,10 @@ pub struct StopResult {
     /// moved away from the window captured at start).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub insertion: Option<crate::runtime::InsertionResult>,
+    /// Linux addition: the text the mode step produced, present when the
+    /// stop asked for `print`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
 }
 
 /// `dictation.cancel` parameters. A guard confines cleanup to its own job.
