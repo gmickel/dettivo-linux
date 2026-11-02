@@ -1,6 +1,8 @@
 //! How alike two spellings are: letters in common, edit distance, and a
 //! rough English consonant key with a sound count, so a heard span can be
-//! matched to a term it may be a mishearing of.
+//! matched to a term it may be a mishearing of. Parakeet finds candidate
+//! spans with them (ADR 0088), and Whisper's term check asks whether a
+//! lone name sounds like what the prompt-free decode heard (ADR 0095).
 
 /// Lowercase letters and digits only: `"Sapien XT"` is `sapienxt`.
 pub fn normalise(text: &str) -> String {
@@ -136,6 +138,21 @@ pub fn key(word: &str) -> (String, usize) {
     (key.replace('.', ""), sounds)
 }
 
+/// How alike two normalised spellings sound, from 0 to 1: the share of
+/// the longer consonant key the shorter one matches, times the ratio of
+/// their sound counts, so a spelling that drops a sound (`omar` for
+/// `omarchy`) scores under one that swaps a like sound (`pleph` for
+/// `clef`). 0 when either has no sounds.
+pub fn alike(heard: &str, spelling: &str) -> f32 {
+    let ((heard_key, heard_sounds), (key_s, sounds)) = (key(heard), key(spelling));
+    let longer = heard_key.chars().count().max(key_s.chars().count());
+    if heard_sounds == 0 || sounds == 0 || longer == 0 {
+        return 0.0;
+    }
+    let keys = 1.0 - edit_distance(&heard_key, &key_s) as f32 / longer as f32;
+    keys * heard_sounds.min(sounds) as f32 / heard_sounds.max(sounds) as f32
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -164,5 +181,13 @@ mod tests {
         assert_eq!(key("zapianxt").0, "SPNKST");
         assert_eq!(key("highland").0, "LNT");
         assert_eq!(key("clef"), ("KLF".into(), 4));
+    }
+
+    #[test]
+    fn a_swapped_like_sound_scores_over_a_dropped_one() {
+        assert_eq!(alike("hyprland", "hyprland"), 1.0);
+        assert!(alike("pleph", "clef") > alike("clyde", "clef"));
+        assert!(alike("ohmarky", "omarchy") > alike("omar", "omarchy"));
+        assert_eq!(alike("", "clef"), 0.0);
     }
 }

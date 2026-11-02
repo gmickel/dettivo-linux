@@ -7,7 +7,7 @@
 //! across punctuation, and terms under five letters without an alias are
 //! never candidates.
 
-use super::sound::{common_letters, edit_distance, key, normalise};
+use dettivo_engine_proto::sound::{common_letters, edit_distance, key, normalise};
 
 /// The most words a candidate span covers.
 pub const MAX_SPAN_WORDS: usize = 4;

@@ -7,7 +7,6 @@
 
 mod candidates;
 mod pieces;
-mod sound;
 
 use dettivo_engine_proto::VocabularyBias;
 
