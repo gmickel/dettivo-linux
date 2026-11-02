@@ -48,6 +48,9 @@ pub trait Takes {
     fn start(&self, at: Instant) -> Result<String, JsonRpcError>;
     /// Drops the take a tap started.
     fn discard(&self, job: &str);
+    /// Notes a release that arrived `at` and waits for its turn; `None`
+    /// once it acted.
+    fn release_waiting(&self, at: Option<Instant>);
     /// Tells the pill `job` is locked, only while it still records; false
     /// when it ended meanwhile.
     fn lock(&self, job: &str) -> bool;
@@ -67,6 +70,9 @@ impl Takes for Daemon {
         if let Err(e) = self.dictation().discard_tap(job) {
             tracing::debug!(error = %e, "hold key: the tapped take was already gone");
         }
+    }
+    fn release_waiting(&self, at: Option<Instant>) {
+        self.dictation().release_waiting(at);
     }
     fn lock(&self, job: &str) -> bool {
         self.dictation()
@@ -115,13 +121,22 @@ impl HoldKey {
     /// that waited behind a slow start or discard (a cold engine,
     /// `pause_media`) is timed as the person pressed it.
     pub fn on(&self, takes: &impl Takes, edge: Edge, at: Instant) -> Result<Outcome, JsonRpcError> {
+        // A release that waits behind a slow start keeps the take's
+        // speech check back until it acted (ADR 0097).
+        if edge == Edge::Release {
+            takes.release_waiting(Some(at));
+        }
         let ticket = self.tickets.fetch_add(1, Ordering::SeqCst);
         let mut q = self.inner.lock().unwrap_or_else(|p| p.into_inner());
         while q.serving != ticket {
             q = self.turn.wait(q).unwrap_or_else(|p| p.into_inner());
         }
         let mut turn = Turn { q, key: self };
-        self.step(&mut turn.q.inner, takes, edge, at)
+        let outcome = self.step(&mut turn.q.inner, takes, edge, at);
+        if edge == Edge::Release {
+            takes.release_waiting(None);
+        }
+        outcome
     }
 
     fn step(

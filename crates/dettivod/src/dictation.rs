@@ -341,6 +341,12 @@ impl Dictation {
             .stop_expected(Some(expected_job_id), released_at)
     }
 
+    /// Notes a hold-key release waiting behind a start (`None` once
+    /// settled), so a tap's speech check never starts meanwhile.
+    pub fn release_waiting(&self, at: Option<Instant>) {
+        self.session.release_waiting(at);
+    }
+
     /// Drops the named take as a tap.
     pub fn discard_tap(&self, expected_job_id: &str) -> Result<Snapshot, SessionError> {
         self.session.discard_tap(expected_job_id)

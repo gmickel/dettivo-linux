@@ -43,6 +43,7 @@ impl Takes for Fake {
         std::thread::sleep(self.slow);
         *self.recording.lock().unwrap() = None;
     }
+    fn release_waiting(&self, _: Option<Instant>) {}
     fn lock(&self, _job: &str) -> bool {
         self.lockable
     }

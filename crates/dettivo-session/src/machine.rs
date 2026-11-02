@@ -82,6 +82,8 @@ pub struct Session {
     /// The voice activity pass of the speech gate, frozen per session at
     /// its start; without it the level stage decides alone.
     vad: Mutex<Option<Arc<dyn VoiceDetector>>>,
+    /// A hold-key release still waiting to be settled ([`Session::release_waiting`]).
+    release_waiting: Arc<Mutex<Option<Instant>>>,
 }
 
 impl Session {
@@ -101,6 +103,7 @@ impl Session {
             archive: None,
             local_llm: Mutex::new(None),
             vad: Mutex::new(None),
+            release_waiting: Arc::default(),
         }
     }
 
@@ -129,6 +132,17 @@ impl Session {
     /// The inserter in force.
     pub fn inserter(&self) -> Arc<dyn Inserter> {
         self.inserter.clone()
+    }
+
+    /// Notes a hold-key release that arrived `at` and waits behind a
+    /// slow start or discard; `None` once the hold key settled it. While
+    /// one that would make the take a tap waits, the take's speech check
+    /// does not start (ADR 0097: a tap never reaches the detector).
+    pub fn release_waiting(&self, at: Option<Instant>) {
+        *self
+            .release_waiting
+            .lock()
+            .unwrap_or_else(|p| p.into_inner()) = at;
     }
 
     /// Starts a session for a press that arrived at `pressed_at`: the
@@ -224,6 +238,7 @@ impl Session {
             released,
             tap,
             pressed: pressed_at,
+            release_waiting: self.release_waiting.clone(),
             route,
             dir: self.sessions_dir.join(&job_id),
             publisher: self.publisher.clone(),

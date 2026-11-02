@@ -364,3 +364,50 @@ fn the_check_hears_the_audio_from_before_the_minimum_hold() {
     );
     assert_eq!(vad.whole.load(Ordering::Relaxed), 0, "no whole-take pass");
 }
+
+/// A start slower than the minimum hold: the release arrived at 120 ms
+/// but waits behind the start before it can discard the tap. While it
+/// waits the check does not start, so the tap never reaches the detector;
+/// a release the hold key settles otherwise (a double tap's lock) lets
+/// the check start with everything captured so far.
+#[test]
+fn a_release_waiting_behind_a_slow_start_keeps_the_check_back() {
+    for lock in [false, true] {
+        let (dir, _rec, session, engine, feed) = rig("Ok");
+        let vad = Arc::new(Logged::default());
+        session.set_vad(Some(vad.clone()));
+        let mut p = policy(dir.path(), false);
+        p.min_hold = Duration::from_millis(300);
+        // The press arrived 400 ms ago; its release came 120 ms in.
+        let pressed = Instant::now() - Duration::from_millis(400);
+        session.release_waiting(Some(pressed + Duration::from_millis(120)));
+        let job = session
+            .start(p, engine.clone(), feed.clone(), None, pressed)
+            .unwrap()
+            .job_id;
+        feed.speak(100);
+        std::thread::sleep(Duration::from_millis(100));
+        assert!(
+            vad.log.lock().unwrap().is_empty(),
+            "the check started under a waiting release: {:?}",
+            vad.log.lock().unwrap()
+        );
+        if lock {
+            session.release_waiting(None);
+            feed.speak(100);
+            let started = Instant::now();
+            while vad.log.lock().unwrap().is_empty() {
+                assert!(started.elapsed() < Duration::from_secs(5), "no check");
+                std::thread::sleep(Duration::from_millis(5));
+            }
+            session.cancel_expected(Some(&job)).unwrap();
+        } else {
+            session.discard_tap(&job).unwrap();
+            session.release_waiting(None);
+            assert!(
+                vad.log.lock().unwrap().is_empty(),
+                "the tap reached the detector"
+            );
+        }
+    }
+}

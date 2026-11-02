@@ -45,6 +45,15 @@ struct Tail {
 }
 
 impl Worker {
+    /// True while a release that would make this take a tap (it came
+    /// after the press and before `qualifies`) waits behind the start.
+    fn tap_waiting(&self, qualifies: Instant) -> bool {
+        self.release_waiting
+            .lock()
+            .unwrap_or_else(|p| p.into_inner())
+            .is_some_and(|at| at >= self.pressed && at < qualifies)
+    }
+
     /// Drains the source until stop, cancel, the maximum duration or the
     /// source's end. Returns the samples, the duration, an early exit when
     /// the recording itself decided the outcome, and how long the tail,
@@ -112,6 +121,7 @@ impl Worker {
                         if check.is_none()
                             && arrived >= qualifies
                             && !self.cancel.load(Ordering::Relaxed)
+                            && !self.tap_waiting(qualifies)
                             && let Some(vad) = detector.take()
                         {
                             check = vad.stream().map(SpeechCheck::start);
