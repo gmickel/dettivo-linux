@@ -9,7 +9,7 @@ pub fn human(report: &Value) -> String {
         if name.starts_with("-- ") {
             out.push_str(&format!("{name} {text}\n"));
         } else {
-            out.push_str(&format!("{name:<10}{text}\n"));
+            out.push_str(&format!("{name:<9} {text}\n"));
         }
     };
     row("-- desktop", "--".into());
@@ -57,6 +57,7 @@ pub fn human(report: &Value) -> String {
             "capture unavailable".into()
         },
     );
+    row("microphone ready", microphone_ready(&report["audio"]));
     row("-- daemon", "--".into());
     row(
         "daemon",
@@ -131,6 +132,12 @@ pub fn human(report: &Value) -> String {
             );
         }
     }
+    if report["insertion"]["compositor"].is_object() {
+        row(
+            "compositor",
+            compositor_row(&report["insertion"]["compositor"]),
+        );
+    }
     if report["hotkeys"].is_object() {
         for line in crate::output::hotkeys_lines(&report["hotkeys"]).lines() {
             row("hotkeys", line.into());
@@ -164,6 +171,22 @@ pub fn human(report: &Value) -> String {
             show(&report["models"]["selected"]["id"]),
             show(&report["models"]["selected"]["readiness"])
         ),
+    );
+    let vad = &report["models"]["vad"];
+    row(
+        "voice gate",
+        match (vad["action"].as_str(), vad["readiness"].as_str()) {
+            (Some(action), _) => format!(
+                "{} {}: dictation gates on level alone; run `{action}`",
+                show(&vad["model"]),
+                show(&vad["readiness"])
+            ),
+            (None, Some("unverified")) => format!(
+                "{} unverified: on disk, checked before the voice gate first uses it",
+                show(&vad["model"])
+            ),
+            (None, _) => format!("{} {}", show(&vad["model"]), show(&vad["readiness"])),
+        },
     );
     row(
         "llm",
@@ -250,6 +273,47 @@ pub fn human(report: &Value) -> String {
     out
 }
 
+/// The always-ready microphone's row (ADR 0092): a capture that could
+/// not open is named here, never as a failed dictation. A press opens the
+/// microphone itself only while PipeWire is there. An open or waiting ring
+/// says whether a screen lock closes it.
+fn microphone_ready(audio: &Value) -> String {
+    let ready = &audio["microphone_ready"];
+    let lock = match ready["lock_signal"].as_str() {
+        Some("compositor") => "closes when the screen locks",
+        Some("logind") => "closes on a lock only where the locker sets logind's LockedHint",
+        _ => "no lock signal: stays open while the screen is locked",
+    };
+    match ready["state"].as_str() {
+        Some("off") | None => "off ([audio] keep_microphone_ready)".into(),
+        Some("open") => format!("open: takes start 450 ms before the press; {lock}"),
+        Some("closed") => format!("closed: {}; {lock}", show(&ready["reason"])),
+        Some(_) if audio["pipewire"] != true => format!("failed: {}", show(&ready["reason"])),
+        Some(_) => format!(
+            "failed: {}; dictation opens the microphone on press",
+            show(&ready["reason"])
+        ),
+    }
+}
+
+/// The Hyprland instance the daemon talks to, and whether the signature
+/// in its environment is stale (fn-91) or names another display's instance.
+fn compositor_row(instance: &Value) -> String {
+    let environment = show(&instance["environment_signature"]);
+    match instance["signature"].as_str() {
+        None => format!(
+            "no Hyprland instance answers for this display (the environment names {environment})"
+        ),
+        Some(live) if instance["environment_other_display"] == true => format!(
+            "Hyprland instance {live}; the environment's {environment} belongs to another display"
+        ),
+        Some(live) if instance["environment_stale"] == true => format!(
+            "Hyprland instance {live}; the environment's {environment} is stale (the compositor restarted)"
+        ),
+        Some(live) => format!("Hyprland instance {live}"),
+    }
+}
+
 fn show(value: &Value) -> String {
     match value {
         Value::String(text) => text.clone(),
@@ -264,10 +328,158 @@ fn engine_state(engine: &Value) -> String {
     } else if engine["degraded"] == true {
         format!("DEGRADED after {} crashes", show(&engine["crashes"]))
     } else if engine["running"] == true {
-        format!("running on {}", show(&engine["backend"]))
+        format!(
+            "running on {}, {}",
+            show(&engine["backend"]),
+            crate::speech_lines::warmth(engine)
+        )
     } else if engine["path"].is_string() {
         "ready, not running".into()
     } else {
         "not found".into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::human;
+    use crate::doctor::models_facts;
+    use serde_json::json;
+
+    fn voice_gate_row(readiness: &str) -> String {
+        let status = json!({ "models": [
+            { "provider": "whisper", "id": "silero-vad", "readiness": readiness },
+        ]});
+        let report = json!({ "models": models_facts(&status) });
+        human(&report)
+            .lines()
+            .find(|l| l.starts_with("voice gate"))
+            .expect("a voice gate row")
+            .to_string()
+    }
+
+    /// fn-79 R3: only an absent or refused model asks for a download; a model
+    /// on disk that start-up has not hashed yet says it is being checked.
+    #[test]
+    fn the_voice_gate_row_asks_for_a_download_only_when_the_model_is_absent() {
+        let fetch = "run `dettivo speech download --model silero-vad`";
+        for readiness in ["missing", "partial", "quarantined"] {
+            let row = voice_gate_row(readiness);
+            assert!(row.contains(fetch), "{readiness}: {row}");
+            assert!(row.contains("gates on level alone"), "{readiness}: {row}");
+        }
+        assert_eq!(
+            voice_gate_row("unverified"),
+            "voice gate whisper/silero-vad unverified: on disk, checked before the voice gate first uses it"
+        );
+        assert_eq!(
+            voice_gate_row("ready"),
+            "voice gate whisper/silero-vad ready"
+        );
+        assert_eq!(
+            voice_gate_row("downloading"),
+            "voice gate whisper/silero-vad downloading"
+        );
+    }
+
+    /// fn-81 R6: an always-ready microphone that cannot open is a doctor
+    /// row naming the failure.
+    #[test]
+    fn the_microphone_ready_row_names_its_state() {
+        let row_on = |pipewire: bool, ready: serde_json::Value| {
+            human(&json!({ "audio": { "pipewire": pipewire, "microphone_ready": ready } }))
+                .lines()
+                .find(|l| l.starts_with("microphone ready"))
+                .expect("a microphone ready row")
+                .to_string()
+        };
+        let row = |ready: serde_json::Value| row_on(true, ready);
+        let failed =
+            row(json!({"state": "failed", "reason": "audio device \"usb\" is not present"}));
+        assert!(
+            failed.contains("failed: audio device \"usb\" is not present; dictation opens the microphone on press"),
+            "{failed}"
+        );
+        assert!(
+            row(json!({"state": "off", "reason": null}))
+                .contains("off ([audio] keep_microphone_ready)")
+        );
+        assert!(
+            row(json!({"state": "closed", "reason": "the session is locked"}))
+                .contains("closed: the session is locked")
+        );
+        // QA81-3: with PipeWire gone a press cannot open the microphone
+        // either, so the row names PipeWire and promises nothing.
+        let gone = row_on(
+            false,
+            json!({"state": "failed", "reason": "PipeWire is not reachable: PipeWire went away"}),
+        );
+        assert!(
+            gone.ends_with("failed: PipeWire is not reachable: PipeWire went away"),
+            "{gone}"
+        );
+    }
+
+    /// QA81-1: an open ring says whether a screen lock closes it, and
+    /// warns when nothing would.
+    #[test]
+    fn the_microphone_ready_row_names_the_lock_signal() {
+        for (signal, says) in [
+            ("compositor", "closes when the screen locks"),
+            (
+                "logind",
+                "closes on a lock only where the locker sets logind's LockedHint",
+            ),
+            (
+                "none",
+                "no lock signal: stays open while the screen is locked",
+            ),
+        ] {
+            let ready = json!({"state": "open", "reason": null, "lock_signal": signal});
+            let report =
+                human(&json!({ "audio": { "pipewire": true, "microphone_ready": ready } }));
+            let row = report
+                .lines()
+                .find(|l| l.starts_with("microphone ready"))
+                .unwrap();
+            assert!(
+                row.ends_with(&format!(
+                    "open: takes start 450 ms before the press; {says}"
+                )),
+                "{row}"
+            );
+        }
+    }
+
+    /// fn-91 R4: the doctor names the Hyprland instance in use and a stale
+    /// signature in the daemon's environment.
+    #[test]
+    fn the_compositor_row_names_the_instance_and_a_stale_environment() {
+        let row = |instance: serde_json::Value| {
+            human(&json!({ "insertion": { "compositor": instance } }))
+                .lines()
+                .find(|l| l.starts_with("compositor"))
+                .expect("a compositor row")
+                .to_string()
+        };
+        let current =
+            json!({"signature": "abc", "environment_signature": "abc", "environment_stale": false});
+        assert!(row(current).ends_with("Hyprland instance abc"));
+        let stale =
+            json!({"signature": "new", "environment_signature": "old", "environment_stale": true});
+        assert!(row(stale).ends_with(
+            "Hyprland instance new; the environment's old is stale (the compositor restarted)"
+        ));
+        let other = json!({"signature": "live", "environment_signature": "other",
+            "environment_stale": true, "environment_other_display": true});
+        assert!(row(other).ends_with(
+            "Hyprland instance live; the environment's other belongs to another display"
+        ));
+        let none =
+            json!({"signature": null, "environment_signature": "old", "environment_stale": true});
+        assert!(row(none).ends_with(
+            "no Hyprland instance answers for this display (the environment names old)"
+        ));
+        assert!(!human(&json!({})).contains("\ncompositor"));
     }
 }

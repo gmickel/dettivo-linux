@@ -113,6 +113,29 @@ pub struct TargetResult {
     /// The backend the chain would use right now, `None` when nothing is
     /// available.
     pub chosen: Option<String>,
+    /// The Hyprland instance the probe talks to; absent outside Hyprland.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub compositor: Option<CompositorInstance>,
+}
+
+/// The Hyprland instance in use (Linux addition): the daemon finds the
+/// live one when the signature in its environment names an instance that
+/// no longer runs, as after a compositor restart.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CompositorInstance {
+    /// The signature of the instance that last answered, `None` when no
+    /// instance for this display answers.
+    pub signature: Option<String>,
+    /// `HYPRLAND_INSTANCE_SIGNATURE` in the daemon's environment.
+    pub environment_signature: Option<String>,
+    /// The environment names another instance than the one in use, or
+    /// one that does not answer.
+    pub environment_stale: bool,
+    /// The environment's instance belongs to another Wayland display, so
+    /// it is never used (rather than gone after a compositor restart).
+    #[serde(default)]
+    pub environment_other_display: bool,
 }
 
 #[cfg(test)]

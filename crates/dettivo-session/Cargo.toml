@@ -13,13 +13,14 @@ dettivo-audio.workspace = true
 dettivo-core.workspace = true
 dettivo-language.workspace = true
 dettivo-speech.workspace = true
+dettivo-engine-proto.workspace = true
+dettivo-transcribe.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
 wl-clipboard-rs.workspace = true
 
 [dev-dependencies]
-dettivo-engine-proto.workspace = true
 tempfile.workspace = true
 
 [lints]

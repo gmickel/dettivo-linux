@@ -22,6 +22,7 @@ mod events;
 mod feedback;
 mod handlers;
 mod history;
+mod hold;
 mod hotkeys;
 mod imports;
 mod inserter;
@@ -30,11 +31,15 @@ mod jobs_run;
 mod listener;
 mod llm_engine;
 mod logging;
+mod media;
 mod meeting_jobs;
 mod meetings;
 mod meetings_archive;
 mod models;
 mod platform;
+mod ready;
+mod ready_screen;
+mod ready_session;
 mod rest;
 mod router;
 mod self_target;
@@ -98,7 +103,7 @@ fn main() -> ExitCode {
         }
     };
 
-    runtime.block_on(async move {
+    let (code, deadline) = runtime.block_on(async move {
         // The history store opens before anything listens: a migration
         // that fails names itself and its backup, and the daemon does not
         // start on a database it cannot read.
@@ -106,7 +111,7 @@ fn main() -> ExitCode {
             Ok(d) => d,
             Err(e) => {
                 eprintln!("dettivod: {e}");
-                return ExitCode::from(1);
+                return (ExitCode::from(1), None);
             }
         };
         logging::init(daemon.log_level());
@@ -130,7 +135,7 @@ fn main() -> ExitCode {
             Err(e) => {
                 tracing::error!(error = %e, "cannot acquire the socket");
                 eprintln!("dettivod: {e}");
-                return ExitCode::from(1);
+                return (ExitCode::from(1), None);
             }
         };
         daemon.record_start();
@@ -177,6 +182,10 @@ fn main() -> ExitCode {
         let reaper = tokio::spawn(reap_idle_engines(daemon.clone()));
         let maintenance = tokio::spawn(maintain_history(daemon.clone()));
         let downloads = tokio::spawn(publish_downloads(daemon.clone()));
+        // Before the first reconcile, so the ring waits for both lock sources.
+        ready_screen::watch(daemon.clone());
+        let session_lock = tokio::spawn(ready_session::watch(daemon.clone()));
+        let ready = tokio::spawn(ready::supervise(daemon.clone()));
         // One deadline from the signal: the drain, the listener release
         // and every stop below share `[daemon] shutdown_timeout_ms`.
         let deadline = server::run(daemon.clone(), acquired).await;
@@ -189,6 +198,12 @@ fn main() -> ExitCode {
         reaper.abort();
         maintenance.abort();
         downloads.abort();
+        ready.abort();
+        session_lock.abort();
+        let d = daemon.clone();
+        shutdown::within(deadline, "microphone ready", move || {
+            d.dictation().ready().close("the daemon stops")
+        });
         let d = daemon.clone();
         shutdown::within(deadline, "hotkeys", move || d.hotkeys().shutdown());
         let d = daemon.clone();
@@ -198,8 +213,12 @@ fn main() -> ExitCode {
         // when the daemon exits. The children end on their closed pipes.
         let d = daemon.clone();
         shutdown::within(deadline, "engines", move || d.engines().shutdown());
-        ExitCode::SUCCESS
-    })
+        (ExitCode::SUCCESS, Some(deadline))
+    });
+    if let Some(deadline) = deadline {
+        shutdown::runtime(runtime, deadline);
+    }
+    code
 }
 
 /// The hourly retention sweep (first run at start) and the minute-wise

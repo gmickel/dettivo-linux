@@ -1,8 +1,8 @@
 //! Typed payloads for every message and event, and the catalogue that
 //! names them. Segments carry word timestamps with confidence when the
-//! engine aligns words. Requests: `load`, `unload`, `recognize`, `generate`,
-//! `diarize`, `embed`, `cancel`, `status`. Events: `progress`, `partial`, `loaded`,
-//! `error`.
+//! engine aligns words. Requests: `load`, `unload`, `recognize`,
+//! `detect_speech`, `feed_speech`, `generate`, `diarize`, `embed`, `cancel`, `status`.
+//! Events: `progress`, `partial`, `loaded`, `error`.
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -76,18 +76,57 @@ pub struct LoadedResult {
 }
 
 /// `recognize` (with one `pcm16k` attachment).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RecognizeParams {
     /// Language code, or `auto`.
     #[serde(default = "auto")]
     pub language: String,
-    /// Vocabulary prompt.
+    /// Vocabulary prompt (Whisper).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prompt: Option<String>,
     /// Ask for segment timestamps.
     #[serde(default = "yes")]
     pub timestamps: bool,
+    /// The vocabulary rescored towards (Parakeet) or checked against (Whisper, terms only).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vocabulary: Option<VocabularyBias>,
+}
+
+/// A vocabulary Parakeet rescores its transcript towards: a term replaces
+/// heard words that sound like it when the audio supports the term.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VocabularyBias {
+    /// The terms, in list order.
+    pub terms: Vec<BiasTerm>,
+    /// Nats added per token piece of a term; 0 turns rescoring off.
+    pub boost: f32,
+}
+
+impl VocabularyBias {
+    /// The boost of a `[dictation] vocabulary_boost` level in nats per
+    /// token piece; `None` for a name that is not a level.
+    pub fn boost_of(level: &str) -> Option<f32> {
+        match level {
+            "off" => Some(0.0),
+            "light" => Some(4.0),
+            "normal" => Some(5.0),
+            "strong" => Some(6.0),
+            _ => None,
+        }
+    }
+}
+
+/// One vocabulary term and how it tends to be misheard.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BiasTerm {
+    /// The spelling wanted.
+    pub term: String,
+    /// Spellings the term tends to be transcribed as.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub aliases: Vec<String>,
 }
 
 fn auto() -> String {
@@ -143,6 +182,10 @@ pub struct RecognizeResult {
     /// Backend that ran.
     pub backend: Backend,
 }
+
+pub use crate::speech_messages::{
+    DetectSpeechParams, DetectSpeechResult, FeedSpeechParams, FeedSpeechResult,
+};
 
 /// How the LLM engine turns a `generate` request into model input.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -377,6 +420,8 @@ pub const REQUESTS: &[&str] = &[
     "load",
     "unload",
     "recognize",
+    "detect_speech",
+    "feed_speech",
     "generate",
     "diarize",
     "embed",
@@ -396,6 +441,8 @@ pub fn check_request(name: &str, payload: &Value) -> Result<Value, String> {
         "load" => rt::<LoadParams>(payload),
         "unload" | "status" => rt::<Empty>(payload),
         "recognize" => rt::<RecognizeParams>(payload),
+        "detect_speech" => rt::<DetectSpeechParams>(payload),
+        "feed_speech" => rt::<FeedSpeechParams>(payload),
         "generate" => rt::<GenerateParams>(payload),
         "diarize" => rt::<DiarizeParams>(payload),
         "embed" => rt::<EmbedParams>(payload),
@@ -414,6 +461,8 @@ pub fn check_response(name: &str, payload: &Value) -> Result<Value, String> {
         "load" => rt::<LoadedResult>(payload),
         "unload" | "cancel" => rt::<Empty>(payload),
         "recognize" => rt::<RecognizeResult>(payload),
+        "detect_speech" => rt::<DetectSpeechResult>(payload),
+        "feed_speech" => rt::<FeedSpeechResult>(payload),
         "generate" => rt::<GenerateResult>(payload),
         "diarize" => rt::<DiarizeResult>(payload),
         "embed" => rt::<EmbedResult>(payload),

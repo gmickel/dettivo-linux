@@ -13,8 +13,8 @@ use serde_json::{Value, json};
 
 use crate::frame::{Frame, FrameError, bytes_to_pcm, read_frame, write_frame};
 use crate::messages::{
-    CancelParams, Empty, ErrorEvent, LoadParams, LoadedResult, RecognizeParams, RecognizeResult,
-    StatusResult,
+    CancelParams, DetectSpeechParams, DetectSpeechResult, Empty, ErrorEvent, FeedSpeechParams,
+    FeedSpeechResult, LoadParams, LoadedResult, RecognizeParams, RecognizeResult, StatusResult,
 };
 
 /// Why loading or recognizing failed; `code` is a protocol error code.
@@ -57,6 +57,30 @@ pub trait SpeechEngine: Sized {
         params: &RecognizeParams,
         progress: &mut dyn FnMut(f64),
     ) -> Result<RecognizeResult, EngineError>;
+    /// Finds speech in 16 kHz mono samples (`detect_speech`); only an
+    /// engine holding a voice activity model answers it.
+    fn detect_speech(
+        &self,
+        _pcm: &[i16],
+        _params: &DetectSpeechParams,
+    ) -> Result<DetectSpeechResult, EngineError> {
+        Err(EngineError::new(
+            "bad_request",
+            "this engine does not implement that request",
+        ))
+    }
+    /// Takes the next samples of a take judged as it is captured
+    /// (`feed_speech`); `detect_speech` with `continues` judges it.
+    fn feed_speech(
+        &self,
+        _pcm: &[i16],
+        _params: &FeedSpeechParams,
+    ) -> Result<FeedSpeechResult, EngineError> {
+        Err(EngineError::new(
+            "bad_request",
+            "this engine does not implement that request",
+        ))
+    }
 }
 
 fn error_frame(id: u64, code: &str, message: &str) -> Frame {
@@ -207,6 +231,52 @@ pub fn serve<E: SpeechEngine>(force_cpu: bool) -> ExitCode {
                         Err(EngineError { code, message }) => error_frame(id, code, &message),
                     }
                 }
+            },
+            "detect_speech" => match (
+                &engine,
+                serde_json::from_value::<DetectSpeechParams>(frame.payload.clone()),
+                attachments.as_slice(),
+            ) {
+                (None, _, _) => {
+                    error_frame(id, "bad_request", "no model is loaded; send load first")
+                }
+                (_, Err(e), _) => error_frame(id, "bad_request", &e.to_string()),
+                (Some(e), Ok(p), [bytes]) => match e.detect_speech(&bytes_to_pcm(bytes), &p) {
+                    Ok(result) => Frame::response(
+                        id,
+                        "detect_speech",
+                        serde_json::to_value(result).unwrap_or(Value::Null),
+                    ),
+                    Err(EngineError { code, message }) => error_frame(id, code, &message),
+                },
+                (Some(_), Ok(_), _) => error_frame(
+                    id,
+                    "bad_request",
+                    "detect_speech needs exactly one pcm16k attachment",
+                ),
+            },
+            "feed_speech" => match (
+                &engine,
+                serde_json::from_value::<FeedSpeechParams>(frame.payload.clone()),
+                attachments.as_slice(),
+            ) {
+                (None, _, _) => {
+                    error_frame(id, "bad_request", "no model is loaded; send load first")
+                }
+                (_, Err(e), _) => error_frame(id, "bad_request", &e.to_string()),
+                (Some(e), Ok(p), [bytes]) => match e.feed_speech(&bytes_to_pcm(bytes), &p) {
+                    Ok(result) => Frame::response(
+                        id,
+                        "feed_speech",
+                        serde_json::to_value(result).unwrap_or(Value::Null),
+                    ),
+                    Err(EngineError { code, message }) => error_frame(id, code, &message),
+                },
+                (Some(_), Ok(_), _) => error_frame(
+                    id,
+                    "bad_request",
+                    "feed_speech needs exactly one pcm16k attachment",
+                ),
             },
             "generate" | "diarize" | "embed" => error_frame(
                 id,

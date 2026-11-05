@@ -1,0 +1,217 @@
+{
+  "branch": "",
+  "findings": {
+    "backend": "interactive",
+    "headSha": "9f9940a7b3763a062a3464af286fe40567658183",
+    "items": [
+      {
+        "body": "Whisper large-v3-turbo with SapienXT in the vocabulary capitalises the common word 'sapient' ('Every Sapient creature'); no term inserted, already visible in the fn-89 benchmark JSON (surface: dettivo-engine-whisper vocabulary prompt)",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-81dec6281d7cd4aef089aa42a1fc2ebc7f91111b2bcb6c8f5e0f510b8318f0c0",
+        "id": "finding-a69ba22adb91e58c91887bcc771a3744",
+        "lastSeenReceiptId": "review-81dec6281d7cd4aef089aa42a1fc2ebc7f91111b2bcb6c8f5e0f510b8318f0c0",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "F1"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-81dec6281d7cd4aef089aa42a1fc2ebc7f91111b2bcb6c8f5e0f510b8318f0c0"
+  },
+  "head_sha": "9f9940a7b3763a062a3464af286fe40567658183",
+  "id": "fn-88-better-dictation-shipped-as-one-release",
+  "mode": "interactive",
+  "open_p0p1": [],
+  "qa_outcome": "SHIP",
+  "rid_coverage": {
+    "covered": 5,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R2"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R3"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R4"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R5"
+      }
+    ],
+    "total": 5
+  },
+  "scenarios": [
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X0-defaults.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X0-defaults.dettivod.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/results-s_defaults.log"
+      ],
+      "head_sha": "9f9940a7b3763a062a3464af286fe40567658183",
+      "id": "X0-defaults (fn-81 R4 default off, fn-80 R3/R6 surfaces)",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X1-ring-hold-join-restart-r2.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X1-ring-hold-join-restart-r2.dettivod.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/results-s_ring_hold_join_restart-r2.log"
+      ],
+      "head_sha": "9f9940a7b3763a062a3464af286fe40567658183",
+      "id": "X1-ring+hold/tap/lost-release/lock+join+compositor restart (fn-81 R1-R5, fn-82 R4/R5, fn-85 R3, fn-90, fn-91 R1/R3/R4)",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X2a-silence-vocab.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X2b-click.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X2c-fan.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X2d-whisper-voice.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X2e-one-word.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X2f-quiet-word.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/superseded/results-s_gate_vocab_whisper-s_vad_missing-s_portal_hold.log"
+      ],
+      "head_sha": "9f9940a7b3763a062a3464af286fe40567658183",
+      "id": "X2-speech gate + vocabulary on Whisper tiny (fn-79 R1/R2/R6, fn-83 R4)",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X2g-print-silence.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X2h-print-speech.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/results-s_print.log"
+      ],
+      "head_sha": "9f9940a7b3763a062a3464af286fe40567658183",
+      "id": "X2gh-stop --print (fn-85 R4)",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X3-vad-missing.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X3-vad-missing.dettivod.log"
+      ],
+      "head_sha": "9f9940a7b3763a062a3464af286fe40567658183",
+      "id": "X3-VAD missing (fn-79 R3)",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X4-portal-hold.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X4-portal-hold.dettivod.log"
+      ],
+      "head_sha": "9f9940a7b3763a062a3464af286fe40567658183",
+      "id": "X4-portal hold/tap/lost release + portal rebind after restart (fn-82 R3/R4, fn-91 R3)",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/results-s_vocab_parakeet-s_vocab_whisper_turbo-vk.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X5e-target-hyprland-vocab-vk.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X5b-jfk-vocab-vk.log"
+      ],
+      "head_sha": "9f9940a7b3763a062a3464af286fe40567658183",
+      "id": "X5-Parakeet vocabulary through the daemon, Vulkan (fn-84 R1/R4, fn-79 R6)",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/results-s_vocab_parakeet-s_vocab_whisper_turbo-vk.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X6f-distractor-sapient-vocab-vk.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X6h-distractor-sapient-off-vk.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/results-s_sapient_off-vk.log"
+      ],
+      "head_sha": "9f9940a7b3763a062a3464af286fe40567658183",
+      "id": "X6-Whisper large-v3-turbo vocabulary, Vulkan (fn-89 R1/R3)",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X7-first-take-latency-vk.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/X7-first-take-latency-vk.dettivod.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/results-s_first_take_latency-vk.log"
+      ],
+      "head_sha": "9f9940a7b3763a062a3464af286fe40567658183",
+      "id": "X7-first take after start and after idle unload with ring on, Vulkan (fn-80 R1/R2, fn-90 R4)",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/bench/runs/goal-warm/takes.jsonl",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/bench/runs/goal-warm/driver.log",
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/bench/runs/goal-warm/daemon.log"
+      ],
+      "head_sha": "9f9940a7b3763a062a3464af286fe40567658183",
+      "id": "B1-release-to-text 30/60/120 s Parakeet Ultra, Vulkan, 5x120 (fn-90 R2, fn-80 R2)",
+      "outcome": "PASS",
+      "rids": [
+        "R1"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-88-better-dictation-shipped-as-one-release/docs-check.log"
+      ],
+      "head_sha": "9f9940a7b3763a062a3464af286fe40567658183",
+      "id": "D1-docs/ADR/changelog presence (fn-88 R3, child doc R-IDs, fn-86 ADR 0094)",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "live"
+    }
+  ],
+  "timestamp": "2026-11-02T21:49:03Z",
+  "type": "qa_verdict",
+  "verdict": "SHIP"
+}

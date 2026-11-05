@@ -13,10 +13,32 @@ pub struct Audio {
     pub input_device: String,
     /// Meter sample interval in milliseconds.
     pub level_interval_ms: u64,
+    /// Keep the microphone open while dictation is idle, so a take starts
+    /// 450 ms before its press (ADR 0092). Off by default: an open
+    /// microphone keeps the desktop's microphone indicator lit.
+    pub keep_microphone_ready: bool,
     /// A meeting's system track: `default_monitor` (the default sink's
     /// monitor, followed when the default changes) or a sink's node name
     /// (its monitor, pinned).
     pub system_source: String,
+    /// What a dictation does to playing media (ADR 0091).
+    pub while_dictating: WhileDictating,
+}
+
+/// `[audio] while_dictating`: what a dictation does to playing media
+/// once the take is held past a tap.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum WhileDictating {
+    /// Leave media alone (`[hotkeys] pause_media = true` reads as pause).
+    #[default]
+    Nothing,
+    /// Pause the playing MPRIS players and resume them after.
+    Pause,
+    /// Lower the default sink to 20 % and raise it back after.
+    Duck,
+    /// Mute the default sink and unmute it after.
+    Mute,
 }
 
 impl Default for Audio {
@@ -24,7 +46,9 @@ impl Default for Audio {
         Self {
             input_device: String::new(),
             level_interval_ms: 50,
+            keep_microphone_ready: false,
             system_source: "default_monitor".into(),
+            while_dictating: WhileDictating::Nothing,
         }
     }
 }

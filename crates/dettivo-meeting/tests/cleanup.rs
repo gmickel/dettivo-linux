@@ -64,7 +64,7 @@ fn microphone_returns_after_reopen_failed_without_empty_takes() {
         .unwrap()
         .meeting_id;
     let first = feeds.channels.lock().unwrap()[0].clone();
-    first.send(Event::Pcm(vec![1; 1600])).unwrap();
+    first.send(Event::pcm(vec![1; 1600])).unwrap();
     first
         .send(Event::Ended {
             reason: EndReason::NoSource,
@@ -81,7 +81,7 @@ fn microphone_returns_after_reopen_failed_without_empty_takes() {
     feeds.available.store(true, Ordering::SeqCst);
     until(|| feeds.channels.lock().unwrap().len() == 2);
     let second = feeds.channels.lock().unwrap()[1].clone();
-    second.send(Event::Pcm(vec![2; 800])).unwrap();
+    second.send(Event::pcm(vec![2; 800])).unwrap();
     second
         .send(Event::Level {
             rms: 0.2,
@@ -157,7 +157,7 @@ fn failed_take_closure_ends_capture_failed_and_keeps_audio() {
         )
         .unwrap()
         .meeting_id;
-    feeds.mic(0).send(Event::Pcm(vec![1; 1600])).unwrap();
+    feeds.mic(0).send(Event::pcm(vec![1; 1600])).unwrap();
     feeds
         .mic(0)
         .send(Event::Level {

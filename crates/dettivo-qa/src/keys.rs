@@ -24,6 +24,9 @@ pub fn available() -> Result<(), String> {
         })
 }
 
+/// How long every key edge waits for the compositor to see it.
+pub const SETTLE: Duration = Duration::from_millis(40);
+
 /// A virtual keyboard with the keys a drive needs.
 pub struct Keyboard {
     device: VirtualDevice,
@@ -68,14 +71,14 @@ impl Keyboard {
     /// Presses a key (and holds it).
     pub fn press(&mut self, key: KeyCode) -> Result<(), String> {
         self.emit(key, true)?;
-        std::thread::sleep(Duration::from_millis(40));
+        std::thread::sleep(SETTLE);
         Ok(())
     }
 
     /// Releases a key.
     pub fn release(&mut self, key: KeyCode) -> Result<(), String> {
         self.emit(key, false)?;
-        std::thread::sleep(Duration::from_millis(40));
+        std::thread::sleep(SETTLE);
         Ok(())
     }
 

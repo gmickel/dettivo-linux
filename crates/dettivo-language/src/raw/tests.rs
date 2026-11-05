@@ -17,6 +17,97 @@ fn spoken_punctuation_becomes_marks_and_glues() {
     assert_eq!(raw("wait exclamation mark now"), "Wait! Now");
 }
 
+/// A spoken sentence end that the engine already punctuated ("the report
+/// period." from Whisper) ends it once, and a comma before it gives way;
+/// an ellipsis keeps its three dots.
+#[test]
+fn a_spoken_stop_beside_the_engines_own_ends_the_sentence_once() {
+    let cases = [
+        ("Send me the report period.", "Send me the report."),
+        (
+            "Meet me at 9, then we go, period.",
+            "Meet me at 9, then we go.",
+        ),
+        ("is it done question mark.", "Is it done?"),
+        (
+            "send me the report period. then go.",
+            "Send me the report. Then go.",
+        ),
+        ("wait ellipsis", "Wait..."),
+        ("Wait... then go.", "Wait... Then go."),
+    ];
+    for (input, want) in cases {
+        assert_eq!(raw(input), want, "{input}");
+    }
+}
+
+/// A spoken mark beside one Whisper wrote leaves one mark: the spoken
+/// one wins a sentence end, a comma Whisper wrote right after a spoken
+/// stop gives way and the next sentence keeps its capital, and a spoken
+/// comma beside a written one is one comma. Marks Whisper wrote alone
+/// stay as they were.
+#[test]
+fn a_spoken_mark_beside_a_written_one_leaves_one_mark() {
+    let cases = [
+        ("Is it done? Question mark.", "Is it done?"),
+        ("Is it done. Question mark.", "Is it done?"),
+        ("Is it done? Period.", "Is it done."),
+        ("Watch out! Exclamation mark.", "Watch out!"),
+        ("Watch out. Exclamation point.", "Watch out!"),
+        ("Send me the report. Period.", "Send me the report."),
+        (
+            "Send me the report, period, then go home.",
+            "Send me the report. Then go home.",
+        ),
+        (
+            "Send me the report period, then go home.",
+            "Send me the report. Then go home.",
+        ),
+        (
+            "Is it done, question mark, then go.",
+            "Is it done? Then go.",
+        ),
+        (
+            "Meet me at nine, comma, then we go.",
+            "Meet me at nine, then we go.",
+        ),
+        (
+            "Meet me at nine comma, then we go.",
+            "Meet me at nine, then we go.",
+        ),
+        ("What?! No way.", "What?! No way."),
+        ("Really?! Period.", "Really."),
+        ("Really? Yes, I think so.", "Really? Yes, I think so."),
+        ("One, two, three.", "One, two, three."),
+        ("Values one,, three.", "Values one,, three."),
+    ];
+    for (input, want) in cases {
+        assert_eq!(raw(input), want, "{input}");
+    }
+}
+
+/// A punctuation word after an article or a determiner that cannot end a
+/// sentence is a noun ("a period of three weeks"), so it stays a word;
+/// the same word as a command still becomes its mark.
+#[test]
+fn a_punctuation_word_after_a_determiner_stays_a_word() {
+    let cases = [
+        (
+            "it took a period of three weeks",
+            "It took a period of three weeks",
+        ),
+        ("The period ends Friday.", "The period ends Friday."),
+        ("add a dash of salt", "Add a dash of salt"),
+        ("use a new line of products", "Use a new line of products"),
+        ("check its colon period", "Check its colon."),
+        ("send me the report period", "Send me the report."),
+        ("look at this period", "Look at this."),
+    ];
+    for (input, want) in cases {
+        assert_eq!(raw(input), want, "{input}");
+    }
+}
+
 #[test]
 fn non_ascii_text_never_breaks_matching() {
     let r = vec![("straße".to_string(), "Strasse".to_string())];
@@ -157,4 +248,11 @@ fn replacements_stay_out_of_protected_spans() {
         apply("open index.ts now", &r, true, true),
         "Open index.tsx now"
     );
+}
+
+/// Text that already carries a character the spoken-mark tag uses keeps
+/// it: the tag is only read back where the pass wrote it.
+#[test]
+fn a_tag_character_in_the_text_stays_as_it_is() {
+    assert_eq!(raw("hello\u{f002e} comma world"), "Hello\u{f002e}, world");
 }

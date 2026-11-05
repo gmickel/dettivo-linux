@@ -15,10 +15,10 @@ tracing.workspace = true
 tokio.workspace = true
 libc.workspace = true
 wayland-client.workspace = true
+wayland-protocols.workspace = true
 wayland-protocols-misc.workspace = true
 xkbcommon.workspace = true
 wl-clipboard-rs.workspace = true
-x11-clipboard.workspace = true
 x11rb.workspace = true
 ashpd.workspace = true
 reis.workspace = true
@@ -28,6 +28,11 @@ zbus.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
+
+[features]
+# Stand-in Wayland compositor and Hyprland instance on private sockets,
+# for this crate's tests and the daemon's; never in a release build.
+stand-in = []
 
 [lints]
 workspace = true

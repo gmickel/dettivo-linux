@@ -9,7 +9,7 @@
 //! tracked here by meeting id so `status` and `cancel` reach it.
 
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
@@ -39,6 +39,9 @@ pub struct Snapshot {
     pub microphone_takes: u32,
     /// True while the system track records.
     pub system_audio: bool,
+    /// True until the worker has stopped the meeting's streams; false
+    /// while a stop still transcribes what is left of the live transcript.
+    pub capturing: bool,
     /// Final live segments so far.
     pub live_segment_count: u64,
     /// The end of the last final live segment.
@@ -99,10 +102,30 @@ pub struct Finalizing {
 /// The finalisations in flight by meeting id.
 pub(crate) type Finalizations = Arc<Mutex<HashMap<String, Finalizing>>>;
 
+/// One meeting or finalisation thread while it runs: counted from before
+/// its spawn until the thread has returned, so [`Session::wait_idle`] sees
+/// every row, progress and state the thread publishes at its end.
+struct Running(Arc<AtomicUsize>);
+
+impl Running {
+    fn new(count: &Arc<AtomicUsize>) -> Self {
+        count.fetch_add(1, Ordering::SeqCst);
+        Self(count.clone())
+    }
+}
+
+impl Drop for Running {
+    fn drop(&mut self) {
+        self.0.fetch_sub(1, Ordering::SeqCst);
+    }
+}
+
 /// The meeting service.
 pub struct Session {
     active: Shared,
     finalizing: Finalizations,
+    /// Meeting and finalisation threads that have not returned yet.
+    running: Arc<AtomicUsize>,
     counter: AtomicU64,
     recover_counter: AtomicU64,
     artifacts: MeetingArtifacts,
@@ -123,6 +146,7 @@ impl Session {
         Self {
             active: Arc::new(Mutex::new(None)),
             finalizing: Arc::new(Mutex::new(HashMap::new())),
+            running: Arc::new(AtomicUsize::new(0)),
             counter: AtomicU64::new(0),
             recover_counter: AtomicU64::new(0),
             artifacts,
@@ -192,6 +216,7 @@ impl Session {
             duration_ms: 0,
             microphone_takes: 0,
             system_audio: system.is_ok(),
+            capturing: true,
             live_segment_count: 0,
             live_last_end_ms: 0,
             error: None,
@@ -230,9 +255,13 @@ impl Session {
             tails: self.tails.clone(),
         };
         let shared = self.active.clone();
+        let running = Running::new(&self.running);
         let handle = std::thread::Builder::new()
             .name(format!("meeting-{n}"))
-            .spawn(move || worker.run(mic, system.ok(), shared))
+            .spawn(move || {
+                let _running = running;
+                worker.run(mic, system.ok(), shared);
+            })
             .map_err(|e| {
                 *self.active.lock().unwrap_or_else(|p| p.into_inner()) = None;
                 self.tails.remove(&id);
@@ -352,9 +381,11 @@ impl Session {
             capture_duration_ms: 0,
             tails: self.tails.clone(),
         };
+        let running = Running::new(&self.running);
         std::thread::Builder::new()
             .name(format!("meeting-recover-{n}"))
             .spawn(move || {
+                let _running = running;
                 finalize_meeting(ctx);
             })
             .map_err(|e| MeetingError::Audio(format!("finalise thread: {e}")))?;
@@ -363,16 +394,12 @@ impl Session {
 
     /// Waits until the worker has finished (a stop that was asked for)
     /// and no finalisation runs, up to `timeout`; true when idle by then.
+    /// Idle means every meeting and finalisation thread has returned, so
+    /// what they publish last (the final progress and state) is already
+    /// out: the finalisation leaves its in-flight entry before it does.
     pub fn wait_idle(&self, timeout: std::time::Duration) -> bool {
         let deadline = Instant::now() + timeout;
-        let idle = || {
-            self.snapshot().is_none()
-                && self
-                    .finalizing
-                    .lock()
-                    .unwrap_or_else(|p| p.into_inner())
-                    .is_empty()
-        };
+        let idle = || self.running.load(Ordering::SeqCst) == 0;
         while Instant::now() < deadline {
             if idle() {
                 return true;

@@ -7,6 +7,7 @@ mod support;
 
 use std::path::Path;
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 
 use dettivo_session::machine::Session;
 use dettivo_session::{Archive, State, Transcript};
@@ -49,7 +50,13 @@ fn the_archive_gets_the_transcript_and_the_take_before_idle_is_published() {
     let shelf = Arc::new(Shelf::default());
     let (dir, rec, session, engine, feed) = session_with(shelf.clone());
     session
-        .start(policy(dir.path(), true), engine, feed.clone(), None)
+        .start(
+            policy(dir.path(), true),
+            engine,
+            feed.clone(),
+            None,
+            Instant::now(),
+        )
         .unwrap();
     feed.speak(200);
     let t = session.stop().unwrap();
@@ -87,7 +94,13 @@ fn a_failing_archive_is_reported_on_the_final_state_and_the_insertion_stands() {
     });
     let (dir, rec, session, engine, feed) = session_with(shelf.clone());
     session
-        .start(policy(dir.path(), false), engine, feed.clone(), None)
+        .start(
+            policy(dir.path(), false),
+            engine,
+            feed.clone(),
+            None,
+            Instant::now(),
+        )
         .unwrap();
     feed.speak(200);
     let t = session.stop().unwrap();
@@ -117,7 +130,13 @@ fn a_failing_archive_is_reported_on_the_final_state_and_the_insertion_stands() {
 fn cancellation_discards_staging_even_when_successful_audio_is_retained() {
     let (dir, _, session, engine, feed) = rig("cancelled");
     session
-        .start(policy(dir.path(), true), engine, feed.clone(), None)
+        .start(
+            policy(dir.path(), true),
+            engine,
+            feed.clone(),
+            None,
+            Instant::now(),
+        )
         .unwrap();
     feed.speak(200);
     session.cancel().unwrap();

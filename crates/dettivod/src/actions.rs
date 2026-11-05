@@ -5,6 +5,7 @@
 //! ignored with a log line, never a second session.
 
 use std::sync::Arc;
+use std::time::Instant;
 
 use dettivo_hotkeys::{Action, HotkeyEvent};
 use dettivo_proto::error::{AppCode, ErrorDetails, JsonRpcError};
@@ -13,6 +14,10 @@ use dettivo_session::machine::Snapshot;
 use dettivo_session::{SessionError, SessionTarget, Transcript};
 
 use crate::daemon::{Daemon, blocking};
+use crate::hold::Edge;
+
+/// The `CONFLICT` kind of a stop whose take the speech gate found silent.
+pub const NO_SPEECH: &str = "noSpeech";
 
 /// Maps a session refusal to the wire error.
 pub fn session_error(e: SessionError) -> JsonRpcError {
@@ -36,6 +41,16 @@ pub fn session_error(e: SessionError) -> JsonRpcError {
             AppCode::Conflict,
             message,
             ErrorDetails::conflict_kind("sessionCancelled"),
+        ),
+        SessionError::Delivering => JsonRpcError::new(
+            AppCode::Conflict,
+            message,
+            ErrorDetails::conflict_kind("sessionDelivering"),
+        ),
+        SessionError::NoSpeech => JsonRpcError::new(
+            AppCode::Conflict,
+            message,
+            ErrorDetails::conflict_kind(NO_SPEECH),
         ),
         SessionError::Audio(_) | SessionError::Failed(_) => {
             JsonRpcError::new(AppCode::InternalError, message, ErrorDetails::empty())
@@ -79,16 +94,18 @@ pub fn session_target(probed: dettivo_insert::service::Probed) -> SessionTarget 
     }
 }
 
-/// Starts a session. `expected` is a target the caller captured itself;
-/// without one the daemon probes the focused window now.
+/// Starts a session for the press that arrived at `pressed_at`.
+/// `expected` is a target the caller captured itself; without one the
+/// daemon probes the focused window now.
 pub fn start(
     daemon: &Daemon,
     language: Option<&str>,
     mode: Option<&str>,
     expected: Option<SessionTarget>,
+    pressed_at: Instant,
 ) -> Result<Snapshot, JsonRpcError> {
     let _reservation = daemon.capture_start_lock();
-    start_reserved(daemon, language, mode, expected)
+    start_reserved(daemon, language, mode, expected, pressed_at)
 }
 
 fn start_reserved(
@@ -96,6 +113,7 @@ fn start_reserved(
     language: Option<&str>,
     mode: Option<&str>,
     expected: Option<SessionTarget>,
+    pressed_at: Instant,
 ) -> Result<Snapshot, JsonRpcError> {
     let loaded = daemon.config();
     let policy = crate::dictation::Dictation::policy(
@@ -121,39 +139,34 @@ fn start_reserved(
     };
     daemon.engines().ensure_selected_verified()?;
     let engine = daemon.engines().engine();
+    let vad = daemon.engines().voice_detector(&daemon.paths, &loaded);
     daemon.engines().preload_session_start();
     daemon
         .dictation()
-        .start(
-            policy,
-            engine,
-            daemon.audio().cloned(),
-            &loaded.config.audio.input_device,
-            Some(target),
-        )
+        .start(policy, engine, vad, daemon, Some(target), pressed_at)
         .map_err(session_error)
 }
 
-/// Resolves a toggle under the capture reservation, then settles that take.
-/// Toggles during settlement join the same job rather than start another recording.
-pub fn toggle(daemon: &Daemon) -> Result<Toggle, JsonRpcError> {
-    match toggle_decision(daemon)? {
+/// Resolves a toggle that arrived `at` under the capture reservation, then
+/// settles that take. Toggles during settlement join the same job rather
+/// than start another recording.
+pub fn toggle(daemon: &Daemon, at: Instant) -> Result<Toggle, JsonRpcError> {
+    match toggle_decision(daemon, at)? {
         ToggleDecision::Started(snapshot) => Ok(Toggle::Started(snapshot)),
         ToggleDecision::Stop(id) => daemon
             .dictation()
-            .stop_expected(&id)
+            .stop_expected(&id, at)
             .map(|t| Toggle::Stopped(Box::new(t)))
             .map_err(session_error),
     }
 }
 
-fn toggle_decision(daemon: &Daemon) -> Result<ToggleDecision, JsonRpcError> {
+fn toggle_decision(daemon: &Daemon, at: Instant) -> Result<ToggleDecision, JsonRpcError> {
     let _reservation = daemon.capture_start_lock();
     match daemon.dictation().snapshot() {
         Some(snapshot) => Ok(ToggleDecision::Stop(snapshot.job_id)),
-        None => {
-            start_reserved(daemon, None, None, None).map(|s| ToggleDecision::Started(Box::new(s)))
-        }
+        None => start_reserved(daemon, None, None, None, at)
+            .map(|s| ToggleDecision::Started(Box::new(s))),
     }
 }
 
@@ -170,9 +183,15 @@ pub enum Toggle {
     Stopped(Box<Transcript>),
 }
 
-/// Stops and finishes the session.
-pub fn stop(daemon: &Daemon) -> Result<Transcript, JsonRpcError> {
-    daemon.dictation().stop().map_err(session_error)
+/// Stops and finishes the session for a release that arrived `at`.
+pub fn stop(daemon: &Daemon, at: Instant) -> Result<Transcript, JsonRpcError> {
+    daemon.dictation().stop(at).map_err(session_error)
+}
+
+/// Stops and finishes the session without inserting the text, for the
+/// call that arrived `at`.
+pub fn stop_print(daemon: &Daemon, at: Instant) -> Result<Transcript, JsonRpcError> {
+    daemon.dictation().stop_print(at).map_err(session_error)
 }
 
 /// Cancels the session.
@@ -208,25 +227,15 @@ pub fn reinsert_last(daemon: &Daemon) -> Result<(String, InsertionResult), JsonR
 /// waits for the transcription and the insertion on a thread of its own,
 /// so a cancel pressed meanwhile is acted on at once instead of queueing
 /// behind the text it was meant to stop.
-pub fn on_hotkey(daemon: &Arc<Daemon>, event: HotkeyEvent) {
+pub fn on_hotkey(daemon: &Arc<Daemon>, event: HotkeyEvent, at: Instant) {
     daemon.hotkeys().note_press();
-    let active = daemon.dictation().snapshot().is_some();
     let action = match event {
         HotkeyEvent::Press(a) | HotkeyEvent::Release(a) => a.id(),
     };
     let outcome: Result<&str, JsonRpcError> = match event {
-        HotkeyEvent::Press(Action::PushToTalk) if active => {
-            tracing::info!(
-                action = "push_to_talk",
-                "hotkey press ignored: a session is active"
-            );
-            return;
-        }
-        HotkeyEvent::Press(Action::PushToTalk) => {
-            start(daemon, None, None, None).map(|_| "started")
-        }
-        HotkeyEvent::Release(Action::PushToTalk) => return stop_detached(daemon, action),
-        HotkeyEvent::Press(Action::Toggle) => return toggle_detached(daemon, action),
+        HotkeyEvent::Press(Action::PushToTalk) => hold(daemon, Edge::Press, at),
+        HotkeyEvent::Release(Action::PushToTalk) => hold(daemon, Edge::Release, at),
+        HotkeyEvent::Press(Action::Toggle) => return toggle_detached(daemon, action, at),
         HotkeyEvent::Press(Action::Cancel) => cancel(daemon).map(|_| "cancelled"),
         HotkeyEvent::Press(Action::ReinsertLast) => reinsert_last(daemon).map(|_| "reinserted"),
         HotkeyEvent::Release(_) => return,
@@ -234,23 +243,44 @@ pub fn on_hotkey(daemon: &Arc<Daemon>, event: HotkeyEvent) {
     report(action, outcome);
 }
 
-fn toggle_detached(daemon: &Arc<Daemon>, action: &'static str) {
-    match toggle_decision(daemon) {
+fn toggle_detached(daemon: &Arc<Daemon>, action: &'static str, at: Instant) {
+    match toggle_decision(daemon, at) {
         Ok(ToggleDecision::Started(_)) => report(action, Ok("started")),
-        Ok(ToggleDecision::Stop(id)) => stop_job_detached(daemon, action, id),
+        Ok(ToggleDecision::Stop(id)) => stop_job_detached(daemon, action, id, at),
         Err(error) => report(action, Err(error)),
     }
 }
 
-/// Captures the take identity before handing settlement to a background thread.
-fn stop_detached(daemon: &Arc<Daemon>, action: &'static str) {
-    match daemon.dictation().snapshot() {
-        Some(snapshot) => stop_job_detached(daemon, action, snapshot.job_id),
-        None => report(action, Err(session_error(SessionError::NoSession))),
+/// The hold key's answer to an edge, as the line `report` logs. A press
+/// while another session runs is ignored, never a second session.
+fn hold(daemon: &Arc<Daemon>, edge: Edge, at: Instant) -> Result<&'static str, JsonRpcError> {
+    match daemon.hotkeys().hold().on(&**daemon, edge, at) {
+        Ok(outcome) => Ok(match outcome.result.action.as_str() {
+            "started" => "started",
+            "stopped" => {
+                if let Some(job) = outcome.stop {
+                    stop_job_detached(daemon, "push_to_talk", job, at);
+                }
+                "stopping"
+            }
+            "locked" => "locked",
+            "discarded" => "discarded",
+            _ => "nothing",
+        }),
+        Err(e) if e.app_code() == AppCode::Conflict => {
+            tracing::info!(
+                action = "push_to_talk",
+                "hotkey press ignored: a session is active"
+            );
+            Ok("nothing")
+        }
+        Err(e) => Err(e),
     }
 }
 
-fn stop_job_detached(daemon: &Arc<Daemon>, action: &'static str, job_id: String) {
+/// Settles the named take, released `at`, on a thread of its own; the
+/// outcome is logged.
+fn stop_job_detached(daemon: &Arc<Daemon>, action: &'static str, job_id: String, at: Instant) {
     let owned = daemon.clone();
     let job = job_id.clone();
     let spawned = std::thread::Builder::new()
@@ -260,7 +290,7 @@ fn stop_job_detached(daemon: &Arc<Daemon>, action: &'static str, job_id: String)
                 action,
                 owned
                     .dictation()
-                    .stop_expected(&job)
+                    .stop_expected(&job, at)
                     .map(|_| "stopped")
                     .map_err(session_error),
             )
@@ -271,7 +301,7 @@ fn stop_job_detached(daemon: &Arc<Daemon>, action: &'static str, job_id: String)
             action,
             daemon
                 .dictation()
-                .stop_expected(&job_id)
+                .stop_expected(&job_id, at)
                 .map(|_| "stopped")
                 .map_err(session_error),
         );

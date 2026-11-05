@@ -14,6 +14,9 @@ Item {
     property string secondary: ""
     property string primary: ""
     property bool primaryEnabled: true
+    // Tab to a button scrolls the whole footer, note included, into a
+    // scrolling step's view (FocusFlickable.reveal).
+    readonly property int revealMargin: Theme.space5
 
     signal leftTriggered
     signal secondaryTriggered

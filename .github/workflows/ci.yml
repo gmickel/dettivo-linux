@@ -58,7 +58,7 @@ jobs:
   # keyed to this job so the build is what the next run restores.
   gate:
     name: gate
-    timeout-minutes: 60
+    timeout-minutes: 90
     runs-on: ubuntu-latest
     container:
       image: docker.io/library/archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6
@@ -133,6 +133,11 @@ jobs:
           XDG_DATA_HOME: ${{ github.workspace }}/.ci-data
       - run: scripts/qa/xvfb-session.sh just qa-drive placeholder_window atspi
       - run: scripts/qa/xvfb-session.sh just qa-drive app_routes atspi
+      # The X11 clipboard against a private owner: it takes the display's
+      # selection, so it runs only on this disposable one.
+      - run: scripts/qa/xvfb-session.sh cargo test -p dettivo-insert --test x11_clip
+        env:
+          DETTIVO_X11_CLIP_TEST: "1"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:

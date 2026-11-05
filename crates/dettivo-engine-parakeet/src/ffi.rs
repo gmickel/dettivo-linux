@@ -125,6 +125,116 @@ impl Model {
             .pop()
             .ok_or_else(|| FfiError("transcription JSON held no clip".into()))
     }
+
+    /// Transcribes like [`Model::transcribe`] and keeps the take for
+    /// rescoring. Fails for a model rescoring cannot read (not TDT).
+    pub fn take(&self, samples: &[f32]) -> Result<(Take<'_>, RawTranscription), FfiError> {
+        let n = i32::try_from(samples.len())
+            .map_err(|_| FfiError("clip longer than the C API's sample count".into()))?;
+        let mut json: *mut std::os::raw::c_char = std::ptr::null_mut();
+        // SAFETY: `samples` holds `n` floats, the context is live, `json`
+        // is a valid out pointer; the string is freed below and the take
+        // by `Take::drop`.
+        let (take, text) = unsafe {
+            let take =
+                sys::parakeet_sys_take_open(self.ctx, samples.as_ptr(), n, c"".as_ptr(), &mut json);
+            if take.is_null() {
+                return Err(FfiError(self.last_error()));
+            }
+            let text = CStr::from_ptr(json).to_string_lossy().into_owned();
+            sys::parakeet_capi_free_string(json);
+            (take, text)
+        };
+        let take = Take {
+            ptr: take,
+            _model: std::marker::PhantomData,
+        };
+        let raw = serde_json::from_str(&text)
+            .map_err(|e| FfiError(format!("transcription JSON: {e}")))?;
+        Ok((take, raw))
+    }
+
+    /// The tokenizer's pieces, by id.
+    pub fn pieces(&self) -> Vec<String> {
+        // SAFETY: the context is live; each piece pointer is owned by the
+        // model and copied at once.
+        unsafe {
+            let n = sys::parakeet_sys_vocab_size(self.ctx);
+            (0..n)
+                .map(|id| {
+                    let p = sys::parakeet_sys_piece(self.ctx, id);
+                    if p.is_null() {
+                        String::new()
+                    } else {
+                        CStr::from_ptr(p).to_string_lossy().into_owned()
+                    }
+                })
+                .collect()
+        }
+    }
+}
+
+/// One greedy token of a take.
+pub type Token = sys::parakeet_sys_token;
+
+/// A recognized clip kept for rescoring; lives no longer than its model.
+pub struct Take<'m> {
+    ptr: *mut sys::parakeet_sys_take,
+    _model: std::marker::PhantomData<&'m Model>,
+}
+
+impl Take<'_> {
+    /// The greedy tokens.
+    pub fn tokens(&self) -> &[Token] {
+        // SAFETY: the array belongs to the live take and holds `n` tokens.
+        unsafe {
+            let mut p: *const Token = std::ptr::null();
+            let n = sys::parakeet_sys_take_tokens(self.ptr, &mut p);
+            if p.is_null() || n <= 0 {
+                &[]
+            } else {
+                std::slice::from_raw_parts(p, n as usize)
+            }
+        }
+    }
+
+    /// The encoder frame count.
+    pub fn frames(&self) -> i32 {
+        // SAFETY: a plain getter on the live take.
+        unsafe { sys::parakeet_sys_take_frames(self.ptr) }
+    }
+
+    /// The log-probability of reading `tokens` over frames `[lo, hi)` from
+    /// where greedy decoding stood before token `start`.
+    pub fn score(&self, start: usize, lo: i32, hi: i32, tokens: &[i32]) -> Result<f32, FfiError> {
+        let start = i32::try_from(start).map_err(|_| FfiError("token index".into()))?;
+        let mut out = 0.0f32;
+        // SAFETY: `tokens` holds its length in ids; the take is live and
+        // is only used from this thread.
+        let rc = unsafe {
+            sys::parakeet_sys_take_score(
+                self.ptr,
+                start,
+                lo,
+                hi,
+                tokens.as_ptr(),
+                tokens.len() as i32,
+                &mut out,
+            )
+        };
+        if rc == 0 {
+            Ok(out)
+        } else {
+            Err(FfiError("rescoring a span failed".into()))
+        }
+    }
+}
+
+impl Drop for Take<'_> {
+    fn drop(&mut self) {
+        // SAFETY: the take came from parakeet_sys_take_open and is freed once.
+        unsafe { sys::parakeet_sys_take_free(self.ptr) };
+    }
 }
 
 impl Drop for Model {

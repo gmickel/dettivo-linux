@@ -348,6 +348,7 @@ fn the_whisper_engine_recognizes_the_fixture_over_the_protocol() {
                 language: "en".into(),
                 prompt: None,
                 timestamps: true,
+                vocabulary: None,
             },
             Duration::from_secs(120),
         )
@@ -426,6 +427,7 @@ fn the_parakeet_engine_recognizes_the_fixture_over_the_protocol_with_words() {
                 language: "en".into(),
                 prompt: Some("MARKER_PROMPT_TEXT".into()),
                 timestamps: true,
+                vocabulary: None,
             },
             Duration::from_secs(120),
         )
@@ -454,6 +456,7 @@ fn the_parakeet_engine_recognizes_the_fixture_over_the_protocol_with_words() {
                 language: "de".into(),
                 prompt: None,
                 timestamps: true,
+                vocabulary: None,
             },
             Duration::from_secs(30),
         )
@@ -476,3 +479,6 @@ mod gpu_retry;
 
 #[path = "support/embed_batches.rs"]
 mod embed_batches;
+
+#[path = "support/warm_up.rs"]
+mod warm_up;

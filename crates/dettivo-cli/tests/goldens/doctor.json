@@ -9,6 +9,11 @@
     "default_sink": null,
     "default_source": null,
     "devices": [],
+    "microphone_ready": {
+      "lock_signal": "compositor",
+      "reason": null,
+      "state": "off"
+    },
     "pinned": "",
     "pipewire": false
   },
@@ -50,7 +55,8 @@
       "model": null,
       "path": "/usr/bin/dettivo-engine-diarize",
       "reason": null,
-      "running": false
+      "running": false,
+      "warm": false
     },
     "model": "diarize/diarization",
     "model_readiness": null
@@ -66,7 +72,8 @@
       "model": null,
       "path": "/usr/bin/dettivo-engine-whisper",
       "reason": null,
-      "running": false
+      "running": false,
+      "warm": false
     },
     {
       "backend": null,
@@ -78,7 +85,8 @@
       "model": null,
       "path": "/usr/bin/dettivo-engine-parakeet",
       "reason": null,
-      "running": false
+      "running": false,
+      "warm": false
     },
     {
       "backend": null,
@@ -90,7 +98,8 @@
       "model": null,
       "path": "/usr/bin/dettivo-engine-llm",
       "reason": null,
-      "running": false
+      "running": false,
+      "warm": false
     },
     {
       "backend": null,
@@ -102,7 +111,8 @@
       "model": null,
       "path": "/usr/bin/dettivo-engine-diarize",
       "reason": null,
-      "running": false
+      "running": false,
+      "warm": false
     }
   ],
   "environment": {
@@ -256,6 +266,11 @@
       "readiness": "missing",
       "recommended_for": "99 languages · vocabulary prompts · the Mac default",
       "size_bytes": 874188075
+    },
+    "vad": {
+      "action": "dettivo speech download --model silero-vad",
+      "model": "whisper/silero-vad",
+      "readiness": "missing"
     }
   },
   "omarchy": {

@@ -75,7 +75,7 @@ impl ModelFile {
 }
 
 /// One catalogue entry.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ModelEntry {
     /// The provider directory under the models directory.
@@ -121,6 +121,10 @@ pub struct ModelEntry {
     /// carry one (`docs/app.md`), the rest none.
     #[serde(default)]
     pub recommended_for: Option<String>,
+    /// The languages the recorded FLEURS run scored a speech model in,
+    /// with its rate and rank in each (ADR 0085).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub language_wer: Vec<crate::ranking::LanguageWer>,
     /// The archive member the first file is unpacked to, when the
     /// download is an archive.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -162,7 +166,7 @@ fn yes() -> bool {
 }
 
 /// The catalogue.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Catalogue {
     /// The manifest version.

@@ -229,7 +229,11 @@ void OsdModel::applyDictationState(const QJsonObject &payload)
 {
     const QString state = str(payload, "state");
     const QString previous = str(payload, "previous_state");
-    if (state == QStringLiteral("recording")) {
+    if (state == QStringLiteral("recording") && previous == QStringLiteral("recording")
+        && str(payload, "reason") == QStringLiteral("locked")) {
+        // The same take, locked by a double tap: the release no longer ends it.
+        show(QStringLiteral("listening"), Texts{{}, tr("locked · press to finish"), {}, {}, {}, {}, {}, {}});
+    } else if (state == QStringLiteral("recording")) {
         // A new take: a completion of the previous one still waiting out
         // its beat belongs to that take and is dropped when it fires.
         ++m_take;
@@ -249,7 +253,12 @@ void OsdModel::applyDictationState(const QJsonObject &payload)
     } else if (state == QStringLiteral("failed")) {
         applyFailure(str(payload, "reason"));
     } else if (state == QStringLiteral("cancelled")) {
-        hide();
+        // The speech gate ends a silent take `cancelled`, reason `silence: <stage>`.
+        if (str(payload, "reason").startsWith(QStringLiteral("silence")))
+            show(QStringLiteral("error"),
+                 Texts{tr("Nothing heard"), {}, {}, {}, {}, {}, tr("the take was silent"), tr("try again")});
+        else
+            hide();
     }
 }
 
@@ -296,6 +305,9 @@ void OsdModel::applyCompletion(const QJsonObject &payload)
     const QString reason = str(insertion, "reason");
     if (outcome == QStringLiteral("inserted")) {
         show(QStringLiteral("inserted"), Texts{{}, {}, {}, {}, words, target == QStringLiteral("mock") ? QString() : target, {}, {}});
+    } else if (outcome == QStringLiteral("printed")) {
+        // `dettivo dictation stop --print` took the text: done, into no window.
+        show(QStringLiteral("inserted"), Texts{{}, {}, {}, {}, words, {}, {}, {}});
     } else if (outcome == QStringLiteral("copied_to_clipboard")) {
         show(QStringLiteral("copied"),
              Texts{{}, {}, {}, {}, words, {}, reason.isEmpty() ? tr("no text input focused") : reason, tr("Ctrl+V")});
@@ -356,8 +368,11 @@ void OsdModel::refreshFromStatus()
         const QString engine = message.section(QStringLiteral(" with "), 1, 1).replace(QLatin1Char('/'), QLatin1Char(' '));
         if (!engine.isEmpty())
             m_engineLabel = engine;
+        // A take a double tap locked ends on the next press, not the release.
+        const bool locked = result.value(QStringLiteral("locked")).toBool(false);
         if (phase == QStringLiteral("listening"))
-            show(QStringLiteral("listening"), Texts{{}, tr("release to insert"), {}, {}, {}, {}, {}, {}});
+            show(QStringLiteral("listening"),
+                 Texts{{}, locked ? tr("locked · press to finish") : tr("release to insert"), {}, {}, {}, {}, {}, {}});
         else if (phase == QStringLiteral("transcribing") || phase == QStringLiteral("inserting"))
             show(QStringLiteral("transcribing"), Texts{{}, {}, m_engineLabel, m_elapsed, {}, {}, {}, {}});
     });

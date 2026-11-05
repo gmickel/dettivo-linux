@@ -29,6 +29,7 @@ mod polish;
 mod rest;
 mod setup;
 mod speech;
+mod speech_lines;
 mod transfer;
 
 use std::path::PathBuf;
@@ -77,6 +78,10 @@ pub struct Cli {
     /// The command to run.
     #[command(subcommand)]
     pub command: Command,
+    /// When the command started, on `CLOCK_MONOTONIC`: a hold edge or a
+    /// toggle is timed from it, not from when the daemon got the call.
+    #[arg(skip = dettivo_proto::methods::dictation::monotonic_ns())]
+    pub started_ns: u64,
 }
 
 /// Top-level commands.
@@ -94,7 +99,7 @@ pub enum Command {
         #[command(subcommand)]
         what: commands::ConfigCmd,
     },
-    /// dictation.* methods: start, stop, cancel, status, toggle, reinsert-last.
+    /// dictation.* methods: start, stop, cancel, status, toggle, press, release, reinsert-last, pause, resume.
     Dictation {
         /// Which dictation verb.
         #[command(subcommand)]

@@ -291,6 +291,26 @@ fn speech_commands_map_to_the_speech_methods() {
     let providers: Value =
         serde_json::from_str(&stdout(&d.cli(&["--json", "speech", "providers"]))).unwrap();
     assert_eq!(providers["default_provider_id"], "whisper");
+    assert!(providers.get("language_ranking").is_none());
+    let ranked: Value = serde_json::from_str(&stdout(&d.cli(&[
+        "--json",
+        "speech",
+        "providers",
+        "--language",
+        "de_CH.UTF-8",
+    ])))
+    .unwrap();
+    let ranking = &ranked["language_ranking"];
+    assert_eq!(ranking["language"], "de");
+    assert_eq!(ranking["models"][0]["rank"], 1, "{ranking}");
+    assert!(ranking["models"][0]["wer"].is_f64(), "{ranking}");
+    let human = stdout(&d.cli(&["speech", "providers", "--language", "de"]));
+    assert!(human.starts_with("For German, "), "{human}");
+    let status = stdout(&d.cli(&["speech", "status"]));
+    assert!(
+        status.contains("engine dettivo-engine-whisper cold"),
+        "{status}"
+    );
 
     let selection: Value =
         serde_json::from_str(&stdout(&d.cli(&["--json", "speech", "selection"]))).unwrap();

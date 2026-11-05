@@ -140,7 +140,7 @@ fn completion_reads_temporary_audio_before_every_retention_policy() {
                 .meeting_id;
             feeds
                 .mic(0)
-                .send(dettivo_audio::Event::Pcm(vec![1; samples]))
+                .send(dettivo_audio::Event::pcm(vec![1; samples]))
                 .unwrap();
             feeds
                 .mic(0)

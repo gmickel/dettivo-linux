@@ -57,6 +57,7 @@ fn rig() -> Rig {
         .tempdir_in("/tmp")
         .unwrap();
     let sha = write_fixture(server_dir.path(), "ggml-test.bin", 300_000);
+    let vad_sha = write_fixture(server_dir.path(), "ggml-silero-v5.1.2.bin", 1_000);
     let tiny = local_tiny_en();
     if let Some(src) = &tiny {
         std::fs::copy(src, server_dir.path().join("ggml-tiny.en.bin")).unwrap();
@@ -79,6 +80,19 @@ redistribution = "test fixture"
 languages = ["en"]
 english_only = true
 default = true
+
+[[models]]
+provider = "whisper"
+id = "silero-vad"
+display_name = "Silero VAD"
+kind = "vad"
+file_name = "ggml-silero-v5.1.2.bin"
+size_bytes = 1000
+url = "{url}/ggml-silero-v5.1.2.bin"
+sha256 = "{vad_sha}"
+license = "MIT"
+redistribution = "test fixture"
+languages = ["multilingual"]
 "#,
         url = server.url,
     );
@@ -170,6 +184,8 @@ fn a_model_downloads_verified_and_the_selection_preloads_it() {
     ));
     let ready = wait_for(&daemon, "test", "ready", Duration::from_secs(20));
     assert_eq!(ready.bytes_done, 300_000);
+    // fn-79 R3: the speech model brings the dictation gate's voice model.
+    wait_for(&daemon, "silero-vad", "ready", Duration::from_secs(20));
     let path = PathBuf::from(ready.path.clone().unwrap());
     assert!(path.is_file());
     let manifest: serde_json::Value = serde_json::from_str(
@@ -178,7 +194,7 @@ fn a_model_downloads_verified_and_the_selection_preloads_it() {
     .unwrap();
     assert_eq!(manifest["verified"], true);
     assert_eq!(manifest["catalogue_version"], 7);
-    assert_eq!(rig.server.seen().len(), 1);
+    assert_eq!(rig.server.seen().len(), 2);
 
     // providers.list reads the same readiness source.
     let providers: ProvidersListResult =

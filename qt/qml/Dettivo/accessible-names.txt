@@ -223,6 +223,7 @@ Reset %1 to default
 Show advanced settings
 Vocabulary term
 Remove vocabulary term %1
+Sounds like for %1
 Live notice
 Recording stopped
 Finalisation stage

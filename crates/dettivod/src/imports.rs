@@ -216,7 +216,9 @@ impl Jobs {
             } else {
                 params.language.clone()
             },
-            prompt: dettivo_speech::vocabulary_prompt(&d.vocabulary),
+            prompt: dettivo_speech::vocabulary_prompt(
+                &dettivo_core::config::vocabulary_schema::terms(&d.vocabulary),
+            ),
             replacements: d
                 .replacements
                 .iter()

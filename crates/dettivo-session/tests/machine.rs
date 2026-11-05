@@ -7,7 +7,7 @@ mod support;
 
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Barrier, Mutex};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use dettivo_audio::{EndReason, Event};
 use dettivo_proto::runtime::InsertionOutcome;
@@ -25,6 +25,7 @@ fn a_full_session_runs_every_state_and_keeps_the_transcript() {
             engine.clone(),
             feed.clone(),
             None,
+            Instant::now(),
         )
         .unwrap();
     assert_eq!(started.state, State::Recording);
@@ -35,7 +36,6 @@ fn a_full_session_runs_every_state_and_keeps_the_transcript() {
     let t = session.stop().unwrap();
     assert_eq!(t.text, "The quick fox, done.");
     assert!(t.duration_ms >= 380, "{}", t.duration_ms);
-    assert!(!t.silent);
     assert_eq!(
         t.insertion.as_ref().unwrap().outcome,
         InsertionOutcome::Inserted
@@ -84,7 +84,8 @@ fn a_full_session_runs_every_state_and_keeps_the_transcript() {
 
 /// dictation/F18: a voiced take shorter than the meter window carries no
 /// level event; its silence is read from the samples and it reaches the
-/// engine. A level event over silent samples does not make them speech.
+/// engine, padded to 1.5 s (fn-79 R4). A level event over silent samples
+/// does not make them speech.
 #[test]
 fn silence_is_read_from_the_samples_not_the_meter() {
     let (dir, _rec, session, engine, feed) = rig("short take");
@@ -94,64 +95,92 @@ fn silence_is_read_from_the_samples_not_the_meter() {
             engine.clone(),
             feed.clone(),
             None,
+            Instant::now(),
         )
         .unwrap();
-    // 20 ms at 0.09 of full scale, well over the 0.01 threshold, and no
-    // level event at all.
-    feed.send(Event::Pcm(vec![3000i16; 320]));
+    // 40 ms at 0.09 of full scale and no level event at all.
+    feed.send(Event::pcm(support::tone(640)));
     std::thread::sleep(Duration::from_millis(50));
     let t = session.stop().unwrap();
-    assert!(!t.silent);
     assert_eq!(t.text, "Short take");
+    assert_eq!(t.duration_ms, 40);
     assert_eq!(engine.calls.load(Ordering::Relaxed), 1);
+    assert_eq!(engine.last_samples.load(Ordering::Relaxed), 24_000);
 
-    let (dir, _rec, session, engine, feed) = rig("never used");
+    let (dir, rec, session, engine, feed) = rig("never used");
     session
         .start(
             policy(dir.path(), false),
             engine.clone(),
             feed.clone(),
             None,
+            Instant::now(),
         )
         .unwrap();
-    feed.send(Event::Pcm(vec![0i16; 320]));
+    feed.send(Event::pcm(vec![0i16; 3_200]));
     feed.send(Event::Level {
         rms: 0.5,
         peak: 0.9,
     });
     std::thread::sleep(Duration::from_millis(50));
-    let t = session.stop().unwrap();
-    assert!(t.silent);
+    assert_eq!(session.stop().unwrap_err(), SessionError::NoSpeech);
     assert_eq!(engine.calls.load(Ordering::Relaxed), 0);
+    assert_eq!(
+        support::silence_reason(&rec).as_deref(),
+        Some("silence: level")
+    );
 }
 
+/// fn-79: a silent take ends `cancelled` with the gate's stage, never
+/// reaches the engine, and leaves no staging behind.
 #[test]
 fn unarchived_staging_is_discarded_and_silence_skips_the_engine() {
-    let (dir, _rec, session, engine, feed) = rig("never used");
+    let (dir, rec, session, engine, feed) = rig("never used");
     session
-        .start(policy(dir.path(), true), engine.clone(), feed.clone(), None)
+        .start(
+            policy(dir.path(), true),
+            engine.clone(),
+            feed.clone(),
+            None,
+            Instant::now(),
+        )
         .unwrap();
     for _ in 0..10 {
-        feed.send(Event::Pcm(vec![0i16; 320]));
+        feed.send(Event::pcm(vec![0i16; 320]));
     }
     feed.send(Event::Level {
         rms: 0.0,
         peak: 0.001,
     });
     std::thread::sleep(Duration::from_millis(50));
-    let t = session.stop().unwrap();
-    assert!(t.silent);
-    assert_eq!(t.text, "");
+    assert_eq!(session.stop().unwrap_err(), SessionError::NoSpeech);
     assert_eq!(
         engine.calls.load(Ordering::Relaxed),
         0,
         "silence never reaches the engine"
+    );
+    assert_eq!(
+        rec.sequence(),
+        [
+            State::Recording,
+            State::Transcribing,
+            State::Cancelled,
+            State::Idle
+        ]
+    );
+    assert_eq!(
+        support::silence_reason(&rec).as_deref(),
+        Some("silence: level")
     );
     assert!(
         !dir.path()
             .join("sessions/job_dict_1/microphone.wav")
             .exists(),
         "history alone owns retention"
+    );
+    assert!(
+        session.reinsert_last().is_err(),
+        "a silent take is no transcript"
     );
 }
 
@@ -163,12 +192,16 @@ fn concurrent_starts_let_exactly_one_win() {
     let mut handles = Vec::new();
     for _ in 0..4 {
         let (s, p, e, f) = (session.clone(), p.clone(), engine.clone(), feed.clone());
-        handles.push(std::thread::spawn(move || s.start(p, e, f, None).is_ok()));
+        handles.push(std::thread::spawn(move || {
+            s.start(p, e, f, None, Instant::now()).is_ok()
+        }));
     }
     let wins: Vec<bool> = handles.into_iter().map(|h| h.join().unwrap()).collect();
     assert_eq!(wins.iter().filter(|w| **w).count(), 1, "{wins:?}");
     assert_eq!(
-        session.start(p, engine, feed.clone(), None).unwrap_err(),
+        session
+            .start(p, engine, feed.clone(), None, Instant::now())
+            .unwrap_err(),
         SessionError::Active
     );
     session.cancel().unwrap();
@@ -209,7 +242,7 @@ fn every_stopper_of_a_take_gets_that_takes_result() {
     });
     let starter = {
         let (s, p, e) = (session.clone(), policy(dir.path(), false), engine.clone());
-        std::thread::spawn(move || s.start(p, e, gated, None))
+        std::thread::spawn(move || s.start(p, e, gated, None, Instant::now()))
     };
     entered.wait();
     // The slot is reserved, the source is opening: two stoppers arrive.
@@ -236,7 +269,13 @@ fn every_stopper_of_a_take_gets_that_takes_result() {
     wait_idle(&session);
     // The next take starts at once and its own stop answers for it.
     let next = session
-        .start(policy(dir.path(), false), engine, Feed::new(), None)
+        .start(
+            policy(dir.path(), false),
+            engine,
+            Feed::new(),
+            None,
+            Instant::now(),
+        )
         .unwrap();
     assert_eq!(next.state, State::Recording);
     assert_ne!(session.stop().map(|t| t.text), Err(SessionError::NoSession));
@@ -256,13 +295,22 @@ fn stop_and_cancel_without_a_session_are_not_found_and_modes_are_gated() {
     p.mode = "meeting".into();
     assert_eq!(
         session
-            .start(p.clone(), engine.clone(), feed.clone(), None)
+            .start(
+                p.clone(),
+                engine.clone(),
+                feed.clone(),
+                None,
+                Instant::now()
+            )
             .unwrap_err(),
         SessionError::ModeUnknown("meeting".into())
     );
     p.mode = "raw".into();
     p.model_path = dir.path().join("absent.bin");
-    match session.start(p, engine, feed, None).unwrap_err() {
+    match session
+        .start(p, engine, feed, None, Instant::now())
+        .unwrap_err()
+    {
         SessionError::ModelMissing {
             model,
             recommended_action,
@@ -289,6 +337,7 @@ fn the_target_captured_at_start_reaches_the_snapshot_and_the_inserter() {
             engine.clone(),
             feed.clone(),
             Some(target.clone()),
+            Instant::now(),
         )
         .unwrap();
     assert_eq!(started.target.as_ref(), Some(&target));

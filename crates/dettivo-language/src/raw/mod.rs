@@ -188,16 +188,34 @@ fn at_boundary(chars: &[char], i: usize) -> bool {
     !(chars[i - 1].is_alphanumeric() && chars[i].is_alphanumeric())
 }
 
-/// Turns spoken punctuation into marks and glues them to the word before.
-/// The spans of every spoken `dash dash`: a doubled dash is a flag
-/// (`--model`), which the code preset's technical pass owns, never two
-/// marks of prose punctuation.
-fn doubled_dashes(chars: &[char]) -> Vec<Span> {
+/// Words after which a punctuation word is a noun ("a period of three
+/// weeks", "add a dash of salt"): articles and determiners that cannot
+/// end a sentence, so the word cannot be a spoken mark closing one.
+const DETERMINERS: &[&str] = &[
+    "the", "a", "an", "each", "every", "my", "your", "our", "their", "its",
+];
+
+/// The start of the word before `at` when it is one of [`DETERMINERS`].
+fn determiner_before(chars: &[char], at: usize) -> Option<usize> {
+    let end = chars[..at].iter().rposition(|c| !c.is_whitespace())? + 1;
+    let start = chars[..end]
+        .iter()
+        .rposition(|c| !c.is_alphanumeric())
+        .map_or(0, |i| i + 1);
+    let word: String = chars[start..end]
+        .iter()
+        .flat_map(|c| c.to_lowercase())
+        .collect();
+    DETERMINERS.contains(&word.as_str()).then_some(start)
+}
+
+/// The whole-word, case-insensitive occurrences of `needle` in `chars`.
+fn occurrences(chars: &[char], needle: &str) -> Vec<Span> {
     let lower: Vec<char> = chars
         .iter()
         .map(|c| c.to_lowercase().next().unwrap_or(*c))
         .collect();
-    let needle: Vec<char> = "dash dash".chars().collect();
+    let needle: Vec<char> = needle.chars().collect();
     let mut spans = Vec::new();
     let mut i = 0;
     while i + needle.len() <= lower.len() {
@@ -212,57 +230,160 @@ fn doubled_dashes(chars: &[char]) -> Vec<Span> {
     spans
 }
 
+/// The first code point of the plane-15 private-use block, where a mark
+/// that came from a spoken phrase stands as `TAG_BASE + mark` until the
+/// glue pass, so it knows which marks were spoken and which written.
+const TAG_BASE: u32 = 0xF0000;
+/// The marks a spoken phrase is tagged with.
+const TAGGED: &[char] = &['.', '?', '!', ',', ';', ':'];
+
+fn tag(mark: &str) -> String {
+    match mark.chars().collect::<Vec<_>>()[..] {
+        [c] if TAGGED.contains(&c) => char::from_u32(TAG_BASE + c as u32)
+            .expect("private use")
+            .to_string(),
+        _ => mark.to_string(),
+    }
+}
+
+/// The mark a tagged character stands for.
+fn untag(c: char) -> Option<char> {
+    let mark = char::from_u32((c as u32).checked_sub(TAG_BASE)?)?;
+    TAGGED.contains(&mark).then_some(mark)
+}
+
+/// Turns spoken punctuation into marks and glues them to the word before.
+/// A phrase after a determiner stays a word, and a spoken `dash dash` is a
+/// flag (`--model`), which the code preset's technical pass owns, never
+/// two marks of prose punctuation. Text that already carries a tag
+/// character is glued untagged, so a tag can never be mistaken for one.
 fn punctuate(text: &str) -> String {
+    let tagging = !text.chars().any(|c| untag(c).is_some());
     let mut out = text.to_string();
     for (phrase, mark) in SPOKEN {
         let chars: Vec<char> = out.chars().collect();
-        let keep = if *phrase == "dash" {
-            doubled_dashes(&chars)
-        } else {
-            Vec::new()
-        };
-        let replaced = replace_word(&chars, phrase, mark, &keep);
-        if replaced != out {
-            out = replaced;
+        let mut keep: Vec<Span> = occurrences(&chars, phrase)
+            .into_iter()
+            .filter_map(|s| {
+                determiner_before(&chars, s.start).map(|start| Span { start, end: s.end })
+            })
+            .collect();
+        if *phrase == "dash" {
+            keep.extend(occurrences(&chars, "dash dash"));
         }
+        let mark = if tagging { tag(mark) } else { mark.to_string() };
+        out = replace_word(&chars, phrase, &mark, &keep);
     }
-    let mut result = String::with_capacity(out.len());
-    let chars: Vec<char> = out.chars().collect();
+    let marks: Vec<(char, bool)> = out
+        .chars()
+        .map(|c| match untag(c) {
+            Some(m) if tagging => (m, true),
+            _ => (c, false),
+        })
+        .collect();
+    glue(&marks)
+}
+
+fn ends_sentence(c: char) -> bool {
+    matches!(c, '.' | '?' | '!')
+}
+
+/// What the glue pass does with a mark, given what it already wrote.
+enum Mark {
+    Push,
+    Drop,
+    /// The mark takes the place of the written marks of its kind before it.
+    Replace,
+}
+
+/// A spoken mark beside one the engine wrote ("done? question mark.",
+/// "report, period, then") leaves one: the spoken one wins a sentence
+/// end, a stop the engine wrote twice is one, a comma before a stop gives
+/// way and so does one the engine wrote after a spoken stop, and a spoken
+/// comma beside a written one is one. An ellipsis keeps its three dots.
+fn settle(result: &mut Vec<(char, bool)>, c: char, spoken: bool, next: Option<char>) -> Mark {
+    if ends_sentence(c)
+        && result
+            .last()
+            .is_some_and(|&(p, _)| matches!(p, ',' | ';' | ':'))
+    {
+        result.pop();
+    }
+    let Some(&(prev, prev_spoken)) = result.last() else {
+        return Mark::Push;
+    };
+    if ends_sentence(c) && ends_sentence(prev) {
+        let dots_before = result.iter().rev().take_while(|m| m.0 == '.').count();
+        let ellipsis = (c == '.' && !spoken && next == Some('.')) || dots_before > 1;
+        return match (spoken, prev_spoken) {
+            _ if ellipsis => Mark::Push,
+            (true, false) => Mark::Replace,
+            (false, true) => Mark::Drop,
+            _ if c == '.' => Mark::Drop,
+            _ => Mark::Push,
+        };
+    }
+    let written_after_stop = ends_sentence(prev) && prev_spoken && !spoken;
+    if matches!(c, ',' | ';' | ':') && written_after_stop {
+        return Mark::Drop;
+    }
+    match (c == ',' && prev == ',', spoken, prev_spoken) {
+        (true, true, false) => Mark::Replace,
+        (true, false, true) => Mark::Drop,
+        _ => Mark::Push,
+    }
+}
+
+/// Glues marks to the word before, settles marks that meet and
+/// capitalises after a sentence end.
+fn glue(chars: &[(char, bool)]) -> String {
+    let mut result: Vec<(char, bool)> = Vec::with_capacity(chars.len());
     let mut i = 0;
     while i < chars.len() {
-        let c = chars[i];
+        let (c, spoken) = chars[i];
         if matches!(c, '.' | ',' | '?' | '!' | ':' | ';' | ')' | '\u{201d}') {
-            while result.ends_with(' ') {
+            while result.last().is_some_and(|&(p, _)| p == ' ') {
                 result.pop();
             }
-            result.push(c);
+            match settle(&mut result, c, spoken, chars.get(i + 1).map(|m| m.0)) {
+                Mark::Push => result.push((c, spoken)),
+                Mark::Drop => {}
+                Mark::Replace => {
+                    while result.last().is_some_and(|&(p, s)| {
+                        !s && (p == c || ends_sentence(p) && ends_sentence(c))
+                    }) {
+                        result.pop();
+                    }
+                    result.push((c, spoken));
+                }
+            }
             // Capitalise after a sentence end.
-            if matches!(c, '.' | '?' | '!') {
+            if result.last().is_some_and(|&(p, _)| ends_sentence(p)) {
                 let mut j = i + 1;
-                while j < chars.len() && chars[j] == ' ' {
+                while j < chars.len() && chars[j].0 == ' ' {
                     j += 1;
                 }
-                if j < chars.len() && chars[j].is_lowercase() {
-                    result.push(' ');
-                    result.extend(chars[j].to_uppercase());
+                if j < chars.len() && chars[j].0.is_lowercase() {
+                    result.push((' ', false));
+                    result.extend(chars[j].0.to_uppercase().map(|u| (u, false)));
                     i = j + 1;
                     continue;
                 }
             }
         } else if c == '(' || c == '\u{201c}' {
-            result.push(c);
+            result.push((c, spoken));
             let mut j = i + 1;
-            while j < chars.len() && chars[j] == ' ' {
+            while j < chars.len() && chars[j].0 == ' ' {
                 j += 1;
             }
             i = j;
             continue;
         } else {
-            result.push(c);
+            result.push((c, spoken));
         }
         i += 1;
     }
-    result
+    result.into_iter().map(|(c, _)| c).collect()
 }
 
 /// Collapses runs of spaces, trims line ends and capitalises the start.

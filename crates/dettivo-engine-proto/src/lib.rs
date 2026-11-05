@@ -7,7 +7,10 @@
 //! `host_llm` its streaming counterpart for the language model binary,
 //! `host_diarize` the one for the diarization binary (a `cancel` and a
 //! `status` reach it while a pass runs), and `backend` the shared
-//! Vulkan-or-CPU choice, so every engine binary answers the same way.
+//! Vulkan-or-CPU choice, so every engine binary answers the same way;
+//! `warm_up` the silence the warm-up after a load sends each engine, and
+//! `sound` the spelling and sound matching both speech engines read a
+//! vocabulary term by (ADR 0088, ADR 0095).
 
 pub mod backend;
 pub mod frame;
@@ -15,6 +18,9 @@ pub mod host;
 pub mod host_diarize;
 pub mod host_llm;
 pub mod messages;
+pub mod sound;
+mod speech_messages;
+pub mod warm_up;
 
 /// Package name of this crate, as declared in its manifest.
 pub const CRATE_NAME: &str = env!("CARGO_PKG_NAME");

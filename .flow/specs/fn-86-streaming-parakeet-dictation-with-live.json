@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-86-streaming-parakeet-dictation-with-live",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-02T09:11:55.011923Z",
   "created_at": "2026-11-01T09:58:06.847471Z",
   "default_impl": null,
   "default_review": null,
@@ -10,15 +10,183 @@
     "fn-81-catch-the-first-and-last-words-of-every"
   ],
   "id": "fn-86-streaming-parakeet-dictation-with-live",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-86-streaming-parakeet-dictation-with-live.1": 0
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "35355425fb09d67a6865d2b9646ab418c3a61a03d56a62d7a0789c34613b7a63",
+      "backend": "codex",
+      "base_sha": "ae3e5e09b3d872038cdf885d2644e7fb238e56ac",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e07e7ab53f72c5856bc3b0260f7bb569",
+            "classification": "introduced",
+            "findingId": "finding-e07e7ab53f72c5856bc3b0260f7bb569",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7b8eb8903b43e7b609362917c3d63c8e",
+            "classification": "introduced",
+            "findingId": "finding-7b8eb8903b43e7b609362917c3d63c8e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6917dcf6906de1d4552acf0773ff9eeb91be79db",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1878,
+      "output_sha256": "5264ba651fb1e74749f973e1baf987bd26b0a706e878338b46ed5bc0105a81d2",
+      "reservation_id": "6e8c56216adc499198ac15798822750d",
+      "round_consumed": true,
+      "scope": "impl:fn-86-streaming-parakeet-dictation-with-live.1",
+      "superseded_by": null,
+      "task": "fn-86-streaming-parakeet-dictation-with-live.1",
+      "timestamp": "2026-11-02T01:16:20.258850Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "859480ece9ec6b5b464bc137a1c6cfe15d27fdfddbcb6a895b433178fab2da4b",
+      "backend": "codex",
+      "base_sha": "ae3e5e09b3d872038cdf885d2644e7fb238e56ac",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e07e7ab53f72c5856bc3b0260f7bb569",
+            "classification": "introduced",
+            "findingId": "finding-e07e7ab53f72c5856bc3b0260f7bb569",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-7b8eb8903b43e7b609362917c3d63c8e",
+            "classification": "introduced",
+            "findingId": "finding-7b8eb8903b43e7b609362917c3d63c8e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c7141124593a0211881df1fcfb83f7043855179a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1172,
+      "output_sha256": "e959abcbfa915d37175d4cc4d48267e22f0b9deeeb147763dfde11273431f8a4",
+      "reservation_id": "31c828970bb84c40a03d4a336365695c",
+      "round_consumed": true,
+      "scope": "impl:fn-86-streaming-parakeet-dictation-with-live.1",
+      "superseded_by": null,
+      "task": "fn-86-streaming-parakeet-dictation-with-live.1",
+      "timestamp": "2026-11-02T01:17:41.798983Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ff571e96dc6db0cab070061324f4cc50858e9c4c59b56fee5cb698f0d04db8f6",
+      "backend": "codex",
+      "base_sha": "ae3e5e09b3d872038cdf885d2644e7fb238e56ac",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e07e7ab53f72c5856bc3b0260f7bb569",
+            "classification": "introduced",
+            "findingId": "finding-e07e7ab53f72c5856bc3b0260f7bb569",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7b8eb8903b43e7b609362917c3d63c8e",
+            "classification": "introduced",
+            "findingId": "finding-7b8eb8903b43e7b609362917c3d63c8e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "3af97e8e9eda0d3a556e5a538b3865ed2563546a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "3604e957fbdd4084980df82a6faf4dea",
+      "round_consumed": true,
+      "scope": "impl:fn-86-streaming-parakeet-dictation-with-live.1",
+      "superseded_by": null,
+      "task": "fn-86-streaming-parakeet-dictation-with-live.1",
+      "timestamp": "2026-11-02T09:11:35.583235Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-86-streaming-parakeet-dictation-with-live.1": 2
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-86-streaming-parakeet-dictation-with-live.1": 0
+  },
   "spec_path": ".flow/specs/fn-86-streaming-parakeet-dictation-with-live.md",
-  "status": "open",
+  "status": "done",
   "title": "Streaming Parakeet dictation with live text",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +199,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-01T11:53:03.482659Z"
+  "updated_at": "2026-11-02T14:32:37.637771Z"
 }

@@ -75,14 +75,25 @@ pub type Handler = fn(&Daemon, &Ctx, Value) -> Result<Value, JsonRpcError>;
 /// Finds the handler without executing it.
 pub fn resolve(method: &str) -> Option<Handler> {
     Some(match method {
-        "dictation.start" => |daemon, _ctx, value| dictation::start(daemon, value),
+        "dictation.start" => |daemon, _ctx, value| {
+            let at = std::time::Instant::now();
+            dictation::start(daemon, value, at)
+        },
         "dictation.toggle" => |daemon, _ctx, value| {
-            let _: dettivo_proto::catalog::NoParams = params(value)?;
-            dictation::toggle(daemon)
+            let at = dictation::edge_time(value)?;
+            dictation::toggle(daemon, at)
+        },
+        "dictation.press" => |daemon, _ctx, value| {
+            let at = dictation::edge_time(value)?;
+            dictation::hold(daemon, crate::hold::Edge::Press, at)
+        },
+        "dictation.release" => |daemon, _ctx, value| {
+            let at = dictation::edge_time(value)?;
+            dictation::hold(daemon, crate::hold::Edge::Release, at)
         },
         "dictation.stop" => |daemon, _ctx, value| {
-            let _: dettivo_proto::catalog::NoParams = params(value)?;
-            dictation::stop(daemon)
+            let at = std::time::Instant::now();
+            dictation::stop(daemon, value, at)
         },
         "dictation.cancel" => |daemon, _ctx, value| dictation::cancel(daemon, value),
         "dictation.status" => |daemon, _ctx, value| {
@@ -92,6 +103,14 @@ pub fn resolve(method: &str) -> Option<Handler> {
         "dictation.reinsert_last" => |daemon, _ctx, value| {
             let _: dettivo_proto::catalog::NoParams = params(value)?;
             dictation::reinsert_last(daemon)
+        },
+        "dictation.pause" => |daemon, _ctx, value| {
+            let _: dettivo_proto::catalog::NoParams = params(value)?;
+            dictation::pause(daemon, true)
+        },
+        "dictation.resume" => |daemon, _ctx, value| {
+            let _: dettivo_proto::catalog::NoParams = params(value)?;
+            dictation::pause(daemon, false)
         },
         "meetings.start" => |daemon, _ctx, value| meetings::start(daemon, value),
         "meetings.stop" => |daemon, _ctx, value| meetings::stop(daemon, value),
@@ -177,8 +196,8 @@ pub fn resolve(method: &str) -> Option<Handler> {
             audio::devices(daemon)
         },
         "speech.providers.list" => |daemon, _ctx, value| {
-            let _: dettivo_proto::catalog::NoParams = params(value)?;
-            speech::providers_list(daemon)
+            let p: dettivo_proto::methods::speech::ProvidersListParams = params(value)?;
+            speech::providers_list(daemon, p.language.as_deref())
         },
         "speech.selection.get" => |daemon, _ctx, value| {
             let _: dettivo_proto::catalog::NoParams = params(value)?;

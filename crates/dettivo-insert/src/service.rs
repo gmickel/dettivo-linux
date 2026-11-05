@@ -16,6 +16,7 @@ use dettivo_proto::runtime::{
 use crate::backend::{self, Backend, Ctx};
 use crate::chain::{self, Candidate, Guards, Refusal, TargetFacts};
 use crate::delivery::{self, Origin};
+use crate::instance::Instances;
 use crate::probe;
 use crate::session::Session;
 use crate::settings::Settings;
@@ -25,6 +26,10 @@ use crate::settings::Settings;
 pub struct Request<'a> {
     /// The text.
     pub text: &'a str,
+    /// The text as dictated, when `text` joins it to the previous take:
+    /// a clipboard-only backend copies this instead, since a copy is
+    /// pasted on its own and never continues anything (ADR 0091).
+    pub as_dictated: Option<&'a str>,
     /// The mode.
     pub mode: InsertMode,
     /// The guards.
@@ -54,6 +59,8 @@ struct UndoRecord {
 /// The daemon's insertion service.
 pub struct Service {
     session_builder: Box<dyn Fn() -> Session + Send + Sync>,
+    /// The Hyprland instance the probes talk to.
+    instances: Instances,
     undo: Mutex<Option<UndoRecord>>,
     /// One insertion at a time: a second request waits for the first to
     /// finish delivering, so two takes never interleave their keys.
@@ -79,6 +86,7 @@ impl Service {
     pub fn new(builder: impl Fn() -> Session + Send + Sync + 'static) -> Self {
         Self {
             session_builder: Box::new(builder),
+            instances: Instances::default(),
             undo: Mutex::new(None),
             insert_lock: Mutex::new(()),
             #[cfg(test)]
@@ -97,7 +105,7 @@ impl Service {
         if let Some(scripted) = self.scripted_probe.lock().unwrap().pop_front() {
             return Self::probed("scripted", settings, scripted);
         }
-        match probe::for_session(session) {
+        match probe::for_session(session, &self.instances) {
             None => Probed {
                 probe: "none",
                 target: None,
@@ -159,6 +167,7 @@ impl Service {
             probe: probed.probe.to_string(),
             backends: candidates.iter().map(Candidate::status).collect(),
             chosen,
+            compositor: self.instances.report(&session),
         }
     }
 
@@ -348,6 +357,7 @@ impl Inserter for Service {
             &candidates,
             &choice.order,
             request.text,
+            request.as_dictated.unwrap_or(request.text),
             request.mode == InsertMode::ClipboardOnly,
             &ctx,
         );
@@ -406,6 +416,7 @@ mod tests {
     fn request<'a>(text: &'a str, window: Option<&'a str>) -> Request<'a> {
         Request {
             text,
+            as_dictated: None,
             mode: InsertMode::Raw,
             guards: Guards {
                 app_id: Some("foot"),

@@ -16,6 +16,7 @@ pub mod rest_schema;
 pub mod schema;
 pub mod speech_schema;
 pub mod validate;
+pub mod vocabulary_schema;
 
 use std::collections::BTreeMap;
 use std::ffi::OsString;

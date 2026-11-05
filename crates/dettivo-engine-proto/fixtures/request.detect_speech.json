@@ -1,0 +1,16 @@
+{
+  "attachments": [
+    {
+      "bytes": 32000,
+      "kind": "pcm16k"
+    }
+  ],
+  "id": 4,
+  "kind": "request",
+  "name": "detect_speech",
+  "payload": {
+    "min_speech_ms": 160,
+    "threshold": 0.4
+  },
+  "v": 1
+}

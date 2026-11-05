@@ -93,6 +93,16 @@ pub struct StartResult {
     pub job: JobStatus,
 }
 
+/// `dictation.stop` params (Linux addition): `print` finishes the take
+/// without inserting and returns the text in the result.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StopParams {
+    /// Return the text instead of inserting it.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub print: bool,
+}
+
 /// `dictation.stop` result.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -107,6 +117,10 @@ pub struct StopResult {
     /// moved away from the window captured at start).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub insertion: Option<crate::runtime::InsertionResult>,
+    /// Linux addition: the text the mode step produced, present when the
+    /// stop asked for `print`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
 }
 
 /// `dictation.cancel` parameters. A guard confines cleanup to its own job.
@@ -139,6 +153,10 @@ pub struct StatusResult {
     /// Linux addition: the window captured when the session started.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub target: Option<SessionTarget>,
+    /// Linux addition (ADR 0083): a double tap of the hold key locked the
+    /// take, so its release no longer ends it; absent otherwise.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub locked: bool,
 }
 
 /// `dictation.reinsert_last` result (Linux addition): the last transcript
@@ -151,6 +169,17 @@ pub struct ReinsertLastResult {
     pub reference: TranscriptRef,
     /// How the insertion went.
     pub insertion: crate::runtime::InsertionResult,
+}
+
+/// `dictation.pause` and `dictation.resume` result (Linux addition, ADR
+/// 0092): whether Dettivo is paused now. Paused, the always-ready
+/// microphone stays closed until `dictation.resume` or a daemon restart; a
+/// press still dictates on a capture of its own.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PauseResult {
+    /// True after `dictation.pause`, false after `dictation.resume`.
+    pub paused: bool,
 }
 
 #[cfg(test)]
@@ -179,4 +208,46 @@ pub enum ToggleResult {
     Started(StartResult),
     /// A finished take.
     Stopped(Box<StopResult>),
+}
+
+/// `dictation.press`, `dictation.release` and `dictation.toggle` params
+/// (Linux addition, ADR 0093): `at_ns` is when the CLI saw the edge, on
+/// `CLOCK_MONOTONIC` in nanoseconds ([`monotonic_ns`]), so a call that
+/// waited before the daemon got to it is still timed from the key.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct EdgeParams {
+    /// `CLOCK_MONOTONIC` nanoseconds when the edge was seen.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub at_ns: Option<u64>,
+}
+
+/// Now on `CLOCK_MONOTONIC`, in nanoseconds: the clock `Instant` reads on
+/// Linux, shared by every process on the machine.
+pub fn monotonic_ns() -> u64 {
+    let mut ts = libc::timespec {
+        tv_sec: 0,
+        tv_nsec: 0,
+    };
+    // SAFETY: a valid out pointer to a timespec for clock_gettime.
+    #[allow(unsafe_code)]
+    unsafe {
+        libc::clock_gettime(libc::CLOCK_MONOTONIC, &mut ts);
+    }
+    (ts.tv_sec as u64) * 1_000_000_000 + ts.tv_nsec as u64
+}
+
+/// `dictation.press` and `dictation.release` result (Linux addition,
+/// ADR 0083): what the hold key did and where it is now. Both verbs are
+/// idempotent: an event the key's state makes meaningless answers `none`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct HoldResult {
+    /// `started`, `stopped`, `locked`, `discarded` or `none`.
+    pub action: String,
+    /// The hold key afterwards: `idle`, `held`, `locked` or `tapped`.
+    pub hold: String,
+    /// The take the event acted on; absent when it acted on none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub job_id: Option<String>,
 }

@@ -1,0 +1,196 @@
+{
+  "branch": "fn-82-hold-to-talk-that-survives-lost",
+  "findings": {
+    "backend": "interactive",
+    "headSha": "e9219889d4783f45b645e35d13e2637633908968",
+    "items": [
+      {
+        "body": "dettivo-qa drive hotkeys_hyprland fails 5/5 live at its new double-tap step. The keys.rs 40 ms per-edge sleeps put ~380 ms between the tap's release and the second press, outside the 300 ms window, so the take finishes instead of locking (proven with the CLI verbs: 0.15 s gap locks, 0.38 s does not). The drive's lost-release step (R4's required QA drive) never runs. The daemon behaves as specified. Evidence: .flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s7-hotkeys-hyprland-drive-run{1..5}.log, s7-double-tap-gap-cli.log; memory .flow/memory/bug/integration/maintainer-cant-prove-the-double-tap-2026-11-01.md (surface: crates/dettivo-qa/src/scenarios/hotkeys_hyprland.rs)",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-779b2154c67a27c9eb6599ac9548992e5d692997b344e7f3f25a3815785af099",
+        "id": "finding-cf732d34588aa63bcb354166aa14875e",
+        "lastSeenReceiptId": "review-779b2154c67a27c9eb6599ac9548992e5d692997b344e7f3f25a3815785af099",
+        "ordinal": 1,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "title": "S7-double-tap-drive"
+      },
+      {
+        "body": "In 2 of 5 live drive runs (1 and 3), releasing the hold chord through Hyprland's generated Lua release binding did not end the take: job_dict_1 duration_ms=11000 (the fixture's end) instead of ~2600, and the double tap's tap release had no effect. The drive's hold step still passed because it waits 60 s for idle. A separate 5x uinput rig through the same binding shape delivered every release (s7-release-rig.log), so the cause (Hyprland not running the release command, or the daemon answering none) is unconfirmed; no-op edges are not logged at info. Evidence: qa-evidence/run-1793539833-3764215 and run-1793540078-3780158 daemon.log; memory .flow/memory/bug/integration/hyprland-hold-release-sometimes-never-2026-11-01.md (surface: crates/dettivo-qa/src/scenarios/hotkeys_hyprland.rs)",
+        "classification": "pre_existing",
+        "confidence": 50,
+        "firstSeenReceiptId": "review-779b2154c67a27c9eb6599ac9548992e5d692997b344e7f3f25a3815785af099",
+        "id": "finding-f02fdaed87b62aca5893b9e2a34f9a26",
+        "lastSeenReceiptId": "review-779b2154c67a27c9eb6599ac9548992e5d692997b344e7f3f25a3815785af099",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "S7-release-lost"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-779b2154c67a27c9eb6599ac9548992e5d692997b344e7f3f25a3815785af099"
+  },
+  "head_sha": "e9219889d4783f45b645e35d13e2637633908968",
+  "id": "fn-82-hold-to-talk-that-survives-lost",
+  "mode": "interactive",
+  "open_p0p1": [
+    {
+      "classification": "introduced",
+      "confidence": 100,
+      "file": "crates/dettivo-qa/src/scenarios/hotkeys_hyprland.rs",
+      "id": "S7-double-tap-drive",
+      "reason": "dettivo-qa drive hotkeys_hyprland fails 5/5 live at its new double-tap step. The keys.rs 40 ms per-edge sleeps put ~380 ms between the tap's release and the second press, outside the 300 ms window, so the take finishes instead of locking (proven with the CLI verbs: 0.15 s gap locks, 0.38 s does not). The drive's lost-release step (R4's required QA drive) never runs. The daemon behaves as specified. Evidence: .flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s7-hotkeys-hyprland-drive-run{1..5}.log, s7-double-tap-gap-cli.log; memory .flow/memory/bug/integration/maintainer-cant-prove-the-double-tap-2026-11-01.md",
+      "severity": "P1"
+    }
+  ],
+  "qa_outcome": "NEEDS_WORK",
+  "rid_coverage": {
+    "covered": 6,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "no_live_scenario",
+        "id": "R2"
+      },
+      {
+        "coverage": "live",
+        "id": "R3"
+      },
+      {
+        "coverage": "live",
+        "id": "R4"
+      },
+      {
+        "coverage": "live",
+        "id": "R5"
+      },
+      {
+        "coverage": "live",
+        "id": "R6"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R7"
+      }
+    ],
+    "total": 7
+  },
+  "scenarios": [
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s1-r1-r3-portal-doctor.log",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s1-baseline-installed-and-identity.log",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s1-s2-portal-daemon.log"
+      ],
+      "head_sha": "e9219889d4783f45b645e35d13e2637633908968",
+      "id": "S1-portal-identity-and-compositor-bound",
+      "outcome": "PASS",
+      "rids": [
+        "R1",
+        "R3"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s2-r2-hold-change-rebinds-hyprland-portal.log"
+      ],
+      "head_sha": "e9219889d4783f45b645e35d13e2637633908968",
+      "id": "S2-hold-change-rebinds-without-unbind",
+      "outcome": "BLOCKED",
+      "rids": [
+        "R2"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s4-r4-lost-release-and-repeat.log",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s4-s6-hold-daemon-events.log",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s4-s6-hold-daemon.log"
+      ],
+      "head_sha": "e9219889d4783f45b645e35d13e2637633908968",
+      "id": "S4-lost-release-and-key-repeat",
+      "outcome": "PASS",
+      "rids": [
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s5-r5-double-tap-lock.log",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s5-r5-pill.log",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s5-pill-locked-run1-crop.png",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s5-pill-still-locked-after-release-run1-crop.png",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s5-pill-after-finish-run1-crop.png",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s5-pill-locked-run2-crop.png"
+      ],
+      "head_sha": "e9219889d4783f45b645e35d13e2637633908968",
+      "id": "S5-double-tap-lock-and-pill",
+      "outcome": "PASS",
+      "rids": [
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s6-r6-idempotent-and-old-verbs.log",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s6-r6-setup-snippets.log"
+      ],
+      "head_sha": "e9219889d4783f45b645e35d13e2637633908968",
+      "id": "S6-idempotent-verbs-old-bindings-and-setup",
+      "outcome": "PASS",
+      "rids": [
+        "R6"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s7-hotkeys-hyprland-drive-run1.log",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s7-hotkeys-hyprland-drive-run2.log",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s7-hotkeys-hyprland-drive-run3.log",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s7-hotkeys-hyprland-drive-run4.log",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s7-hotkeys-hyprland-drive-run5.log",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s7-double-tap-gap-cli.log",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s7-release-rig.log",
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/qa-evidence"
+      ],
+      "head_sha": "e9219889d4783f45b645e35d13e2637633908968",
+      "id": "S7-hotkeys-hyprland-drive",
+      "outcome": "FAIL",
+      "rids": [
+        "R3",
+        "R4",
+        "R5"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-82-hold-to-talk-that-survives-lost/s6-r6-setup-snippets.log"
+      ],
+      "head_sha": "e9219889d4783f45b645e35d13e2637633908968",
+      "id": "S8-regression-sway-no-repeat",
+      "outcome": "PASS",
+      "rids": [],
+      "run": "live"
+    }
+  ],
+  "timestamp": "2026-11-01T13:39:20Z",
+  "type": "qa_verdict",
+  "verdict": "NEEDS_WORK"
+}

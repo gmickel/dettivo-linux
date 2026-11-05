@@ -23,24 +23,28 @@ dettivo  Talk to the Dettivo daemon
 │  ├─ validate*  Validate the file on disk, naming the key and line of a problem
 │  ├─ print-default*  Print the fully commented default file
 │  └─ keys*  List every key with its section, type, default and meaning
-├─ dictation  dictation.* methods: start, stop, cancel, status, toggle, reinsert-last
+├─ dictation  dictation.* methods: start, stop, cancel, status, toggle, press, release, reinsert-last, pause, resume
 │  ├─ start --language --mode --expected-target-bundle-id --expected-target-pid  dictation.start
-│  ├─ stop  dictation.stop: finish the take, transcribe and insert
+│  ├─ stop --print  dictation.stop: finish the take, transcribe and insert
 │  ├─ cancel  dictation.cancel: drop the session
 │  ├─ status  dictation.status
 │  ├─ toggle*  Start when idle, stop when a session runs (Linux addition)
-│  └─ reinsert-last*  dictation.reinsert_last: insert the last transcript again (Linux addition)
+│  ├─ press*  dictation.press: the hold key went down; it also finishes a take whose release was lost (Linux addition)
+│  ├─ release*  dictation.release: the hold key came up; a double tap locks instead (Linux addition)
+│  ├─ reinsert-last*  dictation.reinsert_last: insert the last transcript again (Linux addition)
+│  ├─ pause*  dictation.pause: keep the always-ready microphone closed until resume (Linux addition)
+│  └─ resume*  dictation.resume: let the always-ready microphone open again (Linux addition)
 ├─ events* --follow --topic --count  Follow the event stream (events.subscribe + events.notify), one JSON line per event
 ├─ speech*  speech.* methods
 │  ├─ engines*  speech.engines: every engine binary, found or not, running or not
-│  ├─ providers*  speech.providers.list: providers, their models and readiness
+│  ├─ providers* --language  speech.providers.list: providers, their models and readiness; with --language, the speech models ranked for that language by word error rate
 │  ├─ selection*  speech.selection.get / set: the dictation and meeting model
 │  │  ├─ get*  Print the selection in force
 │  │  └─ set* --provider --model --meeting-model --parakeet-model  Change the provider, the model or the meeting model
 │  ├─ download* --model --provider --wait  speech.models.download: fetch and verify a catalogue model
 │  ├─ cancel* --model --provider  speech.models.cancel: stop a download, keeping the partial file
 │  ├─ delete* --model --provider --force  speech.models.delete: remove a model from disk
-│  └─ status* --provider --follow  speech.models.status: every model's readiness
+│  └─ status* --provider --follow  speech.models.status: every model's readiness, then whether each speech engine is cold, loaded or warm
 ├─ insert --mode --text --kind --id --expected-target-bundle-id --expected-target-pid  Insert text into the focused window (insert.perform); `undo` and `target` are Linux additions
 │  ├─ undo*  Take the last insertion back (insert.undo, within the undo window)
 │  └─ target*  Show the focused window and every backend's availability (insert.target)
@@ -183,5 +187,6 @@ Anything that speaks HTTP sends `GET` or `POST` to `http://127.0.0.1:45831/v1/{n
 | 3 | Permission denied by the peer check or the token. |
 | 4 | Invalid command or arguments. |
 | 5 | Timeout (`--timeout-ms`, default 5000) or an interrupted operation. |
+| 6 | No speech: `dettivo dictation stop` or `stop --print` on a take the speech gate found silent (a Linux addition). |
 
 With `--json`, a daemon failure prints its unchanged JSON-RPC error object on standard output. A locally detected failure prints `{ "error": { "code": -32603, "message": "...", "data": { "origin": "cli", "exit_code": 4 } } }`, with the actual exit code. Scripts branch on `error.data.origin` for local errors and `error.data.app_code` for daemon errors. Commands that already return a structured diagnostic report retain that single report on failure. `--quiet` suppresses stdout while stderr retains the failure message, and `mcp serve` reserves stdout for framed MCP messages (ADR 0055).

@@ -216,6 +216,8 @@ QString HistoryDetailModel::outcomeLabel() const
         return tr("Copied");
     if (m_outcome == QStringLiteral("failed"))
         return tr("Not inserted");
+    if (m_outcome == QStringLiteral("printed"))
+        return tr("Printed");
     return QString();
 }
 

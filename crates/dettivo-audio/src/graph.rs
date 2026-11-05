@@ -1,24 +1,33 @@
 //! The PipeWire graph as the daemon sees it: a thread loop with a registry
 //! listener collecting the audio nodes, and a metadata listener following
 //! `default.audio.source` and `default.audio.sink`. One `Graph` lives for
-//! the daemon's lifetime; captures are created on its loop, and a capture
-//! can watch the defaults and the removal of the node it is pinned to.
+//! one connection; captures are created on its loop, and a capture can
+//! watch the defaults and the removal of the node it is pinned to. A
+//! PipeWire that goes away clears the graph's `alive` flag, and the audio
+//! service then connects a new graph.
 
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::rc::Rc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::{Arc, Mutex};
 
 use pipewire as pw;
 use pw::context::ContextRc;
-use pw::core::CoreRc;
+use pw::core::{CoreRc, PW_ID_CORE};
 use pw::metadata::{Metadata, MetadataListener};
 use pw::registry::{Listener, RegistryRc};
 use pw::thread_loop::ThreadLoopRc;
 use pw::types::ObjectType;
 
 use crate::CaptureError;
+
+/// What a capture whose PipeWire went away ends with.
+pub const LOST: &str = "PipeWire went away";
+
+/// The error PipeWire reports on the core when its socket closed.
+const EPIPE: i32 = 32;
 
 /// One audio node.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -64,6 +73,9 @@ pub struct Graph {
     _context: ContextRc,
     _registry: RegistryRc,
     _listener: Listener,
+    _core_listener: pw::core::Listener,
+    /// True from the connection until PipeWire went away.
+    pub(crate) alive: Arc<AtomicBool>,
     _metadata: Rc<RefCell<Option<(Metadata, MetadataListener)>>>,
     state: Arc<Mutex<State>>,
     watchers: Arc<Mutex<Watchers>>,
@@ -71,8 +83,10 @@ pub struct Graph {
 
 impl Graph {
     /// Connects to PipeWire and starts following the graph. Returns
-    /// `NoPipeWire` when the daemon socket is absent.
-    pub fn connect() -> Result<Self, CaptureError> {
+    /// `NoPipeWire` when the daemon socket is absent. `alive` is set now
+    /// and cleared when PipeWire goes away, before any capture on this
+    /// graph hears of it, so a capture can say why it ended.
+    pub fn connect(alive: Arc<AtomicBool>) -> Result<Self, CaptureError> {
         pw::init();
         // SAFETY: the thread loop is the only PipeWire loop this process
         // runs; every PipeWire object below is created under its lock, and
@@ -88,6 +102,17 @@ impl Graph {
         let core = context
             .connect_rc(None)
             .map_err(|e| CaptureError::NoPipeWire(e.to_string()))?;
+        // Registered before any stream exists, so it runs before the
+        // streams' own reaction to the same core error.
+        let alive_core = alive.clone();
+        let core_listener = core
+            .add_listener_local()
+            .error(move |id, _seq, res, _message| {
+                if id == PW_ID_CORE && res == -EPIPE {
+                    alive_core.store(false, Ordering::SeqCst);
+                }
+            })
+            .register();
         let registry = core
             .get_registry_rc()
             .map_err(|e| CaptureError::NoPipeWire(e.to_string()))?;
@@ -201,6 +226,7 @@ impl Graph {
                 }
             })
             .register();
+        alive.store(true, Ordering::SeqCst);
         drop(guard);
         loop_.start();
         // Let the initial registry enumeration land before answering.
@@ -211,6 +237,8 @@ impl Graph {
             _context: context,
             _registry: registry,
             _listener: listener,
+            _core_listener: core_listener,
+            alive,
             _metadata: metadata,
             state,
             watchers,

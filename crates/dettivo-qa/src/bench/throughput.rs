@@ -137,13 +137,14 @@ fn loaded_reason(stderr: &str) -> String {
         .unwrap_or_default()
 }
 
-struct CliRun {
-    result: Value,
-    wall_ms: u64,
-    reason: String,
+pub(super) struct CliRun {
+    pub(super) result: Value,
+    pub(super) wall_ms: u64,
+    pub(super) reason: String,
+    pub(super) stderr: String,
 }
 
-fn cli(binary: &Path, args: &[&str], cpu: bool) -> Result<CliRun, String> {
+pub(super) fn cli(binary: &Path, args: &[&str], cpu: bool) -> Result<CliRun, String> {
     let mut cmd = Command::new(binary);
     cmd.args(args).arg("--json");
     if cpu {
@@ -169,6 +170,7 @@ fn cli(binary: &Path, args: &[&str], cpu: bool) -> Result<CliRun, String> {
         result,
         wall_ms,
         reason: loaded_reason(&stderr),
+        stderr: stderr.into_owned(),
     })
 }
 

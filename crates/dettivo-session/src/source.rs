@@ -1,6 +1,8 @@
 //! Where a session's audio comes from: a PipeWire capture, the mock
-//! microphone fixture (`DETTIVO_MOCK_MIC`), or a channel the tests feed.
+//! microphone fixture (`DETTIVO_MOCK_MIC`), or a channel: the
+//! always-ready feed's take, or one a test feeds.
 
+use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 
 use dettivo_audio::Event;
@@ -13,12 +15,12 @@ pub enum Source {
     Capture(CaptureHandle),
     /// The fixture player.
     Mock(MockCapture),
-    /// A channel (tests).
+    /// A channel: a take of the always-ready feed, or a test's.
     Channel {
         /// The events.
         events: Receiver<Event>,
         /// Requests stop; must emit `Ended` after its final accepted PCM.
-        on_stop: Box<dyn Fn() + Send>,
+        on_stop: Arc<dyn Fn() + Send + Sync>,
     },
 }
 
@@ -38,6 +40,15 @@ impl Source {
             Self::Capture(c) => c.stop(),
             Self::Mock(m) => m.stop(),
             Self::Channel { on_stop, .. } => on_stop(),
+        }
+    }
+
+    /// `stop` for a thread that does not hold the event stream.
+    pub fn stopper(&self) -> Arc<dyn Fn() + Send + Sync> {
+        match self {
+            Self::Capture(c) => Arc::new(c.stopper()),
+            Self::Mock(m) => Arc::new(m.stopper()),
+            Self::Channel { on_stop, .. } => on_stop.clone(),
         }
     }
 }

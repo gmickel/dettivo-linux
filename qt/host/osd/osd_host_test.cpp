@@ -94,6 +94,12 @@ void OsdHostTest::streamMapsToStatesAndCompletionCarriesTheOutcome()
 
     link.notify(QStringLiteral("audio.level"), {{QStringLiteral("rms"), 0.01}});
     QVERIFY(model.level() > 0.25 && model.level() < 0.5);
+    // A double tap locks the take: still Listening, the hint says how it ends.
+    link.notify(QStringLiteral("dictation.state"),
+                dictation("recording", "recording", {{QStringLiteral("reason"), QStringLiteral("locked")}}));
+    QCOMPARE(model.state(), QStringLiteral("listening"));
+    QCOMPARE(model.hint(), QStringLiteral("locked · press to finish"));
+    QVERIFY(model.level() > 0.25 && model.level() < 0.5);
     link.notify(QStringLiteral("audio.level"), {{QStringLiteral("rms"), 0.0001}});
     QCOMPARE(model.level(), 0.0);
     link.notify(QStringLiteral("audio.level"), {{QStringLiteral("rms"), 0.0}});
@@ -133,6 +139,16 @@ void OsdHostTest::streamMapsToStatesAndCompletionCarriesTheOutcome()
     link.notify(QStringLiteral("dictation.state"), dictation("idle", "inserting", {{QStringLiteral("insertion"), inserted}}));
     QCOMPARE(model.state(), QStringLiteral("inserted"));
 
+    // `stop --print` took the text: done, with no window named.
+    QJsonObject printed = inserted;
+    printed.insert(QStringLiteral("outcome"), QStringLiteral("printed"));
+    printed.insert(QStringLiteral("method"), QStringLiteral("printed"));
+    printed.insert(QStringLiteral("target_app"), QJsonObject{{QStringLiteral("bundle_id"), QString()}, {QStringLiteral("name"), QString()}});
+    link.notify(QStringLiteral("dictation.state"), dictation("idle", "inserting", {{QStringLiteral("insertion"), printed}, {QStringLiteral("first_words"), QStringLiteral("Printed words")}}));
+    QCOMPARE(model.state(), QStringLiteral("inserted"));
+    QCOMPARE(model.target(), QString());
+    QCOMPARE(model.words(), QStringLiteral("Printed words"));
+
     QJsonObject failed = inserted;
     failed.insert(QStringLiteral("outcome"), QStringLiteral("failed"));
     failed.insert(QStringLiteral("reason"), QStringLiteral("clipboard unavailable"));
@@ -141,8 +157,17 @@ void OsdHostTest::streamMapsToStatesAndCompletionCarriesTheOutcome()
     QCOMPARE(model.title(), QStringLiteral("Not inserted"));
     QCOMPARE(model.reason(), QStringLiteral("clipboard unavailable"));
 
-    // A silent take completes without an insertion.
+    // A take whose text the guards emptied completes without an insertion.
     link.notify(QStringLiteral("dictation.state"), dictation("idle", "inserting"));
+    QCOMPARE(model.title(), QStringLiteral("Nothing heard"));
+
+    // A take the speech gate found silent ends cancelled with its stage (fn-79).
+    const QJsonObject silence{{QStringLiteral("reason"), QStringLiteral("silence: voice")}};
+    link.notify(QStringLiteral("dictation.state"), dictation("transcribing", "recording"));
+    link.notify(QStringLiteral("dictation.state"), dictation("cancelled", "transcribing", silence));
+    QCOMPARE(model.state(), QStringLiteral("error"));
+    QCOMPARE(model.title(), QStringLiteral("Nothing heard"));
+    link.notify(QStringLiteral("dictation.state"), dictation("idle", "cancelled", silence));
     QCOMPARE(model.title(), QStringLiteral("Nothing heard"));
 
     model.pillHidden();
@@ -279,6 +304,19 @@ void OsdHostTest::overflowResubscribesAndRereadsStatus()
     QCOMPARE(link.subscriptions.size(), 2);
     QCOMPARE(link.calls, QStringList{QStringLiteral("dictation.status")});
     QCOMPARE(model.state(), QStringLiteral("hidden"));
+
+    // A pill that starts, or rereads after an overflow, during a locked
+    // take says how that take ends.
+    const QJsonObject locked{{QStringLiteral("is_active"), true},
+                             {QStringLiteral("locked"), true},
+                             {QStringLiteral("job"), QJsonObject{{QStringLiteral("message"), QStringLiteral("listening")}}}};
+    link.statusAnswer = locked;
+    OsdModel late(&link, OsdSettings());
+    late.start();
+    QCOMPARE(late.state(), QStringLiteral("listening"));
+    QCOMPARE(late.hint(), QStringLiteral("locked · press to finish"));
+    emit link.overflow(3);
+    QCOMPARE(model.hint(), QStringLiteral("locked · press to finish"));
 }
 
 void OsdHostTest::controlCommandsAnswerOneObject()

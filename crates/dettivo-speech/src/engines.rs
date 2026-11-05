@@ -1,24 +1,34 @@
 //! The speech engines as `SttEngine`s over the supervisor: one struct per
-//! engine binary with its capabilities, and the per-provider meeting
-//! capability the S-13 alignment spike decided (ADR 0018).
+//! engine binary with its capabilities, the per-provider meeting
+//! capability the S-13 alignment spike decided (ADR 0018), and the Silero
+//! voice activity pass the dictation gate asks (`SileroVad`).
 
 use std::sync::Arc;
 use std::time::Duration;
 
-use dettivo_engine_proto::{Backend, BackendPreference, RecognizeParams, RecognizeResult};
+use dettivo_engine_proto::{
+    Backend, BackendPreference, DetectSpeechParams, DetectSpeechResult, FeedSpeechParams,
+    FeedSpeechResult, LoadParams, RecognizeParams, RecognizeResult,
+};
+use serde::Serialize;
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 
-use crate::supervisor::{LlmLoad, Supervisor};
+use crate::gate::{SpeechStream, VAD_PARAMS, VoiceDetector};
+use crate::supervisor::Supervisor;
 use crate::{Capabilities, EngineError, PreloadSource, RecognizeRequest, SttEngine};
 
 /// The whisper engine binary name.
 pub const WHISPER_BINARY: &str = "dettivo-engine-whisper";
 /// The parakeet engine binary name.
-pub const PARAKEET_BINARY: &str = "dettivo-engine-parakeet";
+pub const PARAKEET_BINARY: &str = dettivo_engine_proto::warm_up::PARAKEET_BINARY;
 /// The language model engine binary name.
 pub const LLM_BINARY: &str = "dettivo-engine-llm";
 /// The diarization engine binary name (ADR 0035).
 pub const DIARIZE_BINARY: &str = "dettivo-engine-diarize";
+/// The supervisor slot of the voice activity pass: a second Whisper engine
+/// process holding only the Silero model, so it never evicts a recognizer.
+pub const VAD_SLOT: &str = "dettivo-engine-whisper/vad";
 
 /// Whether a provider's timestamps are precise enough for the meeting
 /// merger: the outcome of the alignment spike
@@ -53,6 +63,9 @@ pub fn capabilities_of(provider: &str) -> Capabilities {
     }
 }
 
+/// The longest a warm-up `recognize` may take.
+const WARM_UP_TIMEOUT: Duration = Duration::from_secs(60);
+
 /// What every engine over the supervisor shares.
 struct Shared {
     supervisor: Arc<Supervisor>,
@@ -63,16 +76,52 @@ struct Shared {
 }
 
 impl Shared {
+    /// The complete `load` every request on this engine carries.
+    fn load_params(&self) -> LoadParams {
+        LoadParams {
+            model: self.model.clone(),
+            backend_preference: self.backend,
+            vad_model: self.vad_model.clone(),
+            context_length: None,
+            lora: None,
+            threads: None,
+        }
+    }
+
+    /// Loads the model, then warms it with one silent `recognize` whose
+    /// result is discarded (ADR 0084); only the timing is logged.
     fn preload(&self, source: PreloadSource) -> Result<(), EngineError> {
         tracing::info!(source = ?source, engine = self.binary, "preload");
-        self.supervisor.with_engine_on(
-            self.binary,
-            &self.model,
-            self.vad_model.as_deref(),
-            self.backend,
-            LlmLoad::default(),
-            |_, _| Ok(()),
-        )
+        self.supervisor
+            .with_engine_load(self.binary, self.load_params(), |_, _| Ok(()))?;
+        let params = RecognizeParams {
+            language: "en".into(),
+            prompt: None,
+            timestamps: false,
+            vocabulary: None,
+        };
+        let samples = dettivo_engine_proto::warm_up::samples(self.binary);
+        let pcm = dettivo_engine_proto::pcm_to_bytes(&vec![0; samples]);
+        let warmed = self.supervisor.warm_up(self.binary, |process| {
+            let value = process.call(
+                "recognize",
+                serde_json::to_value(&params).unwrap_or(Value::Null),
+                &[&pcm],
+                WARM_UP_TIMEOUT,
+                |_| {},
+            )?;
+            // The text is discarded; the backend is kept, since the engine
+            // may have moved to the CPU for want of GPU memory (ADR 0080).
+            Ok(serde_json::from_value::<Backend>(value["backend"].clone()).ok())
+        })?;
+        if let Some(took) = warmed {
+            tracing::info!(
+                engine = self.binary,
+                warm_up_ms = took.as_millis() as u64,
+                "engine warmed up"
+            );
+        }
+        Ok(())
     }
 
     fn recognize(
@@ -84,15 +133,14 @@ impl Shared {
             language: request.language.clone(),
             prompt: request.prompt.clone(),
             timestamps: request.timestamps,
+            vocabulary: request.vocabulary.clone(),
         };
         let pcm = dettivo_engine_proto::pcm_to_bytes(&request.pcm);
-        let result: RecognizeResult = self.supervisor.with_engine_on(
-            self.binary,
-            &self.model,
-            self.vad_model.as_deref(),
-            self.backend,
-            LlmLoad::default(),
-            |process, _| {
+        let _request = self.supervisor.begin_request(self.binary);
+        // The supervisor records the take's warmth and backend (an engine
+        // moves itself to the CPU when the GPU has no room, ADR 0080).
+        self.supervisor
+            .recognize_on(self.binary, self.load_params(), |process| {
                 let value = process.call(
                     "recognize",
                     serde_json::to_value(&params).unwrap_or(Value::Null),
@@ -102,16 +150,7 @@ impl Shared {
                 )?;
                 serde_json::from_value(value)
                     .map_err(|e| EngineError::Transport(format!("recognize response: {e}")))
-            },
-        )?;
-        // An engine moves itself to the CPU when the GPU has no room for an
-        // inference (ADR 0080); the supervisor's record follows it.
-        self.supervisor.note_backend(
-            self.binary,
-            result.backend,
-            "the GPU had no room for an inference, CPU fallback",
-        );
-        Ok(result)
+            })
     }
 
     fn backend(&self) -> Option<Backend> {
@@ -216,8 +255,8 @@ impl SttEngine for ParakeetEngine {
         request: RecognizeRequest,
         timeout: Duration,
     ) -> Result<RecognizeResult, EngineError> {
-        // Parakeet takes no vocabulary; the prompt is dropped here so the
-        // engine never sees it.
+        // Parakeet takes the vocabulary as terms, never as a prompt; the
+        // prompt is dropped here so the engine never sees it.
         self.0.recognize(
             RecognizeRequest {
                 prompt: None,
@@ -231,6 +270,103 @@ impl SttEngine for ParakeetEngine {
 
     fn backend(&self) -> Option<Backend> {
         self.0.backend()
+    }
+}
+
+/// The Silero voice activity pass over the supervisor, on the CPU.
+#[derive(Clone)]
+pub struct SileroVad {
+    supervisor: Arc<Supervisor>,
+    model: String,
+}
+
+impl SileroVad {
+    /// A pass over `supervisor` with the Silero model at `model`.
+    pub fn new(supervisor: Arc<Supervisor>, model: String) -> Self {
+        Self { supervisor, model }
+    }
+
+    /// Sends `name` with `params` and `pcm` to the voice activity process.
+    fn call<R: DeserializeOwned>(
+        &self,
+        name: &str,
+        params: impl Serialize,
+        pcm: &[i16],
+    ) -> Result<R, EngineError> {
+        let load = LoadParams {
+            model: String::new(),
+            backend_preference: BackendPreference::Cpu,
+            vad_model: Some(self.model.clone()),
+            context_length: None,
+            lora: None,
+            threads: None,
+        };
+        let pcm = dettivo_engine_proto::pcm_to_bytes(pcm);
+        self.supervisor
+            .with_engine_slot(VAD_SLOT, WHISPER_BINARY, load, |process, _| {
+                let value = process.call(
+                    name,
+                    serde_json::to_value(params).unwrap_or(Value::Null),
+                    &[&pcm],
+                    Duration::from_secs(30),
+                    |_| {},
+                )?;
+                serde_json::from_value::<R>(value)
+                    .map_err(|e| EngineError::Transport(format!("{name} response: {e}")))
+            })
+    }
+}
+
+impl VoiceDetector for SileroVad {
+    fn speech_ms(&self, pcm: &[i16]) -> Result<u64, EngineError> {
+        self.call::<DetectSpeechResult>("detect_speech", VAD_PARAMS, pcm)
+            .map(|r| r.speech_ms)
+    }
+
+    fn stream(&self) -> Option<Box<dyn SpeechStream>> {
+        Some(Box::new(SileroStream {
+            vad: self.clone(),
+            fed: 0,
+        }))
+    }
+}
+
+/// One take through the voice activity process as it is captured
+/// (`feed_speech`, then `detect_speech` with `continues`).
+struct SileroStream {
+    vad: SileroVad,
+    /// The samples the process holds for this take.
+    fed: u64,
+}
+
+impl SpeechStream for SileroStream {
+    fn feed(&mut self, pcm: &[i16]) -> Result<(), EngineError> {
+        let start = self.fed == 0;
+        let fed: FeedSpeechResult =
+            self.vad
+                .call("feed_speech", FeedSpeechParams { start }, pcm)?;
+        if fed.samples != self.fed + pcm.len() as u64 {
+            return Err(EngineError::Transport(format!(
+                "feed_speech holds {} samples, not {}",
+                fed.samples,
+                self.fed + pcm.len() as u64
+            )));
+        }
+        self.fed = fed.samples;
+        Ok(())
+    }
+
+    fn finish(&mut self, rest: &[i16]) -> Result<u64, EngineError> {
+        if self.fed == 0 {
+            return self.vad.speech_ms(rest);
+        }
+        let params = DetectSpeechParams {
+            continues: Some(self.fed),
+            ..VAD_PARAMS
+        };
+        self.vad
+            .call::<DetectSpeechResult>("detect_speech", params, rest)
+            .map(|r| r.speech_ms)
     }
 }
 

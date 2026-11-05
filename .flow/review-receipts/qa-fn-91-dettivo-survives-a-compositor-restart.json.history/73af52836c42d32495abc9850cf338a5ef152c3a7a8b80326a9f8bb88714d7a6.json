@@ -1,0 +1,183 @@
+{
+  "branch": "fn-91-dettivo-survives-a-compositor-restart",
+  "findings": {
+    "backend": "interactive",
+    "headSha": "6ff03ffbe801a07daba6b845982cf5379133acc2",
+    "items": [
+      {
+        "body": "Environment naming another display's live instance is now correctly ignored, but doctor reports it as 'stale (the compositor restarted)' and the switch log says from=\"none\" instead of both signatures (ADR 0099). Diagnostics only; insertion correct. Memory: .flow/memory/bug/ui/hyprland-user-with-another-displays-2026-11-02.md (surface: crates/dettivo-insert/src/instance.rs)",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-3a221ab545d712fc83f4afe464c20f8689da7ab90a5770df4481a2d286398278",
+        "id": "finding-b9a40f8a50aac924a5578d5d60d84fad",
+        "lastSeenReceiptId": "review-3a221ab545d712fc83f4afe464c20f8689da7ab90a5770df4481a2d286398278",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "qa-fn91-S2f-env-other-display-reported-as-restart"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-3a221ab545d712fc83f4afe464c20f8689da7ab90a5770df4481a2d286398278"
+  },
+  "head_sha": "6ff03ffbe801a07daba6b845982cf5379133acc2",
+  "id": "fn-91-dettivo-survives-a-compositor-restart",
+  "mode": "interactive",
+  "open_p0p1": [],
+  "qa_outcome": "SHIP",
+  "rid_coverage": {
+    "covered": 4,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "live",
+        "id": "R2"
+      },
+      {
+        "coverage": "live",
+        "id": "R3"
+      },
+      {
+        "coverage": "live",
+        "id": "R4"
+      }
+    ],
+    "total": 4
+  },
+  "scenarios": [
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/S1-r1-restart.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/S1-r1-restart.dettivod.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/S1-r1-restart.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/results-s_r2_stale-s_r1_restart-s_reg_absolute_display.log"
+      ],
+      "head_sha": "6ff03ffbe801a07daba6b845982cf5379133acc2",
+      "id": "S1",
+      "outcome": "PASS",
+      "rids": [
+        "R1",
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/S6-down.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/S6-down.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/results-s_r1_down.log"
+      ],
+      "head_sha": "6ff03ffbe801a07daba6b845982cf5379133acc2",
+      "id": "S6",
+      "outcome": "PASS",
+      "rids": [
+        "R1",
+        "R3"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/S2-r2-stale.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/S2-r2-other-only.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/S2-r2-stale.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/S2-r2-other-only.log"
+      ],
+      "head_sha": "6ff03ffbe801a07daba6b845982cf5379133acc2",
+      "id": "S2",
+      "outcome": "PASS",
+      "rids": [
+        "R2",
+        "R4"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/S2-r2-env-other-live.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/S2-r2-env-other-live.dettivod.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/S2-r2-env-other-live.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/S2-r2-env-other-live.dettivod.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/finding-S2f.md"
+      ],
+      "head_sha": "6ff03ffbe801a07daba6b845982cf5379133acc2",
+      "id": "S2e",
+      "outcome": "PASS",
+      "rids": [
+        "R2"
+      ],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S3-r3-lock.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S3-r3-lock.dettivod.log"
+      ],
+      "head_sha": "f577b0b270569054f9f5fdcf5944d1d56b95ae06",
+      "id": "S3",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S4-r3-join.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S4-r3-join.dettivod.log"
+      ],
+      "head_sha": "f577b0b270569054f9f5fdcf5944d1d56b95ae06",
+      "id": "S4",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S5-r3-portal.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/S5-r3-portal.dettivod.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/results-s_r3_portal.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/portal-frontend-lifetime.log"
+      ],
+      "head_sha": "f577b0b270569054f9f5fdcf5944d1d56b95ae06",
+      "id": "S5",
+      "outcome": "PASS",
+      "rids": [
+        "R3"
+      ],
+      "run": "carried"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run1/R1-reg-absolute-display.log",
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/recheck-run2/R1-reg-absolute-display.log"
+      ],
+      "head_sha": "6ff03ffbe801a07daba6b845982cf5379133acc2",
+      "id": "REG1",
+      "outcome": "PASS",
+      "rids": [],
+      "run": "live"
+    },
+    {
+      "evidence": [
+        ".flow/tmp/qa-fn-91-dettivo-survives-a-compositor-restart/R2-reg-locked-start.log"
+      ],
+      "head_sha": "f577b0b270569054f9f5fdcf5944d1d56b95ae06",
+      "id": "REG2",
+      "outcome": "PASS",
+      "rids": [],
+      "run": "carried"
+    }
+  ],
+  "timestamp": "2026-11-02T11:11:10Z",
+  "type": "qa_verdict",
+  "verdict": "SHIP"
+}

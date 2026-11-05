@@ -1,22 +1,30 @@
 //! R3, R4 and R5 against the live daemon: the portal backend on a private
-//! session bus binds the four actions and a press starts a session with
-//! the focused window captured, a second press is ignored, a release stops
-//! it, toggle and cancel work, playing MPRIS players are paused and
+//! session bus registers the app id and binds the four actions, a press
+//! starts a session with the focused window captured, a repeated press is
+//! ignored, a release stops it, a press more than a second into a hold
+//! whose release was lost finishes it, a changed hold chord is bound under
+//! its new id after a reload, toggle and cancel work, playing MPRIS players are paused and
 //! resumed while a paused one is left alone, the cues are logged through
 //! the mock audio path, a caller-supplied target that moved is refused
-//! with `CONFLICT` at insertion time, and a desktop without a portal
-//! leaves the daemon running with the reason in `hotkeys.status`.
+//! with `CONFLICT` at insertion time, a desktop without a portal
+//! leaves the daemon running with the reason in `hotkeys.status`, and a
+//! rebind after the portal backend restarted that fails shows there too.
 
 mod common;
 
 use std::time::Duration;
 
 use common::{Daemon, Tree, local_model, tree_with_tiny, wait_for};
-use dettivo_hotkeys::mock::{MockPlayer, MockPortal, PrivateBus};
+use dettivo_hotkeys::mock::{MockOptions, MockPlayer, MockPortal, PrivateBus};
 use dettivo_hotkeys::portal::NO_PORTAL;
 use serde_json::{Value, json};
 
 const MOCK_ENV: &[(&str, &str)] = &[("DETTIVO_QA_MODE", "1"), ("DETTIVO_MOCK_INSERT", "1")];
+
+/// The portal shortcut ids of the default chords.
+const HOLD: &str = "dictation-hold-F9";
+const TOGGLE: &str = "dictation-toggle-SUPER_CTRL_X";
+const CANCEL: &str = "dictation-cancel-SUPER_CTRL_ESCAPE";
 
 fn private_bus() -> Option<PrivateBus> {
     match PrivateBus::start() {
@@ -74,6 +82,9 @@ fn portal_presses_drive_sessions_with_the_target_media_pause_and_cues() {
     );
     assert_eq!(status["portal"]["available"], true);
     assert_eq!(status["requested"], "portal");
+    assert_eq!(status["identity"], "registered");
+    assert!(status.get("compositor_bound").is_none(), "{status}");
+    assert_eq!(portal.registered(), ["dettivo"]);
     assert!(status["error"].is_null(), "{status}");
     let caps = daemon.result("system.capabilities", json!({}));
     assert_eq!(caps["hotkeys"]["backend"], "portal");
@@ -84,13 +95,21 @@ fn portal_presses_drive_sessions_with_the_target_media_pause_and_cues() {
             .contains(&json!("portal"))
     );
 
-    // Press: a session with the target captured at press time.
-    portal.press("push_to_talk").unwrap();
+    // Press: a session with the target captured at press time. The key
+    // repeating inside a second is ignored, never a second session, also
+    // while the first start still loads the engine: it counts from when
+    // the repeat arrived.
+    portal.press(HOLD).unwrap();
+    std::thread::sleep(Duration::from_millis(100));
+    portal.press(HOLD).unwrap();
     assert!(
         wait_for(Duration::from_secs(15), || active(&daemon)),
         "{}",
         daemon.log()
     );
+    assert!(wait_for(Duration::from_secs(5), || {
+        daemon.log().contains("hotkey press ignored")
+    }));
     let status = daemon.result("dictation.status", json!({}));
     assert_eq!(status["target"]["app_id"], "org.gnome.TextEditor");
     assert_eq!(status["target"]["pid"], 4141);
@@ -109,18 +128,8 @@ fn portal_presses_drive_sessions_with_the_target_media_pause_and_cues() {
     );
     assert_eq!(paused.status(), "Paused");
 
-    // A second press while the session runs is ignored, never a second session.
-    portal.press("push_to_talk").unwrap();
-    assert!(wait_for(Duration::from_secs(5), || {
-        daemon.log().contains("hotkey press ignored")
-    }));
-    assert_eq!(
-        daemon.result("dictation.status", json!({}))["job"]["job_id"],
-        "job_dict_1"
-    );
-
     std::thread::sleep(Duration::from_millis(1500));
-    portal.release("push_to_talk").unwrap();
+    portal.release(HOLD).unwrap();
     assert!(
         wait_for(Duration::from_secs(60), || !active(&daemon)),
         "{}",
@@ -137,13 +146,13 @@ fn portal_presses_drive_sessions_with_the_target_media_pause_and_cues() {
     assert_eq!(item["mode"], "deterministic_polish", "{item}");
 
     // Toggle starts, cancel drops.
-    portal.press("toggle").unwrap();
+    portal.press(TOGGLE).unwrap();
     assert!(wait_for(Duration::from_secs(15), || active(&daemon)));
     assert_eq!(
         daemon.result("dictation.status", json!({}))["job"]["job_id"],
         "job_dict_2"
     );
-    portal.press("cancel").unwrap();
+    portal.press(CANCEL).unwrap();
     assert!(wait_for(Duration::from_secs(15), || !active(&daemon)));
     assert!(
         wait_for(Duration::from_secs(5), || {
@@ -152,14 +161,44 @@ fn portal_presses_drive_sessions_with_the_target_media_pause_and_cues() {
         "sounds: {:?}",
         qa_file(&daemon, "sounds.txt")
     );
-    portal.press("toggle").unwrap();
-    portal.press("cancel").unwrap();
+    portal.press(TOGGLE).unwrap();
+    portal.press(CANCEL).unwrap();
     assert!(
         wait_for(Duration::from_secs(15), || {
             qa_file(&daemon, "sounds.txt") == "start\nstop\nstart\nstop\nstart\nstop\n"
                 && !active(&daemon)
         }),
         "a queued cancel must follow the toggle start: {}",
+        daemon.log()
+    );
+
+    // A lost release: the press after a second finishes the take.
+    portal.press(HOLD).unwrap();
+    assert!(wait_for(Duration::from_secs(15), || active(&daemon)));
+    std::thread::sleep(Duration::from_millis(1500));
+    portal.press(HOLD).unwrap();
+    assert!(
+        wait_for(Duration::from_secs(60), || !active(&daemon)),
+        "the second press must finish the take: {}",
+        daemon.log()
+    );
+
+    // A changed hold chord is bound under its new id once the daemon reloads.
+    std::fs::write(
+        daemon.tree.config_file(),
+        format!(
+            "{}hold = \"F10\"\n",
+            std::fs::read_to_string(daemon.tree.config_file()).unwrap()
+        ),
+    )
+    .unwrap();
+    assert!(
+        wait_for(Duration::from_secs(15), || {
+            let bound = portal.bound();
+            bound.contains(&"dictation-hold-F10".to_string()) && !bound.contains(&HOLD.to_string())
+        }),
+        "rebind: {:?} {}",
+        portal.bound(),
         daemon.log()
     );
     let log = daemon.stop();
@@ -312,7 +351,7 @@ fn snippet_and_setup_match_the_cli_and_write_idempotently() {
         detected["text"]
             .as_str()
             .unwrap()
-            .contains("bindsym F9 exec")
+            .contains("bindsym --no-repeat F9 exec")
     );
 
     let check = daemon.result(
@@ -367,5 +406,62 @@ fn snippet_and_setup_match_the_cli_and_write_idempotently() {
         json!({"compositor": "gnome", "write": true}),
     );
     assert_eq!(refused["error"]["data"]["app_code"], "INVALID_PARAMS");
+    daemon.stop();
+}
+
+/// fn-91 R3: a rebind after the portal backend restarted that the portal
+/// denies leaves `hotkeys.status` (and so `dettivo doctor`) naming the
+/// failure with nothing bound, and a reload while a rebind waits on an
+/// unanswered bind does not wait for it.
+#[test]
+fn a_failed_rebind_after_a_portal_restart_shows_in_the_status() {
+    let Some(bus) = private_bus() else { return };
+    let portal = MockPortal::serve(bus.address(), false).unwrap();
+    let tree = Tree::new();
+    tree.write_config("[hotkeys]\nbackend = \"portal\"\n");
+    let daemon = Daemon::spawn(tree, &[("DBUS_SESSION_BUS_ADDRESS", bus.address())]);
+    assert!(
+        wait_for(Duration::from_secs(15), || {
+            daemon.result("hotkeys.status", json!({}))["bound"]
+                .as_array()
+                .is_some_and(|b| b.len() == 4)
+        }),
+        "never bound: {}",
+        daemon.log()
+    );
+    portal.set_options(MockOptions {
+        deny: true,
+        ..MockOptions::default()
+    });
+    portal.restart_backend().unwrap();
+    assert!(
+        wait_for(Duration::from_secs(10), || {
+            daemon.result("hotkeys.status", json!({}))["error"]
+                .as_str()
+                .is_some_and(|e| e.contains("denied"))
+        }),
+        "the failed rebind is not in the status: {}",
+        daemon.result("hotkeys.status", json!({}))
+    );
+    assert_eq!(
+        daemon.result("hotkeys.status", json!({}))["bound"],
+        json!([])
+    );
+
+    portal.set_options(MockOptions {
+        stall: true,
+        ..MockOptions::default()
+    });
+    portal.restart_backend().unwrap();
+    assert!(wait_for(Duration::from_secs(5), || portal.bind_calls() == 3));
+    std::fs::write(daemon.tree.config_file(), "[hotkeys]\nbackend = \"none\"\n").unwrap();
+    assert!(
+        wait_for(Duration::from_secs(5), || {
+            daemon.result("hotkeys.status", json!({}))["requested"] == "none"
+                && daemon.result("hotkeys.status", json!({}))["backend"] == "none"
+        }),
+        "the reload waited on the rebind: {}",
+        daemon.result("hotkeys.status", json!({}))
+    );
     daemon.stop();
 }

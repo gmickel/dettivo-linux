@@ -194,6 +194,28 @@ SettingsPage {
                 width: parent.width
             }
 
+            // `pause_media = true` with `nothing` reads as pause (ADR 0091):
+            // the row shows what the daemon does, and a choice replaces the flag.
+            SettingRow {
+                id: mediaRow
+                readonly property bool legacyPause: root.settings && mediaRow.revision >= 0 && root.settings.value("hotkeys.pause_media") === true
+                choices: ["nothing", "pause", "duck", "mute"]
+                choiceLabels: [qsTr("Nothing"), qsTr("Pause"), qsTr("Duck"), qsTr("Mute")]
+                hint: qsTr("once the key is held past a tap; never in meetings")
+                key: "audio.while_dictating"
+                showKey: false
+                kind: "choice"
+                label: qsTr("Media while dictating")
+                selection: mediaRow.valueText === "nothing" && mediaRow.legacyPause ? "pause" : mediaRow.valueText
+                settings: root.settings
+                width: parent.width
+                writer: choice => {
+                    if (mediaRow.legacyPause)
+                        root.settings.set("hotkeys.pause_media", false);
+                    root.settings.set("audio.while_dictating", choice);
+                }
+            }
+
             SettingRow {
                 hint: qsTr("start, stop, error; never in meetings")
                 key: "hotkeys.sounds"

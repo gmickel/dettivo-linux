@@ -404,8 +404,8 @@ void FirstRunModel::applySample(const QString &step)
     m_snippetPath = QStringLiteral("~/.config/hypr/dettivo.conf");
     m_includeLine = QStringLiteral("source = ~/.config/hypr/dettivo.conf");
     m_mainConfigPath = QStringLiteral("~/.config/hypr/hyprland.conf");
-    m_snippetText = QStringLiteral("unbind = , F9\nunbind = SUPER CTRL, X\nbind = , F9, exec, dettivo --quiet dictation start\n"
-                                   "bindr = , F9, exec, dettivo --quiet dictation stop\nbind = SUPER CTRL, X, exec, dettivo --quiet dictation toggle\n"
+    m_snippetText = QStringLiteral("unbind = , F9\nunbind = SUPER CTRL, X\nbind = , F9, exec, dettivo --quiet dictation press\n"
+                                   "bindr = , F9, exec, dettivo --quiet dictation release\nbind = SUPER CTRL, X, exec, dettivo --quiet dictation toggle\n"
                                    "bind = SUPER CTRL, Escape, exec, dettivo --quiet dictation cancel\n"
                                    "bind = SUPER CTRL SHIFT, X, exec, dettivo --quiet dictation reinsert-last\n");
     m_snippetWritten = true;

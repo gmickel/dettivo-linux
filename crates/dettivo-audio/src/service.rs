@@ -1,14 +1,26 @@
 //! The audio service: one thread owns the PipeWire graph and every
 //! capture (the PipeWire proxies are single-threaded), and the rest of the
-//! daemon talks to it through `Send` handles over channels.
+//! daemon talks to it through `Send` handles over channels. When PipeWire
+//! goes away the thread ends every capture with an error naming it and
+//! connects again once PipeWire is back, and a PipeWire absent when the
+//! service starts is connected once it appears, so neither a PipeWire
+//! restart nor a late PipeWire needs a daemon restart.
 
 use std::collections::HashMap;
-use std::sync::mpsc::{self, Receiver, Sender};
-use std::time::Duration;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender};
+use std::time::{Duration, Instant};
 
 use crate::capture::Capture;
-use crate::graph::{Graph, Node, State};
-use crate::{CaptureError, Event, Target};
+use crate::graph::{Graph, LOST, Node, State};
+use crate::{CaptureError, EndReason, Event, Target};
+
+/// How often the audio thread tries PipeWire again while it is gone.
+const RECONNECT: Duration = Duration::from_secs(1);
+
+/// Why an open fails before PipeWire was ever reached.
+const ABSENT: &str = "PipeWire is not running";
 
 #[derive(Debug)]
 enum Cmd {
@@ -26,6 +38,8 @@ enum Cmd {
 #[derive(Clone)]
 pub struct AudioService {
     cmds: Sender<Cmd>,
+    /// True while the audio thread's graph is connected to PipeWire.
+    connected: Arc<AtomicBool>,
 }
 
 /// A running capture, usable from any thread.
@@ -36,70 +50,128 @@ pub struct CaptureHandle {
     cmds: Sender<Cmd>,
 }
 
+/// What the audio thread owns.
+struct Audio {
+    graph: Option<Graph>,
+    /// The graph's `alive` flag, shared with [`AudioService::connected`].
+    connected: Arc<AtomicBool>,
+    captures: HashMap<u64, Capture>,
+    next_id: u64,
+    last_try: Instant,
+    /// Why an open fails while there is no graph: [`ABSENT`] until the
+    /// first connection, [`LOST`] after one went away.
+    why: &'static str,
+}
+
+impl Audio {
+    /// Drops a graph whose PipeWire went away, ending its captures with
+    /// the error, and connects a new one, trying at most every
+    /// [`RECONNECT`].
+    fn reconnect(&mut self) {
+        if self.connected.load(Ordering::SeqCst) {
+            return;
+        }
+        if let Some(dead) = self.graph.take() {
+            self.why = LOST;
+            for (_, mut c) in self.captures.drain() {
+                c.end(EndReason::Error(LOST.into()));
+            }
+            drop(dead);
+        } else if self.last_try.elapsed() < RECONNECT {
+            return;
+        }
+        self.last_try = Instant::now();
+        self.graph = Graph::connect(self.connected.clone()).ok();
+    }
+
+    fn open(
+        &mut self,
+        target: Target,
+        level_interval_ms: u64,
+    ) -> Result<(u64, Receiver<Event>), CaptureError> {
+        let graph = self
+            .graph
+            .as_ref()
+            .ok_or_else(|| CaptureError::NoPipeWire(self.why.into()))?;
+        let mut c = Capture::open(graph, target, level_interval_ms)?;
+        let id = self.next_id;
+        self.next_id += 1;
+        let events = c.take_events();
+        self.captures.insert(id, c);
+        Ok((id, events))
+    }
+
+    fn run(&mut self, rx: &Receiver<Cmd>) {
+        loop {
+            let cmd = rx.recv_timeout(RECONNECT);
+            self.reconnect();
+            match cmd {
+                Ok(Cmd::Snapshot(reply)) => {
+                    let _ =
+                        reply.send(self.graph.as_ref().map(Graph::snapshot).unwrap_or_default());
+                }
+                Ok(Cmd::Open {
+                    target,
+                    level_interval_ms,
+                    reply,
+                }) => {
+                    let _ = reply.send(self.open(target, level_interval_ms));
+                }
+                Ok(Cmd::Stop(id)) => {
+                    if let Some(mut c) = self.captures.remove(&id) {
+                        c.stop();
+                    }
+                }
+                Ok(Cmd::Shutdown) | Err(RecvTimeoutError::Disconnected) => break,
+                Err(RecvTimeoutError::Timeout) => {}
+            }
+        }
+        for (_, mut c) in self.captures.drain() {
+            c.stop();
+        }
+    }
+}
+
 impl AudioService {
-    /// Connects to PipeWire on a new thread; `NoPipeWire` when it is absent.
+    /// Starts the audio thread and tries PipeWire once before returning,
+    /// so [`connected`](Self::connected) is current. A PipeWire that is
+    /// absent now is tried again every second; meanwhile opens
+    /// fail with `NoPipeWire`. Errs only when the thread cannot start.
     pub fn start() -> Result<Self, CaptureError> {
         let (cmds, rx) = mpsc::channel::<Cmd>();
-        let (ready_tx, ready_rx) = mpsc::channel::<Result<(), CaptureError>>();
+        let (ready_tx, ready_rx) = mpsc::channel::<()>();
+        let connected = Arc::new(AtomicBool::new(false));
+        let alive = connected.clone();
         std::thread::Builder::new()
             .name("dettivo-audio".into())
             .spawn(move || {
-                let graph = match Graph::connect() {
-                    Ok(g) => {
-                        let _ = ready_tx.send(Ok(()));
-                        g
-                    }
-                    Err(e) => {
-                        let _ = ready_tx.send(Err(e));
-                        return;
-                    }
-                };
-                let mut captures: HashMap<u64, Capture> = HashMap::new();
-                let mut next_id = 1u64;
-                while let Ok(cmd) = rx.recv() {
-                    match cmd {
-                        Cmd::Snapshot(reply) => {
-                            let _ = reply.send(graph.snapshot());
-                        }
-                        Cmd::Open {
-                            target,
-                            level_interval_ms,
-                            reply,
-                        } => {
-                            let result =
-                                Capture::open(&graph, target, level_interval_ms).map(|mut c| {
-                                    let id = next_id;
-                                    next_id += 1;
-                                    let events = c.take_events();
-                                    captures.insert(id, c);
-                                    (id, events)
-                                });
-                            let _ = reply.send(result);
-                        }
-                        Cmd::Stop(id) => {
-                            if let Some(mut c) = captures.remove(&id) {
-                                c.stop();
-                            }
-                        }
-                        Cmd::Shutdown => break,
-                    }
+                let graph = Graph::connect(alive.clone()).ok();
+                let _ = ready_tx.send(());
+                Audio {
+                    graph,
+                    connected: alive,
+                    captures: HashMap::new(),
+                    next_id: 1,
+                    last_try: Instant::now(),
+                    why: ABSENT,
                 }
-                for (_, mut c) in captures.drain() {
-                    c.stop();
-                }
-                drop(graph);
+                .run(&rx);
             })
             .map_err(|e| CaptureError::NoPipeWire(e.to_string()))?;
-        match ready_rx.recv_timeout(Duration::from_secs(5)) {
-            Ok(Ok(())) => Ok(Self { cmds }),
-            Ok(Err(e)) => Err(e),
-            Err(_) => Err(CaptureError::NoPipeWire(
-                "the audio thread did not answer".into(),
-            )),
-        }
+        ready_rx
+            .recv_timeout(Duration::from_secs(5))
+            .map_err(|_| CaptureError::NoPipeWire("the audio thread did not answer".into()))?;
+        Ok(Self { cmds, connected })
     }
 
-    /// The nodes and the default source right now.
+    /// True while the service is connected to PipeWire: false from the
+    /// moment PipeWire went away until the service connected again.
+    pub fn connected(&self) -> bool {
+        self.connected.load(Ordering::SeqCst)
+    }
+
+    /// The nodes and the default source right now; empty while PipeWire
+    /// is gone.
     pub fn snapshot(&self) -> State {
         let (tx, rx) = mpsc::channel();
         if self.cmds.send(Cmd::Snapshot(tx)).is_err() {
@@ -130,7 +202,8 @@ impl AudioService {
         }
     }
 
-    /// Opens a capture on the audio thread.
+    /// Opens a capture on the audio thread; `NoPipeWire` while PipeWire
+    /// is gone.
     pub fn open(
         &self,
         target: Target,
@@ -169,6 +242,14 @@ impl CaptureHandle {
     /// Requests stop; `Ended` acknowledges the final accepted PCM in `events`.
     pub fn stop(&self) {
         let _ = self.cmds.send(Cmd::Stop(self.id));
+    }
+
+    /// `stop` for another thread, which never holds the event stream.
+    pub fn stopper(&self) -> impl Fn() + Send + Sync + 'static {
+        let (cmds, id) = (self.cmds.clone(), self.id);
+        move || {
+            let _ = cmds.send(Cmd::Stop(id));
+        }
     }
 }
 

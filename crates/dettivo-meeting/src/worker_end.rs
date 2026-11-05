@@ -361,6 +361,10 @@ impl Worker {
             }
             tracks.push(t);
         }
+        if let Some(a) = shared.lock().unwrap_or_else(|p| p.into_inner()).as_mut() {
+            a.snapshot.capturing = false;
+        }
+        tracing::info!(job = %self.job_id, "meeting streams stopped");
         let mut sidecars = Vec::new();
         for t in tracks {
             let track = t.track;

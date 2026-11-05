@@ -135,16 +135,21 @@ enum Cmd {
     PolishEval(polish_verb::PolishEvalArgs),
     /// Measure the NFRs (first insert, transcription throughput, the
     /// language model, the idle footprint, startup) into one report per
-    /// host and tier (docs/qa.md, ADR 0029).
+    /// host and tier (docs/qa.md, ADR 0029); `bench vocabulary` scores
+    /// term recall with the vocabulary off and on (ADR 0087).
     Bench {
+        /// `vocabulary` for the term-recall suite; the NFR suite otherwise.
+        #[arg(value_name = "SUITE")]
+        suite: Option<String>,
         /// Force the CPU tier (`DETTIVO_FORCE_CPU=1` for every engine).
         #[arg(long)]
         cpu: bool,
         /// Three iterations and shorter idles, for CI.
         #[arg(long)]
         quick: bool,
-        /// One step by name (`first_insert`, `stt_throughput`,
-        /// `llm_rewrite`, `idle_footprint`, `startup`, `diarization`).
+        /// One step by name (`first_insert`, `warm_up`, `gpu_threads`,
+        /// `stt_throughput`, `llm_rewrite`, `idle_footprint`, `startup`,
+        /// `language_wer`).
         #[arg(long, value_name = "NAME")]
         step: Option<String>,
         /// Also file the report as `<date>-<host>-<tier>.json` in this
@@ -155,6 +160,9 @@ enum Cmd {
         /// build otherwise.
         #[arg(long, value_name = "DIR")]
         engines: Option<PathBuf>,
+        /// The FLEURS languages `language_wer` scores (scripts/qa/fetch-fleurs.sh).
+        #[arg(long, value_name = "DIR")]
+        languages: Option<PathBuf>,
         /// Evidence base directory; the report lands under `<dir>/<run>/bench/`.
         #[arg(long, default_value = "qa-evidence", value_name = "DIR")]
         evidence: PathBuf,
@@ -357,14 +365,16 @@ fn main() -> ExitCode {
             report.as_deref(),
         ),
         Cmd::Bench {
+            suite,
             cpu,
             quick,
             step,
             out,
             engines,
+            languages,
             evidence,
-        } => bench::command(
-            &bench::Options {
+        } => {
+            let opts = bench::Options {
                 repo_root: repo.clone(),
                 cpu: *cpu,
                 quick: *quick,
@@ -373,9 +383,17 @@ fn main() -> ExitCode {
                 evidence_base: evidence.clone(),
                 engines_dir: engines.clone(),
                 models_dir: models_dir(),
-            },
-            cli.json,
-        ),
+                languages_dir: languages.clone(),
+            };
+            match suite.as_deref() {
+                None => bench::command(&opts, cli.json),
+                Some("vocabulary") => bench::vocabulary_run::command(&opts, cli.json),
+                Some(other) => {
+                    eprintln!("bench: unknown suite {other:?}; the one suite is: vocabulary");
+                    2
+                }
+            }
+        }
         Cmd::Pack {
             name,
             driver,

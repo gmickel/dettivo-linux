@@ -20,7 +20,8 @@ pub struct Session {
     pub wayland_display: Option<String>,
     /// `DISPLAY`.
     pub x11_display: Option<String>,
-    /// `HYPRLAND_INSTANCE_SIGNATURE`.
+    /// `HYPRLAND_INSTANCE_SIGNATURE`: a hint at the instance, which may
+    /// name one that no longer runs (ADR 0099).
     pub hyprland_signature: Option<String>,
     /// `XDG_RUNTIME_DIR`.
     pub runtime_dir: Option<PathBuf>,
@@ -84,9 +85,8 @@ impl Session {
         }
     }
 
-    /// The Hyprland IPC socket when this is a Hyprland session.
-    pub fn hyprland_socket(&self) -> Option<PathBuf> {
-        let sig = self.hyprland_signature.as_ref()?;
+    /// The IPC socket of Hyprland instance `sig`, when it exists.
+    pub fn hyprland_socket(&self, sig: &str) -> Option<PathBuf> {
         let runtime = self.runtime_dir.as_deref().unwrap_or(Path::new("/tmp"));
         let modern = runtime.join("hypr").join(sig).join(".socket.sock");
         if modern.exists() {
@@ -94,6 +94,17 @@ impl Session {
         }
         let legacy = Path::new("/tmp/hypr").join(sig).join(".socket.sock");
         legacy.exists().then_some(legacy)
+    }
+
+    /// The Wayland display's socket: `WAYLAND_DISPLAY` itself when it is
+    /// a path, else that name under `XDG_RUNTIME_DIR`, as libwayland
+    /// resolves it.
+    pub fn wayland_socket(&self) -> Option<PathBuf> {
+        let display = Path::new(self.wayland_display.as_deref()?);
+        if display.is_absolute() {
+            return Some(display.to_path_buf());
+        }
+        Some(self.runtime_dir.as_ref()?.join(display))
     }
 
     /// True when a Wayland display is reachable.

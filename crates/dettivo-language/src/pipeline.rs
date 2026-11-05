@@ -66,8 +66,8 @@ pub struct Settings<'a> {
     /// Whether file names, paths, URLs, addresses, versions and dotted
     /// identifiers are kept byte-identical through the raw layer.
     pub protect_tokens: bool,
-    /// The vocabulary the Enhanced prompt is primed with.
-    pub vocabulary: &'a [String],
+    /// The vocabulary the Enhanced prompt is primed with, aliases included.
+    pub vocabulary: &'a [dettivo_core::config::vocabulary_schema::VocabularyEntry],
     /// The `[polish]` rules in force.
     pub rules: &'a RulesConfig,
     /// The `[llm]` section in force.

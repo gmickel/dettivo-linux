@@ -216,3 +216,4 @@ The plugin's surfaces ([docs/omarchy.md](../omarchy.md)); `dettivo-bar` renders 
 | `Show advanced settings` | Switch all settings pages between Simple and Advanced. |
 | `Vocabulary term` | The term or phrase to add to vocabulary. |
 | `Remove vocabulary term %1` | Remove the named vocabulary entry. |
+| `Sounds like for %1` | The comma-separated spellings the named vocabulary term tends to be transcribed as. |

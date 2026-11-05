@@ -1,48 +1,37 @@
 //! The session's worker thread: drains the source into a take, meters
-//! levels, transcribes through the frozen engine, applies the raw pipeline,
-//! hands the text over and records the outcome. Whether a take is silent
-//! is read from its samples, never from the meter's display windows.
+//! levels, passes the take through the speech gate, transcribes it through
+//! the frozen engine, guards the engine's text, applies the raw pipeline,
+//! hands the text over and records the outcome. The gate judges the take's
+//! samples, never the meter's display windows: the take runs to the end of
+//! its release tail (ADR 0092). A take the gate finds silent ends
+//! `cancelled` without reaching the engine, and so does a tap.
 
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::sync::OnceLock;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
 use dettivo_audio::takes::TakeWriter;
-use dettivo_audio::{EndReason, Event};
-use dettivo_speech::{EngineError, RecognizeRequest, SttEngine, vocabulary_prompt};
+use dettivo_speech::gate::{self, GateVerdict, VoiceDetector};
+use dettivo_speech::{EngineError, RecognizeRequest, SttEngine, prompt_terms, vocabulary_prompt};
 
+use dettivo_core::config::vocabulary_schema;
 use dettivo_language::pipeline::{Mode, Settings};
 use dettivo_language::provider::LocalEngine;
 
-use crate::machine::{Exit, SharedState, finish_shared};
+use crate::finish::{Exit, SharedState, finish_shared};
 use crate::{
-    Archive, Inserter, Level, Policy, Publisher, SessionTarget, SessionTimings, State, StateChange,
+    Archive, Inserter, Policy, Publisher, SessionTarget, SessionTimings, State, StateChange,
     Transcript,
 };
 
-/// What the recording phase hands to the rest of the worker.
-struct Recorded {
-    samples: Vec<i16>,
-    duration_ms: u64,
-    peak: f32,
-    /// An early exit when the recording itself decided the outcome.
-    exit: Option<Exit>,
-    /// From the stop being observed to the take being final.
-    capture_ms: u64,
-}
+mod check;
+mod record;
+use record::Recorded;
 
-fn elapsed_ms(since: Instant) -> u64 {
+pub(crate) fn elapsed_ms(since: Instant) -> u64 {
     u64::try_from(since.elapsed().as_millis()).unwrap_or(u64::MAX)
-}
-
-/// The peak of `samples` on the meter's scale (0 to 1), so the silence
-/// threshold reads the same as a level event's `peak`.
-fn peak_of(samples: &[i16]) -> f32 {
-    samples
-        .iter()
-        .map(|s| (f64::from(*s) / 32_768.0).abs() as f32)
-        .fold(0.0, f32::max)
 }
 
 pub(crate) struct Worker {
@@ -51,12 +40,22 @@ pub(crate) struct Worker {
     pub(crate) engine: Arc<dyn SttEngine>,
     pub(crate) stop: Arc<AtomicBool>,
     pub(crate) cancel: Arc<AtomicBool>,
+    /// When the release arrived, once a stop asked for the take's end.
+    pub(crate) released: Arc<OnceLock<Instant>>,
+    /// A cancel ends the take as a tap.
+    pub(crate) tap: Arc<AtomicBool>,
+    /// When the press arrived; the take qualifies `min_hold` after it.
+    pub(crate) pressed: Instant,
+    /// A hold-key release waiting behind the start, shared with the session.
+    pub(crate) release_waiting: Arc<std::sync::Mutex<Vec<Instant>>>,
+    pub(crate) route: Arc<crate::deliver::Route>,
     pub(crate) dir: PathBuf,
     pub(crate) publisher: Arc<dyn Publisher>,
     pub(crate) inserter: Arc<dyn Inserter>,
     pub(crate) archive: Option<Arc<dyn Archive>>,
     pub(crate) target: Option<SessionTarget>,
     pub(crate) local_llm: Option<Arc<dyn LocalEngine>>,
+    pub(crate) vad: Option<Arc<dyn VoiceDetector>>,
 }
 
 impl Worker {
@@ -80,9 +79,10 @@ impl Worker {
         let Recorded {
             samples,
             duration_ms,
-            peak,
             exit: record_exit,
             capture_ms,
+            stopped,
+            check,
         } = match outcome {
             Ok(v) => v,
             Err(exit) => {
@@ -99,6 +99,9 @@ impl Worker {
             }
         };
         if let Some(exit) = record_exit {
+            // The check ends before the slot frees: the voice process
+            // holds one take's state, and the next take may start at once.
+            drop(check);
             self.cleanup();
             finish_shared(
                 &shared,
@@ -116,22 +119,20 @@ impl Worker {
             0.0,
             Some("loading engine".into()),
         );
-        let silent = peak < self.policy.silence_peak_threshold;
         let transcribe_started = Instant::now();
-        let recognized = if silent {
-            tracing::info!(job = %self.job_id, "take is near silent; nothing sent to the engine");
-            Ok((String::new(), self.policy.language.clone()))
-        } else {
-            let request = RecognizeRequest {
-                pcm: samples,
-                language: self.policy.language.clone(),
-                prompt: vocabulary_prompt(&self.policy.vocabulary),
-                timestamps: true,
-            };
-            self.engine
-                .recognize(request, Duration::from_secs(300))
-                .map(|r| (r.text, r.language))
-        };
+        // The voice pass ran during the take; the release runs only what
+        // it has not heard, or the whole take when it could not.
+        let verdict = gate::judge_voice(
+            &samples,
+            self.policy.silence_dbfs,
+            self.vad.as_deref().map(|vad| {
+                || match check.and_then(|c| c.finish(&samples)) {
+                    Some(ms) => Ok(ms),
+                    None => vad.speech_ms(&samples),
+                }
+            }),
+        );
+        // A cancel during the voice pass reached no engine to stop.
         if self.cancel.load(Ordering::Relaxed) {
             self.cleanup();
             finish_shared(
@@ -139,7 +140,69 @@ impl Worker {
                 &*self.publisher,
                 &self.job_id,
                 State::Transcribing,
-                Exit::Cancelled,
+                self.cancelled(),
+                None,
+            );
+            return;
+        }
+        if let GateVerdict::Silence(stage) = verdict {
+            tracing::info!(job = %self.job_id, stage = stage.as_str(), "take is silent; nothing sent to the engine");
+            self.cleanup();
+            finish_shared(
+                &shared,
+                &*self.publisher,
+                &self.job_id,
+                State::Transcribing,
+                Exit::Silence(stage),
+                None,
+            );
+            return;
+        }
+        let terms = vocabulary_schema::terms(&self.policy.vocabulary);
+        // An echo of the prompt is only possible from an engine that took one.
+        let echo_terms = if self.engine.capabilities().supports_custom_vocabulary {
+            prompt_terms(&terms)
+        } else {
+            &[]
+        };
+        let parakeet = self.engine.provider() == "parakeet";
+        let request = |pcm| RecognizeRequest {
+            pcm,
+            language: self.policy.language.clone(),
+            prompt: vocabulary_prompt(&terms),
+            timestamps: true,
+            vocabulary: if parakeet {
+                crate::bias::vocabulary_bias(&self.policy.vocabulary, self.policy.vocabulary_boost)
+            } else {
+                crate::bias::checked_terms(echo_terms, &self.policy.vocabulary)
+            },
+        };
+        let padded = gate::pad_for_engine(samples.clone(), parakeet, gate::SAMPLE_RATE);
+        let was_padded = padded.len() != samples.len();
+        let timeout = Duration::from_secs(300);
+        let mut recognized = self.engine.recognize(request(padded), timeout);
+        // Padding never empties a take: Parakeet v3 reads some takes whole
+        // only without the added silence (ADR 0081), so those run once more as captured.
+        if was_padded
+            && recognized.as_ref().is_ok_and(|r| r.text.trim().is_empty())
+            && !self.cancel.load(Ordering::Relaxed)
+        {
+            recognized = self.engine.recognize(request(samples), timeout);
+        }
+        let recognized = recognized.map(|r| {
+            (
+                dettivo_transcribe::guards::clean(&r, echo_terms),
+                r.language,
+            )
+        });
+        if self.cancel.load(Ordering::Relaxed) {
+            self.cleanup();
+            finish_shared(
+                &shared,
+                &*self.publisher,
+                &self.job_id,
+                State::Transcribing,
+                self.cancelled(),
                 None,
             );
             return;
@@ -153,7 +216,7 @@ impl Worker {
                     &*self.publisher,
                     &self.job_id,
                     State::Transcribing,
-                    Exit::Cancelled,
+                    self.cancelled(),
                     None,
                 );
                 return;
@@ -197,12 +260,7 @@ impl Worker {
             "dictation text step"
         );
         let text = stepped.text;
-        // A silent take never reached the engine: the contract says 0.
-        let transcribe_ms = if silent {
-            0
-        } else {
-            elapsed_ms(transcribe_started)
-        };
+        let transcribe_ms = elapsed_ms(transcribe_started);
         // A cancel that landed while the text was being polished: nothing
         // is typed and nothing is archived. Past this point the delivery
         // has started and a cancel finds no session to stop.
@@ -213,18 +271,20 @@ impl Worker {
                 &*self.publisher,
                 &self.job_id,
                 State::Transcribing,
-                Exit::Cancelled,
+                self.cancelled(),
                 None,
             );
             return;
         }
         self.set(&shared, State::Inserting, 0.9, None);
         let insert_started = Instant::now();
-        let insertion = if text.is_empty() {
-            None
-        } else {
-            Some(self.inserter.insert(&text, self.target.as_ref()))
-        };
+        let insertion = crate::deliver::deliver(
+            &*self.inserter,
+            &text,
+            self.target.as_ref(),
+            self.route.printing(),
+            stopped,
+        );
         let timings = SessionTimings {
             capture_ms,
             transcribe_ms,
@@ -245,7 +305,6 @@ impl Worker {
             policy_hash: Some(stepped.policy_hash),
             language,
             duration_ms,
-            silent,
             policy: self.policy.clone(),
             insertion,
             target: self.target.clone(),
@@ -272,131 +331,13 @@ impl Worker {
         );
     }
 
-    /// Drains the source until stop, cancel, the maximum duration or the
-    /// source's end. Returns the samples, the duration, the peak, an early
-    /// exit when the recording itself decided the outcome, and how long the
-    /// drain and the take's finish took after the stop.
-    fn record(&self, src: &crate::source::Source, shared: &SharedState) -> Result<Recorded, Exit> {
-        let mut writer =
-            TakeWriter::new(&self.dir).map_err(|e| Exit::Failed(format!("take: {e}")))?;
-        writer
-            .start_take(false)
-            .map_err(|e| Exit::Failed(format!("take: {e}")))?;
-        let mut samples: Vec<i16> = Vec::new();
-        let mut peak: f32 = 0.0;
-        let started = Instant::now();
-        let mut ended: Option<EndReason> = None;
-        let mut terminal = false;
-        loop {
-            if self.cancel.load(Ordering::Relaxed) {
-                return Ok(Recorded {
-                    samples,
-                    duration_ms: 0,
-                    peak,
-                    exit: Some(Exit::Cancelled),
-                    capture_ms: 0,
-                });
-            }
-            if self.stop.load(Ordering::Relaxed) || started.elapsed() >= self.policy.max_duration {
-                break;
-            }
-            match src.events().recv_timeout(Duration::from_millis(50)) {
-                Ok(Event::Pcm(chunk)) => {
-                    writer
-                        .write(&chunk)
-                        .map_err(|e| Exit::Failed(format!("take: {e}")))?;
-                    peak = peak.max(peak_of(&chunk));
-                    samples.extend_from_slice(&chunk);
-                    let progress = (started.elapsed().as_secs_f64()
-                        / self.policy.max_duration.as_secs_f64())
-                    .min(1.0);
-                    if let Some(a) = shared
-                        .active
-                        .lock()
-                        .unwrap_or_else(|p| p.into_inner())
-                        .as_mut()
-                    {
-                        a.snapshot.progress = progress;
-                    }
-                }
-                Ok(Event::Level { rms, peak: p }) => {
-                    self.publisher.level(Level { rms, peak: p });
-                }
-                Ok(Event::DeviceChanged { from, to }) => {
-                    ended = Some(EndReason::DeviceLost(format!(
-                        "default moved from {} to {}",
-                        from.unwrap_or_else(|| "none".into()),
-                        to.unwrap_or_else(|| "none".into())
-                    )));
-                    break;
-                }
-                Ok(Event::Ended { reason }) => {
-                    ended = Some(reason);
-                    terminal = true;
-                    break;
-                }
-                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {}
-                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
-                    ended = Some(EndReason::Error(
-                        "capture stop acknowledgement missing".into(),
-                    ));
-                    terminal = true;
-                    break;
-                }
-            }
+    /// How a cancel ends this take: a tap, or a cancel.
+    fn cancelled(&self) -> Exit {
+        if self.tap.load(Ordering::Relaxed) {
+            Exit::Tap
+        } else {
+            Exit::Cancelled
         }
-        let released = Instant::now();
-        src.stop();
-        let deadline = released + Duration::from_secs(2);
-        while !terminal {
-            let remaining = deadline.saturating_duration_since(Instant::now());
-            if remaining.is_zero() {
-                return Err(Exit::Failed(
-                    "capture stop acknowledgement timed out".into(),
-                ));
-            }
-            let event = src.events().recv_timeout(remaining).map_err(|_| {
-                Exit::Failed("capture stop acknowledgement missing or timed out".into())
-            })?;
-            match event {
-                Event::Pcm(chunk) => {
-                    writer
-                        .write(&chunk)
-                        .map_err(|e| Exit::Failed(format!("take: {e}")))?;
-                    peak = peak.max(peak_of(&chunk));
-                    samples.extend_from_slice(&chunk);
-                }
-                Event::Level { rms, peak: p } => {
-                    self.publisher.level(Level { rms, peak: p });
-                }
-                Event::Ended { reason } => {
-                    terminal = true;
-                    if ended.is_none() {
-                        ended = Some(reason);
-                    }
-                }
-                _ => {}
-            }
-        }
-        let takes = writer
-            .finish()
-            .map_err(|e| Exit::Failed(format!("take: {e}")))?;
-        let duration_ms = takes.takes.iter().map(|t| t.samples).sum::<u64>() * 1000 / 16_000;
-        let exit = match ended {
-            Some(EndReason::DeviceLost(name)) => Some(Exit::Failed(format!("device lost: {name}"))),
-            Some(EndReason::NoSource) => Some(Exit::Failed("no audio source".into())),
-            Some(EndReason::Error(e)) | Some(EndReason::Write(e)) => {
-                Some(Exit::Failed(format!("capture error: {e}")))
-            }
-            Some(EndReason::Stopped) | Some(EndReason::FixtureFinished) | None => None,
-        };
-        Ok(Recorded {
-            samples,
-            duration_ms,
-            peak,
-            exit,
-            capture_ms: elapsed_ms(released),
-        })
     }
 
     fn cleanup(&self) {

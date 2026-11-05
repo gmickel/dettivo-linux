@@ -6,18 +6,21 @@
 //! trait through it (`engines`), the `LlmEngine` that drives the language
 //! model binary over the same supervisor (`llm`), the `DiarizeEngine`
 //! that drives the diarization binary (`diarize`, ADR 0035), the
-//! coalescing `Preloader`, and the hardware tier the benchmarks read
-//! (`tier`).
+//! coalescing `Preloader`, the hardware tier the benchmarks read
+//! (`tier`), and the speech gate a dictation take passes before a
+//! recognizer hears it (`gate`).
 
 pub mod catalogue;
 pub mod diarize;
 pub mod download;
 pub mod engines;
 pub mod fixture_server;
+pub mod gate;
 pub mod llm;
 pub mod models;
 pub mod preload;
 pub mod process;
+pub mod ranking;
 pub mod supervisor;
 mod supervisor_types;
 pub mod tier;
@@ -51,27 +54,50 @@ pub struct Capabilities {
 }
 
 /// What a session asks a recognizer for.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RecognizeRequest {
     /// 16 kHz mono samples.
     pub pcm: Vec<i16>,
     /// Language code or `auto`.
     pub language: String,
-    /// Vocabulary prompt.
+    /// Vocabulary prompt (Whisper).
     pub prompt: Option<String>,
     /// Segment timestamps wanted.
     pub timestamps: bool,
+    /// The vocabulary Parakeet rescores its transcript towards.
+    pub vocabulary: Option<dettivo_engine_proto::VocabularyBias>,
 }
 
-/// The prompt a vocabulary primes the engine with: the words joined by
-/// `", "` and closed with a full stop, or `None` for no words. Whisper reads
-/// an unterminated list as an open sentence, and it pulled some English takes
-/// into German even with the language forced (issue #37).
+/// The longest vocabulary prompt, in characters. Whisper keeps the end of
+/// a prompt that overflows its window and loses the first terms, which are
+/// the most important ones.
+pub const PROMPT_MAX_CHARS: usize = 500;
+
+/// The vocabulary terms the prompt carries: whole terms in list order
+/// until the next one would take the prompt past [`PROMPT_MAX_CHARS`].
+pub fn prompt_terms(words: &[String]) -> &[String] {
+    let mut len = 0;
+    for (i, word) in words.iter().enumerate() {
+        // The separator before the term, and the full stop it needs as the last.
+        len += word.chars().count() + if i == 0 { 0 } else { 2 };
+        let stop = usize::from(!word.ends_with(['.', '!', '?']));
+        if len + stop > PROMPT_MAX_CHARS {
+            return &words[..i];
+        }
+    }
+    words
+}
+
+/// The prompt a vocabulary primes the engine with: the [`prompt_terms`]
+/// joined by `", "` and closed with a full stop, or `None` for no terms.
+/// Whisper reads an unterminated list as an open sentence, and it pulled
+/// some English takes into German even with the language forced (issue #37).
 pub fn vocabulary_prompt(words: &[String]) -> Option<String> {
-    if words.is_empty() {
+    let terms = prompt_terms(words);
+    if terms.is_empty() {
         return None;
     }
-    let mut prompt = words.join(", ");
+    let mut prompt = terms.join(", ");
     if !prompt.ends_with(['.', '!', '?']) {
         prompt.push('.');
     }
@@ -193,6 +219,33 @@ mod tests {
             prompt(&["Dettivo", "Astra", "Jev", "Clef"]).as_deref(),
             Some("Dettivo, Astra, Jev, Clef.")
         );
+    }
+
+    /// R5: a list that overflows the cap keeps whole terms in list order,
+    /// stays terminated and never passes 500 characters.
+    #[test]
+    fn vocabulary_prompt_is_capped_at_whole_terms() {
+        let words: Vec<String> = (0..60).map(|i| format!("Term{i:03}xyz")).collect();
+        let capped = super::vocabulary_prompt(&words).unwrap();
+        assert!(
+            capped.chars().count() <= super::PROMPT_MAX_CHARS,
+            "{capped}"
+        );
+        assert!(capped.starts_with("Term000xyz, Term001xyz,"));
+        assert!(capped.ends_with("xyz."), "{capped}");
+        let kept = super::prompt_terms(&words);
+        assert_eq!(capped, format!("{}.", kept.join(", ")));
+        // One more term would have passed the cap.
+        let longer = format!("{}, {}.", kept.join(", "), words[kept.len()]);
+        assert!(longer.chars().count() > super::PROMPT_MAX_CHARS);
+        // A term longer than the cap leaves no prompt.
+        assert_eq!(prompt(&[&"x".repeat(500)]), None);
+        assert_eq!(prompt(&[&"x".repeat(499)]).unwrap().len(), 500);
+        // A term that brings its own full stop needs none added.
+        let terminated = format!("{}.", "x".repeat(499));
+        assert_eq!(prompt(&[&terminated]).as_deref(), Some(terminated.as_str()));
+        let (first, last) = ("y".repeat(200), format!("{}.", "z".repeat(297)));
+        assert_eq!(prompt(&[&first, &last]).unwrap().chars().count(), 500);
     }
 
     #[test]

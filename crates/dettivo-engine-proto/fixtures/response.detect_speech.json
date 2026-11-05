@@ -1,0 +1,9 @@
+{
+  "id": 4,
+  "kind": "response",
+  "name": "detect_speech",
+  "payload": {
+    "speech_ms": 620
+  },
+  "v": 1
+}

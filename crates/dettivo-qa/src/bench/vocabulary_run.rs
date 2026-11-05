@@ -1,0 +1,480 @@
+//! The run behind `dettivo-qa bench vocabulary`: every clip of the fixture
+//! set through each speech engine's CLI mode, once with the vocabulary off
+//! and once on, scored and written as one report. Each clip reaches the
+//! engine padded as a dictation take is, and its text passes the output
+//! guards and then the default raw layer a take's text passes, through a
+//! text-only daemon of the bench's own, so the score is of the text raw
+//! dictation pastes (ADR 0096). Whisper also runs the
+//! single-name set with the vocabulary on (ADR 0095). `--out <dir>` also
+//! files it as `vocabulary-<date>-<host>.json` with a Markdown table
+//! beside it.
+
+use std::path::{Path, PathBuf};
+
+use dettivo_engine_proto::RecognizeResult;
+use dettivo_transcribe::guards;
+use serde::{Deserialize, Serialize};
+
+use super::vocabulary::{
+    Entry, FIXTURE_DIR, SINGLE_DIR, Set, VocabularyScore, prompt_args, rescoring, score,
+};
+use super::{Options, Status, date_of, host, throughput, unix_now};
+use crate::polish_eval::runner::Runner;
+
+/// The report's shape version.
+pub const SCHEMA_VERSION: u32 = 1;
+/// The speech engines measured, in report order.
+pub const PROVIDERS: &[&str] = &["whisper", "parakeet"];
+
+/// One clip's transcript.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Transcript {
+    /// The clip id.
+    pub id: String,
+    /// What dictation pastes: the engine's text guarded, then raw.
+    pub text: String,
+    /// Candidate spans the engine weighed in the clip: those Parakeet
+    /// rescored (ADR 0088), the listed terms Whisper wrote (ADR 0095).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub candidates: Option<u32>,
+    /// Milliseconds the vocabulary added to the clip.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rescore_ms: Option<f64>,
+}
+
+/// One engine and model, with the vocabulary off or on.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Row {
+    /// The provider.
+    pub provider: String,
+    /// The model id, empty when none was found.
+    pub model: String,
+    /// The backend the engine reported.
+    pub backend: String,
+    /// Whether the engine was primed with the vocabulary.
+    pub vocabulary: bool,
+    /// Measured, skipped or failed.
+    pub status: Status,
+    /// Why the row was skipped or failed.
+    pub reason: Option<String>,
+    /// The score of a measured row.
+    pub score: Option<VocabularyScore>,
+    /// Every clip's transcript.
+    pub transcripts: Vec<Transcript>,
+    /// Wall time of the pass, model loads included.
+    pub wall_ms: u64,
+    /// What rescoring cost, when the engine rescored.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rescoring: Option<Rescoring>,
+}
+
+/// What rescoring added per clip over one pass.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Rescoring {
+    /// Clips with at least one candidate span.
+    pub clips_with_candidates: u32,
+    /// The median milliseconds added to those clips.
+    pub median_ms_with_candidates: f64,
+    /// The most milliseconds added to a clip without a candidate.
+    pub max_ms_without_candidates: f64,
+}
+
+impl Rescoring {
+    /// The summary of `transcripts`; `None` when none was rescored.
+    fn of(transcripts: &[Transcript]) -> Option<Self> {
+        let mut with: Vec<f64> = Vec::new();
+        let mut without: f64 = 0.0;
+        let mut any = false;
+        for t in transcripts {
+            let (Some(n), Some(ms)) = (t.candidates, t.rescore_ms) else {
+                continue;
+            };
+            any = true;
+            if n > 0 {
+                with.push(ms);
+            } else {
+                without = without.max(ms);
+            }
+        }
+        with.sort_by(f64::total_cmp);
+        let median = match with.len() {
+            0 => 0.0,
+            n if n % 2 == 1 => with[n / 2],
+            n => (with[n / 2 - 1] + with[n / 2]) / 2.0,
+        };
+        any.then_some(Self {
+            clips_with_candidates: with.len() as u32,
+            median_ms_with_candidates: median,
+            max_ms_without_candidates: without,
+        })
+    }
+}
+
+impl Row {
+    fn without(provider: &str, model: &str, vocabulary: bool, status: Status, why: String) -> Self {
+        Self {
+            provider: provider.into(),
+            model: model.into(),
+            backend: String::new(),
+            vocabulary,
+            status,
+            reason: Some(why),
+            score: None,
+            transcripts: Vec::new(),
+            wall_ms: 0,
+            rescoring: None,
+        }
+    }
+}
+
+/// `vocabulary-report.json`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct VocabularyReport {
+    /// [`SCHEMA_VERSION`].
+    pub schema_version: u32,
+    /// Unix time the run started.
+    pub generated_unix: u64,
+    /// The date, `YYYY-MM-DD`.
+    pub date: String,
+    /// The commit the run measured.
+    pub git_sha: String,
+    /// The host name.
+    pub hostname: String,
+    /// `--cpu`.
+    pub forced_cpu: bool,
+    /// SHA-256 of `set.json`.
+    pub fixture_sha256: String,
+    /// The vocabulary the passes with it on were primed with.
+    pub vocabulary: Vec<Entry>,
+    /// Every row.
+    pub rows: Vec<Row>,
+    /// Whisper with the vocabulary on over the single-name set.
+    #[serde(default)]
+    pub single_name: Vec<Row>,
+}
+
+/// `wav` padded for `provider` as dictation pads a take, written into
+/// `dir`; `None` when the padding leaves it as it is.
+fn prepare(wav: &Path, provider: &str, dir: &Path) -> Result<Option<PathBuf>, String> {
+    let fail = |e: hound::Error| format!("{}: {e}", wav.display());
+    let mut reader = hound::WavReader::open(wav).map_err(fail)?;
+    let spec = reader.spec();
+    if u64::from(spec.sample_rate) != dettivo_transcribe::SAMPLE_RATE
+        || spec.channels != 1
+        || spec.bits_per_sample != 16
+    {
+        return Err(format!("{}: not 16 kHz mono 16-bit", wav.display()));
+    }
+    let pcm: Vec<i16> = reader.samples().collect::<Result<_, _>>().map_err(fail)?;
+    let before = pcm.len();
+    let padded = dettivo_transcribe::pad_for_engine(pcm, provider == "parakeet", spec.sample_rate);
+    if padded.len() == before {
+        return Ok(None);
+    }
+    let out = dir.join(wav.file_name().unwrap_or_default());
+    let mut writer = hound::WavWriter::create(&out, spec).map_err(fail)?;
+    for s in padded {
+        writer.write_sample(s).map_err(fail)?;
+    }
+    writer.finalize().map_err(fail)?;
+    Ok(Some(out))
+}
+
+/// One pass of every clip through `binary`, the padded clips kept in
+/// `padded_dir`, each text pasted as `paste` runs the raw layer.
+#[allow(clippy::too_many_arguments)]
+fn pass(
+    opts: &Options,
+    paste: &Runner,
+    set: &Set,
+    padded_dir: &Path,
+    binary: &Path,
+    model: &host::ModelRef,
+    provider: &str,
+    on: bool,
+) -> Row {
+    let prompt = if on {
+        match prompt_args(provider, &set.vocabulary) {
+            Some(args) => args,
+            None => {
+                let why = format!("dettivo-engine-{provider} takes no vocabulary");
+                return Row::without(provider, &model.id, on, Status::Skipped, why);
+            }
+        }
+    } else {
+        Vec::new()
+    };
+    // Dictation's prompt-echo guard reads the terms of an engine it primed
+    // with a prompt.
+    let echo_terms: Vec<String> = if on && provider == "whisper" {
+        set.vocabulary.iter().map(|e| e.term.clone()).collect()
+    } else {
+        Vec::new()
+    };
+    let model_arg = model.path.to_string_lossy().into_owned();
+    let mut row = Row::without(provider, &model.id, on, Status::Measured, String::new());
+    row.reason = None;
+    let recognize = |wav: &Path| {
+        let wav = wav.to_string_lossy();
+        let mut args = vec!["--wav", wav.as_ref(), "--model", model_arg.as_str()];
+        args.extend(prompt.iter().map(String::as_str));
+        throughput::cli(binary, &args, opts.cpu)
+    };
+    for clip in &set.clips {
+        let wav = set.dir.join(format!("{}.wav", clip.id));
+        // As in dictation: an empty padded take runs once more as captured.
+        let outcome = prepare(&wav, provider, padded_dir).and_then(|padded| {
+            let mut wall_ms = 0;
+            let mut run = recognize(padded.as_deref().unwrap_or(&wav))?;
+            let empty =
+                |r: &throughput::CliRun| r.result["text"].as_str().unwrap_or("").trim().is_empty();
+            if padded.is_some() && empty(&run) {
+                wall_ms += run.wall_ms;
+                run = recognize(&wav)?;
+            }
+            run.wall_ms += wall_ms;
+            Ok(run)
+        });
+        let outcome = outcome.and_then(|run| {
+            let result: RecognizeResult = serde_json::from_value(run.result.clone())
+                .map_err(|e| format!("engine answer: {e}"))?;
+            Ok((paste.raw(&guards::clean(&result, &echo_terms))?, run))
+        });
+        match outcome {
+            Ok((text, run)) => {
+                row.wall_ms += run.wall_ms;
+                row.backend = run.result["backend"].as_str().unwrap_or("").to_string();
+                let text = text.trim().to_string();
+                let rescored = rescoring(&run.stderr);
+                row.transcripts.push(Transcript {
+                    id: clip.id.clone(),
+                    text,
+                    candidates: rescored.map(|r| r.0),
+                    rescore_ms: rescored.map(|r| r.1),
+                });
+            }
+            Err(e) => {
+                row.status = Status::Failed;
+                row.reason = Some(format!("{}: {e}", clip.id));
+                return row;
+            }
+        }
+    }
+    let heard: Vec<(String, String)> = row
+        .transcripts
+        .iter()
+        .map(|t| (t.id.clone(), t.text.clone()))
+        .collect();
+    row.score = Some(score(set, &heard));
+    row.rescoring = Rescoring::of(&row.transcripts);
+    row
+}
+
+/// Runs every pass and writes the report; the report's path.
+pub fn run(opts: &Options) -> Result<(VocabularyReport, PathBuf), String> {
+    let started = unix_now();
+    let run_dir = crate::evidence::Evidence::run_for_process(&opts.evidence_base)
+        .map(|e| e.run_dir.join("bench-vocabulary"))
+        .map_err(|e| format!("evidence: {e}"))?;
+    std::fs::create_dir_all(&run_dir).map_err(|e| format!("{}: {e}", run_dir.display()))?;
+    let fixture_dir = opts.repo_root.join(FIXTURE_DIR);
+    let set = Set::load(&fixture_dir)?;
+    let single = Set {
+        vocabulary: set.vocabulary.clone(),
+        ..Set::load(&fixture_dir.join(SINGLE_DIR))?
+    };
+    let engines = host::engine_binaries(&opts.repo_root, opts.engines_dir.as_deref());
+    let models = host::Models::resolve(&opts.repo_root, opts.models_dir.as_deref())?;
+    let paste = Runner::text_only(&opts.repo_root, opts.cpu)
+        .map_err(|e| format!("the raw layer's daemon: {e}"))?;
+    let measure = |set: &Set, provider: &str, on: bool| -> Result<Row, String> {
+        let binary_name = format!("dettivo-engine-{provider}");
+        let binary = engines.iter().find(|e| e.binary == binary_name);
+        let row = match (models.get(provider), binary) {
+            (Err(why), _) => Row::without(provider, "", on, Status::Skipped, why),
+            (Ok(model), None) => Row::without(
+                provider,
+                &model.id,
+                on,
+                Status::Skipped,
+                format!("{binary_name} is not built"),
+            ),
+            (Ok(model), Some(b)) => {
+                let padded_dir = run_dir.join("padded").join(provider);
+                std::fs::create_dir_all(&padded_dir)
+                    .map_err(|e| format!("{}: {e}", padded_dir.display()))?;
+                pass(opts, &paste, set, &padded_dir, &b.path, model, provider, on)
+            }
+        };
+        eprintln!(
+            "bench vocabulary: {provider} vocabulary={on} {:?}",
+            row.status
+        );
+        Ok(row)
+    };
+    let mut rows = Vec::new();
+    for provider in PROVIDERS {
+        for on in [false, true] {
+            rows.push(measure(&set, provider, on)?);
+        }
+    }
+    let single_name = vec![measure(&single, "whisper", true)?];
+    let report = VocabularyReport {
+        schema_version: SCHEMA_VERSION,
+        generated_unix: started,
+        date: date_of(started),
+        git_sha: host::git_sha(&opts.repo_root),
+        hostname: host::Host::detect().hostname,
+        forced_cpu: opts.cpu,
+        fixture_sha256: host::fixture_ref("set.json", &fixture_dir.join("set.json"))
+            .map(|f| f.sha256)
+            .unwrap_or_default(),
+        vocabulary: set.vocabulary.clone(),
+        rows,
+        single_name,
+    };
+    let json = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())? + "\n";
+    let path = run_dir.join("vocabulary-report.json");
+    std::fs::write(&path, &json).map_err(|e| format!("{}: {e}", path.display()))?;
+    if let Some(out) = &opts.out {
+        std::fs::create_dir_all(out).map_err(|e| format!("{}: {e}", out.display()))?;
+        // Not `-gpu.json` or `-cpu.json`: the NFR README reads only those.
+        for (ext, text) in [("json", json.clone()), ("md", markdown(&report))] {
+            let name = format!("vocabulary-{}-{}.{ext}", report.date, report.hostname);
+            let filed = out.join(name);
+            std::fs::write(&filed, text).map_err(|e| format!("{}: {e}", filed.display()))?;
+        }
+    }
+    Ok((report, path))
+}
+
+/// The tables a person reads: one line per row.
+pub fn markdown(report: &VocabularyReport) -> String {
+    let mut out = format!(
+        "# Vocabulary term recall, {} on {}\n\n`dettivo-qa bench vocabulary` at `{}`{}. Each clip's text has passed dictation's output guards and its default raw layer, so it is the text raw dictation pastes. Term recall counts target clips whose term came back spelt exactly; false insertions count terms in distractor and guard clips; guard WER is the word error rate over the guard clips; time added is what Parakeet's rescoring or Whisper's term check added, the median over clips with a candidate span and the most on a clip without one.\n\n",
+        report.date,
+        report.hostname,
+        report.git_sha.get(..12).unwrap_or(&report.git_sha),
+        if report.forced_cpu {
+            ", CPU forced"
+        } else {
+            ""
+        },
+    );
+    out.push_str(&table(&report.rows));
+    if !report.single_name.is_empty() {
+        out.push_str("\n## Single names\n\nOne word said on its own, with the same vocabulary. Term recall counts listed names that came back; false insertions count lone sound-alikes that became a term. The set has no guard clips.\n\n");
+        out.push_str(&table(&report.single_name));
+    }
+    out
+}
+
+/// One table of `rows`.
+fn table(rows: &[Row]) -> String {
+    let mut out = String::from(
+        "| Engine | Model | Backend | Vocabulary | Term recall | False insertions | Guard WER | Time added |\n|---|---|---|---|---|---|---|---|\n",
+    );
+    for row in rows {
+        let on = if row.vocabulary { "on" } else { "off" };
+        let cells = match (&row.score, &row.reason) {
+            (Some(s), _) => format!(
+                "{}/{} | {} | {:.3} | {}",
+                s.term_recall.0,
+                s.term_recall.1,
+                s.false_insertions,
+                s.guard_wer,
+                row.rescoring.as_ref().map_or("-".into(), |r| format!(
+                    "{:.1} ms median on {} clips, {:.1} ms most without",
+                    r.median_ms_with_candidates,
+                    r.clips_with_candidates,
+                    r.max_ms_without_candidates
+                ))
+            ),
+            (None, why) => format!(
+                "{:?}: {} | - | - | -",
+                row.status,
+                why.as_deref().unwrap_or("")
+            )
+            .to_lowercase(),
+        };
+        out.push_str(&format!(
+            "| {} | {} | {} | {on} | {cells} |\n",
+            row.provider, row.model, row.backend
+        ));
+    }
+    out
+}
+
+/// `dettivo-qa bench vocabulary`: exits 0 unless a pass failed (1) or
+/// the run could not start (2).
+pub fn command(opts: &Options, json: bool) -> u8 {
+    match run(opts) {
+        Ok((report, path)) => {
+            if json {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&report).unwrap_or_default()
+                );
+            } else {
+                print!("{}", markdown(&report));
+                println!("\n  report: {}", path.display());
+            }
+            let rows = report.rows.iter().chain(&report.single_name);
+            u8::from(rows.into_iter().any(|r| r.status == Status::Failed))
+        }
+        Err(e) => {
+            eprintln!("bench vocabulary: {e}");
+            2
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `ms` milliseconds of a 16 kHz mono ramp, written to `dir/name`.
+    fn clip(dir: &Path, name: &str, ms: usize) -> (PathBuf, Vec<i16>) {
+        let pcm: Vec<i16> = (0..ms * 16).map(|i| (i % 2000) as i16 - 1000).collect();
+        let spec = hound::WavSpec {
+            channels: 1,
+            sample_rate: 16_000,
+            bits_per_sample: 16,
+            sample_format: hound::SampleFormat::Int,
+        };
+        let path = dir.join(name);
+        let mut w = hound::WavWriter::create(&path, spec).unwrap();
+        pcm.iter().for_each(|&s| w.write_sample(s).unwrap());
+        w.finalize().unwrap();
+        (path, pcm)
+    }
+
+    #[test]
+    fn prepared_clip_is_the_dictation_take() {
+        let dir = tempfile::tempdir().unwrap();
+        let out = dir.path().join("padded");
+        std::fs::create_dir(&out).unwrap();
+        // (clip ms, provider, samples the engine hears; None: sent as is)
+        let cases: &[(usize, &str, Option<usize>)] = &[
+            (800, "parakeet", Some(24_000)),
+            (4_000, "parakeet", Some(64_000 + 6_400)),
+            (800, "whisper", Some(24_000)),
+            (4_000, "whisper", None),
+        ];
+        for &(ms, provider, len) in cases {
+            let (wav, pcm) = clip(dir.path(), &format!("{provider}-{ms}.wav"), ms);
+            let prepared = prepare(&wav, provider, &out).unwrap();
+            let heard: Vec<i16> = match &prepared {
+                Some(p) => hound::WavReader::open(p)
+                    .unwrap()
+                    .samples()
+                    .map(Result::unwrap)
+                    .collect(),
+                None => pcm.clone(),
+            };
+            let take = dettivo_transcribe::pad_for_engine(pcm, provider == "parakeet", 16_000);
+            assert_eq!(heard, take, "{provider} {ms} ms");
+            assert_eq!(prepared.map(|_| heard.len()), len, "{provider} {ms} ms");
+        }
+    }
+}

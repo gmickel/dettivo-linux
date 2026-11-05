@@ -23,8 +23,12 @@ mod status;
 
 #[path = "supervisor_recovery.rs"]
 mod recovery;
+
+#[path = "supervisor_warm.rs"]
+mod warm;
 pub use recovery::GPU_RETRY_CAP;
 use recovery::{Fallback, Route, record_crash};
+pub use warm::{RequestGuard, WARM_UP_SKIP};
 
 struct Slot {
     process: Option<EngineProcess>,
@@ -37,6 +41,13 @@ struct Slot {
     fallback: Fallback,
     crashes: u32,
     next_allowed: Instant,
+    /// The loaded model has run an inference (the warm-up or a take), so
+    /// its GPU kernels are compiled; a new load clears it.
+    warm: bool,
+    /// When the running process last finished a real recognition; a new
+    /// process clears it, so the warm-up skip never counts a take served
+    /// by a process that is gone (ADR 0084).
+    last_recognized: Option<Instant>,
 }
 
 /// The supervisor.
@@ -45,6 +56,9 @@ pub struct Supervisor {
     slots: Mutex<HashMap<String, Arc<Mutex<Slot>>>>,
     snapshots: Mutex<HashMap<String, EngineStatus>>,
     hook: Mutex<Option<StateHook>>,
+    /// Real requests per engine that have asked and not finished; a
+    /// warm-up yields to them.
+    pending: Mutex<HashMap<String, usize>>,
 }
 
 impl Supervisor {
@@ -55,6 +69,7 @@ impl Supervisor {
             slots: Mutex::new(HashMap::new()),
             snapshots: Mutex::new(HashMap::new()),
             hook: Mutex::new(None),
+            pending: Mutex::new(HashMap::new()),
         })
     }
 
@@ -100,6 +115,8 @@ impl Supervisor {
                     fallback: Fallback::default(),
                     crashes: 0,
                     next_allowed: Instant::now(),
+                    warm: false,
+                    last_recognized: None,
                 }))
             })
             .clone()
@@ -159,24 +176,54 @@ impl Supervisor {
         params: LoadParams,
         f: impl FnOnce(&mut EngineProcess, &LoadedResult) -> Result<T, EngineError>,
     ) -> Result<T, EngineError> {
+        self.with_engine_slot(binary, binary, params, f)
+    }
+
+    /// `with_engine_load` for a second process of `binary` kept under its
+    /// own `name` (the voice activity pass, `vad`), so neither process
+    /// evicts what the other has loaded. Status and transitions carry `name`.
+    pub fn with_engine_slot<T>(
+        &self,
+        name: &str,
+        binary: &str,
+        params: LoadParams,
+        f: impl FnOnce(&mut EngineProcess, &LoadedResult) -> Result<T, EngineError>,
+    ) -> Result<T, EngineError> {
+        self.with_slot_then(name, binary, params, f, |_, _, _| {})
+    }
+
+    /// `with_engine_slot`, then `then` on a success while the slot is
+    /// still locked, so what `f` proved about the loaded engine is never
+    /// recorded against a load that followed it.
+    fn with_slot_then<T>(
+        &self,
+        name: &str,
+        binary: &str,
+        params: LoadParams,
+        f: impl FnOnce(&mut EngineProcess, &LoadedResult) -> Result<T, EngineError>,
+        then: impl FnOnce(&Self, &mut Slot, &T),
+    ) -> Result<T, EngineError> {
         let settings = self.settings();
-        let slot = self.slot(binary);
+        let slot = self.slot(name);
         let mut s = slot.lock().unwrap_or_else(|p| p.into_inner());
         let mut params = params;
         // Only here, before a request, does an engine change backend.
         match s.fallback.route(&params) {
             Route::Cpu => params.backend_preference = BackendPreference::Cpu,
-            Route::RetryGpu => self.retry_gpu(&mut s, binary),
+            Route::RetryGpu => self.retry_gpu(&mut s, name),
             Route::Asked => {}
         }
-        let result = self.with_locked(binary, params, &settings, &mut s, f);
-        self.remember(binary, &mut s);
+        let result = self.with_locked((name, binary), params, &settings, &mut s, f);
+        if let Ok(value) = &result {
+            then(self, &mut s, value);
+        }
+        self.remember(name, &mut s);
         result
     }
 
     fn with_locked<T>(
         &self,
-        binary: &str,
+        (binary, program): (&str, &str),
         params: LoadParams,
         settings: &Settings,
         s: &mut Slot,
@@ -197,11 +244,12 @@ impl Supervisor {
             if Instant::now() < s.next_allowed {
                 std::thread::sleep(s.next_allowed.saturating_duration_since(Instant::now()));
             }
-            let path = find_binary(binary, settings.directory.as_deref())?;
+            let path = find_binary(program, settings.directory.as_deref())?;
             tracing::info!(engine = binary, path = %path.display(), "spawning engine");
             s.process = Some(EngineProcess::spawn(&path, settings.force_cpu)?);
             s.loaded = None;
             s.params = None;
+            s.last_recognized = None;
             self.transition(
                 s,
                 EngineTransition {
@@ -225,7 +273,7 @@ impl Supervisor {
             );
             match result {
                 Err(e @ (EngineError::Crashed(_) | EngineError::Transport(_)))
-                    if binary == WHISPER_BINARY
+                    if program == WHISPER_BINARY
                         && params.backend_preference == BackendPreference::Auto
                         && !settings.force_cpu =>
                 {
@@ -237,7 +285,7 @@ impl Supervisor {
                     let mut cpu = params;
                     cpu.backend_preference = BackendPreference::Cpu;
                     tracing::warn!(engine = binary, error = %e, "automatic load failed; retrying on CPU");
-                    return self.with_locked(binary, cpu, settings, s, f);
+                    return self.with_locked((binary, program), cpu, settings, s, f);
                 }
                 Ok(v) => {
                     let mut loaded: LoadedResult = serde_json::from_value(v)
@@ -250,6 +298,7 @@ impl Supervisor {
                     }
                     tracing::info!(engine = binary, backend = ?loaded.backend, "engine loaded");
                     s.crashes = 0;
+                    s.warm = false;
                     let transition = EngineTransition {
                         binary: binary.to_string(),
                         state: "loaded",
@@ -323,53 +372,6 @@ impl Supervisor {
             }
             other => other,
         }
-    }
-
-    /// Ends the CPU process of an engine whose fallback hold has passed,
-    /// so this request spawns it afresh and loads it on the GPU.
-    fn retry_gpu(&self, s: &mut Slot, binary: &str) {
-        tracing::info!(
-            engine = binary,
-            "trying the GPU again after the CPU fallback"
-        );
-        let Some(mut p) = s.process.take() else {
-            return;
-        };
-        p.terminate();
-        s.loaded = None;
-        s.params = None;
-        self.transition(
-            s,
-            EngineTransition {
-                binary: binary.to_string(),
-                state: "unloaded",
-                model: None,
-                backend: None,
-                reason: Some("trying the GPU again".into()),
-            },
-        );
-    }
-
-    /// Terminates an engine whose state is no longer known (a timed-out
-    /// or broken exchange) and forgets what it had loaded, so nothing
-    /// reuses it; the engine reports itself `unloaded` with the reason.
-    fn discard_uncertain(&self, s: &mut Slot, binary: &str, error: &EngineError) {
-        tracing::warn!(engine = binary, error = %error, "engine state uncertain; terminating it");
-        if let Some(mut p) = s.process.take() {
-            p.terminate();
-        }
-        s.loaded = None;
-        s.params = None;
-        self.transition(
-            s,
-            EngineTransition {
-                binary: binary.to_string(),
-                state: "unloaded",
-                model: None,
-                backend: None,
-                reason: Some(format!("terminated after {error}")),
-            },
-        );
     }
 
     /// Runs `f` against `binary`'s process when one is alive and not

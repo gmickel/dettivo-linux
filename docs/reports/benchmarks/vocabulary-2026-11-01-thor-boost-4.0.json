@@ -1,0 +1,583 @@
+{
+  "schema_version": 1,
+  "generated_unix": 1793570317,
+  "date": "2026-11-01",
+  "git_sha": "3c9c02e5c087e879fd239de9f43c38129b543e23",
+  "hostname": "thor",
+  "forced_cpu": false,
+  "fixture_sha256": "1f7c1acafdde6524f68535c2957d6e376f2d44714ed687fc8b79e61736f5dc1b",
+  "vocabulary": [
+    {
+      "term": "Dettivo",
+      "sounds_like": [
+        "detivo",
+        "debt evo"
+      ]
+    },
+    {
+      "term": "Clef",
+      "sounds_like": [
+        "clay",
+        "cleff"
+      ]
+    },
+    {
+      "term": "SapienXT",
+      "sounds_like": [
+        "sapient x t",
+        "sapien xt"
+      ]
+    },
+    {
+      "term": "Omarchy",
+      "sounds_like": [
+        "oh marky",
+        "omar key"
+      ]
+    },
+    {
+      "term": "Hyprland",
+      "sounds_like": [
+        "hyper land",
+        "hyperland"
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "provider": "whisper",
+      "model": "large-v3-turbo",
+      "backend": "",
+      "vocabulary": false,
+      "status": "skipped",
+      "reason": "dettivo-engine-whisper is not built",
+      "score": null,
+      "transcripts": [],
+      "wall_ms": 0
+    },
+    {
+      "provider": "whisper",
+      "model": "large-v3-turbo",
+      "backend": "",
+      "vocabulary": true,
+      "status": "skipped",
+      "reason": "dettivo-engine-whisper is not built",
+      "score": null,
+      "transcripts": [],
+      "wall_ms": 0
+    },
+    {
+      "provider": "parakeet",
+      "model": "parakeet-v3",
+      "backend": "vulkan",
+      "vocabulary": false,
+      "status": "measured",
+      "reason": null,
+      "score": {
+        "term_recall": [
+          3,
+          15
+        ],
+        "false_insertions": 0,
+        "guard_wer": 0.0
+      },
+      "transcripts": [
+        {
+          "id": "target-dettivo-1",
+          "text": "I dictated this note with dativo on my laptop."
+        },
+        {
+          "id": "target-dettivo-2",
+          "text": "Itivo puts the text into the focus window."
+        },
+        {
+          "id": "target-dettivo-3",
+          "text": "Open the settings in DeDivo and add a new term."
+        },
+        {
+          "id": "target-clef-1",
+          "text": "The Clef release ships on Monday."
+        },
+        {
+          "id": "target-clef-2",
+          "text": "Ask the Clef team to review the change."
+        },
+        {
+          "id": "target-clef-3",
+          "text": "We moved the build server to Clef last week."
+        },
+        {
+          "id": "target-sapienxt-1",
+          "text": "Zapian XT signed the contract this morning."
+        },
+        {
+          "id": "target-sapienxt-2",
+          "text": "Send the invoice to Sapien XT before the end of the month."
+        },
+        {
+          "id": "target-sapienxt-3",
+          "text": "The Sapian XT dashboard shows three new alerts."
+        },
+        {
+          "id": "target-omarchy-1",
+          "text": "I installed Omarkey on the new desktop."
+        },
+        {
+          "id": "target-omarchy-2",
+          "text": "O Markey ships with a tiling window manager."
+        },
+        {
+          "id": "target-omarchy-3",
+          "text": "A theme switcher in Omar He changed every color."
+        },
+        {
+          "id": "target-hyprland-1",
+          "text": "Hyperland draws the windows with rounded corners."
+        },
+        {
+          "id": "target-hyprland-2",
+          "text": "I bound the dictation key in Hyperland."
+        },
+        {
+          "id": "target-hyprland-3",
+          "text": "The HyperLAN config reloads when you save it."
+        },
+        {
+          "id": "distractor-detective",
+          "text": "The detective closed the case before lunch."
+        },
+        {
+          "id": "distractor-clay",
+          "text": "She shaped the clay into a small bowl."
+        },
+        {
+          "id": "distractor-sapient",
+          "text": "Every sapient creature needs water and rest."
+        },
+        {
+          "id": "distractor-omar",
+          "text": "Omar keeps the spare keys in his desk."
+        },
+        {
+          "id": "distractor-highland",
+          "text": "We walked across the highland in the rain."
+        },
+        {
+          "id": "distractor-tv-oh",
+          "text": "He bought the TVO and the new lamp for the hall."
+        },
+        {
+          "id": "distractor-debt-every",
+          "text": "The debt every family carries keeps growing."
+        },
+        {
+          "id": "distractor-tivo",
+          "text": "Did Tyvo record the game last night?"
+        },
+        {
+          "id": "distractor-detective-2",
+          "text": "A detective visited the office this afternoon."
+        },
+        {
+          "id": "distractor-cleft",
+          "text": "Rainwater collected in a cleft in the rock."
+        },
+        {
+          "id": "distractor-clap",
+          "text": "Everyone began to clap at the end of the song."
+        },
+        {
+          "id": "distractor-clay-name",
+          "text": "Play and I went to the cinema on Saturday."
+        },
+        {
+          "id": "distractor-chef",
+          "text": "The chef cooked a large dinner for the guests."
+        },
+        {
+          "id": "distractor-sapiens-next",
+          "text": "I read Sapiens next to the fire last winter."
+        },
+        {
+          "id": "distractor-sapiens-extended",
+          "text": "Early Homo sapiens extended their range into Europe."
+        },
+        {
+          "id": "distractor-damien-next",
+          "text": "Send the photos to Damien next Tuesday."
+        },
+        {
+          "id": "distractor-omar-he",
+          "text": "Omar, he said, would arrive at noon."
+        },
+        {
+          "id": "distractor-oh-marky",
+          "text": "Oh, Marquis, you forgot your coat again."
+        },
+        {
+          "id": "distractor-march-eighth",
+          "text": "The parade starts on March 8 this year."
+        },
+        {
+          "id": "distractor-monarchy",
+          "text": "the country was a monarchy for many centuries."
+        },
+        {
+          "id": "distractor-anarchy",
+          "text": "The meeting fell into anarchy after lunch."
+        },
+        {
+          "id": "distractor-hyper-landing",
+          "text": "The kids were hyper landing after the long flight."
+        },
+        {
+          "id": "distractor-highlands",
+          "text": "The highlands were covered in snow all week."
+        },
+        {
+          "id": "distractor-hyperlink",
+          "text": "Click the hyperlink in the email to confirm."
+        },
+        {
+          "id": "distractor-heartland",
+          "text": "The farm sits in the heartland of the country."
+        },
+        {
+          "id": "guard-meeting",
+          "text": "The meeting moved to Thursday afternoon because of the holiday."
+        },
+        {
+          "id": "guard-numbers",
+          "text": "Send the quarterly numbers to the finance team by Friday."
+        },
+        {
+          "id": "guard-rain",
+          "text": "Rain is expected over the weekend, so bring an umbrella."
+        },
+        {
+          "id": "guard-laptop",
+          "text": "The new laptop starts quickly and the battery lasts all day."
+        },
+        {
+          "id": "guard-train",
+          "text": "After the long meeting we walked to the station and caught the last train home before the storm arrived."
+        },
+        {
+          "id": "guard-plants",
+          "text": "Please remember to water the plants on the balcony while I am away visiting my parents next week."
+        },
+        {
+          "id": "guard-library",
+          "text": "The library extended its opening hours so that students could study late during the exam period."
+        }
+      ],
+      "wall_ms": 33385
+    },
+    {
+      "provider": "parakeet",
+      "model": "parakeet-v3",
+      "backend": "vulkan",
+      "vocabulary": true,
+      "status": "measured",
+      "reason": null,
+      "score": {
+        "term_recall": [
+          11,
+          15
+        ],
+        "false_insertions": 0,
+        "guard_wer": 0.0
+      },
+      "transcripts": [
+        {
+          "id": "target-dettivo-1",
+          "text": "I dictated this note with Dettivo on my laptop.",
+          "candidates": 1,
+          "rescore_ms": 11.1
+        },
+        {
+          "id": "target-dettivo-2",
+          "text": "Itivo puts the text into the focus window.",
+          "candidates": 1,
+          "rescore_ms": 11.5
+        },
+        {
+          "id": "target-dettivo-3",
+          "text": "Open the settings in DeDivo and add a new term.",
+          "candidates": 1,
+          "rescore_ms": 14.4
+        },
+        {
+          "id": "target-clef-1",
+          "text": "The Clef release ships on Monday.",
+          "candidates": 0,
+          "rescore_ms": 0.9
+        },
+        {
+          "id": "target-clef-2",
+          "text": "Ask the Clef team to review the change.",
+          "candidates": 0,
+          "rescore_ms": 0.9
+        },
+        {
+          "id": "target-clef-3",
+          "text": "We moved the build server to Clef last week.",
+          "candidates": 0,
+          "rescore_ms": 0.9
+        },
+        {
+          "id": "target-sapienxt-1",
+          "text": "SapienXT signed the contract this morning.",
+          "candidates": 1,
+          "rescore_ms": 23.2
+        },
+        {
+          "id": "target-sapienxt-2",
+          "text": "Send the invoice to SapienXT before the end of the month.",
+          "candidates": 2,
+          "rescore_ms": 34.0
+        },
+        {
+          "id": "target-sapienxt-3",
+          "text": "The SapienXT dashboard shows three new alerts.",
+          "candidates": 1,
+          "rescore_ms": 20.2
+        },
+        {
+          "id": "target-omarchy-1",
+          "text": "I installed Omarchy on the new desktop.",
+          "candidates": 1,
+          "rescore_ms": 15.5
+        },
+        {
+          "id": "target-omarchy-2",
+          "text": "Omarchy ships with a tiling window manager.",
+          "candidates": 2,
+          "rescore_ms": 26.3
+        },
+        {
+          "id": "target-omarchy-3",
+          "text": "A theme switcher in Omarchy changed every color.",
+          "candidates": 2,
+          "rescore_ms": 21.4
+        },
+        {
+          "id": "target-hyprland-1",
+          "text": "Hyprland draws the windows with rounded corners.",
+          "candidates": 1,
+          "rescore_ms": 15.4
+        },
+        {
+          "id": "target-hyprland-2",
+          "text": "I bound the dictation key in Hyperland.",
+          "candidates": 1,
+          "rescore_ms": 17.0
+        },
+        {
+          "id": "target-hyprland-3",
+          "text": "The HyperLAN config reloads when you save it.",
+          "candidates": 1,
+          "rescore_ms": 16.7
+        },
+        {
+          "id": "distractor-detective",
+          "text": "The detective closed the case before lunch.",
+          "candidates": 0,
+          "rescore_ms": 0.9
+        },
+        {
+          "id": "distractor-clay",
+          "text": "She shaped the clay into a small bowl.",
+          "candidates": 1,
+          "rescore_ms": 10.7
+        },
+        {
+          "id": "distractor-sapient",
+          "text": "Every sapient creature needs water and rest.",
+          "candidates": 1,
+          "rescore_ms": 17.4
+        },
+        {
+          "id": "distractor-omar",
+          "text": "Omar keeps the spare keys in his desk.",
+          "candidates": 1,
+          "rescore_ms": 14.2
+        },
+        {
+          "id": "distractor-highland",
+          "text": "We walked across the highland in the rain.",
+          "candidates": 0,
+          "rescore_ms": 1.0
+        },
+        {
+          "id": "distractor-tv-oh",
+          "text": "He bought the TVO and the new lamp for the hall.",
+          "candidates": 0,
+          "rescore_ms": 1.0
+        },
+        {
+          "id": "distractor-debt-every",
+          "text": "The debt every family carries keeps growing.",
+          "candidates": 0,
+          "rescore_ms": 1.0
+        },
+        {
+          "id": "distractor-tivo",
+          "text": "Did Tyvo record the game last night?",
+          "candidates": 1,
+          "rescore_ms": 12.5
+        },
+        {
+          "id": "distractor-detective-2",
+          "text": "A detective visited the office this afternoon.",
+          "candidates": 0,
+          "rescore_ms": 0.9
+        },
+        {
+          "id": "distractor-cleft",
+          "text": "Rainwater collected in a cleft in the rock.",
+          "candidates": 1,
+          "rescore_ms": 12.4
+        },
+        {
+          "id": "distractor-clap",
+          "text": "Everyone began to clap at the end of the song.",
+          "candidates": 1,
+          "rescore_ms": 12.7
+        },
+        {
+          "id": "distractor-clay-name",
+          "text": "Play and I went to the cinema on Saturday.",
+          "candidates": 1,
+          "rescore_ms": 10.9
+        },
+        {
+          "id": "distractor-chef",
+          "text": "The chef cooked a large dinner for the guests.",
+          "candidates": 1,
+          "rescore_ms": 10.2
+        },
+        {
+          "id": "distractor-sapiens-next",
+          "text": "I read Sapiens next to the fire last winter.",
+          "candidates": 1,
+          "rescore_ms": 16.4
+        },
+        {
+          "id": "distractor-sapiens-extended",
+          "text": "Early Homo sapiens extended their range into Europe.",
+          "candidates": 1,
+          "rescore_ms": 13.8
+        },
+        {
+          "id": "distractor-damien-next",
+          "text": "Send the photos to Damien next Tuesday.",
+          "candidates": 0,
+          "rescore_ms": 0.9
+        },
+        {
+          "id": "distractor-omar-he",
+          "text": "Omar, he said, would arrive at noon.",
+          "candidates": 2,
+          "rescore_ms": 26.3
+        },
+        {
+          "id": "distractor-oh-marky",
+          "text": "Oh, Marquis, you forgot your coat again.",
+          "candidates": 0,
+          "rescore_ms": 0.9
+        },
+        {
+          "id": "distractor-march-eighth",
+          "text": "The parade starts on March 8 this year.",
+          "candidates": 1,
+          "rescore_ms": 11.3
+        },
+        {
+          "id": "distractor-monarchy",
+          "text": "the country was a monarchy for many centuries.",
+          "candidates": 1,
+          "rescore_ms": 13.0
+        },
+        {
+          "id": "distractor-anarchy",
+          "text": "The meeting fell into anarchy after lunch.",
+          "candidates": 1,
+          "rescore_ms": 13.2
+        },
+        {
+          "id": "distractor-hyper-landing",
+          "text": "The kids were hyper landing after the long flight.",
+          "candidates": 1,
+          "rescore_ms": 17.2
+        },
+        {
+          "id": "distractor-highlands",
+          "text": "The highlands were covered in snow all week.",
+          "candidates": 0,
+          "rescore_ms": 0.9
+        },
+        {
+          "id": "distractor-hyperlink",
+          "text": "Click the hyperlink in the email to confirm.",
+          "candidates": 1,
+          "rescore_ms": 15.7
+        },
+        {
+          "id": "distractor-heartland",
+          "text": "The farm sits in the heartland of the country.",
+          "candidates": 1,
+          "rescore_ms": 13.2
+        },
+        {
+          "id": "guard-meeting",
+          "text": "The meeting moved to Thursday afternoon because of the holiday.",
+          "candidates": 0,
+          "rescore_ms": 1.4
+        },
+        {
+          "id": "guard-numbers",
+          "text": "Send the quarterly numbers to the finance team by Friday.",
+          "candidates": 0,
+          "rescore_ms": 1.0
+        },
+        {
+          "id": "guard-rain",
+          "text": "Rain is expected over the weekend, so bring an umbrella.",
+          "candidates": 0,
+          "rescore_ms": 1.0
+        },
+        {
+          "id": "guard-laptop",
+          "text": "The new laptop starts quickly and the battery lasts all day.",
+          "candidates": 0,
+          "rescore_ms": 0.9
+        },
+        {
+          "id": "guard-train",
+          "text": "After the long meeting we walked to the station and caught the last train home before the storm arrived.",
+          "candidates": 0,
+          "rescore_ms": 1.2
+        },
+        {
+          "id": "guard-plants",
+          "text": "Please remember to water the plants on the balcony while I am away visiting my parents next week.",
+          "candidates": 0,
+          "rescore_ms": 1.0
+        },
+        {
+          "id": "guard-library",
+          "text": "The library extended its opening hours so that students could study late during the exam period.",
+          "candidates": 0,
+          "rescore_ms": 1.0
+        }
+      ],
+      "wall_ms": 34451,
+      "rescoring": {
+        "clips_with_candidates": 29,
+        "median_ms_with_candidates": 14.4,
+        "max_ms_without_candidates": 1.4
+      }
+    }
+  ]
+}
