@@ -339,12 +339,17 @@ struct SileroStream {
     fed: u64,
 }
 
-impl SpeechStream for SileroStream {
-    fn feed(&mut self, pcm: &[i16]) -> Result<(), EngineError> {
+impl SileroStream {
+    /// Sends `pcm` with `threshold` and checks the process holds the take.
+    fn send(
+        &mut self,
+        pcm: &[i16],
+        threshold: Option<f64>,
+    ) -> Result<FeedSpeechResult, EngineError> {
         let start = self.fed == 0;
         let fed: FeedSpeechResult =
             self.vad
-                .call("feed_speech", FeedSpeechParams { start }, pcm)?;
+                .call("feed_speech", FeedSpeechParams { start, threshold }, pcm)?;
         if fed.samples != self.fed + pcm.len() as u64 {
             return Err(EngineError::Transport(format!(
                 "feed_speech holds {} samples, not {}",
@@ -353,7 +358,18 @@ impl SpeechStream for SileroStream {
             )));
         }
         self.fed = fed.samples;
-        Ok(())
+        Ok(fed)
+    }
+}
+
+impl SpeechStream for SileroStream {
+    fn feed(&mut self, pcm: &[i16]) -> Result<(), EngineError> {
+        self.send(pcm, None).map(|_| ())
+    }
+
+    fn feed_voiced(&mut self, pcm: &[i16]) -> Result<Option<u64>, EngineError> {
+        self.send(pcm, Some(VAD_PARAMS.threshold))
+            .map(|fed| fed.voiced_until)
     }
 
     fn finish(&mut self, rest: &[i16]) -> Result<u64, EngineError> {

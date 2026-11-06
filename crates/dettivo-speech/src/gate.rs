@@ -25,6 +25,11 @@ pub const VAD_PARAMS: DetectSpeechParams = DetectSpeechParams {
     continues: None,
 };
 
+/// Samples per window of the voice activity model: it judges a take
+/// window by window, so a voice verdict on a take's last stretch covers
+/// whole windows.
+pub const VAD_WINDOW: usize = 512;
+
 /// The shortest take a recognizer is given, in milliseconds.
 pub const MIN_ENGINE_MS: u32 = 1_500;
 
@@ -49,6 +54,12 @@ pub trait VoiceDetector: Send + Sync {
 pub trait SpeechStream: Send {
     /// Runs `pcm`, the take's next samples.
     fn feed(&mut self, pcm: &[i16]) -> Result<(), EngineError>;
+    /// [`feed`](Self::feed), then where the take's last voiced window ends:
+    /// in samples from the take's start, 0 when no window reached
+    /// [`VAD_PARAMS`]'s threshold, `None` when this stream cannot say.
+    fn feed_voiced(&mut self, pcm: &[i16]) -> Result<Option<u64>, EngineError> {
+        self.feed(pcm).map(|()| None)
+    }
     /// Milliseconds of speech in the take: what was fed, then `rest`.
     fn finish(&mut self, rest: &[i16]) -> Result<u64, EngineError>;
 }

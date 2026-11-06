@@ -5,7 +5,8 @@
 //! arriving for [`TAIL_STALL_GRACE`]. The take is then cut at that time by
 //! the chunks' capture stamps, so audio a release that queued behind a
 //! slow start would otherwise let in never reaches the take file or the
-//! engine.
+//! engine. A take whose last stretch before the release is silent ends at
+//! the release instead (`ending`).
 
 use std::sync::atomic::Ordering;
 use std::sync::mpsc::RecvTimeoutError;
@@ -15,10 +16,12 @@ use dettivo_audio::takes::TakeWriter;
 use dettivo_audio::{EndReason, Event};
 
 use super::check::SpeechCheck;
+use super::ending::{self, Early};
 use super::{Worker, elapsed_ms};
 use crate::finish::{Exit, SharedState};
 use crate::source::Source;
 use crate::{Level, TAIL_STALL_GRACE};
+use dettivo_speech::gate::VAD_WINDOW;
 
 const SAMPLES_PER_SECOND: u128 = 16_000;
 
@@ -38,10 +41,14 @@ pub(super) struct Recorded {
 
 /// The release tail once a stop was seen.
 struct Tail {
+    /// When the key was released.
+    released: Instant,
     /// Audio received at or after this covers the tail.
     until: Instant,
     /// When the worker saw the stop.
     seen: Instant,
+    /// The early end on a silent ending.
+    early: Early,
 }
 
 impl Worker {
@@ -72,6 +79,11 @@ impl Worker {
         // When the newest audio was captured, and when it arrived here.
         let (mut heard, mut arrived) = (None::<Instant>, started);
         let mut tail: Option<Tail> = None;
+        // Where a silent ending cut the take, at the release.
+        let mut early_cut: Option<usize> = None;
+        // A tail shorter than one voice window has nothing to end early.
+        let ends_early = self.policy.release_tail.as_micros() * SAMPLES_PER_SECOND / 1_000_000
+            > VAD_WINDOW as u128;
         let mut ended: Option<EndReason> = None;
         let mut terminal = false;
         // The check starts once the press qualifies as a take, with what
@@ -96,17 +108,35 @@ impl Worker {
                 let seen = Instant::now();
                 let released = self.released.get().copied().unwrap_or(seen);
                 tail = Some(Tail {
+                    released,
                     until: released + self.policy.release_tail,
                     seen,
+                    early: if ends_early {
+                        Early::Pending
+                    } else {
+                        Early::Kept
+                    },
                 });
             }
-            let wait = match &tail {
+            let wait = match &mut tail {
                 Some(t) => {
+                    let heard_now = ending::Heard {
+                        samples: &samples,
+                        at_release: ending::past(heard, t.released)
+                            .then(|| cut_at(&stamps, t.released)),
+                        silence_dbfs: self.policy.silence_dbfs,
+                        check: check.as_ref(),
+                    };
+                    if let Some(end) = t.early.advance(heard_now, &mut fed) {
+                        early_cut = Some(end);
+                        break;
+                    }
                     let quiet = Instant::now().saturating_duration_since(arrived.max(t.seen));
                     if heard.is_some_and(|h| h >= t.until) || quiet >= TAIL_STALL_GRACE {
                         break;
                     }
-                    Duration::from_millis(10)
+                    // The check answers within a few milliseconds.
+                    Duration::from_millis(if t.early.asked() { 1 } else { 10 })
                 }
                 None if started.elapsed() >= self.policy.max_duration => break,
                 None => Duration::from_millis(50),
@@ -201,7 +231,9 @@ impl Worker {
             }
         }
         if let Some(t) = &tail {
-            samples.truncate(cut_at(&stamps, t.until));
+            // An early end never keeps audio the tail would have cut.
+            let tail_cut = cut_at(&stamps, t.until);
+            samples.truncate(early_cut.map_or(tail_cut, |end| end.min(tail_cut)));
         }
         writer
             .write(&samples)

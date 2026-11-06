@@ -8,6 +8,9 @@
 //! the model's state, and `detect_speech` with `continues` runs the rest
 //! and finds the speech over every window. The windows, the state and so
 //! the answer are exactly those of one `detect_speech` over the whole take.
+//! A feed that names a `threshold` also answers where the last window whose
+//! probability reached it ends, so the release can end a take early whose
+//! last stretch holds no voice (ADR 0093).
 
 use std::cell::RefCell;
 use std::ffi::{CString, c_int};
@@ -162,9 +165,36 @@ impl Vad {
             stream.fresh = false;
             stream.pending.drain(..whole);
         }
+        let voiced_until = params.threshold.map(|t| {
+            if stream.fresh {
+                0
+            } else {
+                self.voiced_until(t)
+            }
+        });
         Ok(FeedSpeechResult {
             samples: stream.samples,
+            voiced_until,
         })
+    }
+
+    /// The end, in samples, of the last window run whose speech
+    /// probability reached `threshold`; 0 when none did.
+    fn voiced_until(&self, threshold: f64) -> u64 {
+        #[allow(unsafe_code)]
+        // SAFETY: the context is live; its probabilities are read in place.
+        let probs = unsafe {
+            let n = usize::try_from(sys::whisper_vad_n_probs(self.ctx.0)).unwrap_or(0);
+            let p = sys::whisper_vad_probs(self.ctx.0);
+            if p.is_null() || n == 0 {
+                return 0;
+            }
+            std::slice::from_raw_parts(p, n)
+        };
+        probs
+            .iter()
+            .rposition(|&p| f64::from(p) >= threshold)
+            .map_or(0, |i| ((i + 1) * WINDOW) as u64)
     }
 
     /// Runs the model over `samples`, starting afresh when `reset`.

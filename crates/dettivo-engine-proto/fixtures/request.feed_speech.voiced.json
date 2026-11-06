@@ -1,0 +1,16 @@
+{
+  "attachments": [
+    {
+      "bytes": 16384,
+      "kind": "pcm16k"
+    }
+  ],
+  "id": 6,
+  "kind": "request",
+  "name": "feed_speech",
+  "payload": {
+    "start": false,
+    "threshold": 0.4
+  },
+  "v": 1
+}
