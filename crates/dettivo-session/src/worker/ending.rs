@@ -57,6 +57,12 @@ impl Early {
     /// Advances the early end. `fed` counts the samples sent to the check.
     /// Returns where the take ends when its ending is silent.
     pub(super) fn advance(&mut self, heard: Heard<'_>, fed: &mut usize) -> Option<usize> {
+        // Once the tail is done the take already holds it, so cutting
+        // early would only discard captured audio: the tail stays.
+        if heard.tail_done {
+            *self = Early::Kept;
+            return None;
+        }
         match self {
             Early::Kept => None,
             Early::Pending => {
@@ -100,11 +106,6 @@ impl Early {
                 end,
                 answer,
             } => match answer.try_recv() {
-                // An answer once the tail is done is late: the tail stays.
-                _ if heard.tail_done => {
-                    *self = Early::Kept;
-                    None
-                }
                 Err(TryRecvError::Empty) => None,
                 Ok(Some(voiced)) if voiced as usize + window_samples() <= *release => {
                     tracing::debug!(
@@ -173,6 +174,14 @@ mod tests {
     fn an_answer_after_the_tail_is_done_keeps_the_tail() {
         let samples = vec![0; 16_384];
         let mut early = asked();
+        assert_eq!(early.advance(heard(&samples, true), &mut 0), None);
+        assert!(matches!(early, Early::Kept));
+    }
+
+    #[test]
+    fn a_silent_stretch_seen_after_the_tail_is_done_keeps_the_tail() {
+        let samples = vec![0; 20_000];
+        let mut early = Early::Pending;
         assert_eq!(early.advance(heard(&samples, true), &mut 0), None);
         assert!(matches!(early, Early::Kept));
     }
