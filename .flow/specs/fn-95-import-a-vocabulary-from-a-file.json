@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-95-import-a-vocabulary-from-a-file",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-06T23:58:12.110304Z",
   "created_at": "2026-11-05T23:44:06.201539Z",
   "default_impl": null,
   "default_review": null,
@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-95-import-a-vocabulary-from-a-file",
   "impl_review_rounds": {
-    "fn-95-import-a-vocabulary-from-a-file.1": 1
+    "fn-95-import-a-vocabulary-from-a-file.1": 0
   },
   "next_task": 1,
   "no_plan": true,
@@ -69,9 +69,63 @@
       "task": "fn-95-import-a-vocabulary-from-a-file.1",
       "timestamp": "2026-11-06T23:46:20.023288Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "472885175c582f44176de2d96858deb8fa4430573f88d36a73169f5be7adc543",
+      "backend": "codex",
+      "base_sha": "78cb39e5b180707b6afc4b82666a1df47b40114e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-67a055c0225c4f1eb44f18287cd757f6",
+            "classification": "introduced",
+            "findingId": "finding-67a055c0225c4f1eb44f18287cd757f6",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-690a94cc604247e5b69b6f4c4ee1db1f",
+            "classification": "introduced",
+            "findingId": "finding-690a94cc604247e5b69b6f4c4ee1db1f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0f0a6daafb6ed12016f0ad75c4e6d527dfe86d76",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1352,
+      "output_sha256": "9ab6692382ba6cb97a36e729727f9eec737c932d0686c2914ccc235add36db44",
+      "reservation_id": "422f3023b3024a069135e033767fa213",
+      "round_consumed": true,
+      "scope": "impl:fn-95-import-a-vocabulary-from-a-file.1",
+      "superseded_by": null,
+      "task": "fn-95-import-a-vocabulary-from-a-file.1",
+      "timestamp": "2026-11-06T23:57:56.380904Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-95-import-a-vocabulary-from-a-file.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -91,5 +145,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-06T23:46:20.026299Z"
+  "updated_at": "2026-11-06T23:58:12.110311Z"
 }
