@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-93-the-release-tail-ends-early-on-a-silent",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-06T11:01:12.609967Z",
   "created_at": "2026-11-05T23:44:05.185605Z",
   "default_impl": null,
   "default_review": null,
@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-93-the-release-tail-ends-early-on-a-silent",
   "impl_review_rounds": {
-    "fn-93-the-release-tail-ends-early-on-a-silent.1": 1
+    "fn-93-the-release-tail-ends-early-on-a-silent.1": 0
   },
   "next_task": 1,
   "no_plan": true,
@@ -69,9 +69,63 @@
       "task": "fn-93-the-release-tail-ends-early-on-a-silent.1",
       "timestamp": "2026-11-06T10:02:58.177598Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "f54794b1300cbb49a1955a9767826182d25992785bbe00b85f8d5e07a48e0ec4",
+      "backend": "codex",
+      "base_sha": "95a4f66cb173b8612272282b1a24645193e8ece0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d239b36f7c0de32e051016eec9be5f98",
+            "classification": "introduced",
+            "findingId": "finding-d239b36f7c0de32e051016eec9be5f98",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d57d0f817a36b4ba1a9637b781c269d1",
+            "classification": "introduced",
+            "findingId": "finding-d57d0f817a36b4ba1a9637b781c269d1",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8b27e8bfac7727df6249aeafa73de085660699e3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1203,
+      "output_sha256": "5cc910c5cfa249de584af9462c43bcace6a54e53c6bdaf0e7d57a4199d924e7d",
+      "reservation_id": "d7662f007aab4ada813e7c1af34859a6",
+      "round_consumed": true,
+      "scope": "impl:fn-93-the-release-tail-ends-early-on-a-silent.1",
+      "superseded_by": null,
+      "task": "fn-93-the-release-tail-ends-early-on-a-silent.1",
+      "timestamp": "2026-11-06T11:00:39.182624Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-93-the-release-tail-ends-early-on-a-silent.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -91,5 +145,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-06T10:02:58.180394Z"
+  "updated_at": "2026-11-06T11:01:12.609975Z"
 }
