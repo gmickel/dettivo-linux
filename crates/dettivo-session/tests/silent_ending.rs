@@ -31,19 +31,20 @@ enum Floor {
 }
 
 /// Speech (a tone) from `speech.0` to `speech.1` ms after `t0`, the floor
-/// otherwise; chunk `i` arrives at `t0 + 20 ms × (i + 1)` until the stop.
-fn microphone(t0: Instant, speech: (u64, u64), floor: Floor) -> Source {
+/// otherwise; capture starts `start` ms after `t0`, and chunk `i` arrives
+/// at `t0 + start + 20 ms × (i + 1)` until the stop.
+fn microphone(t0: Instant, start: u64, speech: (u64, u64), floor: Floor) -> Source {
     let (tx, events) = mpsc::channel::<Event>();
     let stopped = Arc::new(AtomicBool::new(false));
     let (flag, ack) = (stopped.clone(), tx.clone());
     std::thread::spawn(move || {
         for i in 0..150 {
-            let due = t0 + Duration::from_millis(20 * (i + 1));
+            let due = t0 + Duration::from_millis(start + 20 * (i + 1));
             std::thread::sleep(due.saturating_duration_since(Instant::now()));
             if flag.load(Ordering::SeqCst) {
                 return;
             }
-            let ms = 20 * i;
+            let ms = start + 20 * i;
             let pcm = match floor {
                 _ if ms >= speech.0 && ms < speech.1 => tone(320),
                 Floor::Silent => vec![0; 320],
@@ -147,6 +148,16 @@ struct Take {
 
 /// One take released at [`RELEASE_MS`] with the daemon's tail.
 fn take(speech: (u64, u64), floor: Floor, vad: Option<Arc<dyn VoiceDetector>>) -> Take {
+    take_from(0, speech, floor, vad)
+}
+
+/// [`take`] with capture starting `start` ms after the press.
+fn take_from(
+    start: u64,
+    speech: (u64, u64),
+    floor: Floor,
+    vad: Option<Arc<dyn VoiceDetector>>,
+) -> Take {
     let (dir, rec, mut session, engine, _) = rig("done");
     let takes = Arc::new(Takes::default());
     session.set_archive(takes.clone());
@@ -154,7 +165,7 @@ fn take(speech: (u64, u64), floor: Floor, vad: Option<Arc<dyn VoiceDetector>>) -
     let t0 = Instant::now();
     let mut p = policy(dir.path(), true);
     p.release_tail = POST_RELEASE_TAIL;
-    let source = microphone(t0, speech, floor);
+    let source = microphone(t0, start, speech, floor);
     session
         .start(
             p,
@@ -261,4 +272,24 @@ fn a_last_word_ending_just_before_the_release_is_kept() {
             assert_tail(&t, &format!("a word ending {before} ms before"));
         }
     }
+}
+
+/// A take whose capture started less than the judged 150 ms before the
+/// release cannot say its ending was silent, so it keeps the whole tail:
+/// here 100 ms of silence before the release, silence up to the window
+/// boundary after it, and speech from 60 ms into the tail.
+#[test]
+fn a_take_shorter_than_the_judged_stretch_keeps_its_tail() {
+    let t = take_from(
+        RELEASE_MS - 100,
+        (RELEASE_MS + 60, 3_000),
+        Floor::Silent,
+        None,
+    );
+    assert!(
+        t.speech_ms >= 120,
+        "{} ms of the tail's speech kept",
+        t.speech_ms
+    );
+    assert!(t.capture_ms >= 190, "capture {} ms", t.capture_ms);
 }

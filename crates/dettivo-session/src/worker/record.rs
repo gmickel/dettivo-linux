@@ -120,19 +120,22 @@ impl Worker {
             }
             let wait = match &mut tail {
                 Some(t) => {
+                    let quiet = Instant::now().saturating_duration_since(arrived.max(t.seen));
+                    let tail_done =
+                        heard.is_some_and(|h| h >= t.until) || quiet >= TAIL_STALL_GRACE;
                     let heard_now = ending::Heard {
                         samples: &samples,
                         at_release: ending::past(heard, t.released)
                             .then(|| cut_at(&stamps, t.released)),
                         silence_dbfs: self.policy.silence_dbfs,
                         check: check.as_ref(),
+                        tail_done,
                     };
                     if let Some(end) = t.early.advance(heard_now, &mut fed) {
                         early_cut = Some(end);
                         break;
                     }
-                    let quiet = Instant::now().saturating_duration_since(arrived.max(t.seen));
-                    if heard.is_some_and(|h| h >= t.until) || quiet >= TAIL_STALL_GRACE {
+                    if tail_done {
                         break;
                     }
                     // The check answers within a few milliseconds.

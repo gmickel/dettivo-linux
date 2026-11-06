@@ -43,6 +43,9 @@ pub(super) struct Heard<'a> {
     pub(super) silence_dbfs: f32,
     /// The speech check, when the detector streams.
     pub(super) check: Option<&'a SpeechCheck>,
+    /// The tail is covered or stalled, so an answer arriving now is late
+    /// and the take keeps its tail.
+    pub(super) tail_done: bool,
 }
 
 /// The samples [`SILENT_ENDING`] spans.
@@ -58,12 +61,18 @@ impl Early {
             Early::Kept => None,
             Early::Pending => {
                 let release = heard.at_release?;
+                // Too little was captured before the release to call its
+                // last stretch silent.
+                if release < window_samples() {
+                    *self = Early::Kept;
+                    return None;
+                }
                 // The check may already hold samples from after the release.
                 let end = release.max(*fed).div_ceil(VAD_WINDOW) * VAD_WINDOW;
                 if heard.samples.len() < end {
                     return None;
                 }
-                let window = &heard.samples[release.saturating_sub(window_samples())..end];
+                let window = &heard.samples[release - window_samples()..end];
                 if loudest_window_dbfs(window, SAMPLE_RATE).is_none_or(|db| db < heard.silence_dbfs)
                 {
                     tracing::debug!(
@@ -91,6 +100,11 @@ impl Early {
                 end,
                 answer,
             } => match answer.try_recv() {
+                // An answer once the tail is done is late: the tail stays.
+                _ if heard.tail_done => {
+                    *self = Early::Kept;
+                    None
+                }
                 Err(TryRecvError::Empty) => None,
                 Ok(Some(voiced)) if voiced as usize + window_samples() <= *release => {
                     tracing::debug!(
@@ -118,4 +132,48 @@ impl Early {
 /// release no longer moves.
 pub(super) fn past(heard: Option<Instant>, released: Instant) -> bool {
     heard.is_some_and(|h| h > released)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::mpsc;
+
+    /// An answer of no voice, already waiting when the loop next looks.
+    fn asked() -> Early {
+        let (tx, answer) = mpsc::channel();
+        tx.send(Some(0)).unwrap();
+        Early::Asked {
+            release: 16_000,
+            end: 16_384,
+            answer,
+        }
+    }
+
+    fn heard(samples: &[i16], tail_done: bool) -> Heard<'_> {
+        Heard {
+            samples,
+            at_release: Some(16_000),
+            silence_dbfs: -50.0,
+            check: None,
+            tail_done,
+        }
+    }
+
+    #[test]
+    fn an_answer_in_time_ends_the_take_at_the_release() {
+        let samples = vec![0; 16_384];
+        assert_eq!(
+            asked().advance(heard(&samples, false), &mut 0),
+            Some(16_384)
+        );
+    }
+
+    #[test]
+    fn an_answer_after_the_tail_is_done_keeps_the_tail() {
+        let samples = vec![0; 16_384];
+        let mut early = asked();
+        assert_eq!(early.advance(heard(&samples, true), &mut 0), None);
+        assert!(matches!(early, Early::Kept));
+    }
 }
