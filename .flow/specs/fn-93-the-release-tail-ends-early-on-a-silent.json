@@ -132,7 +132,7 @@
     "impl:fn-93-the-release-tail-ends-early-on-a-silent.1": 0
   },
   "spec_path": ".flow/specs/fn-93-the-release-tail-ends-early-on-a-silent.md",
-  "status": "open",
+  "status": "done",
   "title": "The release tail ends early on a silent ending",
   "tracker": {
     "baseHashFlow": null,
@@ -145,5 +145,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-06T11:01:12.609975Z"
+  "updated_at": "2026-11-06T11:16:03.336029Z"
 }
