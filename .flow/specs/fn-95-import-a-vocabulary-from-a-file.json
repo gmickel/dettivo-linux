@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-95-import-a-vocabulary-from-a-file",
+  "created_at": "2026-11-05T23:44:06.201539Z",
+  "depends_on_epics": [],
+  "id": "fn-95-import-a-vocabulary-from-a-file",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-95-import-a-vocabulary-from-a-file.md",
+  "status": "open",
+  "title": "Import a vocabulary from a file",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-11-06T08:38:36.635211Z"
+}
