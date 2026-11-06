@@ -114,6 +114,11 @@ pub struct Policy {
 /// sounding at the release is kept (ADR 0092).
 pub const POST_RELEASE_TAIL: Duration = Duration::from_millis(200);
 
+/// A take whose last this-long before the release holds no speech by the
+/// gate's rules ends at the release instead of after [`POST_RELEASE_TAIL`]
+/// (ADR 0093).
+pub const SILENT_ENDING: Duration = Duration::from_millis(150);
+
 /// A release tail ends this long after audio stopped arriving, so a
 /// stalled device never holds the take open.
 pub const TAIL_STALL_GRACE: Duration = Duration::from_millis(100);

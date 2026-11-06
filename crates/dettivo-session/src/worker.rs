@@ -27,6 +27,7 @@ use crate::{
 };
 
 mod check;
+mod ending;
 mod record;
 use record::Recorded;
 

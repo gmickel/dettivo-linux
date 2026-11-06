@@ -3,10 +3,12 @@
 //! the samples it has not run remain. The recording loop only sends to it
 //! and never waits; a check that falls behind runs the backlog in one
 //! piece, and one that failed leaves the take to the whole-take pass.
+//! At the release the loop can also ask where the take's last voiced window
+//! ends (ADR 0093); the answer comes back on a channel it polls.
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{self, Sender};
+use std::sync::mpsc::{self, Receiver, Sender};
 use std::thread::JoinHandle;
 
 use dettivo_speech::gate::SpeechStream;
@@ -20,9 +22,13 @@ struct Fed {
     ok: bool,
 }
 
+/// The next samples for the check, and where to send the voiced end of
+/// the take once they ran, when the loop asked for it.
+type Piece = (Vec<i16>, Option<Sender<Option<u64>>>);
+
 /// One take's check, running beside the capture.
 pub(crate) struct SpeechCheck {
-    tx: Option<Sender<Vec<i16>>>,
+    tx: Option<Sender<Piece>>,
     /// Set at the release: the thread stops after the piece it is running.
     finishing: Arc<AtomicBool>,
     thread: Option<JoinHandle<Fed>>,
@@ -31,21 +37,31 @@ pub(crate) struct SpeechCheck {
 impl SpeechCheck {
     /// Starts the thread that feeds `stream`.
     pub(crate) fn start(mut stream: Box<dyn SpeechStream>) -> Self {
-        let (tx, rx) = mpsc::channel::<Vec<i16>>();
+        let (tx, rx) = mpsc::channel::<Piece>();
         let finishing = Arc::new(AtomicBool::new(false));
         let stop = finishing.clone();
         let thread = std::thread::Builder::new()
             .name("speech-check".into())
             .spawn(move || {
                 let (mut samples, mut ok) = (0, true);
-                while let Ok(mut pcm) = rx.recv() {
+                while let Ok((mut pcm, mut ask)) = rx.recv() {
                     if stop.load(Ordering::Relaxed) {
                         break;
                     }
-                    while let Ok(more) = rx.try_recv() {
+                    // A backlog runs in one piece, up to a question.
+                    while ask.is_none()
+                        && let Ok((more, asked)) = rx.try_recv()
+                    {
                         pcm.extend_from_slice(&more);
+                        ask = asked;
                     }
-                    if let Err(e) = stream.feed(&pcm) {
+                    let fed = match &ask {
+                        Some(reply) => stream.feed_voiced(&pcm).map(|v| {
+                            let _ = reply.send(v);
+                        }),
+                        None => stream.feed(&pcm),
+                    };
+                    if let Err(e) = fed {
                         tracing::warn!(error = %e, "speech check failed; the release judges the whole take");
                         ok = false;
                         break;
@@ -70,8 +86,19 @@ impl SpeechCheck {
     /// Queues the take's next captured samples.
     pub(crate) fn feed(&self, pcm: &[i16]) {
         if let Some(tx) = &self.tx {
-            let _ = tx.send(pcm.to_vec());
+            let _ = tx.send((pcm.to_vec(), None));
         }
+    }
+
+    /// Queues the take's last samples before the release and asks where
+    /// its last voiced window ends. The answer arrives once the check ran
+    /// everything queued; a check that failed or cannot say drops it.
+    pub(crate) fn ask_voiced(&self, pcm: &[i16]) -> Receiver<Option<u64>> {
+        let (reply, answer) = mpsc::channel();
+        if let Some(tx) = &self.tx {
+            let _ = tx.send((pcm.to_vec(), Some(reply)));
+        }
+        answer
     }
 
     /// The milliseconds of speech in `take`, the final take, from what the
