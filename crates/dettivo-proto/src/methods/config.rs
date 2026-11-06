@@ -170,6 +170,29 @@ pub struct PrintDefaultResult {
     pub text: String,
 }
 
+/// The limits of `[dictation] vocabulary` and how its terms are compared.
+/// The daemon refuses a write that breaks a limit; a client that builds a
+/// list (`dettivo vocabulary import`) checks the same values first, so it
+/// can name the line that breaks one.
+pub mod vocabulary {
+    /// The most entries a vocabulary holds.
+    pub const MAX_ENTRIES: usize = 500;
+    /// The longest term, in characters.
+    pub const MAX_TERM_CHARS: usize = 64;
+    /// The most `sounds_like` spellings one term carries.
+    pub const MAX_ALIASES: usize = 16;
+    /// The most bytes the vocabulary takes as JSON: an engine request carries
+    /// it whole in a header of at most 1 MiB, so every list the limits accept
+    /// reaches the engine.
+    pub const MAX_VOCABULARY_BYTES: usize = 256 * 1024;
+
+    /// What two terms are compared by: two terms with the same key are the
+    /// same term, whatever their case.
+    pub fn term_key(term: &str) -> String {
+        term.to_lowercase()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

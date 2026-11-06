@@ -113,6 +113,25 @@ vocabulary = [
 
 A vocabulary holds at most 500 entries, a term at most 64 characters and 16 `sounds_like` spellings. A file, `dettivo config set` or Settings that breaks a limit is refused with the entry named. A term that repeats an earlier one in another case is dropped as the file loads, and the first spelling stays. `dettivo-qa bench vocabulary` measures whether a vocabulary helps ([docs/qa.md](qa.md#vocabulary-term-recall)).
 
+### Importing a list
+
+`dettivo vocabulary import <file>` adds a whole list to the vocabulary in one command, so 200 project names, colleagues and product terms go in without typing each one into Settings. The file is plain text with one term per line:
+
+```text
+# Project names
+Dettivo
+SapienXT = sapient x t, sapien xt
+Clef = clay, cleff
+```
+
+- A line holds a term, or a term, `=` and its `sounds_like` spellings separated by commas. A line with spellings becomes a `{ term, sounds_like }` entry and a line without them becomes a plain term.
+- Blank lines and lines that start with `#` are skipped. A `#` later in a line is part of the term, so `C#` imports as written.
+- A term the vocabulary already holds, or that an earlier line already gave, is skipped in any case, the same comparison the file uses when it drops a repeated term. The command lists each skipped line and says whether it repeats the vocabulary or an earlier line.
+- The limits above apply to the list as the import would leave it. When a line breaks one (a term over 64 characters, more than 16 spellings, an entry past the 500th, or the list past its size budget), the command writes nothing, exits 4 and names every line that breaks a limit.
+- `--dry-run` prints the terms the import would add and the lines it would skip, and writes nothing. `--json` prints the same report as data.
+
+The import runs through the daemon. It reads the vocabulary in force and sends the merged list as one `config.set`, which edits `config.toml` the way `dettivo config set` does. Your comments, the entries already there and their layout stay as you wrote them, and the new entries follow the last one. The daemon reloads the file as it writes it, so the next take uses the imported terms without a restart. Without a running daemon the command exits 2 and writes nothing, as `dettivo config set` does.
+
 ## Configuration
 
 | Key | Default | Meaning |

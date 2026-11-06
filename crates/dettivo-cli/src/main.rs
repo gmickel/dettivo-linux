@@ -31,6 +31,7 @@ mod setup;
 mod speech;
 mod speech_lines;
 mod transfer;
+mod vocabulary;
 
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -162,6 +163,12 @@ pub enum Command {
         /// Which llm verb.
         #[command(subcommand)]
         what: polish::LlmCmd,
+    },
+    /// Import a plain-text list of terms into [dictation] vocabulary through the daemon.
+    Vocabulary {
+        /// import.
+        #[command(subcommand)]
+        what: vocabulary::VocabularyCmd,
     },
     /// Raise the desktop app, open a route in it, or read its status, without the daemon.
     #[command(args_conflicts_with_subcommands = true)]
@@ -312,6 +319,7 @@ fn run(cli: &Cli) -> Result<(), exit::Failure> {
         Command::Insert { what, args } => insert::run(cli, &client, what.as_ref(), args),
         Command::Polish { what } => polish::polish(cli, &client, what),
         Command::Llm { what } => polish::llm(cli, &client, what),
+        Command::Vocabulary { what } => vocabulary::run(cli, &client, what),
         Command::App { what } => app::run(cli, &client.socket, what.as_ref()),
         Command::Osd { what } => osd::run(cli, &client, what),
         Command::Doctor => doctor::run(cli, &client),

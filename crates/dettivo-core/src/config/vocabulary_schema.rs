@@ -9,16 +9,9 @@ use std::fmt;
 use serde::de::{self, MapAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
 
-/// The most entries a vocabulary holds.
-pub const MAX_ENTRIES: usize = 500;
-/// The longest term, in characters.
-pub const MAX_TERM_CHARS: usize = 64;
-/// The most `sounds_like` spellings one term carries.
-pub const MAX_ALIASES: usize = 16;
-/// The most bytes the vocabulary takes as JSON: an engine request carries
-/// it whole in a header of at most 1 MiB, so every list the limits accept
-/// reaches the engine.
-pub const MAX_VOCABULARY_BYTES: usize = 256 * 1024;
+pub use dettivo_proto::methods::config::vocabulary::{
+    MAX_ALIASES, MAX_ENTRIES, MAX_TERM_CHARS, MAX_VOCABULARY_BYTES, term_key,
+};
 
 /// One vocabulary entry.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -106,7 +99,7 @@ pub fn dedup(entries: Vec<VocabularyEntry>) -> Vec<VocabularyEntry> {
     let mut seen = std::collections::HashSet::new();
     entries
         .into_iter()
-        .filter(|e| seen.insert(e.term().to_lowercase()))
+        .filter(|e| seen.insert(term_key(e.term())))
         .collect()
 }
 

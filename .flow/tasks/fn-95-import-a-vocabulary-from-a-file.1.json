@@ -1,0 +1,15 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-11-06T23:30:56.211906Z",
+  "depends_on": [],
+  "id": "fn-95-import-a-vocabulary-from-a-file.1",
+  "implicit_owner": true,
+  "priority": null,
+  "spec": "fn-95-import-a-vocabulary-from-a-file",
+  "spec_path": ".flow/tasks/fn-95-import-a-vocabulary-from-a-file.1.md",
+  "status": "todo",
+  "title": "Implement Import a vocabulary from a file",
+  "updated_at": "2026-11-06T23:30:56.211906Z"
+}

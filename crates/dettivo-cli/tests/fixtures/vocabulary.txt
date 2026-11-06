@@ -1,0 +1,7 @@
+# The term-recall bench's vocabulary (crates/dettivo-qa/fixtures/vocabulary/set.json)
+# as a list for `dettivo vocabulary import`: a term, then how it is misheard.
+Dettivo = detivo, debt evo
+Clef = clay, cleff
+SapienXT = sapient x t, sapien xt
+Omarchy = oh marky, omar key
+Hyprland = hyper land, hyperland
