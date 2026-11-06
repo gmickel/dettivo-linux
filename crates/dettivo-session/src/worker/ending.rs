@@ -1,9 +1,10 @@
 //! The early end of the release tail (ADR 0093): a take whose last
 //! [`SILENT_ENDING`] before the release holds no speech by the gate's own
 //! rules ends at the release instead of after the tail. The level stage
-//! judges that window first; when it hears sound, the speech check that
-//! ran during the take answers whether any voice window reached the gate's
-//! threshold there. Without that answer the take keeps its whole tail.
+//! judges that stretch, and what was captured after it up to the cut,
+//! first; when it hears sound, the speech check that ran during the take
+//! answers whether any voice window there reached the gate's threshold.
+//! Without that answer the take keeps its whole tail.
 //!
 //! The take then ends at the first voice window boundary at or after the
 //! release and after what the check already holds, so the check has run
@@ -21,9 +22,10 @@ use crate::SILENT_ENDING;
 pub(super) enum Early {
     /// Waiting for the audio up to the window boundary after the release.
     Pending,
-    /// The check was asked whether the window that `end` closes holds a
-    /// voice.
+    /// The check was asked whether a voice window reached past the
+    /// stretch before `release`; the take would end at `end`.
     Asked {
+        release: usize,
         end: usize,
         answer: Receiver<Option<u64>>,
     },
@@ -55,12 +57,13 @@ impl Early {
         match self {
             Early::Kept => None,
             Early::Pending => {
+                let release = heard.at_release?;
                 // The check may already hold samples from after the release.
-                let end = heard.at_release?.max(*fed).div_ceil(VAD_WINDOW) * VAD_WINDOW;
+                let end = release.max(*fed).div_ceil(VAD_WINDOW) * VAD_WINDOW;
                 if heard.samples.len() < end {
                     return None;
                 }
-                let window = &heard.samples[end.saturating_sub(window_samples())..end];
+                let window = &heard.samples[release.saturating_sub(window_samples())..end];
                 if loudest_window_dbfs(window, SAMPLE_RATE).is_none_or(|db| db < heard.silence_dbfs)
                 {
                     tracing::debug!(
@@ -73,15 +76,23 @@ impl Early {
                     Some(check) => {
                         let answer = check.ask_voiced(&heard.samples[*fed..end]);
                         *fed = end;
-                        Early::Asked { end, answer }
+                        Early::Asked {
+                            release,
+                            end,
+                            answer,
+                        }
                     }
                     None => Early::Kept,
                 };
                 None
             }
-            Early::Asked { end, answer } => match answer.try_recv() {
+            Early::Asked {
+                release,
+                end,
+                answer,
+            } => match answer.try_recv() {
                 Err(TryRecvError::Empty) => None,
-                Ok(Some(voiced)) if voiced as usize + window_samples() <= *end => {
+                Ok(Some(voiced)) if voiced as usize + window_samples() <= *release => {
                     tracing::debug!(
                         end = *end,
                         voiced,

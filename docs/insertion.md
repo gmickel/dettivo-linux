@@ -36,7 +36,7 @@ Under X11, Dettivo serves the restored types from a window of its own for as lon
 
 ## Held modifiers wait out
 
-The first key of a dictation goes out at least 250 ms after the stop. When a toggle chord such as Super+Ctrl+X stops a take, Super and Ctrl may still be down, and a virtual keyboard's keys pressed with them would arrive as shortcuts. The wait runs alongside the transcription, which almost always takes longer, so it rarely adds time. No source on Hyprland reports which keys are held ([ADR 0090](adr/0090-the-first-key-waits-a-fixed-250-ms-after-the-stop.md)), so the wait is fixed, and a modifier still held 250 ms after the stop still reaches the target. `dettivo dictation stop --print` sends no keys and skips the wait.
+The first key of a dictation goes out at least 250 ms after the stop. When a toggle chord such as Super+Ctrl+X stops a take, Super and Ctrl may still be down, and a virtual keyboard's keys pressed with them would arrive as shortcuts. The wait runs alongside the release tail and the transcription. A take with a speech ending spends 200 ms of it in the tail, so it rarely adds time; a short take that ended in silence skips the tail, and its typed text then waits for the rest of the 250 ms ([ADR 0093](adr/0093-a-take-runs-from-the-pre-roll-to-the-release-tail-and-a-tap-is-no-take.md#amendment-2026-11-06-a-silent-ending-ends-at-the-release)). No source on Hyprland reports which keys are held ([ADR 0090](adr/0090-the-first-key-waits-a-fixed-250-ms-after-the-stop.md)), so the wait is fixed, and a modifier still held 250 ms after the stop still reaches the target. `dettivo dictation stop --print` sends no keys and skips the wait.
 
 ## Consecutive dictations join
 

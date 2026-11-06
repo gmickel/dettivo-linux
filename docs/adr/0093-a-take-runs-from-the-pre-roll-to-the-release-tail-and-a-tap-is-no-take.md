@@ -35,7 +35,9 @@ A last word still sounding when you let go of the key is in the take, because re
 
 ### What this gives you
 
-A take you release after you stopped speaking no longer waits 200 ms for a word that is not coming. Its text arrives about 180 ms sooner: on the reference GPU a silent ending's release-to-text fell from 278 to 95 ms at p50, and `capture_ms` from 220 to 40 ms. A take released mid-word keeps the whole tail and is no slower.
+A take you release after you stopped speaking no longer waits 200 ms for a word that is not coming. Its text is ready about 180 ms sooner: on the reference GPU a silent ending's `capture_ms` fell from 220 to 40 ms and its release-to-text by 176 ms at the median of paired takes. A take released mid-word keeps the whole tail and is no slower.
+
+Typed text gains less on a short take. Delivery still waits until 250 ms after the stop before the first key (`MODIFIER_SETTLE`, ADR 0090), so a take whose text is ready sooner than that is typed at about 270 ms either way. The keyboard sees the gain only as far as the old release-to-text ran past that wait: 354 to 270 ms at p50 in the paired run, 316 to 270 ms on 25 s takes. `dettivo dictation stop --print`, the `inserting` event and the pill get it in full.
 
 ### Situation
 
@@ -43,7 +45,7 @@ The tail made up about 200 of the 220 ms `capture_ms` in every take. Most releas
 
 ### Decision
 
-- **The rule.** Once the release is seen and audio captured after it has arrived, the worker looks at the take's last 150 ms (`SILENT_ENDING`). That stretch is silent when its loudest 30 ms window, DC removed, is under `silence_dbfs` (-50 dBFS), or, when the level hears sound, when no Silero window there reached the gate's 0.4 threshold. A silent ending ends the take at once. Anything else keeps the 200 ms tail and `TAIL_STALL_GRACE` exactly as before: speech in the stretch, no streaming voice detector, a check that failed, or an answer that has not arrived when the tail ends.
+- **The rule.** Once the release is seen and audio captured after it has arrived, the worker looks at the 150 ms before the release (`SILENT_ENDING`), counted back from the release sample, together with what was captured after it up to the cut. That stretch is silent when its loudest 30 ms window, DC removed, is under `silence_dbfs` (-50 dBFS), or, when the level hears sound, when no Silero window there reached the gate's 0.4 threshold. A silent ending ends the take at once. Anything else keeps the 200 ms tail and `TAIL_STALL_GRACE` exactly as before: speech in the stretch, no streaming voice detector, a check that failed, or an answer that has not arrived when the tail ends.
 - **Where the take ends.** At the first 512-sample Silero window boundary at or after both the release and what the check already holds, at most 32 ms past the release when the stop is seen promptly. The check has then run every sample the take keeps, so the gate's verdict needs no pass at the release, and the verdict is the one a pass over the take gives (ADR 0097). An early end never keeps audio past the tail's own cut.
 - **Frame probabilities, not segments.** The voice test reads each window's probability against the gate's threshold. The gate's segments drop a stretch under 160 ms and close a segment only after 100 ms of quiet, so a word begun just before the release could count as no speech there; a single window at 0.4 keeps the tail instead.
 - **Protocol.** `feed_speech` takes an optional `threshold` and then answers `voiced_until`, the end in samples of the last window run whose probability reached it, 0 when none did. The session's speech-check thread sends the take's samples up to the boundary with that question and the recording loop polls the answer, so the capture never waits on it.
@@ -52,19 +54,19 @@ The tail made up about 200 of the 220 ms `capture_ms` in every take. Most releas
 
 ### Measurement
 
-Release builds of `dettivod`, `dettivo`, `dettivo-engine-whisper` and `dettivo-engine-parakeet` with Vulkan, from `95a4f66` (before) and from this change (after), on 2026-11-06. Parakeet Ultra in mode `raw` with `whisper/silero-vad` on an RTX 4090 (Ryzen 9 7950X3D), each daemon in an isolated profile under `scripts/qa/xvfb-session.sh` with `DETTIVO_MOCK_MIC` and `DETTIVO_MOCK_INSERT`. Release-to-text runs from sending `dictation.stop` to the `inserting` state event, as in ADR 0094. The builds alternated in blocks of 12 to 18 takes, because other processes loaded the GPU between 2 and 97% during the run. Silent endings stop jfk in its pauses (2.7, 4.9 and 7.9 s), where its floor is about -39 dBFS and the voice check decides; the level clip stops 0.4 s into digital silence after jfk's first phrase. Speech endings stop jfk mid-word (2.0, 6.5 and 9.5 s). [The benchmark report](../reports/benchmarks/release-tail-2026-11-06.md) lists every take.
+Release builds of `dettivod`, `dettivo`, `dettivo-engine-whisper` and `dettivo-engine-parakeet` with Vulkan, from `95a4f66` (before) and from this change (after), on 2026-11-06. Parakeet Ultra in mode `raw` with `whisper/silero-vad` on an RTX 4090 (Ryzen 9 7950X3D), each daemon in an isolated profile under `scripts/qa/xvfb-session.sh` with `DETTIVO_MOCK_MIC` and `DETTIVO_MOCK_INSERT`. Release-to-text runs from sending `dictation.stop` to the `inserting` state event, as in ADR 0094. Other processes shared the GPU throughout, so the deciding run kept a before and an after daemon side by side and ran every take on both, back to back, swapping which went first each round. Silent endings stop jfk in its pauses (2.7, 4.9 and 7.9 s), where its floor is about -39 dBFS and the voice check decides; the level clip stops 0.4 s into digital silence after jfk's first phrase. Speech endings stop jfk mid-word (2.0, 6.5 and 9.5 s). [The benchmark report](../reports/benchmarks/release-tail-2026-11-06.md) lists every take of this run and of two earlier block runs.
 
-| Takes | n per build | Release-to-text p50 (p10-p90), before | After | `capture_ms` p50, before and after |
-| --- | --- | --- | --- | --- |
-| Silent ending, voice check (jfk) | 24 | 278 (265-312) | 95 (84-146) | 220, 40 |
-| Silent ending, level (digital silence) | 10 | 265 (265-302) | 86 (84-179) | 220, 40 |
-| Speech ending (jfk) | 60 | 286 (264-383) | 283 (264-298) | 220, 220 |
-| Speech ending (level clip) | 10 | 263 (263-312) | 264 (262-351) | 220, 220 |
+| Takes (paired run) | Pairs | Release-to-text p50 (p10-p90), before | After | Paired difference p50 | `capture_ms` p50, before and after |
+| --- | --- | --- | --- | --- | --- |
+| Silent ending, voice check (jfk) | 21 | 354 (292-397) | 192 (112-217) | -176, all 21 faster | 220, 40 |
+| Silent ending, level (digital silence) | 5 | 312 (298-354) | 122 (115-148) | -197, all 5 faster | 220, 40 |
+| Speech ending (jfk) | 21 | 357 (297-400) | 359 (299-392) | +2, 9 faster and 11 slower | 220, 220 |
+| Speech ending (level clip) | 5 | 300 (298-308) | 294 (275-298) | -9, all 5 faster | 220, 220 |
 
-Silent endings save 183 ms (voice check) and 179 ms (level) at p50. Speech endings keep `capture_ms` at 220-221 ms in all 70 takes of each build; the two p50s differ by -3 and +1 ms, inside the block-to-block spread of the before build, whose block p50s ran from 281 to 326 ms. The slowest takes of both builds are `transcribe_ms` spikes of 400-600 ms that came with the GPU load.
+Silent endings save 176 ms (voice check) and 197 ms (level) at the median of paired takes. Speech endings keep `capture_ms` at 220-221 ms in every take. Their paired difference is +2 ms on jfk, where a sign test over the 20 pairs that differ gives p = 0.82. An earlier block run on a quieter GPU agrees: silent endings fell from 278 to 95 ms and from 265 to 86 ms at p50, and speech endings went from 286 to 283 ms over 60 takes a build. A second block run under heavier load moved speech endings by +60 ms on one clip and -97 ms on the other, both inside `transcribe_ms`, which is why the deciding run is paired.
 
 ### Consequences
 
-- The tail tests of this ADR keep their numbers: a word that ends inside the last 150 ms keeps the tail. `crates/dettivo-session/tests/silent_ending.rs` adds a silent ending under digital silence and under a hum, a word ending 60, 100 and 140 ms before the release, a check that cannot answer and a detector that only judges whole takes. `crates/dettivo-engine-whisper/tests/vad_voiced.rs` checks `voiced_until` on jfk mid-sentence, in its pause and on silence, and that asking leaves the gate's verdict unchanged.
+- The tail tests of this ADR keep their numbers: a word that ends inside the 150 ms before the release keeps the tail. `crates/dettivo-session/tests/silent_ending.rs` adds a silent ending under digital silence and under a hum, a word ending 60, 100 and 140 ms before the release that keeps every sample and the whole tail, a check that cannot answer and a detector that only judges whole takes. `crates/dettivo-engine-whisper/tests/vad_voiced.rs` checks `voiced_until` on jfk mid-sentence, in its pause and on silence, and that asking leaves the gate's verdict unchanged.
 - A key-up click within the 32 ms after the release can land in the judged stretch. It lifts the level and the voice check then decides, so it costs at most the tail.
 - The voice process answers one more `feed_speech` per take, at the release, in parallel with the tail.

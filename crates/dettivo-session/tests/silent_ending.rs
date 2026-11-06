@@ -244,8 +244,9 @@ fn over_a_hum_the_voice_check_decides() {
 }
 
 /// R2: a last word ending 60 to 140 ms before the release (in whole
-/// chunks) keeps every sample, by the level stage and by the voice check
-/// alike; a word inside the last 150 ms keeps the whole tail.
+/// chunks) keeps every sample and the whole tail, by the level stage and
+/// by the voice check alike: the 150 ms are counted back from the release,
+/// never from the window boundary after it.
 #[test]
 fn a_last_word_ending_just_before_the_release_is_kept() {
     for before in [60, 100, 140] {
@@ -257,9 +258,7 @@ fn a_last_word_ending_just_before_the_release_is_kept() {
                 t.speech_ms as u64, word,
                 "{before} ms before: the whole word"
             );
-            if before <= 100 {
-                assert_tail(&t, &format!("a word ending {before} ms before"));
-            }
+            assert_tail(&t, &format!("a word ending {before} ms before"));
         }
     }
 }
