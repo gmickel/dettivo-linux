@@ -238,6 +238,7 @@ catalog! {
         "config.path" => (NoParams, config::PathResult), linux: true;
         "config.print_default" => (NoParams, config::PrintDefaultResult), linux: true;
         "config.keys" => (NoParams, config::KeysResult), linux: true;
+        "config.vocabulary.add" => (config::VocabularyAddParams, config::VocabularyAddResult), linux: true;
         "audio.devices" => (NoParams, audio::DevicesResult), linux: true;
         "insert.undo" => (NoParams, insert::UndoResult), linux: true;
         "insert.target" => (NoParams, insert::TargetResult), linux: true;

@@ -128,10 +128,19 @@ fn duplicates_are_reported_and_a_broken_limit_or_a_dry_run_writes_nothing() {
     let json_out = d.cli(&["--json", "vocabulary", "import", list.to_str().unwrap()]);
     assert_eq!(json_out.status.code(), Some(0), "{}", stderr(&json_out));
     let report: Value = serde_json::from_str(&stdout(&json_out)).unwrap();
-    assert_eq!(report["written"], true);
-    assert_eq!(report["added"], json!([{"line": 2, "entry": "Hyprland"}]));
-    assert_eq!(report["skipped"].as_array().unwrap().len(), 3);
-    assert_eq!(report["skipped"][2]["repeats_line"], 2);
+    assert_eq!(
+        report,
+        json!({
+            "added": [1],
+            "skipped": [
+                {"index": 0, "repeats": null},
+                {"index": 2, "repeats": null},
+                {"index": 3, "repeats": 1},
+            ],
+            "entries": 3,
+            "written": true,
+        })
+    );
     let written = file(&d);
     assert!(written.contains("  \"Hyprland\",\n"), "{written}");
 
@@ -164,6 +173,56 @@ fn duplicates_are_reported_and_a_broken_limit_or_a_dry_run_writes_nothing() {
         "{err}"
     );
     assert_eq!(file(&d), written, "a refused import writes nothing");
+}
+
+#[test]
+fn an_import_keeps_a_written_repeat_and_the_comments_inside_an_entry() {
+    // The loader drops the repeat from the vocabulary in force; the file
+    // keeps it, and the comment inside the entry's spellings, as written.
+    let before = concat!(
+        "[dictation]\n",
+        "vocabulary = [\n",
+        "  \"Clef\",\n",
+        "  { term = \"CLEF\", sounds_like = [\n",
+        "    \"cleff\", # how I say it\n",
+        "  ] }, # a repeat\n",
+        "]\n",
+    );
+    let d = daemon_with(before);
+    let list = list_file(&d, "one.txt", "Niri\n");
+    let out = d.cli(&["vocabulary", "import", list.to_str().unwrap()]);
+    assert_eq!(out.status.code(), Some(0), "{}", stderr(&out));
+    assert_eq!(
+        file(&d),
+        before.replace("  ] }, # a repeat\n", "  ] }, # a repeat\n  \"Niri\",\n")
+    );
+}
+
+#[test]
+fn imports_at_the_same_time_each_keep_their_terms() {
+    let d = daemon_with(HAND_WRITTEN);
+    let lists: Vec<PathBuf> = (0..8)
+        .map(|i| list_file(&d, &format!("l{i}.txt"), &format!("Term{i}\n")))
+        .collect();
+    std::thread::scope(|scope| {
+        for list in &lists {
+            let d = &d;
+            scope.spawn(move || {
+                let out = d.cli(&["vocabulary", "import", list.to_str().unwrap()]);
+                assert_eq!(out.status.code(), Some(0), "{}", stderr(&out));
+            });
+        }
+    });
+    let held = vocabulary(&d);
+    for i in 0..8 {
+        assert!(
+            held.as_array()
+                .unwrap()
+                .contains(&json!(format!("Term{i}"))),
+            "{held}"
+        );
+    }
+    assert_eq!(held.as_array().unwrap().len(), 10, "{held}");
 }
 
 /// The bench's vocabulary (`set.json`) as `config get` returns it.

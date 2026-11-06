@@ -53,7 +53,8 @@
                 "config.validate",
                 "config.path",
                 "config.print_default",
-                "config.keys"
+                "config.keys",
+                "config.vocabulary.add"
               ]
             },
             "formats": {

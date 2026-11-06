@@ -9,9 +9,16 @@ use std::fmt;
 use serde::de::{self, MapAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
 
-pub use dettivo_proto::methods::config::vocabulary::{
-    MAX_ALIASES, MAX_ENTRIES, MAX_TERM_CHARS, MAX_VOCABULARY_BYTES, term_key,
-};
+/// The most entries a vocabulary holds.
+pub const MAX_ENTRIES: usize = 500;
+/// The longest term, in characters.
+pub const MAX_TERM_CHARS: usize = 64;
+/// The most `sounds_like` spellings one term carries.
+pub const MAX_ALIASES: usize = 16;
+/// The most bytes the vocabulary takes as JSON: an engine request carries
+/// it whole in a header of at most 1 MiB, so every list the limits accept
+/// reaches the engine.
+pub const MAX_VOCABULARY_BYTES: usize = 256 * 1024;
 
 /// One vocabulary entry.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -91,6 +98,12 @@ impl<'de> Deserialize<'de> for VocabularyEntry {
 /// The terms of `entries`, in list order.
 pub fn terms(entries: &[VocabularyEntry]) -> Vec<String> {
     entries.iter().map(|e| e.term().to_string()).collect()
+}
+
+/// What two terms are compared by: the same key is the same term,
+/// whatever its case.
+pub fn term_key(term: &str) -> String {
+    term.to_lowercase()
 }
 
 /// `entries` without a later entry whose term matches an earlier one

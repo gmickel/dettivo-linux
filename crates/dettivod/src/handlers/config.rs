@@ -3,11 +3,14 @@
 //! refuses any text the schema would not read back, so the daemon never
 //! writes a file it could not parse (R5).
 
+use dettivo_core::config::vocabulary_add::{self, AddError};
+use dettivo_core::config::vocabulary_schema::VocabularyEntry;
 use dettivo_core::config::{self, DEFAULT_TOML, edit, keys};
 use dettivo_proto::error::{AppCode, ErrorDetails, JsonRpcError};
 use dettivo_proto::methods::config::{
     Entry, GetParams, GetResult, KeysResult, PathResult, PrintDefaultResult, SetParams,
-    UnsetParams, ValidateResult, ValidationError,
+    UnsetParams, ValidateResult, ValidationError, VocabularyAddParams, VocabularyAddResult,
+    VocabularySkipped,
 };
 use serde_json::{Map, Value};
 
@@ -132,6 +135,73 @@ pub fn set(daemon: &Daemon, params_value: Value) -> Result<Value, JsonRpcError> 
         edit::set(&text, &p.key, &p.value).map_err(invalid)
     })?;
     json(entry_for(daemon, &p.key)?)
+}
+
+/// `config.vocabulary.add`: the entries appended to the file's
+/// vocabulary under the edit lock, read from the file text itself, so a
+/// write from Settings or another import in between is never lost and
+/// every entry the file holds stays as written (ADR 0101).
+pub fn vocabulary_add(daemon: &Daemon, params_value: Value) -> Result<Value, JsonRpcError> {
+    let p: VocabularyAddParams = params(params_value)?;
+    let entries = p
+        .entries
+        .into_iter()
+        .enumerate()
+        .map(|(i, v)| {
+            serde_json::from_value::<VocabularyEntry>(v).map_err(|e| {
+                invalid(ValidationError {
+                    key: Some("dictation.vocabulary".into()),
+                    line: None,
+                    message: format!("entries[{i}]: {e}"),
+                })
+            })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let _guard = daemon.config_edit_lock();
+    let text = current_text(daemon)?;
+    let added = vocabulary_add::add(&text, &entries).map_err(|e| match e {
+        AddError::Invalid(err) => invalid(err),
+        AddError::Refused(refused) => refusal(&refused),
+    })?;
+    let written = !p.dry_run && added.text != text;
+    if written {
+        write_and_reload(daemon, &added.text)?;
+    }
+    json(VocabularyAddResult {
+        added: added.added,
+        skipped: added
+            .skipped
+            .into_iter()
+            .map(|s| VocabularySkipped {
+                index: s.index,
+                repeats: s.repeats,
+            })
+            .collect(),
+        entries: added.entries,
+        written,
+    })
+}
+
+/// The entries that break a limit, as `INVALID_PARAMS` with each one's
+/// index and limit in `details.refused`.
+fn refusal(refused: &[(usize, String)]) -> JsonRpcError {
+    let n = refused.len();
+    let mut details = Map::new();
+    details.insert("key".into(), Value::String("dictation.vocabulary".into()));
+    let list = refused
+        .iter()
+        .map(|(index, message)| serde_json::json!({"index": index, "message": message}));
+    details.insert("refused".into(), Value::Array(list.collect()));
+    let entries = if n == 1 {
+        "entry breaks"
+    } else {
+        "entries break"
+    };
+    JsonRpcError::new(
+        AppCode::InvalidParams,
+        format!("dictation.vocabulary: {n} {entries} a limit; nothing was written"),
+        ErrorDetails(details),
+    )
 }
 
 /// `config.unset`.

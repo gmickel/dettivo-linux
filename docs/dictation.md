@@ -128,9 +128,9 @@ Clef = clay, cleff
 - Blank lines and lines that start with `#` are skipped. A `#` later in a line is part of the term, so `C#` imports as written.
 - A term the vocabulary already holds, or that an earlier line already gave, is skipped in any case, the same comparison the file uses when it drops a repeated term. The command lists each skipped line and says whether it repeats the vocabulary or an earlier line.
 - The limits above apply to the list as the import would leave it. When a line breaks one (a term over 64 characters, more than 16 spellings, an entry past the 500th, or the list past its size budget), the command writes nothing, exits 4 and names every line that breaks a limit.
-- `--dry-run` prints the terms the import would add and the lines it would skip, and writes nothing. `--json` prints the same report as data.
+- `--dry-run` prints the terms the import would add and the lines it would skip, and writes nothing. `--json` prints the daemon's answer, which names entries by their position among the file's term lines, counted from 0.
 
-The import runs through the daemon. It reads the vocabulary in force and sends the merged list as one `config.set`, which edits `config.toml` the way `dettivo config set` does. Your comments, the entries already there and their layout stay as you wrote them, and the new entries follow the last one. The daemon reloads the file as it writes it, so the next take uses the imported terms without a restart. Without a running daemon the command exits 2 and writes nothing, as `dettivo config set` does.
+The daemon does the import (`config.vocabulary.add`, [ADR 0101](adr/0101-a-vocabulary-import-is-appended-by-the-daemon-under-its-edit-lock.md)). Under the lock every edit of `config.toml` takes, it appends the new entries after the last one in the file, so your comments and the entries already there stay exactly as you wrote them, a term repeated in another case included, and a change Settings saves at the same moment is kept. It reloads the file as it writes it, so the next take uses the imported terms without a restart. Without a running daemon the command exits 2 and writes nothing, as `dettivo config set` does.
 
 ## Configuration
 

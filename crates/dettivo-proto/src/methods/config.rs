@@ -170,27 +170,45 @@ pub struct PrintDefaultResult {
     pub text: String,
 }
 
-/// The limits of `[dictation] vocabulary` and how its terms are compared.
-/// The daemon refuses a write that breaks a limit; a client that builds a
-/// list (`dettivo vocabulary import`) checks the same values first, so it
-/// can name the line that breaks one.
-pub mod vocabulary {
-    /// The most entries a vocabulary holds.
-    pub const MAX_ENTRIES: usize = 500;
-    /// The longest term, in characters.
-    pub const MAX_TERM_CHARS: usize = 64;
-    /// The most `sounds_like` spellings one term carries.
-    pub const MAX_ALIASES: usize = 16;
-    /// The most bytes the vocabulary takes as JSON: an engine request carries
-    /// it whole in a header of at most 1 MiB, so every list the limits accept
-    /// reaches the engine.
-    pub const MAX_VOCABULARY_BYTES: usize = 256 * 1024;
+/// `config.vocabulary.add`: entries appended to `[dictation] vocabulary`
+/// in the file, under the daemon's edit lock. An entry whose term the
+/// vocabulary or an earlier entry already holds, in any case, is skipped;
+/// every entry the file already has stays as written. An entry that would
+/// break a limit refuses the whole call (`INVALID_PARAMS`, each such entry
+/// in `details.refused` as `{ index, message }`) and nothing is written.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VocabularyAddParams {
+    /// The entries, each a term or a `{ term, sounds_like }` table.
+    pub entries: Vec<Value>,
+    /// Report what would change and write nothing.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub dry_run: bool,
+}
 
-    /// What two terms are compared by: two terms with the same key are the
-    /// same term, whatever their case.
-    pub fn term_key(term: &str) -> String {
-        term.to_lowercase()
-    }
+/// An entry of `config.vocabulary.add` that was skipped as a duplicate.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VocabularySkipped {
+    /// The entry's index in the request.
+    pub index: usize,
+    /// The earlier entry of the request it repeats; `None` when the
+    /// vocabulary already held the term.
+    pub repeats: Option<usize>,
+}
+
+/// Result of `config.vocabulary.add`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VocabularyAddResult {
+    /// The indices of the entries added (or that a dry run would add).
+    pub added: Vec<usize>,
+    /// The entries skipped as duplicates.
+    pub skipped: Vec<VocabularySkipped>,
+    /// How many entries the file's vocabulary holds after the call.
+    pub entries: usize,
+    /// Whether the file was written.
+    pub written: bool,
 }
 
 #[cfg(test)]

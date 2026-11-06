@@ -169,7 +169,7 @@ pub struct ConfigCaps {
 }
 
 impl ConfigCaps {
-    /// The seven methods a Linux daemon implements (ADR 0009, ADR 0033).
+    /// The eight methods a Linux daemon implements (ADR 0009, ADR 0033, ADR 0101).
     pub fn linux_methods() -> Self {
         Self {
             methods: [
@@ -180,6 +180,7 @@ impl ConfigCaps {
                 "config.path",
                 "config.print_default",
                 "config.keys",
+                "config.vocabulary.add",
             ]
             .iter()
             .map(|s| s.to_string())

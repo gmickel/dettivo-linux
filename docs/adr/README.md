@@ -106,6 +106,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0098](0098-parakeet-warms-up-on-its-longest-single-pass.md) | Parakeet warms up on its longest single pass, 90 s, so no take compiles its own GPU kernels after a driver or engine update | Accepted 2026-11-02, amends 0084 |
 | [0099](0099-the-live-hyprland-instance-is-found-again-on-every-refused-connection.md) | The live Hyprland instance is found again on every refused connection, matched by the session's Wayland display | Accepted 2026-11-02 |
 | [0100](0100-every-compositor-connection-comes-back-after-a-compositor-restart.md) | Every compositor connection comes back after a compositor restart, the portal shortcuts included | Accepted 2026-11-02 |
+| [0101](0101-a-vocabulary-import-is-appended-by-the-daemon-under-its-edit-lock.md) | A vocabulary import is appended by the daemon under its edit lock | Accepted 2026-11-07 |
 
 ## Writing a record
 
