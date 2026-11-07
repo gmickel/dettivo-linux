@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-92-dictation-decodes-while-the-key-is-held",
   "spec_path": ".flow/tasks/fn-92-dictation-decodes-while-the-key-is-held.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Dictation decodes while the key is held",
   "updated_at": "2026-11-07T09:58:41.053338Z"
 }
