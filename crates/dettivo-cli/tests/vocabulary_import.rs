@@ -309,6 +309,12 @@ fn take(d: &Daemon, n: usize) -> String {
         items.as_array().is_some_and(|i| i.len() >= n)
     });
     assert!(finished, "take {n} never finished");
+    // The transcript is stored before the session slot is freed; the next
+    // take starts only once the daemon says none is active.
+    let idle = wait_for(std::time::Duration::from_secs(30), || {
+        call(d, "dictation.status", json!({}))["is_active"] == json!(false)
+    });
+    assert!(idle, "take {n} never left the session slot");
     let newest = call(d, "transcripts.get", json!({"ref": items[0]["ref"]}));
     newest["text_polish"].as_str().unwrap().to_string()
 }
