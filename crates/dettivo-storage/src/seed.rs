@@ -163,6 +163,7 @@ pub fn items() -> Vec<DictationItem> {
                 capture_ms: 120,
                 transcribe_ms: 640,
                 insert_ms: 35,
+                release_decode: None,
             });
             item.with_derived_title()
         })
@@ -186,6 +187,7 @@ pub fn items() -> Vec<DictationItem> {
         capture_ms: 90,
         transcribe_ms: 810,
         insert_ms: 20,
+        release_decode: None,
     });
     out.push(sample);
     out

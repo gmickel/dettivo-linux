@@ -177,6 +177,22 @@ pub struct SessionTimings {
     pub transcribe_ms: u64,
     /// The inserter's call; 0 when there was nothing to insert.
     pub insert_ms: u64,
+    /// How the release decoded a take the rounds ran on (ADR 0102); absent
+    /// for a take without rounds.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub release_decode: Option<ReleaseDecode>,
+}
+
+/// How the release decoded a take the rounds ran on while it was held.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ReleaseDecode {
+    /// The uncommitted tail, stitched to the rounds.
+    Tail,
+    /// Nothing: only silence followed the last round.
+    Silence,
+    /// The whole take: no round was recent enough.
+    Whole,
 }
 
 /// A state change for the publisher. The completion transition (into

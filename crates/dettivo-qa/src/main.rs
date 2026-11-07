@@ -136,9 +136,10 @@ enum Cmd {
     /// Measure the NFRs (first insert, transcription throughput, the
     /// language model, the idle footprint, startup) into one report per
     /// host and tier (docs/qa.md, ADR 0029); `bench vocabulary` scores
-    /// term recall with the vocabulary off and on (ADR 0087).
+    /// term recall with the vocabulary off and on (ADR 0087), `bench
+    /// windowed` the cost of decoding in rounds (ADR 0102).
     Bench {
-        /// `vocabulary` for the term-recall suite; the NFR suite otherwise.
+        /// `vocabulary` or `windowed` for those suites; the NFR suite otherwise.
         #[arg(value_name = "SUITE")]
         suite: Option<String>,
         /// Force the CPU tier (`DETTIVO_FORCE_CPU=1` for every engine).
@@ -387,11 +388,7 @@ fn main() -> ExitCode {
             };
             match suite.as_deref() {
                 None => bench::command(&opts, cli.json),
-                Some("vocabulary") => bench::vocabulary_run::command(&opts, cli.json),
-                Some(other) => {
-                    eprintln!("bench: unknown suite {other:?}; the one suite is: vocabulary");
-                    2
-                }
+                Some(name) => bench::suite(name, &opts, cli.json),
             }
         }
         Cmd::Pack {

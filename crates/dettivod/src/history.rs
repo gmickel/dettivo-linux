@@ -378,6 +378,11 @@ pub fn item_from(transcript: &Transcript) -> DictationItem {
         capture_ms: t.capture_ms,
         transcribe_ms: t.transcribe_ms,
         insert_ms: t.insert_ms,
+        release_decode: t.release_decode.and_then(|d| {
+            serde_json::to_value(d)
+                .ok()
+                .and_then(|v| v.as_str().map(str::to_string))
+        }),
     });
     item.notice = transcript
         .notice

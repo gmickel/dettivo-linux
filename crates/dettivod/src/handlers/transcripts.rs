@@ -121,7 +121,7 @@ pub fn facts(item: &DictationItem) -> Result<ItemFacts, JsonRpcError> {
             .transpose()?,
         audio,
         insertion: item.insertion.clone(),
-        timings: item.timings.map(|t| ItemTimings {
+        timings: item.timings.as_ref().map(|t| ItemTimings {
             capture_ms: t.capture_ms,
             transcribe_ms: t.transcribe_ms,
             insert_ms: t.insert_ms,

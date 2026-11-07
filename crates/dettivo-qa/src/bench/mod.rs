@@ -24,6 +24,7 @@ pub mod throughput;
 pub mod vocabulary;
 pub mod vocabulary_run;
 pub mod warmth;
+pub mod windowed;
 
 pub use report::{
     Comparison, LoadAverage, Report, SCHEMA_VERSION, Spread, Status, Step, date_of, load_average,
@@ -127,6 +128,18 @@ fn unix_now() -> u64 {
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_secs())
         .unwrap_or(0)
+}
+
+/// Runs the named suite: `vocabulary` (ADR 0087) or `windowed` (ADR 0102).
+pub fn suite(name: &str, opts: &Options, json: bool) -> u8 {
+    match name {
+        "vocabulary" => vocabulary_run::command(opts, json),
+        "windowed" => windowed::command(opts, json),
+        other => {
+            eprintln!("bench: unknown suite {other:?}; the suites are: vocabulary, windowed");
+            2
+        }
+    }
 }
 
 /// Runs the suite and writes the report; the exit code: 0 unless a step

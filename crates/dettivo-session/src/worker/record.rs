@@ -17,6 +17,8 @@ use dettivo_audio::{EndReason, Event};
 
 use super::check::SpeechCheck;
 use super::ending::{self, Early};
+use super::held::{Held, HeldRounds};
+use super::release::{Ahead, Ending};
 use super::{Worker, elapsed_ms};
 use crate::finish::{Exit, SharedState};
 use crate::source::Source;
@@ -37,6 +39,10 @@ pub(super) struct Recorded {
     pub(super) stopped: Instant,
     /// The speech check that ran during the take, when the detector streams.
     pub(super) check: Option<SpeechCheck>,
+    /// The rounds that decoded the take while it was held (ADR 0102),
+    /// and their tail decode, started once the take's samples were final.
+    pub(super) held: Option<Held>,
+    pub(super) ahead: Option<Ahead>,
 }
 
 /// The release tail once a stop was seen.
@@ -79,8 +85,10 @@ impl Worker {
         // When the newest audio was captured, and when it arrived here.
         let (mut heard, mut arrived) = (None::<Instant>, started);
         let mut tail: Option<Tail> = None;
-        // Where a silent ending cut the take, at the release.
+        // Where a silent ending cut the take, at the release, and where its
+        // voice ended when the check said.
         let mut early_cut: Option<usize> = None;
+        let mut early_voiced: Option<u64> = None;
         // A tail shorter than one voice window has nothing to end early.
         let ends_early = self.policy.release_tail.as_micros() * SAMPLES_PER_SECOND / 1_000_000
             > VAD_WINDOW as u128;
@@ -93,8 +101,15 @@ impl Worker {
         let mut detector = self.vad.as_deref();
         let mut check: Option<SpeechCheck> = None;
         let mut fed = 0;
+        // The rounds start with the check, for the same reason (ADR 0102).
+        let mut rounds: Option<HeldRounds> = None;
+        let (mut rounds_fed, mut rounds_decided) = (0, false);
         loop {
             if self.cancel.load(Ordering::Relaxed) {
+                // The capture stops before a running round is waited for.
+                if rounds.is_some() {
+                    src.stop();
+                }
                 return Ok(Recorded {
                     samples,
                     duration_ms: 0,
@@ -102,11 +117,16 @@ impl Worker {
                     capture_ms: 0,
                     stopped: Instant::now(),
                     check: None,
+                    held: None,
+                    ahead: None,
                 });
             }
             if tail.is_none() && self.stop.load(Ordering::Relaxed) {
                 let seen = Instant::now();
                 let released = self.released.get().copied().unwrap_or(seen);
+                if let Some(r) = &rounds {
+                    r.release();
+                }
                 tail = Some(Tail {
                     released,
                     until: released + self.policy.release_tail,
@@ -131,8 +151,8 @@ impl Worker {
                         check: check.as_ref(),
                         tail_done,
                     };
-                    if let Some(end) = t.early.advance(heard_now, &mut fed) {
-                        early_cut = Some(end);
+                    if let Some((end, voiced)) = t.early.advance(heard_now, &mut fed) {
+                        (early_cut, early_voiced) = (Some(end), voiced);
                         break;
                     }
                     if tail_done {
@@ -152,10 +172,11 @@ impl Worker {
                     // Audio that arrives after the stop is seen may be cut
                     // from the take, so the check runs it at the release.
                     if tail.is_none() {
-                        if check.is_none()
-                            && arrived >= qualifies
+                        let qualified = arrived >= qualifies
                             && !self.cancel.load(Ordering::Relaxed)
-                            && !self.tap_waiting(qualifies)
+                            && !self.tap_waiting(qualifies);
+                        if check.is_none()
+                            && qualified
                             && let Some(vad) = detector.take()
                         {
                             check = vad.stream().map(SpeechCheck::start);
@@ -163,6 +184,16 @@ impl Worker {
                         if let Some(c) = &check {
                             c.feed(&samples[fed..]);
                             fed = samples.len();
+                        }
+                        if !rounds_decided && qualified {
+                            rounds_decided = true;
+                            rounds = self
+                                .rounds_wanted()
+                                .then(|| HeldRounds::start(self.engine.clone(), self.request()));
+                        }
+                        if let Some(r) = &rounds {
+                            r.feed(&samples[rounds_fed..]);
+                            rounds_fed = samples.len();
                         }
                     }
                     let progress = (started.elapsed().as_secs_f64()
@@ -205,6 +236,28 @@ impl Worker {
         }
         let released = tail.as_ref().map_or_else(Instant::now, |t| t.seen);
         src.stop();
+        // Where the take ends is known once the tail is covered: the rounds
+        // end and their tail decode starts while the capture's stop is
+        // acknowledged and the take is written. The release checks the take
+        // kept that length.
+        let held = rounds.and_then(HeldRounds::finish);
+        let ending = match (early_cut, early_voiced) {
+            (None, _) => Ending::Speech,
+            (Some(_), Some(voiced)) => Ending::VoicedUntil(voiced),
+            (Some(_), None) => Ending::Silent,
+        };
+        let ahead = tail
+            .as_ref()
+            .filter(|_| ended.is_none())
+            .map(|t| {
+                early_cut.map_or_else(
+                    || cut_at(&stamps, t.until),
+                    |end| end.min(cut_at(&stamps, t.until)),
+                )
+            })
+            .and_then(|end| {
+                self.decode_ahead(&samples[..end.min(samples.len())], held.as_ref(), ending)
+            });
         let deadline = Instant::now() + Duration::from_secs(2);
         while !terminal {
             let remaining = deadline.saturating_duration_since(Instant::now());
@@ -260,6 +313,8 @@ impl Worker {
             capture_ms: elapsed_ms(released),
             stopped: released,
             check,
+            held,
+            ahead,
         })
     }
 }
