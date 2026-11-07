@@ -52,11 +52,12 @@ fn result_of(
     }
 }
 
-/// The tail decode started while the speech gate judges the take: the
-/// gate's verdict and the tail's words are both needed, and neither waits
-/// for the other. The thread is never joined; a take the gate drops, or one
+/// The tail decode started once the take's samples were final, while the
+/// capture stops, the take is written and the speech gate judges it. The thread is never joined; a take the gate drops, or one
 /// that reuses the last round, leaves it to finish on its own.
-pub(super) struct Ahead {
+pub(crate) struct Ahead {
+    /// The take's length it decoded the end of.
+    samples: usize,
     from_ms: u64,
     cut_ms: u64,
     answer: Receiver<Result<RecognizeResult, EngineError>>,
@@ -84,6 +85,7 @@ impl Worker {
             })
             .ok()?;
         Some(Ahead {
+            samples: samples.len(),
             from_ms,
             cut_ms,
             answer,
@@ -158,7 +160,9 @@ impl Worker {
             Release::Tail { from_ms, cut_ms } => {
                 decoded_ms = end_ms - from_ms;
                 let early = ahead
-                    .filter(|a| (a.from_ms, a.cut_ms) == (from_ms, cut_ms))
+                    .filter(|a| {
+                        (a.samples, a.from_ms, a.cut_ms) == (samples.len(), from_ms, cut_ms)
+                    })
                     .and_then(|a| a.answer.recv().ok());
                 let tail = early.unwrap_or_else(|| {
                     let start = (from_ms as usize * SAMPLE_RATE as usize / 1000).min(samples.len());

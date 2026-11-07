@@ -85,7 +85,8 @@ impl Worker {
             capture_ms,
             stopped,
             check,
-            rounds,
+            held,
+            ahead,
         } = match outcome {
             Ok(v) => v,
             Err(exit) => {
@@ -105,7 +106,6 @@ impl Worker {
             // The check ends before the slot frees: the voice process
             // holds one take's state, and the next take may start at once.
             drop(check);
-            drop(rounds);
             self.cleanup();
             finish_shared(
                 &shared,
@@ -124,10 +124,6 @@ impl Worker {
             Some("loading engine".into()),
         );
         let transcribe_started = Instant::now();
-        // The release waits for the round running, then takes the rounds,
-        // and starts their tail decode while the gate judges the take.
-        let held = rounds.and_then(held::HeldRounds::finish);
-        let ahead = self.decode_ahead(&samples, held.as_ref());
         // The voice pass ran during the take; the release runs only what
         // it has not heard, or the whole take when it could not. With
         // rounds, it also says where the take's voice ends (ADR 0102).

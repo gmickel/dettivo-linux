@@ -17,7 +17,8 @@ use dettivo_audio::{EndReason, Event};
 
 use super::check::SpeechCheck;
 use super::ending::{self, Early};
-use super::held::HeldRounds;
+use super::held::{Held, HeldRounds};
+use super::release::Ahead;
 use super::{Worker, elapsed_ms};
 use crate::finish::{Exit, SharedState};
 use crate::source::Source;
@@ -38,8 +39,10 @@ pub(super) struct Recorded {
     pub(super) stopped: Instant,
     /// The speech check that ran during the take, when the detector streams.
     pub(super) check: Option<SpeechCheck>,
-    /// The rounds that decoded the take while it was held (ADR 0102).
-    pub(super) rounds: Option<HeldRounds>,
+    /// The rounds that decoded the take while it was held (ADR 0102),
+    /// and their tail decode, started once the take's samples were final.
+    pub(super) held: Option<Held>,
+    pub(super) ahead: Option<Ahead>,
 }
 
 /// The release tail once a stop was seen.
@@ -108,7 +111,8 @@ impl Worker {
                     capture_ms: 0,
                     stopped: Instant::now(),
                     check: None,
-                    rounds: None,
+                    held: None,
+                    ahead: None,
                 });
             }
             if tail.is_none() && self.stop.load(Ordering::Relaxed) {
@@ -225,6 +229,20 @@ impl Worker {
             }
         }
         let released = tail.as_ref().map_or_else(Instant::now, |t| t.seen);
+        // Where the take ends is known once the tail is covered: the rounds
+        // end and their tail decode starts while the capture stops and the
+        // take is written. The release checks the take kept that length.
+        let held = rounds.and_then(HeldRounds::finish);
+        let ahead = tail
+            .as_ref()
+            .filter(|_| ended.is_none())
+            .map(|t| {
+                early_cut.map_or_else(
+                    || cut_at(&stamps, t.until),
+                    |end| end.min(cut_at(&stamps, t.until)),
+                )
+            })
+            .and_then(|end| self.decode_ahead(&samples[..end.min(samples.len())], held.as_ref()));
         src.stop();
         let deadline = Instant::now() + Duration::from_secs(2);
         while !terminal {
@@ -281,7 +299,8 @@ impl Worker {
             capture_ms: elapsed_ms(released),
             stopped: released,
             check,
-            rounds,
+            held,
+            ahead,
         })
     }
 }
