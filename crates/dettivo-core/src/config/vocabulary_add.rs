@@ -152,7 +152,9 @@ fn append(text: &str, new: &[&VocabularyEntry]) -> Result<String, ValidationErro
         .get_mut("dictation")
         .and_then(|d| d.get_mut("vocabulary"))
     {
-        None => return super::edit::set(text, KEY, &Value::Array(values())),
+        // `Item::get_mut` inserts `Item::None` for a missing key in a table
+        // that exists, so both read as no vocabulary written yet.
+        None | Some(Item::None) => return super::edit::set(text, KEY, &Value::Array(values())),
         Some(Item::Value(toml_edit::Value::Array(array))) => {
             let items = file_syntax::list(&values()).ok_or_else(not_a_list)?;
             let old = array.clone();

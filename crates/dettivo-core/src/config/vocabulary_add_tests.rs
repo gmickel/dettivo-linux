@@ -72,6 +72,11 @@ fn a_one_line_list_grows_on_its_line_and_a_missing_key_is_written() {
         out.unwrap().text,
         "[daemon]\n# quiet\nlog_level = \"warn\"\n\n[dictation]\nvocabulary = [{ term = \"Niri\", sounds_like = [\"near E\"] }]\n"
     );
+    let out = add("[dictation]\nlanguage = \"en\"\n", &[entry("Niri", &[])]).unwrap();
+    assert_eq!(
+        out.text,
+        "[dictation]\nlanguage = \"en\"\nvocabulary = [\"Niri\"]\n"
+    );
 }
 
 #[test]
