@@ -55,8 +55,13 @@ fn window_samples() -> usize {
 
 impl Early {
     /// Advances the early end. `fed` counts the samples sent to the check.
-    /// Returns where the take ends when its ending is silent.
-    pub(super) fn advance(&mut self, heard: Heard<'_>, fed: &mut usize) -> Option<usize> {
+    /// Returns where the take ends when its ending is silent, and where its
+    /// last voiced window ends when the check was asked (in samples).
+    pub(super) fn advance(
+        &mut self,
+        heard: Heard<'_>,
+        fed: &mut usize,
+    ) -> Option<(usize, Option<u64>)> {
         // Once the tail is done the take already holds it, so cutting
         // early would only discard captured audio: the tail stays.
         if heard.tail_done {
@@ -85,7 +90,7 @@ impl Early {
                         end,
                         "the take ends at the release: its last stretch is under the silence floor"
                     );
-                    return Some(end);
+                    return Some((end, None));
                 }
                 *self = match heard.check {
                     Some(check) => {
@@ -113,7 +118,7 @@ impl Early {
                         voiced,
                         "the take ends at the release: its last stretch holds no voice"
                     );
-                    Some(*end)
+                    Some((*end, Some(voiced)))
                 }
                 _ => {
                     *self = Early::Kept;
@@ -166,7 +171,7 @@ mod tests {
         let samples = vec![0; 16_384];
         assert_eq!(
             asked().advance(heard(&samples, false), &mut 0),
-            Some(16_384)
+            Some((16_384, Some(0)))
         );
     }
 

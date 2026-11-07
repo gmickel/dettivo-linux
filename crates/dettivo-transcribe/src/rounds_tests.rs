@@ -111,3 +111,40 @@ fn a_word_on_the_cut_is_kept_once() {
     let all = r.stitch(cut_ms, tail);
     assert_eq!(names(&all), names(&speech(0, 21)));
 }
+
+#[test]
+fn a_round_past_the_final_take_decodes_the_whole_take() {
+    // A release that queued behind a slow start cut the take before audio
+    // the last round already heard.
+    let mut r = Rounds::default();
+    r.absorb(&WINDOWS, 90_000, speech(0, 90));
+    assert_eq!(r.release(&WINDOWS, 60_000, None), Release::Whole);
+}
+
+#[test]
+fn stitched_words_keep_the_segments_the_guards_judge() {
+    // Speech, a pause over 700 ms, then a filler the guards drop alone.
+    let mut words = vec![
+        word("Book", 0, 300),
+        word("the", 350, 500),
+        word("room.", 550, 900),
+    ];
+    words.extend([
+        word("Thanks", 2_000, 2_300),
+        word("for", 2_350, 2_500),
+        word("watching!", 2_550, 3_000),
+    ]);
+    let segments = segments(&words);
+    assert_eq!(
+        segments.iter().map(|s| s.text.as_str()).collect::<Vec<_>>(),
+        ["Book the room.", "Thanks for watching!"]
+    );
+    let result = dettivo_engine_proto::RecognizeResult {
+        text: text(&words),
+        language: "en".into(),
+        segments,
+        duration_ms: 3_000,
+        backend: dettivo_engine_proto::Backend::Vulkan,
+    };
+    assert_eq!(crate::guards::clean(&result, &[]), "Book the room.");
+}

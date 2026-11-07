@@ -88,7 +88,15 @@ impl HeldRounds {
                     let (from, until) = held.rounds.window(&WINDOWS, ms(pcm.len()));
                     let start = (from as usize * SAMPLE_RATE as usize / 1000).min(pcm.len());
                     let clip = pad_for_engine(pcm[start..].to_vec(), parakeet, SAMPLE_RATE);
-                    match engine.recognize(request(clip), Duration::from_secs(30)) {
+                    let padded = clip.len() != pcm.len() - start;
+                    let mut recognized = engine.recognize(request(clip), Duration::from_secs(30));
+                    // An empty padded round runs once more as captured, as
+                    // a whole take does (ADR 0081).
+                    if padded && recognized.as_ref().is_ok_and(|r| r.text.trim().is_empty()) {
+                        recognized = engine
+                            .recognize(request(pcm[start..].to_vec()), Duration::from_secs(30));
+                    }
+                    match recognized {
                         Ok(r) => {
                             let words = r.segments.into_iter().flat_map(|s| s.words);
                             held.rounds.absorb(&WINDOWS, until, shifted(words, from));
@@ -102,10 +110,12 @@ impl HeldRounds {
                         }
                     }
                     held.busy += now.elapsed();
-                    // A round that overran skips the rounds it missed.
-                    let missed = now.elapsed().as_millis() as u64 / WINDOWS.cadence_ms;
-                    held.skipped += missed as usize;
-                    next = (next + cadence).max(Instant::now());
+                    // A round that overran skips the cadence slots it missed.
+                    next += cadence;
+                    while next <= Instant::now() {
+                        next += cadence;
+                        held.skipped += 1;
+                    }
                 }
                 held
             })

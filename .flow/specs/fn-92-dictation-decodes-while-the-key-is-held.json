@@ -8,13 +8,107 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-92-dictation-decodes-while-the-key-is-held",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-92-dictation-decodes-while-the-key-is-held.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "17d8b3e0289ccc29c602552246cab30be21c594b1564ce1690d01821578766b3",
+      "backend": "codex",
+      "base_sha": "791554d1dea6243269f826c992a09c4ec91e9de1",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-279ca6a978f6b956b9b2e50d9b4e9622",
+            "classification": "introduced",
+            "findingId": "finding-279ca6a978f6b956b9b2e50d9b4e9622",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f550fa3fd4088d0b13164762bb5e8a06",
+            "classification": "introduced",
+            "findingId": "finding-f550fa3fd4088d0b13164762bb5e8a06",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-33694e406386d8780cc89036bd37afae",
+            "classification": "introduced",
+            "findingId": "finding-33694e406386d8780cc89036bd37afae",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-483f32728cf56246dfbdaa9f53499eb2",
+            "classification": "introduced",
+            "findingId": "finding-483f32728cf56246dfbdaa9f53499eb2",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-38481ccffc136dcebcea651eca3f57ae",
+            "classification": "introduced",
+            "findingId": "finding-38481ccffc136dcebcea651eca3f57ae",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8b1e47ac574f3d4e756e4b58a93a3557",
+            "classification": "introduced",
+            "findingId": "finding-8b1e47ac574f3d4e756e4b58a93a3557",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "63649635c73e57223d94160cc51056f99bf084db",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 5179,
+      "output_sha256": "d499ea48fb28e2433a4b71e267b241ebb170f734723d89c6d1b7e999173ff8c8",
+      "reservation_id": "6cf05862a1ce4dca8d64ee14353ed77e",
+      "round_consumed": true,
+      "scope": "impl:fn-92-dictation-decodes-while-the-key-is-held.1",
+      "superseded_by": null,
+      "task": "fn-92-dictation-decodes-while-the-key-is-held.1",
+      "timestamp": "2026-11-07T11:56:49.440753Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-92-dictation-decodes-while-the-key-is-held.1": 0
+  },
   "spec_path": ".flow/specs/fn-92-dictation-decodes-while-the-key-is-held.md",
   "status": "open",
   "title": "Dictation decodes while the key is held",
@@ -29,5 +123,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-07T09:57:48.981236Z"
+  "updated_at": "2026-11-07T11:56:49.444017Z"
 }

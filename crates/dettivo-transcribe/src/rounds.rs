@@ -11,7 +11,7 @@
 //! holds no audio and calls no engine: the session and the QA bench feed
 //! it the words their decodes returned.
 
-use dettivo_engine_proto::Word;
+use dettivo_engine_proto::{Segment, Word};
 
 /// The windows the rounds and the release decode.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -145,8 +145,9 @@ impl Rounds {
         let Some(round) = &self.last else {
             return Release::Whole;
         };
-        // A round this old could not keep up with the take.
-        if round.until_ms + w.horizon_ms < end_ms {
+        // A round this old could not keep up with the take, and one that
+        // heard audio the take was cut before holds words it never kept.
+        if round.until_ms + w.horizon_ms < end_ms || round.until_ms > end_ms {
             return Release::Whole;
         }
         if voiced_until_ms.is_some_and(|v| v <= round.until_ms) {
@@ -219,6 +220,39 @@ pub fn shifted(words: impl IntoIterator<Item = Word>, from_ms: u64) -> Vec<Word>
             x
         })
         .collect()
+}
+
+/// A pause longer than this starts a new segment, as in the Parakeet
+/// engine's own grouping (`align::segments`)...
+pub const SEGMENT_GAP_MS: u64 = 700;
+/// ...and so does a segment reaching this length.
+pub const SEGMENT_MAX_MS: u64 = 30_000;
+
+/// Stitched words grouped into segments at pauses and at the length cap,
+/// as the Parakeet engine groups a whole decode's words, so the output
+/// guards judge the same pieces.
+pub fn segments(words: &[Word]) -> Vec<Segment> {
+    let mut out: Vec<Segment> = Vec::new();
+    for word in words {
+        match out.last_mut() {
+            Some(last)
+                if word.start_ms.saturating_sub(last.end_ms) <= SEGMENT_GAP_MS
+                    && word.end_ms.saturating_sub(last.start_ms) <= SEGMENT_MAX_MS =>
+            {
+                last.end_ms = word.end_ms.max(last.end_ms);
+                last.text.push(' ');
+                last.text.push_str(&word.text);
+                last.words.push(word.clone());
+            }
+            _ => out.push(Segment {
+                start_ms: word.start_ms,
+                end_ms: word.end_ms,
+                text: word.text.clone(),
+                words: vec![word.clone()],
+            }),
+        }
+    }
+    out
 }
 
 /// The text of stitched words, joined as the engine joins stitched chunks.

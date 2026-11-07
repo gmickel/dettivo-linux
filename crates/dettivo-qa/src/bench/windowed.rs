@@ -128,11 +128,19 @@ fn decode(
     parakeet: bool,
 ) -> Result<(String, Vec<Word>), String> {
     let padded = dettivo_transcribe::pad_for_engine(pcm.to_vec(), parakeet, 16_000);
-    let result = engine.call(
-        "recognize",
-        json!({ "language": language, "prompt": null, "timestamps": true }),
-        Some(&padded),
-    )?;
+    let params = json!({ "language": language, "prompt": null, "timestamps": true });
+    let mut result = engine.call("recognize", params.clone(), Some(&padded))?;
+    // A padded clip that comes back empty runs once more as captured, as
+    // dictation does (ADR 0081).
+    if padded.len() != pcm.len()
+        && result["text"]
+            .as_str()
+            .unwrap_or_default()
+            .trim()
+            .is_empty()
+    {
+        result = engine.call("recognize", params, Some(pcm))?;
+    }
     let words: Vec<Word> = result["segments"]
         .as_array()
         .into_iter()

@@ -18,7 +18,7 @@ use dettivo_audio::{EndReason, Event};
 use super::check::SpeechCheck;
 use super::ending::{self, Early};
 use super::held::{Held, HeldRounds};
-use super::release::Ahead;
+use super::release::{Ahead, Ending};
 use super::{Worker, elapsed_ms};
 use crate::finish::{Exit, SharedState};
 use crate::source::Source;
@@ -85,8 +85,10 @@ impl Worker {
         // When the newest audio was captured, and when it arrived here.
         let (mut heard, mut arrived) = (None::<Instant>, started);
         let mut tail: Option<Tail> = None;
-        // Where a silent ending cut the take, at the release.
+        // Where a silent ending cut the take, at the release, and where its
+        // voice ended when the check said.
         let mut early_cut: Option<usize> = None;
+        let mut early_voiced: Option<u64> = None;
         // A tail shorter than one voice window has nothing to end early.
         let ends_early = self.policy.release_tail.as_micros() * SAMPLES_PER_SECOND / 1_000_000
             > VAD_WINDOW as u128;
@@ -145,8 +147,8 @@ impl Worker {
                         check: check.as_ref(),
                         tail_done,
                     };
-                    if let Some(end) = t.early.advance(heard_now, &mut fed) {
-                        early_cut = Some(end);
+                    if let Some((end, voiced)) = t.early.advance(heard_now, &mut fed) {
+                        (early_cut, early_voiced) = (Some(end), voiced);
                         break;
                     }
                     if tail_done {
@@ -229,10 +231,17 @@ impl Worker {
             }
         }
         let released = tail.as_ref().map_or_else(Instant::now, |t| t.seen);
+        src.stop();
         // Where the take ends is known once the tail is covered: the rounds
-        // end and their tail decode starts while the capture stops and the
-        // take is written. The release checks the take kept that length.
+        // end and their tail decode starts while the capture's stop is
+        // acknowledged and the take is written. The release checks the take
+        // kept that length.
         let held = rounds.and_then(HeldRounds::finish);
+        let ending = match (early_cut, early_voiced) {
+            (None, _) => Ending::Speech,
+            (Some(_), Some(voiced)) => Ending::VoicedUntil(voiced),
+            (Some(_), None) => Ending::Silent,
+        };
         let ahead = tail
             .as_ref()
             .filter(|_| ended.is_none())
@@ -242,8 +251,9 @@ impl Worker {
                     |end| end.min(cut_at(&stamps, t.until)),
                 )
             })
-            .and_then(|end| self.decode_ahead(&samples[..end.min(samples.len())], held.as_ref()));
-        src.stop();
+            .and_then(|end| {
+                self.decode_ahead(&samples[..end.min(samples.len())], held.as_ref(), ending)
+            });
         let deadline = Instant::now() + Duration::from_secs(2);
         while !terminal {
             let remaining = deadline.saturating_duration_since(Instant::now());

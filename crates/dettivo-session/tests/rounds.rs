@@ -23,6 +23,9 @@ struct Rounds {
     slow: Duration,
     backend: Backend,
     fail: AtomicBool,
+    /// A padded request that starts after the take's start (the release's
+    /// tail) comes back empty, as Parakeet v3 does for some (ADR 0081).
+    empty_padded_tail: AtomicBool,
     requests: Mutex<Vec<Vec<i16>>>,
 }
 
@@ -31,6 +34,7 @@ fn engine(slow: Duration, backend: Backend) -> Arc<Rounds> {
         slow,
         backend,
         fail: AtomicBool::new(false),
+        empty_padded_tail: AtomicBool::new(false),
         requests: Mutex::default(),
     })
 }
@@ -67,8 +71,20 @@ impl SttEngine for Rounds {
         if self.fail.load(Ordering::Relaxed) {
             return Err(EngineError::Busy);
         }
-        // A word in the middle of every whole second that holds audio.
         let pcm = &request.pcm;
+        if self.empty_padded_tail.load(Ordering::Relaxed)
+            && chunk_of(pcm[0]) > 0
+            && pcm.last() == Some(&0)
+        {
+            return Ok(RecognizeResult {
+                text: String::new(),
+                language: request.language,
+                segments: Vec::new(),
+                duration_ms: pcm.len() as u64 / 16,
+                backend: self.backend,
+            });
+        }
+        // A word in the middle of every whole second that holds audio.
         let words: Vec<Word> = (0..pcm.len() / 16_000)
             .filter(|s| pcm[s * 16_000 + 8_000] != 0)
             .map(|s| {
@@ -223,4 +239,31 @@ fn a_take_without_rounds_is_decoded_whole() {
         let expected = fail_rounds.then_some(ReleaseDecode::Whole);
         assert_eq!(timings(&rec).release_decode, expected);
     }
+}
+
+/// An empty padded tail runs once more as captured, so the take's last
+/// words are kept.
+#[test]
+fn an_empty_padded_tail_runs_once_more_as_captured() {
+    let (dir, rec, session, _, feed) = rig("unused");
+    let engine = engine(Duration::ZERO, Backend::Vulkan);
+    engine.empty_padded_tail.store(true, Ordering::Relaxed);
+    session
+        .start(
+            policy(dir.path(), false),
+            engine.clone(),
+            feed.clone(),
+            None,
+            Instant::now(),
+        )
+        .unwrap();
+    for chunk in &take(8) {
+        feed.send(Event::pcm(chunk.clone()));
+    }
+    std::thread::sleep(Duration::from_millis(1_700));
+    assert_eq!(session.stop().unwrap().text, words(8));
+    let requests = engine.requests.lock().unwrap();
+    let last = requests.last().unwrap();
+    assert_ne!(last.last(), Some(&0), "the retry carries no padding");
+    assert_eq!(timings(&rec).release_decode, Some(ReleaseDecode::Tail));
 }
