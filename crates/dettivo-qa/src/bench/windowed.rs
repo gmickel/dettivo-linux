@@ -163,8 +163,8 @@ fn decode(
 
 /// The take decoded in rounds: the rounds a held take of its length runs
 /// at the cadence, then the release. Rounds before the first that commits
-/// change nothing but the last round, so only the committing rounds and
-/// the last one run.
+/// change nothing but the last round the session keeps, so of those only
+/// the latest that heard words runs.
 fn windowed(
     engine: &mut EngineClient,
     w: &Windows,
@@ -174,15 +174,35 @@ fn windowed(
 ) -> Result<Vec<Windowed>, String> {
     let end = ms(pcm.len());
     let mut r = Rounds::default();
-    let last = (end - 1) / w.cadence_ms * w.cadence_ms;
-    let mut at = w.cadence_ms;
+    let c = w.cadence_ms;
+    let last = (end - 1) / c * c;
+    // Before the first commit every round decodes from the take's start,
+    // and the session keeps the latest one that heard words: walk back from
+    // the last such round until one does.
+    let first_commit = w.commit_after_ms.div_ceil(c) * c;
+    let mut at = if last < first_commit {
+        last
+    } else {
+        first_commit - c
+    };
+    while at >= c {
+        let (_, words) = decode(engine, span(pcm, 0, at), language, parakeet)?;
+        if !words.is_empty() {
+            r.absorb(w, at, words);
+            break;
+        }
+        at -= c;
+    }
+    // Every committing round runs; one that hears no words is skipped, as
+    // the session skips it.
+    let mut at = first_commit;
     while at <= last {
-        if at >= w.commit_after_ms || at == last {
-            let (from, until) = r.window(w, at);
-            let (_, words) = decode(engine, span(pcm, from, until), language, parakeet)?;
+        let (from, until) = r.window(w, at);
+        let (_, words) = decode(engine, span(pcm, from, until), language, parakeet)?;
+        if !words.is_empty() {
             r.absorb(w, until, rounds::shifted(words, from));
         }
-        at += w.cadence_ms;
+        at += c;
     }
     // The rounds are the same for every release window.
     let mut out = Vec::new();
