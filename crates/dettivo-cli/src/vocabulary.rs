@@ -22,7 +22,7 @@ const KEY: &str = "dictation.vocabulary";
 /// `dettivo vocabulary <what>`.
 #[derive(Debug, Subcommand)]
 pub enum VocabularyCmd {
-    /// Add a plain-text list to [dictation] vocabulary: one term per line, `term = spelling, spelling` for how it is misheard.
+    /// Add a plain-text list to dictation.vocabulary: one term per line, `term = spelling, spelling` for how it is misheard.
     Import {
         /// The list; blank lines and lines starting with # are skipped.
         file: PathBuf,

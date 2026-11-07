@@ -164,7 +164,7 @@ pub enum Command {
         #[command(subcommand)]
         what: polish::LlmCmd,
     },
-    /// Import a plain-text list of terms into [dictation] vocabulary through the daemon.
+    /// Import a plain-text list of terms into dictation.vocabulary through the daemon.
     Vocabulary {
         /// import.
         #[command(subcommand)]
