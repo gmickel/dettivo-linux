@@ -10,13 +10,12 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::OnceLock;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use dettivo_audio::takes::TakeWriter;
 use dettivo_speech::gate::{self, GateVerdict, VoiceDetector};
-use dettivo_speech::{EngineError, RecognizeRequest, SttEngine, prompt_terms, vocabulary_prompt};
+use dettivo_speech::{EngineError, SttEngine};
 
-use dettivo_core::config::vocabulary_schema;
 use dettivo_language::pipeline::{Mode, Settings};
 use dettivo_language::provider::LocalEngine;
 
@@ -28,7 +27,9 @@ use crate::{
 
 mod check;
 mod ending;
+mod held;
 mod record;
+mod release;
 use record::Recorded;
 
 pub(crate) fn elapsed_ms(since: Instant) -> u64 {
@@ -84,6 +85,7 @@ impl Worker {
             capture_ms,
             stopped,
             check,
+            rounds,
         } = match outcome {
             Ok(v) => v,
             Err(exit) => {
@@ -103,6 +105,7 @@ impl Worker {
             // The check ends before the slot frees: the voice process
             // holds one take's state, and the next take may start at once.
             drop(check);
+            drop(rounds);
             self.cleanup();
             finish_shared(
                 &shared,
@@ -121,14 +124,23 @@ impl Worker {
             Some("loading engine".into()),
         );
         let transcribe_started = Instant::now();
+        // The release waits for the round running, then takes the rounds,
+        // and starts their tail decode while the gate judges the take.
+        let held = rounds.and_then(held::HeldRounds::finish);
+        let ahead = self.decode_ahead(&samples, held.as_ref());
         // The voice pass ran during the take; the release runs only what
-        // it has not heard, or the whole take when it could not.
+        // it has not heard, or the whole take when it could not. With
+        // rounds, it also says where the take's voice ends (ADR 0102).
+        let mut voiced_until = None;
         let verdict = gate::judge_voice(
             &samples,
             self.policy.silence_dbfs,
             self.vad.as_deref().map(|vad| {
-                || match check.and_then(|c| c.finish(&samples)) {
-                    Some(ms) => Ok(ms),
+                || match check.and_then(|c| c.finish(&samples, held.is_some())) {
+                    Some((ms, voiced)) => {
+                        voiced_until = voiced;
+                        Ok(ms)
+                    }
                     None => vad.speech_ms(&samples),
                 }
             }),
@@ -159,40 +171,11 @@ impl Worker {
             );
             return;
         }
-        let terms = vocabulary_schema::terms(&self.policy.vocabulary);
-        // An echo of the prompt is only possible from an engine that took one.
-        let echo_terms = if self.engine.capabilities().supports_custom_vocabulary {
-            prompt_terms(&terms)
-        } else {
-            &[]
-        };
-        let parakeet = self.engine.provider() == "parakeet";
-        let request = |pcm| RecognizeRequest {
-            pcm,
-            language: self.policy.language.clone(),
-            prompt: vocabulary_prompt(&terms),
-            timestamps: true,
-            vocabulary: if parakeet {
-                crate::bias::vocabulary_bias(&self.policy.vocabulary, self.policy.vocabulary_boost)
-            } else {
-                crate::bias::checked_terms(echo_terms, &self.policy.vocabulary)
-            },
-        };
-        let padded = gate::pad_for_engine(samples.clone(), parakeet, gate::SAMPLE_RATE);
-        let was_padded = padded.len() != samples.len();
-        let timeout = Duration::from_secs(300);
-        let mut recognized = self.engine.recognize(request(padded), timeout);
-        // Padding never empties a take: Parakeet v3 reads some takes whole
-        // only without the added silence (ADR 0081), so those run once more as captured.
-        if was_padded
-            && recognized.as_ref().is_ok_and(|r| r.text.trim().is_empty())
-            && !self.cancel.load(Ordering::Relaxed)
-        {
-            recognized = self.engine.recognize(request(samples), timeout);
-        }
+        let echo_terms = self.echo_terms();
+        let (recognized, release_decode) = self.recognize_take(&samples, held, voiced_until, ahead);
         let recognized = recognized.map(|r| {
             (
-                dettivo_transcribe::guards::clean(&r, echo_terms),
+                dettivo_transcribe::guards::clean(&r, &echo_terms),
                 r.language,
             )
         });
@@ -295,6 +278,7 @@ impl Worker {
             } else {
                 0
             },
+            release_decode,
         };
         let transcript = Transcript {
             job_id: self.job_id.clone(),

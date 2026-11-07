@@ -15,6 +15,7 @@ pub mod interleave;
 pub mod job;
 pub mod live;
 pub mod merger;
+pub mod rounds;
 pub mod source;
 
 pub use dettivo_engine_proto::{Segment, Word};

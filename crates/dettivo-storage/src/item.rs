@@ -145,7 +145,7 @@ pub struct DictationItem {
 /// The stop-to-insert split in milliseconds, as the completion event
 /// reports it: draining the take, the engine's recognition, the
 /// inserter's call. Stop to insert is the sum of the three.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Timings {
     /// From the stop being observed to the take being final.
     pub capture_ms: u64,
@@ -153,6 +153,11 @@ pub struct Timings {
     pub transcribe_ms: u64,
     /// The inserter's call.
     pub insert_ms: u64,
+    /// How the release decoded a take decoded in rounds while it was held
+    /// (`tail`, `silence`, or `whole` when the rounds fell behind; ADR
+    /// 0102); absent for a take without rounds.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub release_decode: Option<String>,
 }
 
 impl Timings {

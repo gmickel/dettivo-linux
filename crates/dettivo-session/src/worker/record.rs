@@ -17,6 +17,7 @@ use dettivo_audio::{EndReason, Event};
 
 use super::check::SpeechCheck;
 use super::ending::{self, Early};
+use super::held::HeldRounds;
 use super::{Worker, elapsed_ms};
 use crate::finish::{Exit, SharedState};
 use crate::source::Source;
@@ -37,6 +38,8 @@ pub(super) struct Recorded {
     pub(super) stopped: Instant,
     /// The speech check that ran during the take, when the detector streams.
     pub(super) check: Option<SpeechCheck>,
+    /// The rounds that decoded the take while it was held (ADR 0102).
+    pub(super) rounds: Option<HeldRounds>,
 }
 
 /// The release tail once a stop was seen.
@@ -93,6 +96,9 @@ impl Worker {
         let mut detector = self.vad.as_deref();
         let mut check: Option<SpeechCheck> = None;
         let mut fed = 0;
+        // The rounds start with the check, for the same reason (ADR 0102).
+        let mut rounds: Option<HeldRounds> = None;
+        let (mut rounds_fed, mut rounds_decided) = (0, false);
         loop {
             if self.cancel.load(Ordering::Relaxed) {
                 return Ok(Recorded {
@@ -102,11 +108,15 @@ impl Worker {
                     capture_ms: 0,
                     stopped: Instant::now(),
                     check: None,
+                    rounds: None,
                 });
             }
             if tail.is_none() && self.stop.load(Ordering::Relaxed) {
                 let seen = Instant::now();
                 let released = self.released.get().copied().unwrap_or(seen);
+                if let Some(r) = &rounds {
+                    r.release();
+                }
                 tail = Some(Tail {
                     released,
                     until: released + self.policy.release_tail,
@@ -152,10 +162,11 @@ impl Worker {
                     // Audio that arrives after the stop is seen may be cut
                     // from the take, so the check runs it at the release.
                     if tail.is_none() {
-                        if check.is_none()
-                            && arrived >= qualifies
+                        let qualified = arrived >= qualifies
                             && !self.cancel.load(Ordering::Relaxed)
-                            && !self.tap_waiting(qualifies)
+                            && !self.tap_waiting(qualifies);
+                        if check.is_none()
+                            && qualified
                             && let Some(vad) = detector.take()
                         {
                             check = vad.stream().map(SpeechCheck::start);
@@ -163,6 +174,16 @@ impl Worker {
                         if let Some(c) = &check {
                             c.feed(&samples[fed..]);
                             fed = samples.len();
+                        }
+                        if !rounds_decided && qualified {
+                            rounds_decided = true;
+                            rounds = self
+                                .rounds_wanted()
+                                .then(|| HeldRounds::start(self.engine.clone(), self.request()));
+                        }
+                        if let Some(r) = &rounds {
+                            r.feed(&samples[rounds_fed..]);
+                            rounds_fed = samples.len();
                         }
                     }
                     let progress = (started.elapsed().as_secs_f64()
@@ -260,6 +281,7 @@ impl Worker {
             capture_ms: elapsed_ms(released),
             stopped: released,
             check,
+            rounds,
         })
     }
 }
