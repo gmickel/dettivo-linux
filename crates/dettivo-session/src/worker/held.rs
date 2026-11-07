@@ -106,6 +106,9 @@ impl HeldRounds {
                             held.skipped += 1;
                             break;
                         }
+                        // A round that heard no words even unpadded keeps the
+                        // last round's words, which a later release may need.
+                        Ok(r) if r.text.trim().is_empty() => held.skipped += 1,
                         Ok(r) => {
                             let words = r.segments.into_iter().flat_map(|s| s.words);
                             held.rounds.absorb(&WINDOWS, until, shifted(words, from));
