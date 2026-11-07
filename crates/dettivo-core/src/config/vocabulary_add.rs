@@ -10,7 +10,7 @@ use std::collections::HashMap;
 
 use dettivo_proto::methods::config::ValidationError;
 use serde_json::Value;
-use toml_edit::DocumentMut;
+use toml_edit::{Array, DocumentMut, Item, Table};
 
 use super::file_syntax;
 use super::validate::validate;
@@ -118,10 +118,7 @@ pub fn add(text: &str, entries: &[VocabularyEntry]) -> Result<Added, AddError> {
     let text = if added.is_empty() {
         text.to_string()
     } else {
-        let new: Vec<Value> = added
-            .iter()
-            .map(|&i| serde_json::to_value(&entries[i]).unwrap_or(Value::Null))
-            .collect();
+        let new: Vec<&VocabularyEntry> = added.iter().map(|&i| &entries[i]).collect();
         append(text, &new).map_err(AddError::Invalid)?
     };
     Ok(Added {
@@ -132,31 +129,51 @@ pub fn add(text: &str, entries: &[VocabularyEntry]) -> Result<Added, AddError> {
     })
 }
 
-/// `text` with `new` after the last entry of its vocabulary array, which
-/// keeps every entry it has as written; a file without the key gets it.
-fn append(text: &str, new: &[Value]) -> Result<String, ValidationError> {
+/// `text` with `new` after the last entry of its vocabulary, in the form
+/// the file writes it: an inline array or `[[dictation.vocabulary]]`
+/// tables. Every entry it has keeps its text; a file without the key gets
+/// it, and any other value is refused without a write.
+fn append(text: &str, new: &[&VocabularyEntry]) -> Result<String, ValidationError> {
     let invalid = |message: String| ValidationError {
         key: Some(KEY.to_string()),
         line: None,
         message,
     };
+    let not_a_list = || invalid(format!("{KEY}: not a list of entries"));
     let mut doc = text
         .parse::<DocumentMut>()
         .map_err(|e| invalid(e.message().to_string()))?;
-    let array = doc
+    let values = || {
+        new.iter()
+            .map(|e| serde_json::to_value(e).unwrap_or(Value::Null))
+            .collect::<Vec<_>>()
+    };
+    match doc
         .get_mut("dictation")
         .and_then(|d| d.get_mut("vocabulary"))
-        .and_then(|v| v.as_array_mut());
-    let Some(array) = array else {
-        return super::edit::set(text, KEY, &Value::Array(new.to_vec()));
-    };
-    let items =
-        file_syntax::list(new).ok_or_else(|| invalid(format!("{KEY}: not a list of entries")))?;
-    let old = array.clone();
-    for item in items.iter() {
-        array.push(item.clone());
+    {
+        None => return super::edit::set(text, KEY, &Value::Array(values())),
+        Some(Item::Value(toml_edit::Value::Array(array))) => {
+            let items = file_syntax::list(&values()).ok_or_else(not_a_list)?;
+            let old = array.clone();
+            for item in items.iter() {
+                array.push(item.clone());
+            }
+            file_syntax::keep_layout(&old, array);
+        }
+        Some(Item::ArrayOfTables(tables)) => {
+            for entry in new {
+                let mut table = Table::new();
+                table.insert("term", toml_edit::value(entry.term()));
+                if !entry.aliases().is_empty() {
+                    let spellings: Array = entry.aliases().iter().map(String::as_str).collect();
+                    table.insert("sounds_like", toml_edit::value(spellings));
+                }
+                tables.push(table);
+            }
+        }
+        Some(_) => return Err(not_a_list()),
     }
-    file_syntax::keep_layout(&old, array);
     let out = doc.to_string();
     validate(&out)?;
     Ok(out)

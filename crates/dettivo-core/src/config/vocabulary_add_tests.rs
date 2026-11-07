@@ -182,3 +182,60 @@ fn a_file_that_does_not_load_is_refused_as_it_is() {
         "{err:?}"
     );
 }
+
+#[test]
+fn a_vocabulary_of_tables_grows_by_tables_after_the_last() {
+    // `[[dictation.vocabulary]]` tables, a comment and a later table all
+    // stay as written; each new entry is a table after the last one.
+    let before = concat!(
+        "[dictation]\n",
+        "language = \"en\"\n",
+        "\n",
+        "# my words\n",
+        "[[dictation.vocabulary]]\n",
+        "term = \"Clef\" # the app\n",
+        "sounds_like = [\"cleff\"]\n",
+        "\n",
+        "[[dictation.vocabulary]]\n",
+        "term = \"Dettivo\"\n",
+        "\n",
+        "[daemon]\n",
+        "log_level = \"warn\"\n",
+    );
+    let out = add(
+        before,
+        &[
+            entry("clef", &[]),
+            entry("Hyprland", &[]),
+            entry("SapienXT", &["sapient x t"]),
+        ],
+    )
+    .unwrap();
+    assert_eq!(
+        out.text,
+        concat!(
+            "[dictation]\n",
+            "language = \"en\"\n",
+            "\n",
+            "# my words\n",
+            "[[dictation.vocabulary]]\n",
+            "term = \"Clef\" # the app\n",
+            "sounds_like = [\"cleff\"]\n",
+            "\n",
+            "[[dictation.vocabulary]]\n",
+            "term = \"Dettivo\"\n",
+            "\n",
+            "[[dictation.vocabulary]]\n",
+            "term = \"Hyprland\"\n",
+            "\n",
+            "[[dictation.vocabulary]]\n",
+            "term = \"SapienXT\"\n",
+            "sounds_like = [\"sapient x t\"]\n",
+            "\n",
+            "[daemon]\n",
+            "log_level = \"warn\"\n",
+        )
+    );
+    assert_eq!((out.added, out.entries), (vec![1, 2], 4));
+    validate(&out.text).unwrap();
+}
