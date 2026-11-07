@@ -244,3 +244,66 @@ fn a_vocabulary_of_tables_grows_by_tables_after_the_last() {
     assert_eq!((out.added, out.entries), (vec![1, 2], 4));
     validate(&out.text).unwrap();
 }
+
+#[test]
+fn a_term_added_to_tables_counts_as_the_table_it_loads_as() {
+    // Tables close to the budget, then terms that fit it as strings but
+    // not as the `{ term, sounds_like }` tables the file will load.
+    let spellings = vec!["x".repeat(160); MAX_ALIASES];
+    let mut base: Vec<VocabularyEntry> = Vec::new();
+    loop {
+        let next = VocabularyEntry::Entry {
+            term: format!("f{}", base.len()),
+            sounds_like: spellings.clone(),
+        };
+        base.push(next);
+        if json_len(&base) > MAX_VOCABULARY_BYTES - 1000 {
+            base.pop();
+            break;
+        }
+    }
+    let quoted: Vec<String> = spellings.iter().map(|s| format!("{s:?}")).collect();
+    let text: String = base
+        .iter()
+        .map(|e| {
+            format!(
+                "[[dictation.vocabulary]]\nterm = {:?}\nsounds_like = [{}]\n\n",
+                e.term(),
+                quoted.join(", ")
+            )
+        })
+        .collect();
+    let slack = MAX_VOCABULARY_BYTES - json_len(&base);
+    let imports: Vec<VocabularyEntry> = (0..slack / 63)
+        .map(|i| VocabularyEntry::Word(format!("w{i:059}")))
+        .collect();
+    let mut as_strings = base.clone();
+    as_strings.extend(imports.iter().cloned());
+    assert!(json_len(&as_strings) <= MAX_VOCABULARY_BYTES);
+    let mut loaded = base.clone();
+    let first = imports
+        .iter()
+        .position(|e| {
+            loaded.push(VocabularyEntry::Entry {
+                term: e.term().to_string(),
+                sounds_like: vec![],
+            });
+            json_len(&loaded) > MAX_VOCABULARY_BYTES
+        })
+        .expect("the tables overrun the budget");
+    let AddError::Refused(refused) = add(&text, &imports).unwrap_err() else {
+        panic!("refused");
+    };
+    let bytes = json_len(&loaded);
+    assert_eq!(
+        refused[0],
+        (
+            first,
+            format!(
+                "{:?} would take the vocabulary to {bytes} bytes; it holds at most {MAX_VOCABULARY_BYTES}",
+                imports[first].term()
+            )
+        )
+    );
+    assert_eq!(refused.len(), imports.len() - first);
+}

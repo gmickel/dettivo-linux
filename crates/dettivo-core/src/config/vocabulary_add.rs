@@ -62,6 +62,16 @@ fn written(text: &str) -> Vec<VocabularyEntry> {
         .unwrap_or_default()
 }
 
+/// Whether the file writes its vocabulary as `[[dictation.vocabulary]]`
+/// tables, where a new term on its own loads as a table too.
+fn writes_tables(text: &str) -> bool {
+    text.parse::<DocumentMut>().is_ok_and(|doc| {
+        doc.get("dictation")
+            .and_then(|d| d.get("vocabulary"))
+            .is_some_and(Item::is_array_of_tables)
+    })
+}
+
 fn json_len(value: &(impl serde::Serialize + ?Sized)) -> usize {
     serde_json::to_vec(value).map_or(usize::MAX, |json| json.len())
 }
@@ -83,13 +93,23 @@ pub fn add(text: &str, entries: &[VocabularyEntry]) -> Result<Added, AddError> {
             }
         }
     }
+    // Each new entry is counted in the form the file will load it.
+    let tables = writes_tables(text);
     let mut bytes = json_len(&list);
     let mut refused = Vec::new();
     for &index in &added {
         let entry = &entries[index];
         let term = entry.term();
-        bytes = bytes.saturating_add(json_len(entry) + usize::from(!list.is_empty()));
-        list.push(entry.clone());
+        let loaded = if tables {
+            VocabularyEntry::Entry {
+                term: term.to_string(),
+                sounds_like: entry.aliases().to_vec(),
+            }
+        } else {
+            entry.clone()
+        };
+        bytes = bytes.saturating_add(json_len(&loaded) + usize::from(!list.is_empty()));
+        list.push(loaded);
         let chars = term.chars().count();
         let aliases = entry.aliases().len();
         let why = if chars > MAX_TERM_CHARS {
