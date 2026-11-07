@@ -1,0 +1,48 @@
+{
+  "capabilities": {
+    "config.methods": [
+      "config.get",
+      "config.set",
+      "config.unset",
+      "config.validate",
+      "config.path",
+      "config.print_default",
+      "config.keys",
+      "config.vocabulary.add"
+    ]
+  },
+  "error": {
+    "error": {
+      "code": -32010,
+      "data": {
+        "app_code": "INVALID_PARAMS",
+        "details": {
+          "key": "dictation.vocabulary",
+          "refused": [
+            {
+              "index": 1,
+              "message": "\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\" is 65 characters; a term holds at most 64"
+            }
+          ]
+        },
+        "retryable": false
+      },
+      "message": "dictation.vocabulary: 1 entry breaks a limit; nothing was written"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+  },
+  "method": "config.vocabulary.add",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "config.vocabulary.add",
+    "params": {
+      "dry_run": true,
+      "entries": [
+        "Omarchy",
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ]
+    }
+  }
+}

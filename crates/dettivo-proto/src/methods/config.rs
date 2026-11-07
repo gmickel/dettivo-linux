@@ -170,6 +170,47 @@ pub struct PrintDefaultResult {
     pub text: String,
 }
 
+/// `config.vocabulary.add`: entries appended to `[dictation] vocabulary`
+/// in the file, under the daemon's edit lock. An entry whose term the
+/// vocabulary or an earlier entry already holds, in any case, is skipped;
+/// every entry the file already has stays as written. An entry that would
+/// break a limit refuses the whole call (`INVALID_PARAMS`, each such entry
+/// in `details.refused` as `{ index, message }`) and nothing is written.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VocabularyAddParams {
+    /// The entries, each a term or a `{ term, sounds_like }` table.
+    pub entries: Vec<Value>,
+    /// Report what would change and write nothing.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub dry_run: bool,
+}
+
+/// An entry of `config.vocabulary.add` that was skipped as a duplicate.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VocabularySkipped {
+    /// The entry's index in the request.
+    pub index: usize,
+    /// The earlier entry of the request it repeats; `None` when the
+    /// vocabulary already held the term.
+    pub repeats: Option<usize>,
+}
+
+/// Result of `config.vocabulary.add`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VocabularyAddResult {
+    /// The indices of the entries added (or that a dry run would add).
+    pub added: Vec<usize>,
+    /// The entries skipped as duplicates.
+    pub skipped: Vec<VocabularySkipped>,
+    /// How many entries the file's vocabulary holds after the call.
+    pub entries: usize,
+    /// Whether the file was written.
+    pub written: bool,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

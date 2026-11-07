@@ -187,6 +187,7 @@ pub fn resolve(method: &str) -> Option<Handler> {
             let _: dettivo_proto::catalog::NoParams = params(value)?;
             config::keys()
         },
+        "config.vocabulary.add" => |daemon, _ctx, value| config::vocabulary_add(daemon, value),
         "speech.engines" => |daemon, _ctx, value| {
             let _: dettivo_proto::catalog::NoParams = params(value)?;
             speech::engines(daemon)

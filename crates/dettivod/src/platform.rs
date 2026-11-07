@@ -216,7 +216,7 @@ mod tests {
         assert_eq!(back.auth.ipc_mode, IpcMode::PeerToken);
         assert!(back.rest.enabled);
         assert_eq!(back.rest.port, 45_831);
-        assert_eq!(back.config.methods.len(), 7);
+        assert_eq!(back.config.methods.len(), 8);
         assert_eq!(
             back.insert.methods,
             ["insert.undo", "insert.target", "insert.allow_self_target"]

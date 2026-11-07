@@ -100,13 +100,19 @@ pub fn terms(entries: &[VocabularyEntry]) -> Vec<String> {
     entries.iter().map(|e| e.term().to_string()).collect()
 }
 
+/// What two terms are compared by: the same key is the same term,
+/// whatever its case.
+pub fn term_key(term: &str) -> String {
+    term.to_lowercase()
+}
+
 /// `entries` without a later entry whose term matches an earlier one
 /// regardless of case: the first spelling wins.
 pub fn dedup(entries: Vec<VocabularyEntry>) -> Vec<VocabularyEntry> {
     let mut seen = std::collections::HashSet::new();
     entries
         .into_iter()
-        .filter(|e| seen.insert(e.term().to_lowercase()))
+        .filter(|e| seen.insert(term_key(e.term())))
         .collect()
 }
 
