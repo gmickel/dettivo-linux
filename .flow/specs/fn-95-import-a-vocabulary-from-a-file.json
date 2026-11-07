@@ -132,7 +132,7 @@
     "impl:fn-95-import-a-vocabulary-from-a-file.1": 0
   },
   "spec_path": ".flow/specs/fn-95-import-a-vocabulary-from-a-file.md",
-  "status": "open",
+  "status": "done",
   "title": "Import a vocabulary from a file",
   "tracker": {
     "baseHashFlow": null,
@@ -145,5 +145,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-06T23:58:12.110311Z"
+  "updated_at": "2026-11-07T00:29:21.220065Z"
 }
