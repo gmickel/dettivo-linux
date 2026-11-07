@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-92-dictation-decodes-while-the-key-is-held",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-07T12:11:10.423777Z",
   "created_at": "2026-11-05T23:44:04.154404Z",
   "default_impl": null,
   "default_review": null,
@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-92-dictation-decodes-while-the-key-is-held",
   "impl_review_rounds": {
-    "fn-92-dictation-decodes-while-the-key-is-held.1": 1
+    "fn-92-dictation-decodes-while-the-key-is-held.1": 0
   },
   "next_task": 1,
   "no_plan": true,
@@ -101,9 +101,103 @@
       "task": "fn-92-dictation-decodes-while-the-key-is-held.1",
       "timestamp": "2026-11-07T11:56:49.440753Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "6a40ed967d39286cb2af9980644c2bb231d4442fbddb4b7c55a3f6a8e5012b52",
+      "backend": "codex",
+      "base_sha": "791554d1dea6243269f826c992a09c4ec91e9de1",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-279ca6a978f6b956b9b2e50d9b4e9622",
+            "classification": "introduced",
+            "findingId": "finding-279ca6a978f6b956b9b2e50d9b4e9622",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f550fa3fd4088d0b13164762bb5e8a06",
+            "classification": "introduced",
+            "findingId": "finding-f550fa3fd4088d0b13164762bb5e8a06",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-33694e406386d8780cc89036bd37afae",
+            "classification": "introduced",
+            "findingId": "finding-33694e406386d8780cc89036bd37afae",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-483f32728cf56246dfbdaa9f53499eb2",
+            "classification": "introduced",
+            "findingId": "finding-483f32728cf56246dfbdaa9f53499eb2",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-38481ccffc136dcebcea651eca3f57ae",
+            "classification": "introduced",
+            "findingId": "finding-38481ccffc136dcebcea651eca3f57ae",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-8b1e47ac574f3d4e756e4b58a93a3557",
+            "classification": "introduced",
+            "findingId": "finding-8b1e47ac574f3d4e756e4b58a93a3557",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-eb4bd4a427c7eafaae674379c0b62e9a",
+            "classification": "introduced",
+            "findingId": "finding-eb4bd4a427c7eafaae674379c0b62e9a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6da7adc013c19f80b6edb69b7405567ee5883f77",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2347,
+      "output_sha256": "381cfdb371ea6c7ded8c8b4e1f04e481796057158f2ffbcad52f5ac29c636d31",
+      "reservation_id": "e65a587f24df452d8e55f345811257f1",
+      "round_consumed": true,
+      "scope": "impl:fn-92-dictation-decodes-while-the-key-is-held.1",
+      "superseded_by": null,
+      "task": "fn-92-dictation-decodes-while-the-key-is-held.1",
+      "timestamp": "2026-11-07T12:10:44.520641Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-92-dictation-decodes-while-the-key-is-held.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -123,5 +217,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-07T11:56:49.444017Z"
+  "updated_at": "2026-11-07T12:11:10.423783Z"
 }
