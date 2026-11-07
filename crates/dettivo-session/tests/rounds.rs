@@ -26,6 +26,11 @@ struct Rounds {
     /// A padded request that starts after the take's start (the release's
     /// tail) comes back empty, as Parakeet v3 does for some (ADR 0081).
     empty_padded_tail: AtomicBool,
+    /// Every request that starts after the take's start comes back empty.
+    empty_tail: AtomicBool,
+    /// Each answer reports the CPU, as Parakeet does after moving itself
+    /// there for want of GPU memory.
+    answers_cpu: AtomicBool,
     requests: Mutex<Vec<Vec<i16>>>,
 }
 
@@ -35,6 +40,8 @@ fn engine(slow: Duration, backend: Backend) -> Arc<Rounds> {
         backend,
         fail: AtomicBool::new(false),
         empty_padded_tail: AtomicBool::new(false),
+        empty_tail: AtomicBool::new(false),
+        answers_cpu: AtomicBool::new(false),
         requests: Mutex::default(),
     })
 }
@@ -72,16 +79,21 @@ impl SttEngine for Rounds {
             return Err(EngineError::Busy);
         }
         let pcm = &request.pcm;
-        if self.empty_padded_tail.load(Ordering::Relaxed)
-            && chunk_of(pcm[0]) > 0
-            && pcm.last() == Some(&0)
+        let tail = chunk_of(pcm[0]) > 0;
+        let backend = if self.answers_cpu.load(Ordering::Relaxed) {
+            Backend::Cpu
+        } else {
+            self.backend
+        };
+        if (self.empty_padded_tail.load(Ordering::Relaxed) && tail && pcm.last() == Some(&0))
+            || (self.empty_tail.load(Ordering::Relaxed) && tail)
         {
             return Ok(RecognizeResult {
                 text: String::new(),
                 language: request.language,
                 segments: Vec::new(),
                 duration_ms: pcm.len() as u64 / 16,
-                backend: self.backend,
+                backend,
             });
         }
         // A word in the middle of every whole second that holds audio.
@@ -112,7 +124,7 @@ impl SttEngine for Rounds {
                 words,
             }],
             duration_ms: pcm.len() as u64 / 16,
-            backend: self.backend,
+            backend,
         })
     }
     fn cancel(&self) {}
@@ -266,4 +278,47 @@ fn an_empty_padded_tail_runs_once_more_as_captured() {
     let last = requests.last().unwrap();
     assert_ne!(last.last(), Some(&0), "the retry carries no padding");
     assert_eq!(timings(&rec).release_decode, Some(ReleaseDecode::Tail));
+}
+
+/// A take whose rounds cannot finish it decodes whole, and History says so:
+/// a tail that stays empty, or an engine that moved itself to the CPU.
+#[test]
+fn a_take_the_rounds_cannot_finish_decodes_whole() {
+    for case in ["empty tail", "moved to the CPU"] {
+        let (dir, rec, session, _, feed) = rig("unused");
+        let engine = engine(Duration::ZERO, Backend::Vulkan);
+        match case {
+            "empty tail" => engine.empty_tail.store(true, Ordering::Relaxed),
+            _ => engine.answers_cpu.store(true, Ordering::Relaxed),
+        }
+        session
+            .start(
+                policy(dir.path(), false),
+                engine.clone(),
+                feed.clone(),
+                None,
+                Instant::now(),
+            )
+            .unwrap();
+        let chunks = take(8);
+        for chunk in &chunks {
+            feed.send(Event::pcm(chunk.clone()));
+        }
+        std::thread::sleep(Duration::from_millis(3_300));
+        assert_eq!(session.stop().unwrap().text, words(8), "{case}");
+        let requests = engine.requests.lock().unwrap();
+        assert_eq!(
+            unpadded(requests.last().unwrap()),
+            &chunks.concat()[..],
+            "{case}"
+        );
+        if case != "empty tail" {
+            assert_eq!(requests.len(), 2, "one round, then the whole take");
+        }
+        assert_eq!(
+            timings(&rec).release_decode,
+            Some(ReleaseDecode::Whole),
+            "{case}"
+        );
+    }
 }

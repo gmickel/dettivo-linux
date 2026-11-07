@@ -31,16 +31,16 @@ How long a Parakeet dictation's text takes after the release, and what its words
 
 ### Method
 
-`dettivo-qa bench windowed` (docs/qa.md) joined the first 400 FLEURS test utterances of English and German, as `scripts/qa/fetch-fleurs.sh` prepares them, in manifest order into takes of at least 30, 60 and 120 s. Each take was transcribed whole, padded as dictation pads a take, and in rounds through `dettivo_transcribe::rounds`: the rounds a held take of that length runs at the 1.5 s cadence, then the release with dictation's 4 s window and with the published scheme's 8 s window, both after the same rounds. The rate is the corpus word error rate over FLEURS's normalised transcription. The interval is a 95% paired bootstrap of the windowed rate minus the whole rate, resampling takes, 10,000 times. Every take decoded its tail, because the bench does not simulate the speech check's silence shortcut. The run predates the second pass that fn-92's review added for a padded clip that comes back empty; none of the run's whole decodes came back empty. Each utterance appears once per take length, so the pooled row counts each utterance three times and its interval is narrower than three independent sets would give.
+`dettivo-qa bench windowed` (docs/qa.md) joined the first 400 FLEURS test utterances of English and German, as `scripts/qa/fetch-fleurs.sh` prepares them, in manifest order into takes of at least 30, 60 and 120 s. Each take was transcribed whole, padded as dictation pads a take, and in rounds through `dettivo_transcribe::rounds`: the rounds a held take of that length runs at the 1.5 s cadence, then the release with dictation's 4 s window and with the published scheme's 8 s window, both after the same rounds. The rate is the corpus word error rate over FLEURS's normalised transcription. The interval is a 95% paired bootstrap of the windowed rate minus the whole rate, 10,000 resamples. Takes of one length are disjoint audio, so the per-length interval resamples takes. Each utterance appears once per length, so the pooled interval resamples blocks of source audio instead: each 120 s take with every shorter take whose first utterance lies inside it, 31 English and 42 German blocks. The pooled intervals below come from the per-take rows in the JSON, computed that way after the run. Every take decoded its tail, because the bench does not simulate the speech check's silence shortcut. The run predates the second pass that fn-92's review added for a padded clip that comes back empty; none of the run's whole decodes came back empty. 
 
 ### Parakeet, the shipped 4 s window
 
 | Model, language | Takes (30 / 60 / 120 s) | Whole WER | Windowed WER | Difference | 95% CI |
 | --- | --- | --- | --- | --- | --- |
-| Ultra, en | 111 / 59 / 31 | 0.0571 | 0.0552 | -0.0019 | -0.0035 to -0.0005 |
-| Ultra, de | 139 / 79 / 41 | 0.0469 | 0.0453 | -0.0016 | -0.0028 to -0.0004 |
-| v3, en | 111 / 59 / 31 | 0.2213 | 0.1342 | -0.0871 | -0.1079 to -0.0681 |
-| v3, de | 139 / 79 / 41 | 0.0938 | 0.0726 | -0.0212 | -0.0330 to -0.0104 |
+| Ultra, en | 111 / 59 / 31 | 0.0571 | 0.0552 | -0.0019 | -0.0037 to -0.0003 |
+| Ultra, de | 139 / 79 / 41 | 0.0469 | 0.0453 | -0.0016 | -0.0029 to -0.0003 |
+| v3, en | 111 / 59 / 31 | 0.2213 | 0.1342 | -0.0871 | -0.1094 to -0.0665 |
+| v3, de | 139 / 79 / 41 | 0.0938 | 0.0726 | -0.0212 | -0.0337 to -0.0099 |
 
 Per take length:
 
@@ -61,9 +61,9 @@ The Whisper run used `--quick`, the first 100 utterances of each language, and w
 
 | Language, window | Takes | Whole WER | Windowed WER | Difference | 95% CI |
 | --- | --- | --- | --- | --- | --- |
-| en, 4 s | 49 (28 / 14 / 7) | 0.0919 | 0.1268 | +0.0349 | -0.0037 to +0.0755 |
-| en, 8 s | 49 | 0.0919 | 0.1300 | +0.0381 | -0.0015 to +0.0796 |
-| de, 4 s | 60 (38 / 22 / 0) | 0.0527 | 0.0510 | -0.0017 | -0.0052 to +0.0019 |
-| de, 8 s | 60 | 0.0527 | 0.0436 | -0.0091 | -0.0184 to -0.0027 |
+| en, 4 s | 49 (28 / 14 / 7) | 0.0919 | 0.1268 | +0.0349 | -0.0058 to +0.0747 |
+| en, 8 s | 49 | 0.0919 | 0.1300 | +0.0381 | -0.0035 to +0.0803 |
+| de, 4 s | 60 (38 / 22 / 0) | 0.0527 | 0.0510 | -0.0017 | -0.0057 to +0.0023 |
+| de, 8 s | 60 | 0.0527 | 0.0436 | -0.0091 | -0.0190 to -0.0029 |
 
 The English 120 s takes carry most of it: +0.1001 at 4 s over 7 takes, with whole 0.1061 against windowed 0.2062.

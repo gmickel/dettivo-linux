@@ -132,7 +132,9 @@ impl Worker {
             &samples,
             self.policy.silence_dbfs,
             self.vad.as_deref().map(|vad| {
-                || match check.and_then(|c| c.finish(&samples, held.is_some())) {
+                || match check.and_then(|c| {
+                    c.finish(&samples, held.is_some().then_some(self.policy.silence_dbfs))
+                }) {
                     Some((ms, voiced)) => {
                         voiced_until = voiced;
                         Ok(ms)

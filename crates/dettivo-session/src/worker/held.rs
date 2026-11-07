@@ -13,6 +13,7 @@ use std::sync::mpsc::{self, RecvTimeoutError, Sender};
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
+use dettivo_engine_proto::Backend;
 use dettivo_speech::gate::{SAMPLE_RATE, pad_for_engine};
 use dettivo_speech::{RecognizeRequest, SttEngine};
 use dettivo_transcribe::rounds::{Rounds, WINDOWS, shifted};
@@ -97,6 +98,14 @@ impl HeldRounds {
                             .recognize(request(pcm[start..].to_vec()), Duration::from_secs(30));
                     }
                     match recognized {
+                        // Parakeet moved itself to the CPU: rounds there spend
+                        // more than they save, so the take decodes whole.
+                        Ok(r) if r.backend == Backend::Cpu => {
+                            tracing::info!("dictation rounds stop: the engine moved to the CPU");
+                            held.rounds = Rounds::default();
+                            held.skipped += 1;
+                            break;
+                        }
                         Ok(r) => {
                             let words = r.segments.into_iter().flat_map(|s| s.words);
                             held.rounds.absorb(&WINDOWS, until, shifted(words, from));

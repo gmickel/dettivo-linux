@@ -106,6 +106,10 @@ impl Worker {
         let (mut rounds_fed, mut rounds_decided) = (0, false);
         loop {
             if self.cancel.load(Ordering::Relaxed) {
+                // The capture stops before a running round is waited for.
+                if rounds.is_some() {
+                    src.stop();
+                }
                 return Ok(Recorded {
                     samples,
                     duration_ms: 0,

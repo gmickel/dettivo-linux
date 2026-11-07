@@ -51,6 +51,9 @@ pub struct TakeRow {
     pub tail_ms: u64,
     /// The take's place among the takes of that length.
     pub index: usize,
+    /// The 120 s take that holds this take's first utterance: takes of
+    /// every length share audio, so the pooled interval resamples these.
+    pub cluster: usize,
     /// The take's length.
     pub audio_ms: u64,
     /// Reference words.
@@ -96,15 +99,19 @@ pub struct Summary {
 
 /// Utterances joined into takes of at least `take_s`: their samples and
 /// their joined reference.
-fn takes(items: &[(Vec<i16>, String)], take_s: u64) -> Vec<(Vec<i16>, String)> {
+/// A take: its samples, its joined reference and its first utterance.
+type Take = (Vec<i16>, String, usize);
+
+fn takes(items: &[(Vec<i16>, String)], take_s: u64) -> Vec<Take> {
     let mut out = Vec::new();
-    let (mut pcm, mut text) = (Vec::new(), Vec::new());
-    for (clip, reference) in items {
+    let (mut pcm, mut text, mut first) = (Vec::new(), Vec::new(), 0);
+    for (i, (clip, reference)) in items.iter().enumerate() {
         pcm.extend_from_slice(clip);
         text.push(reference.as_str());
         if pcm.len() as u64 >= take_s * 16_000 {
-            out.push((std::mem::take(&mut pcm), text.join(" ")));
+            out.push((std::mem::take(&mut pcm), text.join(" "), first));
             text.clear();
+            first = i + 1;
         }
     }
     out
@@ -184,14 +191,15 @@ fn windowed(
         out.push(match r.release(&w, end, None) {
             Release::Tail { from_ms, cut_ms } => {
                 let (_, words) = decode(engine, span(pcm, from_ms, end), language, parakeet)?;
-                let all = r.stitch(cut_ms, rounds::shifted(words, from_ms));
-                (
-                    tail_ms,
-                    rounds::text(&all),
-                    "tail",
-                    end - from_ms,
-                    r.committed(),
-                )
+                // An empty tail decodes the whole take, as dictation does.
+                if words.is_empty() {
+                    let (text, _) = decode(engine, pcm, language, parakeet)?;
+                    (tail_ms, text, "whole", end, 0)
+                } else {
+                    let all = r.stitch(cut_ms, rounds::shifted(words, from_ms));
+                    let text = rounds::text(&all);
+                    (tail_ms, text, "tail", end - from_ms, r.committed())
+                }
             }
             Release::Reuse(all) => (tail_ms, rounds::text(&all), "reuse", 0, r.committed()),
             Release::Whole => {
@@ -208,8 +216,17 @@ fn errors(reference: &[String], text: &str) -> usize {
 }
 
 /// A 95% paired bootstrap interval of the windowed rate minus the whole
-/// rate, resampling takes.
-pub fn bootstrap(rows: &[&TakeRow], resamples: usize) -> (f64, f64) {
+/// rate, resampling the groups `group` assigns, each with all its takes.
+pub fn bootstrap(
+    rows: &[&TakeRow],
+    group: impl Fn(&TakeRow) -> usize,
+    resamples: usize,
+) -> (f64, f64) {
+    let mut groups: std::collections::BTreeMap<usize, Vec<&TakeRow>> = Default::default();
+    for row in rows {
+        groups.entry(group(row)).or_default().push(row);
+    }
+    let groups: Vec<Vec<&TakeRow>> = groups.into_values().collect();
     let mut seed: u64 = 0x9e37_79b9_7f4a_7c15;
     let mut next = || {
         seed ^= seed << 13;
@@ -220,10 +237,11 @@ pub fn bootstrap(rows: &[&TakeRow], resamples: usize) -> (f64, f64) {
     let mut diffs: Vec<f64> = (0..resamples)
         .map(|_| {
             let (mut refs, mut d) = (0i64, 0i64);
-            for _ in 0..rows.len() {
-                let row = rows[(next() % rows.len() as u64) as usize];
-                refs += row.reference_words as i64;
-                d += row.windowed_errors as i64 - row.whole_errors as i64;
+            for _ in 0..groups.len() {
+                for row in &groups[(next() % groups.len() as u64) as usize] {
+                    refs += row.reference_words as i64;
+                    d += row.windowed_errors as i64 - row.whole_errors as i64;
+                }
             }
             d as f64 / refs.max(1) as f64
         })
@@ -237,7 +255,11 @@ fn summary(rows: &[&TakeRow], take_s: Option<u64>) -> Summary {
     let refs: usize = rows.iter().map(|r| r.reference_words).sum();
     let whole: usize = rows.iter().map(|r| r.whole_errors).sum();
     let win: usize = rows.iter().map(|r| r.windowed_errors).sum();
-    let (lo, hi) = bootstrap(rows, RESAMPLES);
+    // Takes of one length are disjoint audio; across lengths they share it.
+    let (lo, hi) = match take_s {
+        Some(_) => bootstrap(rows, |r| r.index, RESAMPLES),
+        None => bootstrap(rows, |r| r.cluster, RESAMPLES),
+    };
     let rate = |e: usize| e as f64 / refs.max(1) as f64;
     Summary {
         model: rows[0].model.clone(),
@@ -299,8 +321,13 @@ fn run(opts: &Options) -> Result<Vec<Summary>, String> {
                 items.truncate(100);
             }
             let mut rows = Vec::new();
+            // The first utterance of each 120 s take: the pooled interval's clusters.
+            let long: Vec<usize> = takes(&items, 120).into_iter().map(|t| t.2).collect();
             for take_s in TAKES_S {
-                for (index, (pcm, reference)) in takes(&items, take_s).into_iter().enumerate() {
+                for (index, (pcm, reference, first)) in
+                    takes(&items, take_s).into_iter().enumerate()
+                {
+                    let cluster = long.partition_point(|&f| f <= first).saturating_sub(1);
                     let reference = words(&reference);
                     let (whole, _) = decode(&mut engine, &pcm, language, parakeet)?;
                     let whole_errors = errors(&reference, &whole);
@@ -313,6 +340,7 @@ fn run(opts: &Options) -> Result<Vec<Summary>, String> {
                             take_s,
                             tail_ms,
                             index,
+                            cluster,
                             audio_ms: ms(pcm.len()),
                             reference_words: reference.len(),
                             whole_errors,

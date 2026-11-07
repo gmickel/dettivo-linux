@@ -11,7 +11,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::thread::JoinHandle;
 
-use dettivo_speech::gate::SpeechStream;
+use dettivo_speech::gate::{SAMPLE_RATE, SpeechStream, VAD_WINDOW, loudest_window_dbfs};
 
 /// What the check thread ran.
 struct Fed {
@@ -103,10 +103,16 @@ impl SpeechCheck {
 
     /// The milliseconds of speech in `take`, the final take, from what the
     /// check ran and the rest; `None` when the check cannot answer (it
-    /// failed, or ran samples the take was cut before). With `voiced`, also
-    /// where the take's last voiced window ends, in samples, when the
-    /// stream can say (the rounds' release, ADR 0102).
-    pub(crate) fn finish(mut self, take: &[i16], voiced: bool) -> Option<(u64, Option<u64>)> {
+    /// failed, or ran samples the take was cut before). With `voiced` (the
+    /// take's silence floor), also where the take's last voiced window ends,
+    /// in samples, when the stream can say (the rounds' release, ADR 0102).
+    /// The stream names whole windows only, so a take whose last window
+    /// reaches the floor counts as voiced to its end.
+    pub(crate) fn finish(
+        mut self,
+        take: &[i16],
+        voiced: Option<f32>,
+    ) -> Option<(u64, Option<u64>)> {
         self.finishing.store(true, Ordering::Relaxed);
         self.tx = None;
         let mut fed = self.thread.take()?.join().ok()?;
@@ -119,10 +125,13 @@ impl SpeechCheck {
             rest = rest.len(),
             "speech check finishing"
         );
-        let finished = if voiced {
-            fed.stream
-                .feed_voiced(rest)
-                .and_then(|v| Ok((fed.stream.finish(&[])?, v)))
+        let finished = if let Some(floor) = voiced {
+            let last = &take[take.len().saturating_sub(VAD_WINDOW)..];
+            let sounding = loudest_window_dbfs(last, SAMPLE_RATE).is_some_and(|db| db >= floor);
+            fed.stream.feed_voiced(rest).and_then(|v| {
+                let v = if sounding { Some(take.len() as u64) } else { v };
+                Ok((fed.stream.finish(&[])?, v))
+            })
         } else {
             fed.stream.finish(rest).map(|ms| (ms, None))
         };

@@ -194,14 +194,19 @@ impl Worker {
                     }
                     other => other,
                 };
-                Some((
-                    tail.map(|r| {
-                        let words = r.segments.into_iter().flat_map(|s| s.words);
-                        let all = held.rounds.stitch(cut_ms, rounds::shifted(words, from_ms));
-                        result_of(all, r.language, end_ms, r.backend)
-                    }),
-                    ReleaseDecode::Tail,
-                ))
+                // A tail that stays empty decodes the whole take, so the
+                // rounds never drop the take's last words.
+                match tail {
+                    Ok(r) if r.text.trim().is_empty() => None,
+                    tail => Some((
+                        tail.map(|r| {
+                            let words = r.segments.into_iter().flat_map(|s| s.words);
+                            let all = held.rounds.stitch(cut_ms, rounds::shifted(words, from_ms));
+                            result_of(all, r.language, end_ms, r.backend)
+                        }),
+                        ReleaseDecode::Tail,
+                    )),
+                }
             }
             Release::Whole => None,
         };

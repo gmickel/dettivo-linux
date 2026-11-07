@@ -256,7 +256,7 @@ With the vocabulary on, Whisper gets the terms as its `--prompt`, built the way 
 dettivo-qa bench windowed --languages DIR --engines DIR [--step MODEL] [--quick] [--out DIR]
 ```
 
-Each take's word errors, whole and in rounds, land in `windowed-takes.jsonl` in the `--out` directory as they are measured, and `windowed-summary.json` beside it gives each model, language and release window the corpus rates and a 95% paired bootstrap interval of their difference over takes (10,000 resamples). The speech check's silence shortcut is not simulated: every take decodes its tail.
+Each take's word errors, whole and in rounds, land in `windowed-takes.jsonl` in the `--out` directory as they are measured, and `windowed-summary.json` beside it gives each model, language and release window the corpus rates and a 95% paired bootstrap interval of their difference (10,000 resamples): over takes for one length, and over blocks of source audio for all lengths together, each 120 s take with the shorter takes that start inside it, since every length reuses the same utterances. The speech check's silence shortcut is not simulated: every take decodes its tail.
 
 ## Speaker accuracy
 
