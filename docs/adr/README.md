@@ -107,6 +107,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0099](0099-the-live-hyprland-instance-is-found-again-on-every-refused-connection.md) | The live Hyprland instance is found again on every refused connection, matched by the session's Wayland display | Accepted 2026-11-02 |
 | [0100](0100-every-compositor-connection-comes-back-after-a-compositor-restart.md) | Every compositor connection comes back after a compositor restart, the portal shortcuts included | Accepted 2026-11-02 |
 | [0101](0101-a-vocabulary-import-is-appended-by-the-daemon-under-its-edit-lock.md) | A vocabulary import is appended by the daemon under its edit lock | Accepted 2026-11-07 |
+| [0102](0102-dictation-decodes-in-rounds-while-the-key-is-held.md) | Dictation decodes in rounds while the key is held, so the release transcribes only the last seconds of a Parakeet take | Accepted 2026-11-07, amends 0094 |
 
 ## Writing a record
 

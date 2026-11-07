@@ -1,6 +1,6 @@
 # 0094. Streaming dictation meets its gate at 120 s and not at 30 s or 60 s
 
-Status: Accepted 2026-11-02 by Gordon Mickel. Records fn-86's measurement gate (R1) and closes fn-86 without streaming; fn-90 takes on the two-minute miss.
+Status: Accepted 2026-11-02 by Gordon Mickel. Records fn-86's measurement gate (R1) and closes fn-86 without streaming; fn-90 takes on the two-minute miss. Amended by 0102 (dictation decodes in rounds while the key is held).
 
 ## What this gives you
 
