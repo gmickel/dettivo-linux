@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-96-vocabulary-suggests-its-own-sound-alikes",
   "spec_path": ".flow/tasks/fn-96-vocabulary-suggests-its-own-sound-alikes.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Vocabulary suggests its own sound-alikes",
   "updated_at": "2026-11-08T07:38:09.994905Z"
 }

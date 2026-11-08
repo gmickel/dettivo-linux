@@ -98,7 +98,7 @@
     "impl:fn-96-vocabulary-suggests-its-own-sound-alikes.1": 0
   },
   "spec_path": ".flow/specs/fn-96-vocabulary-suggests-its-own-sound-alikes.md",
-  "status": "open",
+  "status": "done",
   "title": "Vocabulary suggests its own sound-alikes",
   "tracker": {
     "baseHashFlow": null,
@@ -111,5 +111,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-08T08:26:06.568222Z"
+  "updated_at": "2026-11-08T08:26:50.767764Z"
 }
