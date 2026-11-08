@@ -110,6 +110,7 @@ Records from the v1 build cite "the masterplan" and requirement IDs such as FR-U
 | [0102](0102-dictation-decodes-in-rounds-while-the-key-is-held.md) | Dictation decodes in rounds while the key is held, so the release transcribes only the last seconds of a Parakeet take | Accepted 2026-11-07, amends 0094 |
 | [0103](0103-enhanced-rejects-a-rewrite-of-implausible-length-and-stops-at-an-output-budget.md) | Enhanced rejects a rewrite of implausible length and stops a local generation at an output budget | Accepted 2026-11-08 |
 | [0104](0104-vocabulary-suggest-proposes-what-the-engine-hears-where-the-vocabulary-misses.md) | Vocabulary suggest proposes what the engine hears where the vocabulary misses | Accepted 2026-11-08 |
+| [0105](0105-build-sources-are-fetched-with-the-job-token-and-cached-by-checksum.md) | The `-sys` bindings fetch github.com sources with the job token and CI caches every pinned source archive by checksum | Accepted 2026-11-08 |
 
 ## Writing a record
 
