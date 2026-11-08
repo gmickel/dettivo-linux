@@ -1,0 +1,184 @@
+{
+  "comparison": {
+    "dataset_sha256": "7e3c66bf7db58b0e2eb6b2d58b77289643c85de5e76c15dfd18461e6de4496f7",
+    "scorer_sha256": "157d8b1b988efc74e784d07ec0353e458bf9fb2767d1ac439a1bc724df305583",
+    "targets_sha256": "6cd72e00064dc7dcaa5884748f75c51305069a3cd421d002b29d21b57b7eb4b5",
+    "execution_sha256": "aac18a7916513382a48290e9615fb575f901853bddba0cb64f6b1cec08e33f1e"
+  },
+  "date": "2026-11-08",
+  "model": "qwen3-1.7b",
+  "model_file": "/tmp/dqpolishev-6dW5Q3/data/dettivo/models/llm/qwen3-1.7b/Qwen3-1.7B-Q4_K_M.gguf",
+  "model_sha256": "b139949c5bd74937ad8ed8c8cf3d9ffb1e99c866c823204dc42c0d91fa181897",
+  "backend": "vulkan",
+  "engine_version": "dettivo-engine-llm 0.4.4",
+  "git_sha": "3b5c33d473bfeb218fd0939c74a3e702266fd673",
+  "set": "eval-private-parakeet-heldout-v1.jsonl",
+  "split": "heldout",
+  "rows": 10,
+  "gold_rows": 10,
+  "row_ids": [
+    "capture-v1-9a66f6a39aa148989d6f4ba3a979276b",
+    "capture-v1-0a88dc3a36e94eb4a6cb56a8a68cafd1",
+    "capture-v1-fb23339fbff14b3babc1b1bca5143a53",
+    "capture-v1-67a46563030a46e5a9c6a9025de2d72e",
+    "capture-v1-e8fca0750fb74ec4a29ebe5865e0402f",
+    "capture-v1-3ccf8186f0cf4c7f8706699cb661cb60",
+    "capture-v1-7b1bb6a1111141a18ac35fbf6b3a5518",
+    "capture-v1-184a44756d8b4162af0d0a1479df3ff4",
+    "capture-v1-b5a8ed4071ee474a862204c033230874",
+    "capture-v1-914ab8a8b74c42358649bbad893c6589"
+  ],
+  "metrics": {
+    "exact_match_rate": 0.2,
+    "protected_token_preservation_rate": 0.6,
+    "required_fragment_retention_rate": 0.3,
+    "forbidden_fragment_violation_rate": 0.0,
+    "structure_retention_rate": 1.0,
+    "language_anchor_retention_rate": 1.0,
+    "guard_rejection_rate": 0.19999999999999996,
+    "fallback_rate": 0.19999999999999996,
+    "median_wall_ms": 222,
+    "p95_wall_ms": 9647
+  },
+  "cuts": {
+    "language": {
+      "en": {
+        "count": 9,
+        "exact_match_rate": 0.1111111111111111,
+        "protected_token_preservation_rate": 0.5555555555555556,
+        "fallback_rate": 0.2222222222222222,
+        "median_wall_ms": 306
+      },
+      "multilingual": {
+        "count": 1,
+        "exact_match_rate": 1.0,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 0.0,
+        "median_wall_ms": 114
+      }
+    },
+    "preset": {
+      "chat": {
+        "count": 1,
+        "exact_match_rate": 0.0,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 0.0,
+        "median_wall_ms": 22
+      },
+      "code": {
+        "count": 4,
+        "exact_match_rate": 0.0,
+        "protected_token_preservation_rate": 0.25,
+        "fallback_rate": 0.25,
+        "median_wall_ms": 386
+      },
+      "email": {
+        "count": 1,
+        "exact_match_rate": 1.0,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 0.0,
+        "median_wall_ms": 75
+      },
+      "generic": {
+        "count": 3,
+        "exact_match_rate": 0.3333333333333333,
+        "protected_token_preservation_rate": 0.6666666666666666,
+        "fallback_rate": 0.0,
+        "median_wall_ms": 122
+      },
+      "notes": {
+        "count": 1,
+        "exact_match_rate": 0.0,
+        "protected_token_preservation_rate": 1.0,
+        "fallback_rate": 1.0,
+        "median_wall_ms": 9647
+      }
+    }
+  },
+  "gate": {
+    "targets": "dettivo-polish-private-v1",
+    "hard_gates": [
+      {
+        "metric": "fallback_rate",
+        "value": 0.19999999999999996,
+        "rule": {
+          "maximum": 0.03
+        },
+        "pass": false
+      },
+      {
+        "metric": "forbidden_fragment_violation_rate",
+        "value": 0.0,
+        "rule": {
+          "maximum": 0.01
+        },
+        "pass": true
+      },
+      {
+        "metric": "guard_rejection_rate",
+        "value": 0.19999999999999996,
+        "rule": {
+          "maximum": 0.02
+        },
+        "pass": false
+      },
+      {
+        "metric": "language_anchor_retention_rate",
+        "value": 1.0,
+        "rule": {
+          "minimum": 0.99
+        },
+        "pass": true
+      },
+      {
+        "metric": "median_wall_ms",
+        "value": 222.0,
+        "rule": {
+          "maximum": 700.0
+        },
+        "pass": true
+      },
+      {
+        "metric": "p95_wall_ms",
+        "value": 9647.0,
+        "rule": {
+          "maximum": 1400.0
+        },
+        "pass": false
+      },
+      {
+        "metric": "protected_token_preservation_rate",
+        "value": 0.6,
+        "rule": {
+          "minimum": 1.0
+        },
+        "pass": false
+      },
+      {
+        "metric": "required_fragment_retention_rate",
+        "value": 0.3,
+        "rule": {
+          "minimum": 0.99
+        },
+        "pass": false
+      },
+      {
+        "metric": "structure_retention_rate",
+        "value": 1.0,
+        "rule": {
+          "minimum": 0.98
+        },
+        "pass": true
+      }
+    ],
+    "failures": [
+      "fallback_rate above maximum: 0.19999999999999996 > 0.03",
+      "guard_rejection_rate above maximum: 0.19999999999999996 > 0.02",
+      "p95_wall_ms above maximum: 9647 > 1400",
+      "protected_token_preservation_rate below minimum: 0.6 < 1",
+      "required_fragment_retention_rate below minimum: 0.3 < 0.99"
+    ],
+    "absolute_passed": false,
+    "passed": false
+  }
+}
