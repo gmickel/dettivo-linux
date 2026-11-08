@@ -4,7 +4,7 @@
 //! the output budget a local rewrite is generated within.
 
 use super::TOKEN_PATTERN;
-use crate::polish::text::re;
+use crate::polish::text::{is_match, re};
 
 /// A rewrite with more than this many times the dictation's words ran
 /// away.
@@ -16,53 +16,29 @@ const COLLAPSE_AFTER_WORDS: usize = 8;
 /// The most words a deletion may take out and still count as short.
 const SHORT_DELETION: usize = 2;
 
-/// Words a rewrite may drop: fillers, hedges, intensifiers and the
-/// parts of the spoken phrases ("you know", "I mean", "kind of") they
-/// come in.
+/// Words a rewrite may drop wherever they stand: hesitation sounds,
+/// hedges and intensifiers. None of them changes what a sentence says.
+#[rustfmt::skip]
 const FILLERS: &[&str] = &[
-    "um",
-    "umm",
-    "uh",
-    "uhm",
-    "er",
-    "erm",
-    "ah",
-    "eh",
-    "hm",
-    "hmm",
-    "mm",
-    "äh",
-    "ähm",
-    "öhm",
-    "like",
-    "so",
-    "well",
-    "basically",
-    "actually",
-    "literally",
-    "really",
-    "just",
-    "okay",
-    "ok",
-    "yeah",
-    "right",
-    "anyway",
-    "kind",
-    "sort",
-    "of",
-    "you",
-    "know",
-    "i",
-    "mean",
-    "probably",
-    "definitely",
-    "totally",
-    "pretty",
-    "very",
-    "quite",
-    "honestly",
-    "obviously",
-    "simply",
+    "um", "umm", "uh", "uhm", "er", "erm", "ah", "eh", "hm", "hmm", "mm", "äh", "ähm", "öhm",
+    "basically", "actually", "literally", "really", "just", "probably", "definitely",
+    "totally", "very", "quite", "honestly", "obviously", "simply",
+];
+
+/// Spoken phrases a rewrite may drop, only as the whole phrase: `you`,
+/// `mean` and `kind` alone carry meaning.
+const FILLER_PHRASES: &[[&str; 2]] = &[
+    ["you", "know"],
+    ["i", "mean"],
+    ["kind", "of"],
+    ["sort", "of"],
+];
+
+/// Words a rewrite may drop only where they open a sentence (`So we
+/// should`, `Well, ...`); elsewhere they carry meaning (`turn right`, `I
+/// like it`).
+const OPENERS: &[&str] = &[
+    "so", "well", "like", "okay", "ok", "yeah", "right", "anyway",
 ];
 
 /// Tokens the Qwen tokenizer spends on the two output markers and the
@@ -77,10 +53,21 @@ fn words(text: &str) -> Vec<String> {
         .collect()
 }
 
+/// True when `output` carries a path, a file name, a flag or a code
+/// span: the tokens a spoken `slash`, `dot` or `dash dash` collapse into.
+fn joins_technical_tokens(output: &str) -> bool {
+    is_match(
+        re!(
+            r"[\w@.-]/[\w@.-]|\b[\w-]+\.(?:swift|rs|toml|ts|tsx|js|jsx|py|md|json|yaml|yml|sh|zsh|plist|txt|csv)\b|`|(?:^|\s)--[a-z0-9-]"
+        ),
+        output,
+    )
+}
+
 /// Why the rewrite's length is implausible beside the dictation: more
 /// than twice its words, or under 0.4 of them once it has more than
-/// eight. Technical dictation is exempt from the second rule, as from the
-/// guard's contraction rule: a spoken path (`src slash app slash index
+/// eight. A rewrite that carries a path, file name, flag or code span is
+/// exempt from the second rule: a spoken path (`src slash app slash index
 /// dot ts`) is five words that rightly become one. The reasons are the
 /// guard's existing expansion and contraction reasons, so the Enhanced
 /// pass treats them the same way.
@@ -95,11 +82,46 @@ pub(super) fn implausible_length(input: &str, output: &str) -> Option<&'static s
     }
     if input_words > COLLAPSE_AFTER_WORDS
         && (output_words as f64) < input_words as f64 * MIN_SHARE
-        && !super::contains_technical_markers(input)
+        && !joins_technical_tokens(output)
     {
         return Some("output dropped too much dictated content");
     }
     None
+}
+
+/// The words of `text` a deletion is judged on, lowercased: fillers,
+/// filler phrases and sentence openers left out, and a word said twice
+/// in a row kept once.
+fn meaningful(text: &str) -> Vec<String> {
+    let mut tokens: Vec<(String, bool)> = Vec::new();
+    for m in re!(TOKEN_PATTERN).find_iter(text).filter_map(Result::ok) {
+        let opens = text[..m.start()]
+            .trim_end()
+            .chars()
+            .last()
+            .is_none_or(|c| ".!?\n".contains(c));
+        tokens.push((m.as_str().to_lowercase(), opens));
+    }
+    let mut out: Vec<String> = Vec::new();
+    let mut i = 0;
+    while i < tokens.len() {
+        let (word, opens) = &tokens[i];
+        let next = tokens.get(i + 1).map(|(w, _)| w.as_str());
+        if FILLER_PHRASES
+            .iter()
+            .any(|[a, b]| a == word && Some(*b) == next)
+        {
+            i += 2;
+            continue;
+        }
+        i += 1;
+        let filler =
+            FILLERS.contains(&word.as_str()) || (*opens && OPENERS.contains(&word.as_str()));
+        if !filler && out.last() != Some(word) {
+            out.push(word.clone());
+        }
+    }
+    out
 }
 
 /// The prefix of the reason [`dropped_dictated_words`] gives.
@@ -114,15 +136,6 @@ pub const DROPPED_WORDS: &str = "output dropped the dictated word";
 /// draft, not the dictation, is the reference, because the deterministic
 /// transforms drop words of their own (`R and D` becomes `R&D`).
 pub fn dropped_dictated_words(draft: &str, output: &str) -> Option<String> {
-    let meaningful = |text: &str| {
-        let mut out: Vec<String> = Vec::new();
-        for word in words(text) {
-            if !FILLERS.contains(&word.as_str()) && out.last() != Some(&word) {
-                out.push(word);
-            }
-        }
-        out
-    };
     let draft = meaningful(draft);
     let mut kept = meaningful(output).into_iter().peekable();
     let mut removed: Vec<&str> = Vec::new();
@@ -186,6 +199,15 @@ mod tests {
             implausible_length("please send me the notes from today", "Send notes."),
             None
         );
+        // `Let` is a code keyword to the technical check, never an
+        // exemption here (PR #57 review).
+        assert_eq!(
+            rejection_reason(
+                "let me know if the launch review can move to thursday because design is out",
+                "Let me know."
+            ),
+            Some("output dropped too much dictated content".into())
+        );
         // A spoken path rightly collapses into one token.
         assert_eq!(
             rejection_reason(
@@ -233,6 +255,39 @@ mod tests {
                 "We should ship the release and the hotfix."
             ),
             Some("output dropped the dictated word not ship".into())
+        );
+    }
+
+    /// `right`, `you` or `like` mid-sentence carry meaning; only a whole
+    /// filler phrase or a sentence opener may go (PR #57 review).
+    #[test]
+    fn ambiguous_fillers_count_unless_they_open_a_sentence_or_form_a_phrase() {
+        let dropped = |w: &str| Some(format!("output dropped the dictated word {w}"));
+        assert_eq!(
+            dropped_dictated_words(
+                "We need to turn right at the next junction.",
+                "We need to turn at the next junction."
+            ),
+            dropped("right")
+        );
+        assert_eq!(
+            dropped_dictated_words("I need you to call them.", "I need to call them."),
+            dropped("you")
+        );
+        assert_eq!(
+            dropped_dictated_words("I like the new layout.", "I the new layout."),
+            dropped("like")
+        );
+        assert_eq!(
+            dropped_dictated_words(
+                "So we should ship it. Well, maybe.",
+                "We should ship it. Maybe."
+            ),
+            None
+        );
+        assert_eq!(
+            dropped_dictated_words("We should, you know, ship it.", "We should ship it."),
+            None
         );
     }
 

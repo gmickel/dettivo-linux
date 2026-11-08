@@ -197,8 +197,10 @@ pub fn rewrite(
             continue;
         }
         let final_text = polish::apply_post_processors(&policy.post_processors, &extracted);
-        let rejection = guard::rejection_reason(input, &final_text)
-            .or_else(|| guard::dropped_dictated_words(&baseline, &final_text));
+        // A short deletion is judged first, so one that also drops a
+        // protected number still takes the draft at once.
+        let rejection = guard::dropped_dictated_words(&baseline, &final_text)
+            .or_else(|| guard::rejection_reason(input, &final_text));
         if let Some(rejection) = rejection {
             if prefers_baseline_after_rejection(input, &final_text, &baseline, &rejection) {
                 return Rewrite {
@@ -454,6 +456,22 @@ mod tests {
         let input = "We should not ship the release on Friday.";
         assert_eq!(deterministic(input, &policy()), input);
         let (_dir, provider) = fixture_provider("We should ship the release on Friday.", input);
+        let out = rewrite(input, &policy(), &provider, &[], Duration::from_secs(5));
+        assert_eq!(out.text, input);
+        assert_eq!(out.notice, None);
+        assert_eq!(out.attempts, 1);
+    }
+
+    /// A deletion that drops a protected number is still a short deletion
+    /// (PR #57 review): the draft goes in without a repair pass.
+    #[test]
+    fn a_dropped_number_inserts_the_draft_at_once() {
+        let input = "We should run 42 tests before shipping the release on Friday.";
+        assert_eq!(deterministic(input, &policy()), input);
+        let (_dir, provider) = fixture_provider(
+            "We should run tests before shipping the release on Friday.",
+            input,
+        );
         let out = rewrite(input, &policy(), &provider, &[], Duration::from_secs(5));
         assert_eq!(out.text, input);
         assert_eq!(out.notice, None);
