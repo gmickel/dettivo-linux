@@ -168,7 +168,7 @@ A rewrite tidies what you said, so its length stays close to the dictation's. Fo
 |---|---|---|
 | Too long | the rewrite has more than twice the dictation's words, or more than 1.8 times its characters plus 40 for a dictation of 24 characters or more | a repair pass, then the deterministic text if every attempt is too long |
 | Too short | the dictation has more than eight words and the rewrite under 0.4 of them; technical dictation is exempt, since `src slash app slash index dot ts` rightly becomes one token | the deterministic text, straight away and without a notice when it already differs from the dictation |
-| A word or two missing | the rewrite is the deterministic text with one or two words taken out and nothing else changed but casing and punctuation, as when `we should not ship` loses `not`; fillers, hedges such as `really` and `probably`, and a word said twice may go | the deterministic text, the same way |
+| A word or two missing | the rewrite is the deterministic text with one or two words taken out, the rest in the same order and nothing else changed but casing and punctuation, as when `we should not ship` loses `not`; fillers, hedges such as `really` and `probably`, and a word said twice in a row may go | the deterministic text, straight away and without a notice |
 | Output budget | the local engine has generated 1.5 times the dictation's tokens plus 32, plus the 32 the output markers take, without finishing | the deterministic text, at once |
 
 The budget estimates the dictation's tokens at one per three characters, which the Qwen3 tokenizer stays under on 421 of 431 private eval transcripts, and it never exceeds `[engines.llm] max_tokens`. Ollama and an OpenAI-compatible endpoint keep their own limits and `[llm] timeout_ms`.

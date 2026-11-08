@@ -3,8 +3,6 @@
 //! deterministic draft with one or two meaningful words taken out, and
 //! the output budget a local rewrite is generated within.
 
-use std::collections::{BTreeMap, BTreeSet};
-
 use super::TOKEN_PATTERN;
 use crate::polish::text::re;
 
@@ -111,40 +109,34 @@ pub const DROPPED_WORDS: &str = "output dropped the dictated word";
 /// result) with one or two meaningful words taken out and nothing else
 /// changed but casing and punctuation: `not` dropped from "we should not
 /// ship" turns the dictation around. Fillers may go, and so may a word
-/// said twice and kept once. The draft, not the dictation, is the
-/// reference, because the deterministic transforms drop words of their
-/// own (`R and D` becomes `R&D`).
+/// said twice in a row and kept once. The words the rewrite keeps must
+/// stand in the draft's order, so a reordered sentence is a rewrite. The
+/// draft, not the dictation, is the reference, because the deterministic
+/// transforms drop words of their own (`R and D` becomes `R&D`).
 pub fn dropped_dictated_words(draft: &str, output: &str) -> Option<String> {
     let meaningful = |text: &str| {
-        words(text)
-            .into_iter()
-            .filter(|w| !FILLERS.contains(&w.as_str()))
-            .collect::<Vec<_>>()
+        let mut out: Vec<String> = Vec::new();
+        for word in words(text) {
+            if !FILLERS.contains(&word.as_str()) && out.last() != Some(&word) {
+                out.push(word);
+            }
+        }
+        out
     };
-    let mut left: BTreeMap<String, usize> = BTreeMap::new();
-    for word in meaningful(draft) {
-        *left.entry(word).or_default() += 1;
-    }
-    let kept = meaningful(output);
-    for word in &kept {
-        match left.get_mut(word) {
-            Some(n) if *n > 0 => *n -= 1,
-            // A word the draft does not have: a rewrite, not a deletion.
-            _ => return None,
+    let draft = meaningful(draft);
+    let mut kept = meaningful(output).into_iter().peekable();
+    let mut removed: Vec<&str> = Vec::new();
+    for word in &draft {
+        if kept.peek() == Some(word) {
+            kept.next();
+        } else {
+            removed.push(word);
         }
     }
-    let kept: BTreeSet<&String> = kept.iter().collect();
-    let removed: Vec<&String> = left
-        .iter()
-        .flat_map(|(w, n)| std::iter::repeat_n(w, *n))
-        .collect();
-    if removed.is_empty()
-        || removed.len() > SHORT_DELETION
-        || removed.iter().any(|w| kept.contains(w))
-    {
+    // A word left over is new or moved: a rewrite, not a deletion.
+    if kept.next().is_some() || removed.is_empty() || removed.len() > SHORT_DELETION {
         return None;
     }
-    let removed: Vec<&str> = removed.iter().map(|w| w.as_str()).collect();
     Some(format!("{DROPPED_WORDS} {}", removed.join(" ")))
 }
 
@@ -220,7 +212,39 @@ mod tests {
                 "We should not ship the big release.",
                 "We should ship the release."
             ),
-            Some("output dropped the dictated word big not".into())
+            Some("output dropped the dictated word not big".into())
+        );
+    }
+
+    /// A repeated word kept once never covers a meaningful word dropped
+    /// beside it (review finding, fn-94).
+    #[test]
+    fn a_repeat_kept_once_does_not_excuse_a_dropped_not() {
+        assert_eq!(
+            dropped_dictated_words(
+                "We should not ship the the release.",
+                "We should ship the release."
+            ),
+            Some("output dropped the dictated word not".into())
+        );
+        assert_eq!(
+            dropped_dictated_words(
+                "We should not ship the release and ship the hotfix.",
+                "We should ship the release and the hotfix."
+            ),
+            Some("output dropped the dictated word not ship".into())
+        );
+    }
+
+    /// A reordered sentence is a rewrite, never a deletion.
+    #[test]
+    fn a_reordered_rewrite_is_not_a_deletion() {
+        assert_eq!(
+            dropped_dictated_words(
+                "The hotfix is what we should ship.",
+                "We should ship the hotfix."
+            ),
+            None
         );
     }
 

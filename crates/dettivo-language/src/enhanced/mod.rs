@@ -252,8 +252,16 @@ fn prefers_baseline_after_rejection(
     baseline: &str,
     rejection: &str,
 ) -> bool {
-    if normalize(baseline) == normalize(input) || guard::rejection_reason(input, baseline).is_some()
-    {
+    if guard::rejection_reason(input, baseline).is_some() {
+        return false;
+    }
+    // The draft is the reference the deletion was measured against, so it
+    // is the text to insert even when it is the dictation unchanged; a
+    // repair pass would only spend time to get back to it.
+    if rejection.starts_with(guard::DROPPED_WORDS) {
+        return true;
+    }
+    if normalize(baseline) == normalize(input) {
         return false;
     }
     if normalize(model_output) == normalize(input) {
@@ -265,7 +273,6 @@ fn prefers_baseline_after_rejection(
         "output included transcript markers",
     ]
     .contains(&rejection)
-        || rejection.starts_with(guard::DROPPED_WORDS)
 }
 
 #[cfg(test)]
@@ -437,6 +444,19 @@ mod tests {
         let out = rewrite(input, &policy(), &provider, &[], Duration::from_secs(5));
         assert_eq!(out.text, draft);
         assert_eq!(out.model, "deterministic");
+        assert_eq!(out.attempts, 1);
+    }
+
+    /// The draft goes in at once even when Polish changed nothing, so a
+    /// dropped word never costs a repair pass.
+    #[test]
+    fn a_dropped_word_inserts_the_draft_at_once_when_it_equals_the_dictation() {
+        let input = "We should not ship the release on Friday.";
+        assert_eq!(deterministic(input, &policy()), input);
+        let (_dir, provider) = fixture_provider("We should ship the release on Friday.", input);
+        let out = rewrite(input, &policy(), &provider, &[], Duration::from_secs(5));
+        assert_eq!(out.text, input);
+        assert_eq!(out.notice, None);
         assert_eq!(out.attempts, 1);
     }
 
