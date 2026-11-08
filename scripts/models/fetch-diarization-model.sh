@@ -41,7 +41,14 @@ fetch() {
         return 0
     fi
     mkdir -p "$(dirname "${out}")"
-    curl -fsSL --retry 3 -o "${out}.part" "${url}"
+    # A github.com download sends GITHUB_TOKEN (or GH_TOKEN) when one is set,
+    # as a header curl reads from stdin, so the token is in no argument list.
+    local token="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
+    if [[ -n "${token}" && "${url}" == https://github.com/* ]]; then
+        printf 'Authorization: Bearer %s\n' "${token}" | curl -fsSL --retry 3 -H @- -o "${out}.part" "${url}"
+    else
+        curl -fsSL --retry 3 -o "${out}.part" "${url}"
+    fi
     local have; have="$(sha "${out}.part")"
     if [[ "${have}" != "${want}" ]]; then
         echo "fetch-diarization-model: ${url} hashed ${have}, expected ${want}; left as ${out}.part" >&2

@@ -16,6 +16,11 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  # Build scripts and model fetches send the read-only job token to
+  # github.com, so GitHub serves them as an authenticated client.
+  GITHUB_TOKEN: ${{ github.token }}
+
 jobs:
   drive-fallback:
     name: drive-fallback

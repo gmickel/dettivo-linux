@@ -33,6 +33,9 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   CARGO_PROFILE_DEV_DEBUG: line-tables-only
+  # Build scripts and model fetches send the read-only job token to
+  # github.com, so GitHub serves them as an authenticated client.
+  GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
   # The unit tests with the models present, then the benchmark suite on
@@ -168,7 +171,10 @@ jobs:
         with:
           cache-scope: rig
       - run: pacman -Syu --noconfirm --needed xorg-server-xvfb openbox at-spi2-core dbus libpulse pipewire curl xdotool xorg-xprop
+      # The installer is a third party's script; it gets no job token.
       - run: scripts/qa/install-cua-driver.sh
+        env:
+          GITHUB_TOKEN: ""
       # The runner's disk carries the workspace debug build, the Qt build
       # and the model cache at once; the package cache goes and the report
       # shows the room left, so the linker keeps enough of it (a full disk

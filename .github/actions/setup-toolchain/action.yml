@@ -3,8 +3,9 @@ description: >-
   Installs Rust, CMake, Qt 6, layer-shell-qt, the Vulkan build dependencies
   (headers, the loader, shaderc and the SPIR-V headers parakeet.cpp's ggml
   needs), the monospace font the pill renders with and just inside the
-  pinned Arch Linux container, and restores dependency downloads separately
-  from compatible Rust and Qt builds. Every CI job
+  pinned Arch Linux container, and restores dependency downloads and the
+  pinned source archives separately from compatible Rust and Qt builds.
+  Every CI job
   runs this first so all jobs build with one toolchain definition.
 
 inputs:
@@ -57,6 +58,38 @@ runs:
           ~/.cargo/git/db
         key: cargo-downloads-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: cargo-downloads-${{ runner.os }}-
+
+    # The source archives the -sys crates download from GitHub, kept by
+    # checksum in DETTIVO_SOURCE_CACHE (about 70 MB), so a build that misses
+    # the target cache, as a version bump does, never needs the network for
+    # them. The key is the set of pinned checksums, so a version bump keeps
+    # it; each job keeps its own, because jobs build different crates. A
+    # changed pin restores the previous set, and an archive no pin names is
+    # dropped before the new set is saved.
+    - name: Name the pinned source archives
+      id: sources
+      shell: bash
+      run: |
+        set -euo pipefail
+        grep -ho '"[0-9a-f]\{64\}"' crates/*-sys/*.rs | tr -d '"' | LC_ALL=C sort -u > "$RUNNER_TEMP/source-pins"
+        echo "pins=$(sha256sum "$RUNNER_TEMP/source-pins" | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
+        echo "DETTIVO_SOURCE_CACHE=$GITHUB_WORKSPACE/.ci-data/sources" >> "$GITHUB_ENV"
+
+    - name: Restore the source archives
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ github.workspace }}/.ci-data/sources
+        key: source-archives-${{ inputs.cache-scope }}-${{ github.job }}-${{ steps.sources.outputs.pins }}
+        restore-keys: |
+          source-archives-${{ inputs.cache-scope }}-${{ github.job }}-
+
+    - name: Drop source archives no pin names
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p "$DETTIVO_SOURCE_CACHE"
+        find "$DETTIVO_SOURCE_CACHE" -type f -printf '%f\n' | { grep -vxF -f "$RUNNER_TEMP/source-pins" || true; } |
+          while read -r name; do rm -f -- "$DETTIVO_SOURCE_CACHE/$name"; done
 
     - name: Restore compiled Rust and Qt builds
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0

@@ -19,6 +19,9 @@
 //! already downloaded. `CMAKE_*`, `GGML_*` and `Vulkan_*` variables in the
 //! environment are forwarded to CMake (ADR 0067's instruction baseline
 //! arrives this way).
+//! `DETTIVO_SOURCE_CACHE` names a directory shared across builds that keeps
+//! every verified download under its checksum, and a github.com download
+//! sends `GITHUB_TOKEN` (or `GH_TOKEN`) when one is set.
 
 use std::env;
 use std::fs;

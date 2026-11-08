@@ -31,7 +31,14 @@ fetch() {
         echo "fetch-test-model: ${out} checksum mismatch, refetching" >&2
     fi
     mkdir -p "$(dirname "${out}")"
-    curl -fsSL -o "${out}.part" "${url}"
+    # A github.com download sends GITHUB_TOKEN (or GH_TOKEN) when one is set,
+    # as a header curl reads from stdin, so the token is in no argument list.
+    local token="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
+    if [[ -n "${token}" && "${url}" == https://github.com/* ]]; then
+        printf 'Authorization: Bearer %s\n' "${token}" | curl -fsSL -H @- -o "${out}.part" "${url}"
+    else
+        curl -fsSL -o "${out}.part" "${url}"
+    fi
     local have; have="$(sha256sum "${out}.part" | awk '{print $1}')"
     if [[ "${have}" != "${want}" ]]; then
         echo "fetch-test-model: ${url} hashed ${have}, expected ${want}; quarantined as ${out}.part" >&2

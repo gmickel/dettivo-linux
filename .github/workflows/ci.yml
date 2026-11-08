@@ -41,6 +41,9 @@ env:
   # Line tables keep panics readable at half the debuginfo on disk, which
   # keeps the target cache and the runner's disk within bounds.
   CARGO_PROFILE_DEV_DEBUG: line-tables-only
+  # Build scripts and model fetches send the read-only job token to
+  # github.com, so GitHub serves them as an authenticated client.
+  GITHUB_TOKEN: ${{ github.token }}
 
 # The container image is repeated per job because the job-level `container`
 # key cannot read env or matrix context. To move the pin, replace every
