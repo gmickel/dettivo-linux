@@ -9,7 +9,7 @@
   "priority": null,
   "spec": "fn-94-enhanced-rejects-rewrites-of",
   "spec_path": ".flow/tasks/fn-94-enhanced-rejects-rewrites-of.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement Enhanced rejects rewrites of implausible length",
   "updated_at": "2026-11-07T23:42:39.873703Z"
 }

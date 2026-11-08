@@ -148,7 +148,7 @@
     "impl:fn-94-enhanced-rejects-rewrites-of.1": 0
   },
   "spec_path": ".flow/specs/fn-94-enhanced-rejects-rewrites-of.md",
-  "status": "open",
+  "status": "done",
   "title": "Enhanced rejects rewrites of implausible length",
   "tracker": {
     "baseHashFlow": null,
@@ -161,5 +161,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-08T00:34:59.421622Z"
+  "updated_at": "2026-11-08T00:35:16.874956Z"
 }
