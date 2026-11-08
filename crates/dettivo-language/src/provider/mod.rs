@@ -93,6 +93,9 @@ pub struct RewriteRequest {
     pub system: String,
     /// The transcript, wrapped between the markers.
     pub user: String,
+    /// The most tokens the answer may have, below the provider's own
+    /// limit; `None` leaves that limit. The local engine honours it.
+    pub max_tokens: Option<u32>,
 }
 
 /// Why an answer ended, when the provider says.

@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use crate::policy::EffectivePolicy;
 use crate::polish;
 use crate::polish::text::collapse_whitespace;
-use crate::provider::{LlmProvider, ProviderError, RewriteRequest};
+use crate::provider::{Finish, LlmProvider, ProviderError, RewriteRequest};
 
 /// Why the inserted text is the Polish result rather than a rewrite.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -167,9 +167,18 @@ pub fn rewrite(
         let request = RewriteRequest {
             system,
             user: user.clone(),
+            max_tokens: Some(guard::output_budget(input)),
         };
-        let answer = match provider.rewrite(&request, remaining) {
-            Ok(answer) => answer,
+        let answer = match provider.answer(&request, remaining) {
+            Ok(answer) if answer.finish == Finish::Length => {
+                return fallback(
+                    baseline,
+                    NoticeKind::GuardRejected,
+                    "the rewrite ran past its output budget",
+                    attempt,
+                );
+            }
+            Ok(answer) => answer.text,
             Err(e) => {
                 let kind = match e {
                     ProviderError::Failed(_) | ProviderError::PromptTooLong(_) => {
@@ -188,7 +197,9 @@ pub fn rewrite(
             continue;
         }
         let final_text = polish::apply_post_processors(&policy.post_processors, &extracted);
-        if let Some(rejection) = guard::rejection_reason(input, &final_text) {
+        let rejection = guard::rejection_reason(input, &final_text)
+            .or_else(|| guard::dropped_dictated_words(&baseline, &final_text));
+        if let Some(rejection) = rejection {
             if prefers_baseline_after_rejection(input, &final_text, &baseline, &rejection) {
                 return Rewrite {
                     text: baseline,
@@ -254,6 +265,7 @@ fn prefers_baseline_after_rejection(
         "output included transcript markers",
     ]
     .contains(&rejection)
+        || rejection.starts_with(guard::DROPPED_WORDS)
 }
 
 #[cfg(test)]
@@ -354,6 +366,78 @@ mod tests {
         );
         assert!(!detached.probe().available);
         assert!(detached.probe().detail.contains("not attached"));
+    }
+
+    /// A model that never ends its turn: it is asked within the output
+    /// budget and its answer stops there, as the engine stops at
+    /// `max_tokens`.
+    struct Runaway(std::sync::Mutex<Vec<Option<u32>>>);
+
+    impl LlmProvider for Runaway {
+        fn name(&self) -> &'static str {
+            "local"
+        }
+        fn model(&self) -> String {
+            "runaway".into()
+        }
+        fn probe(&self) -> crate::provider::Availability {
+            crate::provider::Availability::up("runaway")
+        }
+        fn rewrite(
+            &self,
+            request: &RewriteRequest,
+            timeout: Duration,
+        ) -> Result<String, ProviderError> {
+            self.answer(request, timeout).map(|a| a.text)
+        }
+        fn answer(
+            &self,
+            request: &RewriteRequest,
+            _timeout: Duration,
+        ) -> Result<crate::provider::Answer, ProviderError> {
+            self.0.lock().unwrap().push(request.max_tokens);
+            let budget = request.max_tokens.unwrap_or(1024) as usize;
+            Ok(crate::provider::Answer {
+                text: format!(
+                    "{} {}",
+                    prompt::OUTPUT_BEGIN,
+                    "and again ".repeat(budget / 2)
+                ),
+                finish: Finish::Length,
+            })
+        }
+    }
+
+    #[test]
+    fn a_runaway_generation_stops_at_the_budget_and_falls_back() {
+        let provider = Runaway(Default::default());
+        let out = rewrite(LONG, &policy(), &provider, &[], Duration::from_secs(5));
+        assert_eq!(
+            provider.0.lock().unwrap().as_slice(),
+            &[Some(guard::output_budget(LONG))],
+            "asked once, within 1.5x the input's tokens plus 32 and the markers"
+        );
+        assert_eq!(out.text, deterministic(LONG, &policy()));
+        assert_eq!(out.attempts, 1, "a runaway gets no repair pass");
+        assert_eq!(
+            out.notice,
+            Some(Notice::new(
+                NoticeKind::GuardRejected,
+                "the rewrite ran past its output budget"
+            ))
+        );
+    }
+
+    #[test]
+    fn a_rewrite_that_drops_a_meaningful_word_inserts_the_draft() {
+        let input = "um we should not ship the release on friday";
+        let draft = deterministic(input, &policy());
+        assert_eq!(draft, "We should not ship the release on friday.");
+        let (_dir, provider) = fixture_provider("We should ship the release on Friday.", input);
+        let out = rewrite(input, &policy(), &provider, &[], Duration::from_secs(5));
+        assert_eq!(out.text, draft);
+        assert_eq!(out.model, "deterministic");
+        assert_eq!(out.attempts, 1);
     }
 
     #[test]

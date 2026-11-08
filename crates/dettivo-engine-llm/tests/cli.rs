@@ -1,6 +1,8 @@
 //! R1 with a model: the Qwen3 1.7B catalogue file under the daemon's model
 //! layout (`scripts/models/fetch-llm-test-model.sh`), skipped by name when
-//! it is absent. CLI mode prints the protocol's `generate` JSON; the
+//! it is absent. CLI mode prints the protocol's `generate` JSON, and a
+//! generation that would run on stops at `max_tokens` with
+//! `finish_reason = length` (the Enhanced output budget, fn-94); the
 //! protocol streams `partial` events, answers `status` busy meanwhile,
 //! stops on `cancel` between two tokens with `finish_reason = cancelled`,
 //! and a corrupt model is `load_failed` naming the path and the reason.
@@ -104,6 +106,39 @@ fn cli_mode_prints_the_generate_json_the_protocol_carries() {
         .output()
         .unwrap();
     assert_eq!(String::from_utf8_lossy(&plain.stdout).trim(), text);
+}
+
+/// A runaway generation stops at its budget: the Enhanced pass sends each
+/// rewrite `max_tokens` from the dictation's length and falls back on a
+/// `length` finish.
+#[test]
+fn a_generation_that_would_run_on_stops_at_max_tokens() {
+    let Some(model) = skip() else { return };
+    let backend = Backend::from_env();
+    let output = Command::new(ENGINE)
+        .args([
+            "--prompt",
+            "Count from one to five hundred, one number per line:\n1\n2\n3\n",
+            "--raw",
+            "--temperature",
+            "0",
+            "--max-tokens",
+            "24",
+        ])
+        .arg("--model")
+        .arg(&model)
+        .args(backend.cli_args())
+        .arg("--json")
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let v: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(v["finish_reason"], "length", "{v}");
+    assert_eq!(v["tokens"], 24, "{v}");
 }
 
 /// `backend_preference = vulkan` is Vulkan or a refusal: a build without

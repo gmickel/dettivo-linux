@@ -151,7 +151,7 @@ Until then the rewrite falls back to the deterministic result and `dettivo llm p
 The rewrite has to earn its place. The deterministic text goes in instead — with a notice saying why — when:
 
 - **`provider_unavailable`**: nothing answered, the endpoint is not trusted, or the whole pass did not finish inside `[llm] timeout_ms`. The insertion is never held up beyond that budget; a local generation that outlives it is cancelled so the engine is free for the next one.
-- **`guard_rejected`**: the model answered the transcript instead of rewriting it, refused it, asked you for input, invented a code fence, dropped a path, a code span or a number you dictated (each number whole and as often as you said it; `42` is not `420`, `1.5` is not `15`), lost a question mark, or ran away in length. The model gets one repair pass per attempt with the reason and the deterministic draft before this is decided.
+- **`guard_rejected`**: the model answered the transcript instead of rewriting it, refused it, asked you for input, invented a code fence, dropped a path, a code span or a number you dictated (each number whole and as often as you said it; `42` is not `420`, `1.5` is not `15`), lost a question mark, or came back at a length no rewrite has (below). The model gets one repair pass per attempt with the reason and the deterministic draft before this is decided. A local generation that reaches its output budget gets no repair pass: it falls back at once with `the rewrite ran past its output budget`.
 - **`fallback_used`**: the model gave back something empty or degenerate, or changed nothing that a transform would have changed.
 
 Short text never reaches the model at all: a question, a plain command, an already formatted code command and a high-confidence spelling fix are inserted from the deterministic pass straight away, because a round trip cannot improve them.
@@ -159,6 +159,19 @@ Short text never reaches the model at all: a question, a plain command, an alrea
 Thinking blocks (`<think>…</think>`) are stripped before any of this is judged; the local engine asks a thinking model (Qwen3) to answer without one in the first place.
 
 The mode, the notice and a hash of the policy that ran ride on the completion event and on the history item, so `dettivo history get <id>` can explain a past dictation.
+
+#### The length rules
+
+A rewrite tidies what you said, so its length stays close to the dictation's. Four rules keep a runaway or a collapsing rewrite out of your text and stop it costing more time than a rewrite should:
+
+| Rule | Rejected when | What goes in |
+|---|---|---|
+| Too long | the rewrite has more than twice the dictation's words, or more than 1.8 times its characters plus 40 for a dictation of 24 characters or more | a repair pass, then the deterministic text if every attempt is too long |
+| Too short | the dictation has more than eight words and the rewrite under 0.4 of them; technical dictation is exempt, since `src slash app slash index dot ts` rightly becomes one token | the deterministic text, straight away and without a notice when it already differs from the dictation |
+| A word or two missing | the rewrite is the deterministic text with one or two words taken out and nothing else changed but casing and punctuation, as when `we should not ship` loses `not`; fillers, hedges such as `really` and `probably`, and a word said twice may go | the deterministic text, the same way |
+| Output budget | the local engine has generated 1.5 times the dictation's tokens plus 32, plus the 32 the output markers take, without finishing | the deterministic text, at once |
+
+The budget estimates the dictation's tokens at one per three characters, which the Qwen3 tokenizer stays under on 421 of 431 private eval transcripts, and it never exceeds `[engines.llm] max_tokens`. Ollama and an OpenAI-compatible endpoint keep their own limits and `[llm] timeout_ms`.
 
 ### A fine-tune of your own
 
