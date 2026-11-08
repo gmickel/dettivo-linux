@@ -12,6 +12,8 @@ A release is a version bump and a tag. You prove the change the way every change
 git tag v<version> && git push origin v<version>
 ```
 
+4. Bring the website up to the release, so people who find Dettivo there download the version just published and read how to use what it added. Once the release is published and its download verified, open a pull request on [gmickel/dettivo-website](https://github.com/gmickel/dettivo-website) that sets `LINUX_VERSION` in `lib/linux.ts` to the new version, which /linux, /download and the docs call to action show, and documents in `lib/docs/docs-linux.tsx` every user-facing command, configuration key and feature the release adds. Then merge it.
+
 ## What the tag runs
 
 ```
