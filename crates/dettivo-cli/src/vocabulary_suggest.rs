@@ -46,13 +46,35 @@ pub fn run(cli: &Cli, client: &Client, terms: &[String], apply: bool) -> Result<
     // Without --apply the daemon answers the same call as a dry run, so
     // the closing line says exactly what --apply writes.
     let params = json!({ "entries": entries(&results), "extend": true, "dry_run": !apply });
-    let change = client.call("config.vocabulary.add", params)?;
+    // The hearings are printed even when the vocabulary refuses them (a
+    // limit), so minutes of transcription are never lost to the refusal.
+    let change = client.call("config.vocabulary.add", params);
     if cli.json {
-        println!("{}", json!({ "suggestions": results, "change": change }));
-    } else if human {
-        print!("{}", summary(&change, apply));
+        let answer = change.as_ref().ok();
+        println!("{}", json!({ "suggestions": results, "change": answer }));
+    } else if let (true, Ok(change)) = (human, &change) {
+        print!("{}", summary(change, apply));
     }
-    Ok(())
+    change.map(|_| ()).map_err(|mut failure| {
+        if let Some(refused) = refused_terms(&failure, &results) {
+            failure.message = format!("nothing was written\n  {}", refused.join("\n  "));
+        }
+        failure
+    })
+}
+
+/// The daemon's refusal, each entry it names as `<term>: <limit>`.
+fn refused_terms(failure: &Failure, results: &[Value]) -> Option<Vec<String>> {
+    let refused = failure.rpc.as_ref()?.data.details.0.get("refused")?;
+    let named = refused.as_array()?.iter().map(|r| {
+        let term = r["index"]
+            .as_u64()
+            .and_then(|i| results.get(i as usize))
+            .and_then(|r| r["term"].as_str())
+            .unwrap_or("");
+        format!("{term}: {}", r["message"].as_str().unwrap_or(""))
+    });
+    Some(named.collect())
 }
 
 /// The terms of `dictation.vocabulary` in force, in list order.

@@ -160,3 +160,40 @@ fn nothing_is_written_without_apply_and_apply_writes_the_proposal() {
         )
     );
 }
+
+#[test]
+fn a_refused_write_still_prints_every_suggestion() {
+    let Some((model, wav)) = local_tiny() else {
+        eprintln!("skip: tiny.en or jfk.wav missing (run scripts/models/fetch-test-model.sh)");
+        return;
+    };
+    // The entry already carries the 16 spellings a term may have, so one
+    // more is refused, as a dry run and with --apply alike.
+    let full: Vec<String> = (0..16).map(|i| format!("\"s{i}\"")).collect();
+    let vocabulary = format!(
+        "[{{ term = \"Fellow Americans Ltd Inc\", sounds_like = [{}] }}]",
+        full.join(", ")
+    );
+    let d = daemon(&model, &opening(&wav, 2_500), &vocabulary);
+    let before = file(&d);
+    for apply in [false, true] {
+        let mut args = vec!["--json", "vocabulary", "suggest"];
+        if apply {
+            args.push("--apply");
+        }
+        let out = d.cli(&args);
+        assert_eq!(out.status.code(), Some(4), "{}", stderr(&out));
+        assert!(
+            stderr(&out).contains("17 sounds_like spellings"),
+            "{}",
+            stderr(&out)
+        );
+        // The suggestions come first; the error follows as its own line.
+        let text = stdout(&out);
+        let got: Value = serde_json::from_str(text.lines().next().unwrap()).unwrap();
+        assert_eq!(got["change"], Value::Null);
+        let heard = got["suggestions"][0]["sounds_like"][0].as_str().unwrap();
+        assert!(heard.contains("fellow americans"), "{got}");
+    }
+    assert_eq!(file(&d), before);
+}
