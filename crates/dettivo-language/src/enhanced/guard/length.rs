@@ -119,14 +119,17 @@ fn tokens(text: &str) -> Vec<(String, bool)> {
 
 /// True when the draft's word `i`, one of `removed`, may go: a filler, a
 /// sentence opener, half of a filler phrase whose other half goes too,
-/// or a word said twice in a row whose neighbouring copy the rewrite
-/// keeps (`never never` losing both copies is a deletion).
+/// or a copy in a run of the same word said in a row while the rewrite
+/// keeps another copy of that run (`never never` losing both copies is a
+/// deletion).
 fn droppable(draft: &[(String, bool)], removed: &[usize], i: usize) -> bool {
     let (word, opens) = &draft[i];
     let at = |j: usize| draft.get(j).map(|(w, _)| w.as_str());
     let prev = i.checked_sub(1);
-    let kept_copy =
-        |j: Option<usize>| j.is_some_and(|j| at(j) == Some(word.as_str()) && !removed.contains(&j));
+    let same = |j: &usize| at(*j) == Some(word.as_str());
+    let start = (0..i).rev().take_while(same).last().unwrap_or(i);
+    let end = (i + 1..draft.len()).take_while(same).last().unwrap_or(i);
+    let kept_copy = (start..=end).any(|j| !removed.contains(&j));
     FILLERS.contains(&word.as_str())
         || (*opens && OPENERS.contains(&word.as_str()))
         || FILLER_PHRASES.iter().any(|[a, b]| {
@@ -135,8 +138,7 @@ fn droppable(draft: &[(String, bool)], removed: &[usize], i: usize) -> bool {
                     && prev.and_then(at) == Some(*a)
                     && prev.is_some_and(|p| removed.contains(&p)))
         })
-        || kept_copy(prev)
-        || kept_copy(Some(i + 1))
+        || kept_copy
 }
 
 /// Why a rewrite is rejected when it is `draft` (the deterministic
@@ -359,6 +361,13 @@ mod tests {
             dropped("not")
         );
         // A repeat is excused only while one copy stays.
+        assert_eq!(
+            dropped_dictated_words(
+                "We should not ship the the the the release.",
+                "We should ship the release."
+            ),
+            dropped("not")
+        );
         assert_eq!(
             dropped_dictated_words(
                 "We should never never ship the release without approval.",
