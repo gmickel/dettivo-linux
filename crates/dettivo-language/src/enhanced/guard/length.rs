@@ -70,8 +70,16 @@ fn joins_technical_tokens(output: &str) -> bool {
 /// exempt from the second rule: a spoken path (`src slash app slash index
 /// dot ts`) is five words that rightly become one. The reasons are the
 /// guard's existing expansion and contraction reasons, so the Enhanced
-/// pass treats them the same way.
+/// pass treats them the same way. A dictation in a script written without
+/// spaces between words (Chinese, Japanese, Thai) has no word count to
+/// compare, so only the guard's character cap applies to it.
 pub(super) fn implausible_length(input: &str, output: &str) -> Option<&'static str> {
+    if is_match(
+        re!(r"[\p{Han}\p{Hiragana}\p{Katakana}\p{Thai}\p{Lao}\p{Khmer}\p{Myanmar}]"),
+        input,
+    ) {
+        return None;
+    }
     let input_words = words(input).len();
     let output_words = words(output).len();
     if input_words == 0 {
@@ -90,9 +98,12 @@ pub(super) fn implausible_length(input: &str, output: &str) -> Option<&'static s
 }
 
 /// The words of `text` a deletion is judged on, lowercased: fillers,
-/// filler phrases and sentence openers left out, and a word said twice
-/// in a row kept once.
-fn meaningful(text: &str) -> Vec<String> {
+/// filler phrases and sentence openers left out, and with
+/// `collapse_repeats` a word said twice in a row kept once. Only the
+/// draft collapses its repeats, and only words adjacent as dictated, so a
+/// rewrite that brings two words together (`had not had` to `had had`)
+/// still shows what it dropped.
+fn meaningful(text: &str, collapse_repeats: bool) -> Vec<String> {
     let mut tokens: Vec<(String, bool)> = Vec::new();
     for m in re!(TOKEN_PATTERN).find_iter(text).filter_map(Result::ok) {
         let opens = text[..m.start()]
@@ -114,10 +125,11 @@ fn meaningful(text: &str) -> Vec<String> {
             i += 2;
             continue;
         }
+        let repeat = collapse_repeats && i > 0 && tokens[i - 1].0 == *word;
         i += 1;
         let filler =
             FILLERS.contains(&word.as_str()) || (*opens && OPENERS.contains(&word.as_str()));
-        if !filler && out.last() != Some(word) {
+        if !filler && !repeat {
             out.push(word.clone());
         }
     }
@@ -136,8 +148,8 @@ pub const DROPPED_WORDS: &str = "output dropped the dictated word";
 /// draft, not the dictation, is the reference, because the deterministic
 /// transforms drop words of their own (`R and D` becomes `R&D`).
 pub fn dropped_dictated_words(draft: &str, output: &str) -> Option<String> {
-    let draft = meaningful(draft);
-    let mut kept = meaningful(output).into_iter().peekable();
+    let draft = meaningful(draft, true);
+    let mut kept = meaningful(output, false).into_iter().peekable();
     let mut removed: Vec<&str> = Vec::new();
     for word in &draft {
         if kept.peek() == Some(word) {
@@ -287,6 +299,41 @@ mod tests {
         );
         assert_eq!(
             dropped_dictated_words("We should, you know, ship it.", "We should ship it."),
+            None
+        );
+    }
+
+    /// A repeat counts only as dictated, in the draft (PR #57 review): a
+    /// filler between two words, or a deletion that brings two words
+    /// together, never hides a dropped `not`.
+    #[test]
+    fn only_a_repeat_dictated_in_a_row_collapses() {
+        let dropped = |w: &str| Some(format!("output dropped the dictated word {w}"));
+        assert_eq!(
+            dropped_dictated_words(
+                "We should not just not ship the release.",
+                "We should just not ship the release."
+            ),
+            dropped("not")
+        );
+        assert_eq!(
+            dropped_dictated_words(
+                "They had not had the risky migration approved by the team.",
+                "They had had the migration approved by the team."
+            ),
+            dropped("not risky")
+        );
+    }
+
+    /// Text without spaces between words has no word count to compare
+    /// (PR #57 review); punctuation cleanup passes.
+    #[test]
+    fn unsegmented_scripts_skip_the_word_ratio_rules() {
+        assert_eq!(
+            rejection_reason(
+                "今天先修复登录问题明天再检查支付流程最后安排上线时间",
+                "今天先修复登录问题。明天再检查支付流程。最后安排上线时间。"
+            ),
             None
         );
     }
