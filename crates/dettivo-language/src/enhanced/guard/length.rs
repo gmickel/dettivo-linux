@@ -97,72 +97,81 @@ pub(super) fn implausible_length(input: &str, output: &str) -> Option<&'static s
     None
 }
 
-/// The words of `text` a deletion is judged on, lowercased: fillers,
-/// filler phrases and sentence openers left out, and with
-/// `collapse_repeats` a word said twice in a row kept once. Only the
-/// draft collapses its repeats, and only words adjacent as dictated, so a
-/// rewrite that brings two words together (`had not had` to `had had`)
-/// still shows what it dropped.
-fn meaningful(text: &str, collapse_repeats: bool) -> Vec<String> {
-    let mut tokens: Vec<(String, bool)> = Vec::new();
-    for m in re!(TOKEN_PATTERN).find_iter(text).filter_map(Result::ok) {
-        let opens = text[..m.start()]
-            .trim_end()
-            .chars()
-            .last()
-            .is_none_or(|c| ".!?\n".contains(c));
-        tokens.push((m.as_str().to_lowercase(), opens));
-    }
-    let mut out: Vec<String> = Vec::new();
-    let mut i = 0;
-    while i < tokens.len() {
-        let (word, opens) = &tokens[i];
-        let next = tokens.get(i + 1).map(|(w, _)| w.as_str());
-        if FILLER_PHRASES
-            .iter()
-            .any(|[a, b]| a == word && Some(*b) == next)
-        {
-            i += 2;
-            continue;
-        }
-        let repeat = collapse_repeats && i > 0 && tokens[i - 1].0 == *word;
-        i += 1;
-        let filler =
-            FILLERS.contains(&word.as_str()) || (*opens && OPENERS.contains(&word.as_str()));
-        if !filler && !repeat {
-            out.push(word.clone());
-        }
-    }
-    out
-}
-
 /// The prefix of the reason [`dropped_dictated_words`] gives.
 pub const DROPPED_WORDS: &str = "output dropped the dictated word";
+
+/// The words of `text`, lowercased, each with whether it opens a
+/// sentence or a paragraph.
+fn tokens(text: &str) -> Vec<(String, bool)> {
+    re!(TOKEN_PATTERN)
+        .find_iter(text)
+        .filter_map(Result::ok)
+        .map(|m| {
+            let opens = text[..m.start()]
+                .trim_end_matches([' ', '\t'])
+                .chars()
+                .last()
+                .is_none_or(|c| ".!?\n".contains(c));
+            (m.as_str().to_lowercase(), opens)
+        })
+        .collect()
+}
+
+/// True when the draft's word `i`, one of `removed`, may go: a filler, a
+/// sentence opener, half of a filler phrase whose other half goes too,
+/// or a word said twice in a row.
+fn droppable(draft: &[(String, bool)], removed: &[usize], i: usize) -> bool {
+    let (word, opens) = &draft[i];
+    let at = |j: usize| draft.get(j).map(|(w, _)| w.as_str());
+    let prev = i.checked_sub(1);
+    FILLERS.contains(&word.as_str())
+        || (*opens && OPENERS.contains(&word.as_str()))
+        || FILLER_PHRASES.iter().any(|[a, b]| {
+            (word == a && at(i + 1) == Some(*b) && removed.contains(&(i + 1)))
+                || (word == b
+                    && prev.and_then(at) == Some(*a)
+                    && prev.is_some_and(|p| removed.contains(&p)))
+        })
+        || prev.and_then(at) == Some(word.as_str())
+        || at(i + 1) == Some(word.as_str())
+}
 
 /// Why a rewrite is rejected when it is `draft` (the deterministic
 /// result) with one or two meaningful words taken out and nothing else
 /// changed but casing and punctuation: `not` dropped from "we should not
-/// ship" turns the dictation around. Fillers may go, and so may a word
-/// said twice in a row and kept once. The words the rewrite keeps must
-/// stand in the draft's order, so a reordered sentence is a rewrite. The
-/// draft, not the dictation, is the reference, because the deterministic
-/// transforms drop words of their own (`R and D` becomes `R&D`).
+/// ship" turns the dictation around. The rewrite's words are aligned with
+/// the draft's as written, in order, before any word is excused, so a
+/// reordered or reworded sentence is a rewrite, and a deletion that brings
+/// two words together (`you do not know` to `you know`) still shows what
+/// it dropped. Each removed word is then judged where it stood in the
+/// draft: fillers, sentence openers, whole filler phrases and a word said
+/// twice in a row may go. The draft, not the dictation, is the reference,
+/// because the deterministic transforms drop words of their own (`R and
+/// D` becomes `R&D`).
 pub fn dropped_dictated_words(draft: &str, output: &str) -> Option<String> {
-    let draft = meaningful(draft, true);
-    let mut kept = meaningful(output, false).into_iter().peekable();
-    let mut removed: Vec<&str> = Vec::new();
-    for word in &draft {
+    let draft = tokens(draft);
+    let mut kept = tokens(output).into_iter().map(|(w, _)| w).peekable();
+    let mut removed: Vec<usize> = Vec::new();
+    for (i, (word, _)) in draft.iter().enumerate() {
         if kept.peek() == Some(word) {
             kept.next();
         } else {
-            removed.push(word);
+            removed.push(i);
         }
     }
     // A word left over is new or moved: a rewrite, not a deletion.
-    if kept.next().is_some() || removed.is_empty() || removed.len() > SHORT_DELETION {
+    if kept.next().is_some() {
         return None;
     }
-    Some(format!("{DROPPED_WORDS} {}", removed.join(" ")))
+    let dropped: Vec<&str> = removed
+        .iter()
+        .filter(|&&i| !droppable(&draft, &removed, i))
+        .map(|&i| draft[i].0.as_str())
+        .collect();
+    if dropped.is_empty() || dropped.len() > SHORT_DELETION {
+        return None;
+    }
+    Some(format!("{DROPPED_WORDS} {}", dropped.join(" ")))
 }
 
 /// The most tokens a rewrite of `input` may generate: 1.5 times the
@@ -322,6 +331,36 @@ mod tests {
                 "They had had the migration approved by the team."
             ),
             dropped("not risky")
+        );
+    }
+
+    /// Words are aligned before any is excused (PR #57 review): a
+    /// deletion that forms a filler phrase, or one beside a repeat the
+    /// rewrite keeps, still shows the dropped words, and a paragraph's
+    /// opening `Well` may go.
+    #[test]
+    fn words_are_aligned_before_fillers_and_repeats_are_excused() {
+        let dropped = |w: &str| Some(format!("output dropped the dictated word {w}"));
+        assert_eq!(
+            dropped_dictated_words(
+                "I think you do not know the release date.",
+                "I think you know the release date."
+            ),
+            dropped("do not")
+        );
+        assert_eq!(
+            dropped_dictated_words(
+                "We should not ship the the release.",
+                "We should ship the the release."
+            ),
+            dropped("not")
+        );
+        assert_eq!(
+            dropped_dictated_words(
+                "We should ship tomorrow\n\nWell, the tests need another pass.",
+                "We should ship tomorrow.\n\nThe tests need another pass."
+            ),
+            None
         );
     }
 
