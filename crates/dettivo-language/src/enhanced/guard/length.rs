@@ -119,16 +119,23 @@ fn tokens(text: &str) -> Vec<(String, bool)> {
 
 /// True when the draft's word `i`, one of `removed`, may go: a filler, a
 /// sentence opener, half of a filler phrase whose other half goes too,
-/// or a copy in a run of the same word said in a row while the rewrite
-/// keeps another copy of that run (`never never` losing both copies is a
-/// deletion).
+/// or a copy in a run of the same word said in a row, within one
+/// sentence, while the rewrite keeps another copy of that run (`never
+/// never` losing both copies is a deletion, and `no. No one` is no run).
 fn droppable(draft: &[(String, bool)], removed: &[usize], i: usize) -> bool {
     let (word, opens) = &draft[i];
     let at = |j: usize| draft.get(j).map(|(w, _)| w.as_str());
     let prev = i.checked_sub(1);
     let same = |j: &usize| at(*j) == Some(word.as_str());
-    let start = (0..i).rev().take_while(same).last().unwrap_or(i);
-    let end = (i + 1..draft.len()).take_while(same).last().unwrap_or(i);
+    let start = (0..i)
+        .rev()
+        .take_while(|j| same(j) && !draft[j + 1].1)
+        .last()
+        .unwrap_or(i);
+    let end = (i + 1..draft.len())
+        .take_while(|j| same(j) && !draft[*j].1)
+        .last()
+        .unwrap_or(i);
     let kept_copy = (start..=end).any(|j| !removed.contains(&j));
     FILLERS.contains(&word.as_str())
         || (*opens && OPENERS.contains(&word.as_str()))
@@ -361,6 +368,14 @@ mod tests {
             dropped("not")
         );
         // A repeat is excused only while one copy stays.
+        // A run never crosses a sentence boundary.
+        assert_eq!(
+            dropped_dictated_words(
+                "I said no. No one should merge it.",
+                "I said no. One should merge it."
+            ),
+            dropped("no")
+        );
         assert_eq!(
             dropped_dictated_words(
                 "We should not ship the the the the release.",
