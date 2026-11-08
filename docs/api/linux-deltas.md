@@ -146,7 +146,7 @@ The `dettivo` command keeps the macOS tree and adds the verbs below; `dettivo do
 | `dettivo meetings diarize` | `meetings.diarize` | ADR 0035. |
 | `dettivo meetings speakers` | `meetings.speakers.list`, `meetings.speakers.rename`, `meetings.speakers.suggest` | ADR 0035. |
 | `dettivo audio` | `audio.devices` | ADR 0006: the capturable nodes and the defaults. |
-| `dettivo vocabulary suggest` | `speech.vocabulary.suggest`, then `config.vocabulary.add` with `extend` under `--apply` | ADR 0104: the engine proposes the `sounds_like` spellings it mishears a term as, and nothing is written without `--apply` ([docs/dictation.md](../dictation.md#suggesting-sound-alikes)). |
+| `dettivo vocabulary suggest` | `speech.vocabulary.suggest`, then `config.vocabulary.add` with `extend`, a dry run unless `--apply` | ADR 0104: the engine proposes the `sounds_like` spellings it mishears a term as, and nothing is written without `--apply` ([docs/dictation.md](../dictation.md#suggesting-sound-alikes)). |
 | `dettivo vocabulary import` | `config.vocabulary.add` | A plain-text list of terms goes into the vocabulary in one write, and a refused entry is named by its line ([docs/dictation.md](../dictation.md#importing-a-list)). |
 | `dettivo llm` | `llm.providers.list`, `llm.endpoints.*`, `llm.models.*`, `llm.engine.status`; `test` is `polish.test` in `enhanced` mode | ADR 0023, ADR 0026, ADR 0032. |
 | `dettivo app` | the app's state file and its single-instance socket, no daemon method | ADR 0020: raise the window or open a route from a script. |

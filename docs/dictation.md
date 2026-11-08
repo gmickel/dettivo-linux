@@ -153,12 +153,12 @@ Clef: heard as "cleft", "where", "left"
 SapienXT: heard right; needs no sounds_like
 Omarchy: heard right; needs no sounds_like
 Hyprland: heard right; needs no sounds_like
-nothing written; run again with --apply to write the spellings of 2 terms
+nothing written; --apply would write new sounds_like for 2 terms already in dictation.vocabulary
 ```
 
 - Without terms it hears every term of `[dictation] vocabulary`; `dettivo vocabulary suggest Kubernetes "Sapien XT"` hears the ones you name, in the vocabulary or not.
 - A term is heard right when all four clips come back with it spelt right while the vocabulary is in force. For a clip that still misses, the spelling is what the engine wrote there with no vocabulary, which is the text a `sounds_like` spelling is matched against. A spelling the entry already lists is not proposed again.
-- Nothing is written until you add `--apply`. Then a term the vocabulary holds gains the new spellings in its own entry, keeping its comment, and a term it lacks is added with them. `--json` prints every clip: what was said, what the engine heard with the vocabulary and without it, and the spelling taken from it.
+- Nothing is written until you add `--apply`; without it the last line says what `--apply` would write. With it, a term the vocabulary holds gains the new spellings in its own entry, keeping its comment, and a term you named that it lacks is added, with its spellings or on its own, since the clips were heard with it in the vocabulary. `--json` prints every clip (what was said, what the engine heard with the vocabulary and without it, and the spelling taken from it) and the daemon's answer under `change`.
 - The spellings belong to the engine that heard them. `--apply` only adds spellings, so after you switch between Parakeet and Whisper, remove the ones the previous engine proposed and run the command again: on the benchmark clips, Whisper given the spellings Parakeet proposed for Clef wrote Clef for a lone "Clay.".
 - It proposes the real words the engine wrote, such as `left` for Clef. On the benchmark clips the spellings it proposed kept Parakeet at 13 and Whisper at 10 of 15 terms, as with the terms alone, brought back one more name said alone for Whisper, and wrote no term into a sound-alike or ordinary sentence ([ADR 0104](adr/0104-vocabulary-suggest-proposes-what-the-engine-hears-where-the-vocabulary-misses.md)). Remove a spelling you would rather not list.
 

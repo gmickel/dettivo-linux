@@ -280,8 +280,7 @@ pub fn run(opts: &Options) -> Result<(VocabularyReport, PathBuf), String> {
     let fixture_dir = opts.repo_root.join(FIXTURE_DIR);
     let mut set = Set::load(&fixture_dir)?;
     if let Some(path) = &opts.vocabulary {
-        let text =
-            std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+        let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
         set.vocabulary =
             serde_json::from_str(&text).map_err(|e| format!("{}: {e}", path.display()))?;
     }

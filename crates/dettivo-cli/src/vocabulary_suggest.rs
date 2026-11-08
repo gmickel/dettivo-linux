@@ -1,10 +1,11 @@
 //! `dettivo vocabulary suggest [term...] [--apply]` (ADR 0104): each term,
 //! or every term of the vocabulary in force, goes to
 //! `speech.vocabulary.suggest`, which has the selected speech engine hear
-//! it spoken by two Piper voices. The terms it hears right need no entry;
-//! for the rest the command prints the spellings it heard, and writes them
-//! as `sounds_like` only with `--apply`, through `config.vocabulary.add`
-//! with `extend`, so an entry the file holds gains them in place.
+//! it spoken by two Piper voices. The terms it hears right need no
+//! spelling; for the rest the command prints the spellings it heard. Only
+//! `--apply` writes, through `config.vocabulary.add` with `extend`: a term
+//! the file lacks is added, and an entry it holds gains the spellings in
+//! place. Without it the same call runs as a dry run to say what would be.
 
 use std::time::Duration;
 
@@ -42,17 +43,14 @@ pub fn run(cli: &Cli, client: &Client, terms: &[String], apply: bool) -> Result<
         }
         results.push(result);
     }
-    let entries = entries(&results);
-    let applied = if apply && !entries.is_empty() {
-        let params = json!({ "entries": entries, "extend": true });
-        Some(client.call("config.vocabulary.add", params)?)
-    } else {
-        None
-    };
+    // Without --apply the daemon answers the same call as a dry run, so
+    // the closing line says exactly what --apply writes.
+    let params = json!({ "entries": entries(&results), "extend": true, "dry_run": !apply });
+    let change = client.call("config.vocabulary.add", params)?;
     if cli.json {
-        println!("{}", json!({ "suggestions": results, "applied": applied }));
+        println!("{}", json!({ "suggestions": results, "change": change }));
     } else if human {
-        print!("{}", summary(entries.len(), applied.as_ref()));
+        print!("{}", summary(&change, apply));
     }
     Ok(())
 }
@@ -71,12 +69,17 @@ fn vocabulary_terms(client: &Client) -> Result<Vec<String>, Failure> {
         .collect())
 }
 
-/// The entries `--apply` writes: each term with spellings to propose.
+/// The entries `--apply` writes: every term heard, with the spellings
+/// proposed for it. The vocabulary skips a term it holds that gains no
+/// spelling, and a term it lacks is added, since the clips were heard with
+/// it in the vocabulary.
 pub fn entries(results: &[Value]) -> Vec<Value> {
     results
         .iter()
-        .filter(|r| r["sounds_like"].as_array().is_some_and(|s| !s.is_empty()))
-        .map(|r| json!({ "term": r["term"], "sounds_like": r["sounds_like"] }))
+        .map(|r| match r["sounds_like"].as_array() {
+            Some(s) if !s.is_empty() => json!({ "term": r["term"], "sounds_like": s }),
+            _ => r["term"].clone(),
+        })
         .collect()
 }
 
@@ -101,24 +104,32 @@ pub fn line(result: &Value) -> String {
     }
 }
 
-/// The closing line: what `--apply` wrote, or that nothing was written.
-pub fn summary(proposed: usize, applied: Option<&Value>) -> String {
-    let count = |key: &str| applied.and_then(|a| a[key].as_array()).map_or(0, Vec::len);
+/// The closing line, from `config.vocabulary.add`'s answer: what was
+/// written, or with a dry run what `--apply` would write.
+pub fn summary(change: &Value, applied: bool) -> String {
+    let count = |key: &str| change[key].as_array().map_or(0, Vec::len);
     let terms = |n: usize| if n == 1 { "term" } else { "terms" };
-    match applied {
-        _ if proposed == 0 => "nothing to write\n".to_string(),
-        None => format!(
-            "nothing written; run again with --apply to write the spellings of {proposed} {}\n",
-            terms(proposed)
+    let (added, extended) = (count("added"), count("extended"));
+    let mut parts = Vec::new();
+    if added > 0 {
+        parts.push(format!(
+            "{added} new {} to dictation.vocabulary",
+            terms(added)
+        ));
+    }
+    if extended > 0 {
+        parts.push(format!(
+            "new sounds_like for {extended} {} already in dictation.vocabulary",
+            terms(extended)
+        ));
+    }
+    match (parts.is_empty(), applied) {
+        (true, _) => "nothing to write\n".to_string(),
+        (false, true) => format!("wrote {}\n", parts.join(" and ")),
+        (false, false) => format!(
+            "nothing written; --apply would write {}\n",
+            parts.join(" and ")
         ),
-        Some(_) => {
-            let (added, extended) = (count("added"), count("extended"));
-            format!(
-                "wrote sounds_like for {} {}: {added} added to dictation.vocabulary, {extended} already in it\n",
-                added + extended,
-                terms(added + extended)
-            )
-        }
     }
 }
 
@@ -147,26 +158,29 @@ mod tests {
     }
 
     #[test]
-    fn only_terms_with_spellings_are_written_and_the_summary_says_what_happened() {
+    fn every_term_is_an_entry_and_the_summary_reads_the_daemons_answer() {
         let results = vec![
             result("Clef", true, &[]),
             result("Hyprland", false, &["hyper land"]),
-            result("Dettivo", false, &[]),
         ];
         assert_eq!(
             entries(&results),
-            vec![json!({"term": "Hyprland", "sounds_like": ["hyper land"]})]
+            vec![
+                json!("Clef"),
+                json!({"term": "Hyprland", "sounds_like": ["hyper land"]})
+            ]
+        );
+        let change =
+            json!({"added": [0], "extended": [1], "skipped": [], "entries": 3, "written": false});
+        assert_eq!(
+            summary(&change, false),
+            "nothing written; --apply would write 1 new term to dictation.vocabulary and new sounds_like for 1 term already in dictation.vocabulary\n"
         );
         assert_eq!(
-            summary(1, None),
-            "nothing written; run again with --apply to write the spellings of 1 term\n"
+            summary(&change, true),
+            "wrote 1 new term to dictation.vocabulary and new sounds_like for 1 term already in dictation.vocabulary\n"
         );
-        assert_eq!(summary(0, None), "nothing to write\n");
-        let applied =
-            json!({"added": [1], "extended": [0], "skipped": [], "entries": 3, "written": true});
-        assert_eq!(
-            summary(2, Some(&applied)),
-            "wrote sounds_like for 2 terms: 1 added to dictation.vocabulary, 1 already in it\n"
-        );
+        let none = json!({"added": [], "skipped": [{"index": 0, "repeats": null}], "entries": 3, "written": false});
+        assert_eq!(summary(&none, true), "nothing to write\n");
     }
 }

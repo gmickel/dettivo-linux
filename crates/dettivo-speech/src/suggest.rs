@@ -136,7 +136,11 @@ impl Piper {
             .flat_map(std::env::split_paths)
             .chain(home.map(|h| h.join(".local/bin")))
             .map(|dir| dir.join("piper"))
-            .find(|p| p.is_file());
+            .find(|p| {
+                use std::os::unix::fs::PermissionsExt;
+                p.metadata()
+                    .is_ok_and(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
+            });
         let dir = models_dir.join(VOICES_DIR);
         let mut voices = Vec::new();
         let mut missing = Vec::new();

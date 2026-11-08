@@ -107,7 +107,7 @@ fn nothing_is_written_without_apply_and_apply_writes_the_proposal() {
     );
     assert!(
         text.ends_with(
-            "nothing written; run again with --apply to write the spellings of 1 term\n"
+            "nothing written; --apply would write new sounds_like for 1 term already in dictation.vocabulary\n"
         ),
         "{text}"
     );
@@ -120,26 +120,31 @@ fn nothing_is_written_without_apply_and_apply_writes_the_proposal() {
         ],
     );
     let got: Value = serde_json::from_str(&stdout(&out)).unwrap();
-    assert_eq!(got["applied"], Value::Null);
+    assert_eq!(got["change"]["written"], false);
+    assert_eq!(got["change"]["added"], serde_json::json!([1]));
+    assert_eq!(got["change"]["extended"], serde_json::json!([0]));
     let spellings = got["suggestions"][0]["sounds_like"].clone();
     let proposal = spellings[0].as_str().unwrap().to_string();
     assert!(proposal.contains("fellow americans"), "{got}");
     assert_eq!(got["suggestions"][1]["term"], "Kennedy Speech Ltd Inc");
     assert_eq!(file(&d), before, "nothing written without --apply");
 
-    // With --apply the held term gains the spellings in place, and the
-    // named term the file lacked is added with its own.
+    // With --apply the held term gains the spellings in place, the named
+    // term the file lacked is added with its own, and "Americans", which
+    // has no spelling to propose, is added on its own: the clips were heard
+    // with it in the vocabulary.
     let out = suggest(
         &d,
         &[
             "Fellow Americans Ltd Inc",
             "Kennedy Speech Ltd Inc",
+            "Americans",
             "--apply",
         ],
     );
     assert!(
         stdout(&out).ends_with(
-            "wrote sounds_like for 2 terms: 1 added to dictation.vocabulary, 1 already in it\n"
+            "Americans: misheard, with no new spelling to propose\nwrote 2 new terms to dictation.vocabulary and new sounds_like for 1 term already in dictation.vocabulary\n"
         ),
         "{}",
         stdout(&out)
@@ -150,7 +155,7 @@ fn nothing_is_written_without_apply_and_apply_writes_the_proposal() {
         before.replace(
             "[\"Fellow Americans Ltd Inc\"] # mine",
             &format!(
-                "[{{ term = \"Fellow Americans Ltd Inc\", sounds_like = {list} }}, {{ term = \"Kennedy Speech Ltd Inc\", sounds_like = {list} }}] # mine"
+                "[{{ term = \"Fellow Americans Ltd Inc\", sounds_like = {list} }}, {{ term = \"Kennedy Speech Ltd Inc\", sounds_like = {list} }}, \"Americans\"] # mine"
             )
         )
     );

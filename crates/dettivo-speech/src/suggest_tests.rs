@@ -172,6 +172,8 @@ fn missing_piper_or_voices_are_named_with_how_to_get_them() {
     let local = dir.path().join(".local/bin");
     std::fs::create_dir_all(&local).unwrap();
     let binary = fake_piper(&local, "exit 0");
+    // A `piper` that cannot run, earlier on PATH, is passed over.
+    std::fs::write(bin.join("piper"), "not a program").unwrap();
     let piper = Piper::find(dir.path(), Some(&path), Some(dir.path())).unwrap();
     assert_eq!(piper.binary, binary);
     assert_eq!(
