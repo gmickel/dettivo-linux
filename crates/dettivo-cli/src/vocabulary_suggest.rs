@@ -60,7 +60,7 @@ pub fn run(cli: &Cli, client: &Client, terms: &[String], apply: bool) -> Result<
     if cli.json {
         let mut report = json!({ "suggestions": results, "change": change.as_ref().ok() });
         if let Err(failure) = &change {
-            report["error"] = serde_json::to_value(&failure.rpc).unwrap_or(Value::Null);
+            report["error"] = crate::output::error_value(failure);
         }
         println!("{report}");
     } else if let (true, Ok(change)) = (human, &change) {
