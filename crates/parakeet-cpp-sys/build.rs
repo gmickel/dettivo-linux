@@ -10,12 +10,15 @@
 //! `PARAKEET_CPP_ARCHIVE_DIR` names a directory holding the two archives
 //! already downloaded. `CMAKE_*`, `GGML_*` and `Vulkan_*` variables in the
 //! environment are forwarded to CMake.
+//! `DETTIVO_SOURCE_CACHE` names a directory shared across builds that keeps
+//! every verified download under its checksum, and a github.com download
+//! sends `GITHUB_TOKEN` (or `GH_TOKEN`) when one is set.
 
 use std::env;
 use std::fs;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 #[path = "patch.rs"]
 mod patch;
@@ -93,18 +96,21 @@ fn fetch_sources(out: &Path) -> PathBuf {
 
 /// Downloads `url` to `path` unless a file with the expected checksum is
 /// already there; a checksum mismatch fails the build naming both hashes.
+/// `DETTIVO_SOURCE_CACHE` names a directory read before the network and
+/// given every verified download, filed under its checksum.
 fn fetch(url: &str, path: &Path, sha256: &str) {
     if path.is_file() && sha256_of(path) == sha256 {
         return;
     }
+    let cached = env::var_os("DETTIVO_SOURCE_CACHE").map(|dir| PathBuf::from(dir).join(sha256));
+    if let Some(cached) = &cached {
+        if cached.is_file() && sha256_of(cached) == sha256 {
+            fs::copy(cached, path).unwrap_or_else(|e| panic!("{}: {e}", cached.display()));
+            return;
+        }
+    }
     let part = path.with_extension("part");
-    let status = Command::new("curl")
-        .args(["-fsSL", "--retry", "3", "-o"])
-        .arg(&part)
-        .arg(url)
-        .status()
-        .unwrap_or_else(|e| panic!("curl {url}: {e}"));
-    assert!(status.success(), "curl {url} failed with {status}");
+    curl(url, &part);
     let have = sha256_of(&part);
     assert!(
         have == sha256,
@@ -112,6 +118,45 @@ fn fetch(url: &str, path: &Path, sha256: &str) {
         part.display()
     );
     fs::rename(&part, path).expect("move archive into place");
+    if let Some(cached) = cached {
+        keep(path, &cached);
+    }
+}
+
+/// Runs curl. A github.com URL carries `GITHUB_TOKEN` (or `GH_TOKEN`) in a
+/// header curl reads from stdin, so the token is in no argument list and
+/// no message.
+fn curl(url: &str, to: &Path) {
+    let token = ["GITHUB_TOKEN", "GH_TOKEN"]
+        .iter()
+        .filter_map(|key| env::var(key).ok())
+        .find(|token| !token.is_empty())
+        .filter(|_| url.starts_with("https://github.com/"));
+    let mut curl = Command::new("curl");
+    curl.args(["-fsSL", "--retry", "3", "-o"]).arg(to).arg(url);
+    if token.is_some() {
+        curl.args(["-H", "@-"]).stdin(Stdio::piped());
+    }
+    let mut child = curl.spawn().unwrap_or_else(|e| panic!("curl {url}: {e}"));
+    if let (Some(token), Some(mut stdin)) = (token, child.stdin.take()) {
+        // A curl that exits before reading it fails through its status.
+        let _ = writeln!(stdin, "Authorization: Bearer {token}");
+    }
+    let status = child.wait().unwrap_or_else(|e| panic!("curl {url}: {e}"));
+    assert!(status.success(), "curl {url} failed with {status}");
+}
+
+/// Files a verified download in the source cache; a cache that cannot be
+/// written warns and the build carries on.
+fn keep(path: &Path, cached: &Path) {
+    let part = cached.with_extension(format!("{}.part", std::process::id()));
+    let stored = fs::create_dir_all(cached.parent().expect("cache directory"))
+        .and_then(|()| fs::copy(path, &part))
+        .and_then(|_| fs::rename(&part, cached));
+    if let Err(e) = stored {
+        let _ = fs::remove_file(&part);
+        println!("cargo:warning=source cache {}: {e}", cached.display());
+    }
 }
 
 fn sha256_of(path: &Path) -> String {
