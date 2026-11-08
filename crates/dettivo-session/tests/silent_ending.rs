@@ -207,7 +207,11 @@ fn assert_tail(t: &Take, what: &str) {
         "{what}: {} ms, the hold and the whole 200 ms tail",
         t.ms
     );
-    assert!(t.capture_ms >= TAIL_CAPTURE_MS, "{what}: capture {} ms", t.capture_ms);
+    assert!(
+        t.capture_ms >= TAIL_CAPTURE_MS,
+        "{what}: capture {} ms",
+        t.capture_ms
+    );
 }
 
 fn assert_early(t: &Take, what: &str) {
@@ -297,5 +301,9 @@ fn a_take_shorter_than_the_judged_stretch_keeps_its_tail() {
         "{} ms of the tail's speech kept",
         t.speech_ms
     );
-    assert!(t.capture_ms >= TAIL_CAPTURE_MS, "capture {} ms", t.capture_ms);
+    assert!(
+        t.capture_ms >= TAIL_CAPTURE_MS,
+        "capture {} ms",
+        t.capture_ms
+    );
 }
