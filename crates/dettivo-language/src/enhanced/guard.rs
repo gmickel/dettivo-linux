@@ -5,7 +5,11 @@
 //! question mark or runs away in length is rejected, and the Polish
 //! result is inserted instead.
 
+mod length;
+
 use std::collections::BTreeSet;
+
+pub use length::{DROPPED_WORDS, dropped_dictated_words, output_budget};
 
 use crate::polish::text::{char_count, is_match, looks_like_question, ranges, re, replace_all};
 
@@ -94,7 +98,7 @@ pub fn rejection_reason(input: &str, output: &str) -> Option<String> {
             return Some("output requested user input instead of rewriting".into());
         }
     }
-    None
+    length::implausible_length(trimmed_input, trimmed_output).map(Into::into)
 }
 
 /// The numbers in `text` as the guard compares them: trailing sentence

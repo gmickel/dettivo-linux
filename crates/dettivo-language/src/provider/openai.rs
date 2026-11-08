@@ -268,6 +268,7 @@ mod tests {
         RewriteRequest {
             system: "s".into(),
             user: "u".into(),
+            max_tokens: None,
         }
     }
 

@@ -151,6 +151,7 @@ mod tests {
         RewriteRequest {
             system: String::new(),
             user: wrap_transcript(text),
+            max_tokens: None,
         }
     }
 

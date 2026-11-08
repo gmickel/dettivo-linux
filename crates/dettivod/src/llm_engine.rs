@@ -308,7 +308,9 @@ impl LocalEngine for LocalLlm {
                 &GenerateRequest {
                     system: Some(request.system.clone()),
                     user: request.user.clone(),
-                    max_tokens: self.max_tokens,
+                    max_tokens: request
+                        .max_tokens
+                        .map_or(self.max_tokens, |budget| budget.clamp(1, self.max_tokens)),
                     temperature: TEMPERATURE,
                     stop: Vec::new(),
                     raw: false,

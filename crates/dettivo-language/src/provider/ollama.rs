@@ -248,6 +248,7 @@ mod tests {
                 &RewriteRequest {
                     system: "s".into(),
                     user: "the transcript".into(),
+                    max_tokens: None,
                 },
                 Duration::from_secs(5),
             )
@@ -282,7 +283,8 @@ mod tests {
                 .rewrite(
                     &RewriteRequest {
                         system: "s".into(),
-                        user: "u".into()
+                        user: "u".into(),
+                        max_tokens: None,
                     },
                     Duration::from_secs(5)
                 )

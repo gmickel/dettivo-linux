@@ -195,6 +195,7 @@ impl Run<'_> {
         let request = RewriteRequest {
             system,
             user: user.to_string(),
+            max_tokens: None,
         };
         match self.provider.answer(&request, remaining) {
             Ok(answer) => Ok(Some(answer)),

@@ -148,6 +148,7 @@ pub(crate) mod tests {
         let request = RewriteRequest {
             system: String::new(),
             user: String::new(),
+            max_tokens: None,
         };
         assert_eq!(
             detached.rewrite(&request, Duration::from_secs(1)),
