@@ -188,10 +188,10 @@ fn a_refused_write_still_prints_every_suggestion() {
             "{}",
             stderr(&out)
         );
-        // The suggestions come first; the error follows as its own line.
-        let text = stdout(&out);
-        let got: Value = serde_json::from_str(text.lines().next().unwrap()).unwrap();
+        // One document: the suggestions, and the refusal beside them.
+        let got: Value = serde_json::from_str(&stdout(&out)).unwrap();
         assert_eq!(got["change"], Value::Null);
+        assert_eq!(got["error"]["data"]["app_code"], "INVALID_PARAMS", "{got}");
         let heard = got["suggestions"][0]["sounds_like"][0].as_str().unwrap();
         assert!(heard.contains("fellow americans"), "{got}");
     }

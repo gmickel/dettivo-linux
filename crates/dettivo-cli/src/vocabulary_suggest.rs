@@ -48,17 +48,26 @@ pub fn run(cli: &Cli, client: &Client, terms: &[String], apply: bool) -> Result<
     let params = json!({ "entries": entries(&results), "extend": true, "dry_run": !apply });
     // The hearings are printed even when the vocabulary refuses them (a
     // limit), so minutes of transcription are never lost to the refusal.
-    let change = client.call("config.vocabulary.add", params);
+    // Under --json the refusal joins them in the one document printed.
+    let change = client
+        .call("config.vocabulary.add", params)
+        .map_err(|mut failure| {
+            if let Some(refused) = refused_terms(&failure, &results) {
+                failure.message = format!("nothing was written\n  {}", refused.join("\n  "));
+            }
+            failure
+        });
     if cli.json {
-        let answer = change.as_ref().ok();
-        println!("{}", json!({ "suggestions": results, "change": answer }));
+        let mut report = json!({ "suggestions": results, "change": change.as_ref().ok() });
+        if let Err(failure) = &change {
+            report["error"] = serde_json::to_value(&failure.rpc).unwrap_or(Value::Null);
+        }
+        println!("{report}");
     } else if let (true, Ok(change)) = (human, &change) {
         print!("{}", summary(change, apply));
     }
     change.map(|_| ()).map_err(|mut failure| {
-        if let Some(refused) = refused_terms(&failure, &results) {
-            failure.message = format!("nothing was written\n  {}", refused.join("\n  "));
-        }
+        failure.reported |= cli.json;
         failure
     })
 }
