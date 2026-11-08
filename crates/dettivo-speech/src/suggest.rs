@@ -10,6 +10,8 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
+use dettivo_engine_proto::sound::is_term_mark;
+
 /// The Piper voices, in the order their clips are heard. Both speak at
 /// 16 kHz, the rate every speech engine takes.
 pub const VOICES: [&str; 2] = ["en_US-amy-low", "en_US-ryan-low"];
@@ -49,28 +51,41 @@ pub fn sayings(term: &str) -> [String; 2] {
 /// more than two words longer than the term is not a spelling, and neither
 /// is the term itself.
 pub fn hear(term: &str, heard: &str, unprimed: &str, in_sentence: bool) -> (bool, Option<String>) {
-    let term = words(term);
+    // A term spelt with marks (`C#`, `C++`) is right only where the text
+    // keeps them: its words alone are `c`, which any lone `C` matches.
+    let marks = term.chars().any(is_term_mark);
+    let spelt = |text: &str| !marks || text.to_lowercase().contains(&term.to_lowercase());
+    let term_words = words(term);
     let holds = |text: &[String]| {
-        !term.is_empty() && text.windows(term.len()).any(|w| w == term.as_slice())
+        !term_words.is_empty()
+            && text
+                .windows(term_words.len())
+                .any(|w| w == term_words.as_slice())
     };
-    let heard = words(heard);
-    let unprimed = words(unprimed);
-    let (heard_stretch, unprimed_stretch) = if in_sentence {
-        (stretch(&heard), stretch(&unprimed))
-    } else {
-        (Some(&heard[..]), Some(&unprimed[..]))
-    };
-    // A sentence that did not come back is searched whole, so a term
-    // heard right is still counted.
-    if holds(heard_stretch.unwrap_or(&heard)) {
+    let (heard_words, unprimed_words) = (words(heard), words(unprimed));
+    // A sentence clip is judged only between the sentence's own words; one
+    // whose sentence did not come back is neither right nor a spelling.
+    if region(&heard_words, in_sentence).is_some_and(holds) && spelt(heard) {
         return (true, None);
     }
-    let Some(found) = unprimed_stretch.filter(|s| !holds(s)) else {
+    let Some(found) =
+        region(&unprimed_words, in_sentence).filter(|s| !(holds(s) && spelt(unprimed)))
+    else {
         return (false, None);
     };
     let spelling =
-        (!found.is_empty() && found.len() <= term.len().max(1) + 2).then(|| found.join(" "));
+        (!found.is_empty() && found.len() <= term_words.len().max(1) + 2).then(|| found.join(" "));
     (false, spelling)
+}
+
+/// The words a clip is judged on: all of them, or for a sentence clip
+/// those between the sentence's own (`None` when it did not come back).
+fn region(text: &[String], in_sentence: bool) -> Option<&[String]> {
+    if in_sentence {
+        stretch(text)
+    } else {
+        Some(text)
+    }
 }
 
 /// The words of a sentence clip between the sentence's own; `None` when

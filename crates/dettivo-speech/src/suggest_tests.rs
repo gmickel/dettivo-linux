@@ -51,6 +51,29 @@ fn the_sentences_own_words_never_count_as_the_term() {
         hear("Great", "I think Great is great.", heard, true),
         (true, None)
     );
+    // A sentence that lost the term is not heard right.
+    assert_eq!(
+        hear("Great", "I think is great.", heard, true),
+        (false, Some("grade".into()))
+    );
+    assert_eq!(
+        hear("Great", "I think is great.", "I think is great.", true),
+        (false, None)
+    );
+}
+
+#[test]
+fn a_term_spelt_with_marks_is_right_only_with_its_marks() {
+    assert_eq!(
+        same("C#", "C sharp.", false),
+        (false, Some("c sharp".into()))
+    );
+    assert_eq!(
+        same("C++", "I think C is great.", true),
+        (false, Some("c".into()))
+    );
+    assert_eq!(same("C#", "I think C# is great.", true), (true, None));
+    assert_eq!(same("C++", "c++.", false), (true, None));
 }
 
 #[test]
