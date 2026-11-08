@@ -21,6 +21,12 @@ use support::{policy, rig, tone};
 
 const RELEASE_MS: u64 = 1_000;
 
+/// The least capture a kept tail reports. `capture_ms` runs from the stop
+/// being observed, and the worker observes it when it next wakes, which
+/// here is the next 20 ms chunk: the release falls on a chunk boundary, so
+/// the whole 200 ms tail can read as 180 ms. Still far above an early end.
+const TAIL_CAPTURE_MS: u64 = 170;
+
 /// What the microphone captures between the speech.
 #[derive(Clone, Copy)]
 enum Floor {
@@ -201,7 +207,11 @@ fn assert_tail(t: &Take, what: &str) {
         "{what}: {} ms, the hold and the whole 200 ms tail",
         t.ms
     );
-    assert!(t.capture_ms >= 190, "{what}: capture {} ms", t.capture_ms);
+    assert!(
+        t.capture_ms >= TAIL_CAPTURE_MS,
+        "{what}: capture {} ms",
+        t.capture_ms
+    );
 }
 
 fn assert_early(t: &Take, what: &str) {
@@ -291,5 +301,9 @@ fn a_take_shorter_than_the_judged_stretch_keeps_its_tail() {
         "{} ms of the tail's speech kept",
         t.speech_ms
     );
-    assert!(t.capture_ms >= 190, "capture {} ms", t.capture_ms);
+    assert!(
+        t.capture_ms >= TAIL_CAPTURE_MS,
+        "capture {} ms",
+        t.capture_ms
+    );
 }
