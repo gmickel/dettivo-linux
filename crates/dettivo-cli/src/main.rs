@@ -32,6 +32,7 @@ mod speech;
 mod speech_lines;
 mod transfer;
 mod vocabulary;
+mod vocabulary_suggest;
 
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -164,9 +165,9 @@ pub enum Command {
         #[command(subcommand)]
         what: polish::LlmCmd,
     },
-    /// Import a plain-text list of terms into dictation.vocabulary through the daemon.
+    /// Import a plain-text list of terms into dictation.vocabulary, or suggest sounds_like spellings for its terms, through the daemon.
     Vocabulary {
-        /// import.
+        /// import or suggest.
         #[command(subcommand)]
         what: vocabulary::VocabularyCmd,
     },

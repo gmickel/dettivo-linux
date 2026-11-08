@@ -18,6 +18,7 @@ The CLI is a client crate and talks to the daemon through `dettivo-proto` only, 
 - An entry that breaks a limit refuses the whole call with `INVALID_PARAMS`. `details.refused` lists each such entry as `{ index, message }`, and nothing is written. The CLI maps each index back to the line of the import file.
 - The result names the added entries and the skipped ones by index, each skip with the earlier entry it repeats, the number of entries after the call, and whether the file was written. A dry run and a call that adds nothing write nothing.
 - Settings and `dettivo config set` keep writing the whole list with `config.set`.
+- With `extend` (ADR 0104, `dettivo vocabulary suggest --apply`), an entry whose term the file holds gives that entry the `sounds_like` spellings it lacks instead of being skipped, and the result lists it in `extended`. The import never sets it.
 
 ## Consequences
 

@@ -1,5 +1,6 @@
 //! The methods this daemon implements today: `system.*`, `config.*`,
-//! `audio.devices`, `speech.*` (engines, providers, selection and models),
+//! `audio.devices`, `speech.*` (engines, providers, selection, models and
+//! vocabulary suggestions),
 //! `dictation.*`, `meetings.*` (ADR 0027), `events.*`, `insert.*`,
 //! `transcripts.*` over both kinds, `transfer.*`, `polish.*`, the Linux
 //! `llm.*` additions, `hotkeys.status`, `hotkeys.snippet`, `hotkeys.setup`
@@ -25,6 +26,7 @@ pub mod meetings_segments;
 pub mod meetings_speakers;
 pub mod polish;
 pub mod speech;
+pub mod speech_vocabulary;
 pub mod system;
 pub mod transcripts;
 pub mod transfer;
@@ -209,6 +211,9 @@ pub fn resolve(method: &str) -> Option<Handler> {
         "speech.models.download" => |daemon, _ctx, value| speech::models_download(daemon, value),
         "speech.models.cancel" => |daemon, _ctx, value| speech::models_cancel(daemon, value),
         "speech.models.delete" => |daemon, _ctx, value| speech::models_delete(daemon, value),
+        "speech.vocabulary.suggest" => {
+            |daemon, _ctx, value| speech_vocabulary::suggest(daemon, value)
+        }
         "insert.perform" => |daemon, _ctx, value| insert::perform(daemon, value),
         "insert.undo" => |daemon, _ctx, value| {
             let _: dettivo_proto::catalog::NoParams = params(value)?;

@@ -108,8 +108,9 @@ dettivo  Talk to the Dettivo daemon
 │     ├─ status*  The sideload in force: its manifest, readiness and form
 │     ├─ use* [name]  Run Enhanced on the fine-tune a manifest names (sets `[llm] polish_experiment`)
 │     └─ clear*  Back to the catalogue model (clears `[llm] polish_experiment`)
-├─ vocabulary  Import a plain-text list of terms into dictation.vocabulary through the daemon
-│  └─ import* <file> --dry-run  Add a plain-text list to dictation.vocabulary: one term per line, `term = spelling, spelling` for how it is misheard
+├─ vocabulary  Import a plain-text list of terms into dictation.vocabulary, or suggest sounds_like spellings for its terms, through the daemon
+│  ├─ import* <file> --dry-run  Add a plain-text list to dictation.vocabulary: one term per line, `term = spelling, spelling` for how it is misheard
+│  └─ suggest* [terms] --apply  Hear each term (or the whole vocabulary) spoken by two Piper voices and propose how the engine mishears it as sounds_like
 ├─ app*  Raise the desktop app, open a route in it, or read its status, without the daemon
 │  ├─ open* <route> --id  Open a route in the running window, or launch the app on it
 │  └─ status*  The running app's route, window and daemon link

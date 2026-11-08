@@ -307,3 +307,82 @@ fn a_term_added_to_tables_counts_as_the_table_it_loads_as() {
     );
     assert_eq!(refused.len(), imports.len() - first);
 }
+
+#[test]
+fn extending_gives_a_held_term_the_spellings_it_lacks_and_keeps_its_text() {
+    // fn-96: `vocabulary suggest --apply` adds heard spellings to terms the
+    // file already holds; a plain term becomes a table in its place.
+    let before = concat!(
+        "[dictation]\n",
+        "vocabulary = [\n",
+        "  \"Clef\", # the app\n",
+        "  { term = \"Omarchy\", sounds_like = [\n",
+        "    \"oh marky\", # how I say it\n",
+        "  ] },\n",
+        "  \"Dettivo\",\n",
+        "]\n",
+    );
+    let out = add_or_extend(
+        before,
+        &[
+            entry("clef", &["clay", "cleff"]),
+            entry("Omarchy", &["Oh Marky", "omar key"]),
+            entry("Dettivo", &[]),
+            entry("Hyprland", &["hyper land"]),
+        ],
+    )
+    .unwrap();
+    assert_eq!(
+        out.text,
+        concat!(
+            "[dictation]\n",
+            "vocabulary = [\n",
+            "  { term = \"Clef\", sounds_like = [\"clay\", \"cleff\"] }, # the app\n",
+            "  { term = \"Omarchy\", sounds_like = [\n",
+            "    \"oh marky\", # how I say it\n",
+            "    \"omar key\",\n",
+            "  ] },\n",
+            "  \"Dettivo\",\n",
+            "  { term = \"Hyprland\", sounds_like = [\"hyper land\"] },\n",
+            "]\n",
+        )
+    );
+    assert_eq!((out.added, out.extended), (vec![3], vec![0, 1]));
+    assert_eq!(
+        out.skipped,
+        vec![Skipped {
+            index: 2,
+            repeats: None
+        }]
+    );
+    assert_eq!(out.entries, 4);
+    // Without extending, a held term is skipped whatever it carries.
+    let plain = add(before, &[entry("clef", &["clay"])]).unwrap();
+    assert_eq!((plain.text.as_str(), plain.extended.len()), (before, 0));
+}
+
+#[test]
+fn extending_a_table_and_a_spelling_limit_name_the_entry() {
+    let before = "[[dictation.vocabulary]]\nterm = \"Clef\" # mine\n";
+    let out = add_or_extend(before, &[entry("Clef", &["clay"])]).unwrap();
+    assert_eq!(
+        out.text,
+        "[[dictation.vocabulary]]\nterm = \"Clef\" # mine\nsounds_like = [\"clay\"]\n"
+    );
+    assert_eq!(out.extended, vec![0]);
+    let full: Vec<String> = (0..MAX_ALIASES).map(|i| format!("s{i}")).collect();
+    let full: Vec<&str> = full.iter().map(String::as_str).collect();
+    let text = add_or_extend(before, &[entry("Clef", &full)]).unwrap().text;
+    let AddError::Refused(refused) =
+        add_or_extend(&text, &[entry("Clef", &["one more"])]).unwrap_err()
+    else {
+        panic!("refused by limit");
+    };
+    assert_eq!(
+        refused,
+        vec![(
+            0,
+            format!("\"Clef\" has 17 sounds_like spellings; a term takes at most {MAX_ALIASES}")
+        )]
+    );
+}

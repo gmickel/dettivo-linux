@@ -142,6 +142,28 @@ Clef = clay, cleff
 
 The daemon does the import (`config.vocabulary.add`, [ADR 0101](adr/0101-a-vocabulary-import-is-appended-by-the-daemon-under-its-edit-lock.md)). Under the lock every edit of `config.toml` takes, it appends the new entries after the last one in the file, so your comments and the entries already there stay exactly as you wrote them, a term repeated in another case included, and a change Settings saves at the same moment is kept. It reloads the file as it writes it, so the next take uses the imported terms without a restart. Without a running daemon the command exits 2 and writes nothing, as `dettivo config set` does.
 
+### Suggesting sound-alikes
+
+`dettivo vocabulary suggest` finds out how the engine you dictate with mishears your terms, so you do not have to guess the `sounds_like` spellings. Two Piper voices say each term on its own and in a short sentence, the engine transcribes each clip as it would a take, and the command prints what it found:
+
+```text
+$ dettivo vocabulary suggest
+Dettivo: heard as "the devo", "it table", "the tivo"
+Clef: heard as "cleft", "where", "left"
+SapienXT: heard right; needs no sounds_like
+Omarchy: heard right; needs no sounds_like
+Hyprland: heard right; needs no sounds_like
+nothing written; run again with --apply to write the spellings of 2 terms
+```
+
+- Without terms it hears every term of `[dictation] vocabulary`; `dettivo vocabulary suggest Kubernetes "Sapien XT"` hears the ones you name, in the vocabulary or not.
+- A term is heard right when all four clips come back with it spelt right while the vocabulary is in force. For a clip that still misses, the spelling is what the engine wrote there with no vocabulary, which is the text a `sounds_like` spelling is matched against. A spelling the entry already lists is not proposed again.
+- Nothing is written until you add `--apply`. Then a term the vocabulary holds gains the new spellings in its own entry, keeping its comment, and a term it lacks is added with them. `--json` prints every clip: what was said, what the engine heard with the vocabulary and without it, and the spelling taken from it.
+- The spellings belong to the engine that heard them. Run the command again after you switch between Parakeet and Whisper.
+- It proposes the real words the engine wrote, such as `left` for Clef. On the benchmark clips the spellings it proposed kept Parakeet at 13 and Whisper at 10 of 15 terms, as with the terms alone, brought back one more name said alone for Whisper, and wrote no term into a sound-alike or ordinary sentence ([ADR 0104](adr/0104-vocabulary-suggest-proposes-what-the-engine-hears-where-the-vocabulary-misses.md)). Remove a spelling you would rather not list.
+
+The command needs Piper and two of its voices on the machine; nothing leaves it. Install Piper with `pipx install piper-tts` so `piper` is on the daemon's `PATH` or in `~/.local/bin`, and put `en_US-amy-low.onnx` and `en_US-ryan-low.onnx`, each with its `.onnx.json`, from [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices/tree/main/en/en_US) into the `piper` folder of the models directory (`~/.local/share/dettivo/models/piper/` by default). Without them the command names what is missing and exits 1. A term takes about six seconds on a GPU, so a long vocabulary takes a while.
+
 ## Configuration
 
 | Key | Default | Meaning |

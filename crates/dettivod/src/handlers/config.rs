@@ -159,7 +159,12 @@ pub fn vocabulary_add(daemon: &Daemon, params_value: Value) -> Result<Value, Jso
         .collect::<Result<Vec<_>, _>>()?;
     let _guard = daemon.config_edit_lock();
     let text = current_text(daemon)?;
-    let added = vocabulary_add::add(&text, &entries).map_err(|e| match e {
+    let add = if p.extend {
+        vocabulary_add::add_or_extend
+    } else {
+        vocabulary_add::add
+    };
+    let added = add(&text, &entries).map_err(|e| match e {
         AddError::Invalid(err) => invalid(err),
         AddError::Refused(refused) => refusal(&refused),
     })?;
@@ -169,6 +174,7 @@ pub fn vocabulary_add(daemon: &Daemon, params_value: Value) -> Result<Value, Jso
     }
     json(VocabularyAddResult {
         added: added.added,
+        extended: added.extended,
         skipped: added
             .skipped
             .into_iter()
