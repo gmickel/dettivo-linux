@@ -21,6 +21,7 @@ pub mod models;
 pub mod preload;
 pub mod process;
 pub mod ranking;
+pub mod suggest;
 pub mod supervisor;
 mod supervisor_types;
 pub mod tier;

@@ -6,7 +6,7 @@
 
 use crate::methods::{
     audio, automation, config, dictation, hotkeys, insert, llm, meetings, meetings_notes,
-    meetings_segments, polish, speakers, speech, system, transcripts, transfer,
+    meetings_segments, polish, speakers, speech, speech_vocabulary, system, transcripts, transfer,
 };
 use crate::{events, reserved};
 use serde::de::DeserializeOwned;
@@ -231,6 +231,7 @@ catalog! {
         "speech.models.download" => (speech::ModelParams, speech::ModelStatus), linux: true;
         "speech.models.cancel" => (speech::ModelParams, speech::ModelStatus), linux: true;
         "speech.models.delete" => (speech::ModelDeleteParams, speech::ModelDeleteResult), linux: true;
+        "speech.vocabulary.suggest" => (speech_vocabulary::SuggestParams, speech_vocabulary::SuggestResult), linux: true;
         "config.get" => (config::GetParams, config::GetResult), linux: true;
         "config.set" => (config::SetParams, config::SetResult), linux: true;
         "config.unset" => (config::UnsetParams, config::UnsetResult), linux: true;

@@ -8,7 +8,7 @@ use dettivo_engine_proto::{BiasTerm, VocabularyBias};
 
 /// The bias a Parakeet request carries; `None` with no entries or the
 /// boost off, so the engine decodes exactly as it does without one.
-pub(crate) fn vocabulary_bias(
+pub fn vocabulary_bias(
     entries: &[VocabularyEntry],
     boost: VocabularyBoost,
 ) -> Option<VocabularyBias> {
@@ -32,7 +32,7 @@ pub(crate) fn vocabulary_bias(
 /// prompt's own, since only a term in the prompt can be read back from it,
 /// each with its `sounds_like` spellings from `entries`, which a lone name
 /// may sound like. Whisper ignores the boost; `None` without terms.
-pub(crate) fn checked_terms(
+pub fn checked_terms(
     prompt_terms: &[String],
     entries: &[VocabularyEntry],
 ) -> Option<VocabularyBias> {

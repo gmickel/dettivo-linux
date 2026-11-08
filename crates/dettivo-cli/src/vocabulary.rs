@@ -1,3 +1,5 @@
+//! `dettivo vocabulary suggest` lives in `vocabulary_suggest`.
+//!
 //! `dettivo vocabulary import <file>`: a plain-text list of terms added to
 //! `[dictation] vocabulary` in one `config.vocabulary.add` (ADR 0101). One
 //! term per line, `term = a, b` to give it `sounds_like` spellings; blank
@@ -29,6 +31,14 @@ pub enum VocabularyCmd {
         /// Print what would be added and skipped, and write nothing.
         #[arg(long)]
         dry_run: bool,
+    },
+    /// Hear each term (or the whole vocabulary) spoken by two Piper voices and propose how the engine mishears it as sounds_like.
+    Suggest {
+        /// The terms; every term of dictation.vocabulary when none is named.
+        terms: Vec<String>,
+        /// Write the proposed spellings to dictation.vocabulary; without it nothing is written.
+        #[arg(long)]
+        apply: bool,
     },
 }
 
@@ -97,7 +107,12 @@ pub fn parse(text: &str) -> Result<Vec<Line>, Vec<String>> {
 
 /// Runs a `vocabulary` subcommand.
 pub fn run(cli: &Cli, client: &Client, what: &VocabularyCmd) -> Result<(), Failure> {
-    let VocabularyCmd::Import { file, dry_run } = what;
+    let (file, dry_run) = match what {
+        VocabularyCmd::Import { file, dry_run } => (file, dry_run),
+        VocabularyCmd::Suggest { terms, apply } => {
+            return crate::vocabulary_suggest::run(cli, client, terms, *apply);
+        }
+    };
     let text = std::fs::read_to_string(file).map_err(|e| {
         Failure::new(
             Exit::InvalidArgs,

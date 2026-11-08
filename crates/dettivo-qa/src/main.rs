@@ -17,11 +17,12 @@ use std::process::ExitCode;
 use std::time::Duration;
 
 use clap::{Parser, Subcommand};
-use dettivo_qa::{bench, doctor, lint, pacing, pack, pipeline, runner, scenarios, visual};
+use dettivo_qa::{doctor, lint, pacing, pack, pipeline, runner, scenarios, visual};
 
 use daemon_verbs::{audio_check, contract, drive, mcp, rest};
 
 mod beauty_verb;
+mod bench_verb;
 mod cli_paths;
 use cli_paths::{models_dir, repo_root};
 mod daemon_verbs;
@@ -133,41 +134,9 @@ enum Cmd {
     /// Run a held-out polish set through the Enhanced pipeline against a
     /// candidate model and score it with the macOS metrics and hard gates.
     PolishEval(polish_verb::PolishEvalArgs),
-    /// Measure the NFRs (first insert, transcription throughput, the
-    /// language model, the idle footprint, startup) into one report per
-    /// host and tier (docs/qa.md, ADR 0029); `bench vocabulary` scores
-    /// term recall with the vocabulary off and on (ADR 0087), `bench
-    /// windowed` the cost of decoding in rounds (ADR 0102).
-    Bench {
-        /// `vocabulary` or `windowed` for those suites; the NFR suite otherwise.
-        #[arg(value_name = "SUITE")]
-        suite: Option<String>,
-        /// Force the CPU tier (`DETTIVO_FORCE_CPU=1` for every engine).
-        #[arg(long)]
-        cpu: bool,
-        /// Three iterations and shorter idles, for CI.
-        #[arg(long)]
-        quick: bool,
-        /// One step by name (`first_insert`, `warm_up`, `gpu_threads`,
-        /// `stt_throughput`, `llm_rewrite`, `idle_footprint`, `startup`,
-        /// `language_wer`).
-        #[arg(long, value_name = "NAME")]
-        step: Option<String>,
-        /// Also file the report as `<date>-<host>-<tier>.json` in this
-        /// directory and render its README table (docs/reports/benchmarks).
-        #[arg(long, value_name = "DIR")]
-        out: Option<PathBuf>,
-        /// The engine binaries to measure (a Vulkan build); the workspace
-        /// build otherwise.
-        #[arg(long, value_name = "DIR")]
-        engines: Option<PathBuf>,
-        /// The FLEURS languages `language_wer` scores (scripts/qa/fetch-fleurs.sh).
-        #[arg(long, value_name = "DIR")]
-        languages: Option<PathBuf>,
-        /// Evidence base directory; the report lands under `<dir>/<run>/bench/`.
-        #[arg(long, default_value = "qa-evidence", value_name = "DIR")]
-        evidence: PathBuf,
-    },
+    /// Measure the NFRs into one report per host and tier, or run the
+    /// `vocabulary` or `windowed` suite (docs/qa.md).
+    Bench(bench_verb::BenchArgs),
     /// Run a named pack of scenarios into one report (`pack list` names them).
     Pack {
         /// Pack name, or `list`.
@@ -365,32 +334,7 @@ fn main() -> ExitCode {
             evidence,
             report.as_deref(),
         ),
-        Cmd::Bench {
-            suite,
-            cpu,
-            quick,
-            step,
-            out,
-            engines,
-            languages,
-            evidence,
-        } => {
-            let opts = bench::Options {
-                repo_root: repo.clone(),
-                cpu: *cpu,
-                quick: *quick,
-                step: step.clone(),
-                out: out.clone(),
-                evidence_base: evidence.clone(),
-                engines_dir: engines.clone(),
-                models_dir: models_dir(),
-                languages_dir: languages.clone(),
-            };
-            match suite.as_deref() {
-                None => bench::command(&opts, cli.json),
-                Some(name) => bench::suite(name, &opts, cli.json),
-            }
-        }
+        Cmd::Bench(args) => bench_verb::run(args, &repo, models_dir(), cli.json),
         Cmd::Pack {
             name,
             driver,

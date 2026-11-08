@@ -1,15 +1,104 @@
 {
   "branch_name": "fn-96-vocabulary-suggests-its-own-sound-alikes",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-11-08T08:26:06.568215Z",
   "created_at": "2026-11-05T23:44:06.690649Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-95-import-a-vocabulary-from-a-file"
   ],
   "id": "fn-96-vocabulary-suggests-its-own-sound-alikes",
+  "impl_review_rounds": {
+    "fn-96-vocabulary-suggests-its-own-sound-alikes.1": 0
+  },
   "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "b1fbff91f801d7d2d75bf1aea1ecabeef8ab74b4968190b5b336174d89053bb2",
+      "backend": "codex",
+      "base_sha": "12c131edbe3be2a66867ee33d67fd8b0bf65a956",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-29cd2f2cee0aac9d5091f1fa6bbe930e",
+            "classification": "introduced",
+            "findingId": "finding-29cd2f2cee0aac9d5091f1fa6bbe930e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-95f1f5e0dddf94ac1dfb66ec330deaf1",
+            "classification": "introduced",
+            "findingId": "finding-95f1f5e0dddf94ac1dfb66ec330deaf1",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-77bde736f22bcd2ec1b51c3f7e744598",
+            "classification": "introduced",
+            "findingId": "finding-77bde736f22bcd2ec1b51c3f7e744598",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a91155c1988d7dfc5acf695218b1f062",
+            "classification": "introduced",
+            "findingId": "finding-a91155c1988d7dfc5acf695218b1f062",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2657bb864c1ef08b0088866695cc4966626d8ef8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 3269,
+      "output_sha256": "48c20bfd11c427ecc15658ba965980212b957ca642302de3390ad229089c95d4",
+      "reservation_id": "1d8268a9dc104b4f9b492c9b1e90059b",
+      "round_consumed": true,
+      "scope": "impl:fn-96-vocabulary-suggests-its-own-sound-alikes.1",
+      "superseded_by": null,
+      "task": "fn-96-vocabulary-suggests-its-own-sound-alikes.1",
+      "timestamp": "2026-11-08T08:23:10.343975Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-96-vocabulary-suggests-its-own-sound-alikes.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-96-vocabulary-suggests-its-own-sound-alikes.1": 0
+  },
   "spec_path": ".flow/specs/fn-96-vocabulary-suggests-its-own-sound-alikes.md",
-  "status": "open",
+  "status": "done",
   "title": "Vocabulary suggests its own sound-alikes",
   "tracker": {
     "baseHashFlow": null,
@@ -22,5 +111,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-11-06T08:38:36.938524Z"
+  "updated_at": "2026-11-08T08:26:50.767764Z"
 }

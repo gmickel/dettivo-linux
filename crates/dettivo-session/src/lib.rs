@@ -7,7 +7,7 @@
 //! to a publisher so the event stream, the OSD and the bar see the same
 //! state.
 
-mod bias;
+pub mod bias;
 mod deliver;
 mod finish;
 pub mod machine;

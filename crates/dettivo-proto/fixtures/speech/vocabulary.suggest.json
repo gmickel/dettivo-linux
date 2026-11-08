@@ -1,0 +1,56 @@
+{
+  "capabilities": {},
+  "method": "speech.vocabulary.suggest",
+  "request": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "speech.vocabulary.suggest",
+    "params": {
+      "term": "Clef"
+    }
+  },
+  "response": {
+    "id": "1",
+    "jsonrpc": "2.0",
+    "result": {
+      "hearings": [
+        {
+          "heard": "Clef.",
+          "right": true,
+          "said": "Clef",
+          "unprimed": "left.",
+          "voice": "en_US-amy-low"
+        },
+        {
+          "heard": "I think Clef is great.",
+          "right": true,
+          "said": "I think Clef is great.",
+          "unprimed": "I think Clef is great.",
+          "voice": "en_US-amy-low"
+        },
+        {
+          "heard": "Blech.",
+          "right": false,
+          "said": "Clef",
+          "spelling": "blah",
+          "unprimed": "Blah.",
+          "voice": "en_US-ryan-low"
+        },
+        {
+          "heard": "I think Clef is great.",
+          "right": true,
+          "said": "I think Clef is great.",
+          "unprimed": "I think Lev is great.",
+          "voice": "en_US-ryan-low"
+        }
+      ],
+      "model": "large-v3-turbo",
+      "provider": "whisper",
+      "recognised": false,
+      "sounds_like": [
+        "blah"
+      ],
+      "term": "Clef"
+    }
+  }
+}

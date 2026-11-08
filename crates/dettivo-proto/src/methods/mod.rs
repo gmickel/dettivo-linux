@@ -15,6 +15,7 @@ pub mod meetings_segments;
 pub mod polish;
 pub mod speakers;
 pub mod speech;
+pub mod speech_vocabulary;
 pub mod system;
 pub mod transcripts;
 pub mod transcripts_facts;

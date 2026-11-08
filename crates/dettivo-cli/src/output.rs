@@ -197,12 +197,17 @@ pub fn failure(cli: &Cli, failure: &Failure) {
 /// The JSON error body, shared with command parsing before a `Cli` exists.
 pub fn failure_json(json: bool, quiet: bool, failure: &Failure) {
     if json && !quiet && !failure.reported {
-        let error = match &failure.rpc {
-            Some(rpc) => serde_json::to_value(rpc).expect("JSON-RPC errors serialize"),
-            None => serde_json::json!({"code": -32603, "message": failure.message,
-                "data": {"origin": "cli", "exit_code": failure.exit.number()}}),
-        };
-        println!("{}", serde_json::json!({"error": error}));
+        println!("{}", serde_json::json!({"error": error_value(failure)}));
+    }
+}
+
+/// The error object `--json` prints for `failure`: the daemon's, or one
+/// the CLI makes for a failure of its own.
+pub fn error_value(failure: &Failure) -> serde_json::Value {
+    match &failure.rpc {
+        Some(rpc) => serde_json::to_value(rpc).expect("JSON-RPC errors serialize"),
+        None => serde_json::json!({"code": -32603, "message": failure.message,
+            "data": {"origin": "cli", "exit_code": failure.exit.number()}}),
     }
 }
 

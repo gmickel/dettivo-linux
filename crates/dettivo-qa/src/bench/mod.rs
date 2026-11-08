@@ -74,6 +74,9 @@ pub struct Options {
     /// The prepared FLEURS languages `language_wer` scores
     /// (`scripts/qa/fetch-fleurs.sh`); the step skips without them.
     pub languages_dir: Option<PathBuf>,
+    /// `bench vocabulary`: the vocabulary to prime the engines with in
+    /// place of the set's own (a JSON list of entries).
+    pub vocabulary: Option<PathBuf>,
 }
 
 impl Options {
@@ -305,6 +308,7 @@ mod tests {
             engines_dir: None,
             models_dir: None,
             languages_dir: None,
+            vocabulary: None,
         };
         assert_eq!(opts.iterations(), 3);
         assert_eq!(
