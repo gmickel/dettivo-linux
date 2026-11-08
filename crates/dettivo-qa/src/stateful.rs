@@ -146,6 +146,10 @@ pub const STATEFUL: &[(&str, &str)] = &[
         "needs an upload begun on this daemon",
     ),
     ("transfer/pull.json", "needs an export bound to a download"),
+    (
+        "speech/vocabulary.suggest.json",
+        "needs Piper, its voices and a speech model on the machine",
+    ),
 ];
 
 #[cfg(test)]
