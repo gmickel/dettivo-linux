@@ -119,11 +119,14 @@ fn tokens(text: &str) -> Vec<(String, bool)> {
 
 /// True when the draft's word `i`, one of `removed`, may go: a filler, a
 /// sentence opener, half of a filler phrase whose other half goes too,
-/// or a word said twice in a row.
+/// or a word said twice in a row whose neighbouring copy the rewrite
+/// keeps (`never never` losing both copies is a deletion).
 fn droppable(draft: &[(String, bool)], removed: &[usize], i: usize) -> bool {
     let (word, opens) = &draft[i];
     let at = |j: usize| draft.get(j).map(|(w, _)| w.as_str());
     let prev = i.checked_sub(1);
+    let kept_copy =
+        |j: Option<usize>| j.is_some_and(|j| at(j) == Some(word.as_str()) && !removed.contains(&j));
     FILLERS.contains(&word.as_str())
         || (*opens && OPENERS.contains(&word.as_str()))
         || FILLER_PHRASES.iter().any(|[a, b]| {
@@ -132,8 +135,8 @@ fn droppable(draft: &[(String, bool)], removed: &[usize], i: usize) -> bool {
                     && prev.and_then(at) == Some(*a)
                     && prev.is_some_and(|p| removed.contains(&p)))
         })
-        || prev.and_then(at) == Some(word.as_str())
-        || at(i + 1) == Some(word.as_str())
+        || kept_copy(prev)
+        || kept_copy(Some(i + 1))
 }
 
 /// Why a rewrite is rejected when it is `draft` (the deterministic
@@ -354,6 +357,14 @@ mod tests {
                 "We should ship the the release."
             ),
             dropped("not")
+        );
+        // A repeat is excused only while one copy stays.
+        assert_eq!(
+            dropped_dictated_words(
+                "We should never never ship the release without approval.",
+                "We should ship the release without approval."
+            ),
+            dropped("never never")
         );
         assert_eq!(
             dropped_dictated_words(
