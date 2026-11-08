@@ -41,6 +41,19 @@ fn a_clip_the_vocabulary_fixed_proposes_nothing_and_the_spelling_is_unprimed() {
 }
 
 #[test]
+fn the_sentences_own_words_never_count_as_the_term() {
+    let heard = "I think grade is great.";
+    assert_eq!(
+        hear("Great", heard, heard, true),
+        (false, Some("grade".into()))
+    );
+    assert_eq!(
+        hear("Great", "I think Great is great.", heard, true),
+        (true, None)
+    );
+}
+
+#[test]
 fn a_sentence_that_did_not_come_back_or_a_long_stretch_proposes_nothing() {
     assert_eq!(
         same("Clef", "I thought clay was great.", true),

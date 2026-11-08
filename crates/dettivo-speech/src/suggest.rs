@@ -53,28 +53,34 @@ pub fn hear(term: &str, heard: &str, unprimed: &str, in_sentence: bool) -> (bool
     let holds = |text: &[String]| {
         !term.is_empty() && text.windows(term.len()).any(|w| w == term.as_slice())
     };
-    if holds(&words(heard)) {
+    let heard = words(heard);
+    let unprimed = words(unprimed);
+    let (heard_stretch, unprimed_stretch) = if in_sentence {
+        (stretch(&heard), stretch(&unprimed))
+    } else {
+        (Some(&heard[..]), Some(&unprimed[..]))
+    };
+    // A sentence that did not come back is searched whole, so a term
+    // heard right is still counted.
+    if holds(heard_stretch.unwrap_or(&heard)) {
         return (true, None);
     }
-    let unprimed = words(unprimed);
-    if holds(&unprimed) {
+    let Some(found) = unprimed_stretch.filter(|s| !holds(s)) else {
         return (false, None);
-    }
-    let stretch = if in_sentence {
-        let (before, after) = (words(CARRIER.0), words(CARRIER.1));
-        let fits = unprimed.len() > before.len() + after.len()
-            && unprimed.starts_with(&before)
-            && unprimed.ends_with(&after);
-        if !fits {
-            return (false, None);
-        }
-        &unprimed[before.len()..unprimed.len() - after.len()]
-    } else {
-        &unprimed[..]
     };
     let spelling =
-        (!stretch.is_empty() && stretch.len() <= term.len().max(1) + 2).then(|| stretch.join(" "));
+        (!found.is_empty() && found.len() <= term.len().max(1) + 2).then(|| found.join(" "));
     (false, spelling)
+}
+
+/// The words of a sentence clip between the sentence's own; `None` when
+/// the sentence around the term did not come back.
+fn stretch(words_heard: &[String]) -> Option<&[String]> {
+    let (before, after) = (words(CARRIER.0), words(CARRIER.1));
+    let fits = words_heard.len() > before.len() + after.len()
+        && words_heard.starts_with(&before)
+        && words_heard.ends_with(&after);
+    fits.then(|| &words_heard[before.len()..words_heard.len() - after.len()])
 }
 
 /// Whether every clip heard the term right, and the spellings to propose:

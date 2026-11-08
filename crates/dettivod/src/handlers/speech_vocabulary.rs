@@ -24,7 +24,9 @@ const RECOGNIZE_TIMEOUT: Duration = Duration::from_secs(120);
 /// `speech.vocabulary.suggest`.
 pub fn suggest(daemon: &Daemon, params_value: Value) -> Result<Value, JsonRpcError> {
     let p: SuggestParams = params(params_value)?;
-    let term = p.term.trim().to_string();
+    // The term as given, so it matches the vocabulary's entry exactly as
+    // the file spells it.
+    let term = p.term;
     if suggest::words(&term).is_empty() {
         return Err(error(
             AppCode::InvalidParams,
@@ -67,16 +69,26 @@ pub fn suggest(daemon: &Daemon, params_value: Value) -> Result<Value, JsonRpcErr
         bias::checked_terms(&echo, &entries)
     };
     let hear = |pcm: &[i16], on: bool| -> Result<String, JsonRpcError> {
-        let request = RecognizeRequest {
-            pcm: dettivo_transcribe::pad_for_engine(pcm.to_vec(), provider == "parakeet", 16_000),
+        let request = |pcm: Vec<i16>| RecognizeRequest {
+            pcm,
             language: dictation.language.clone(),
             prompt: if on { vocabulary_prompt(&terms) } else { None },
             timestamps: true,
             vocabulary: if on { primed.clone() } else { None },
         };
-        let result = engine
-            .recognize(request, RECOGNIZE_TIMEOUT)
-            .map_err(|e| error(AppCode::InternalError, &format!("{provider}: {e}")))?;
+        let recognize = |pcm: Vec<i16>| {
+            engine
+                .recognize(request(pcm), RECOGNIZE_TIMEOUT)
+                .map_err(|e| error(AppCode::InternalError, &format!("{provider}: {e}")))
+        };
+        let padded =
+            dettivo_transcribe::pad_for_engine(pcm.to_vec(), provider == "parakeet", 16_000);
+        let was_padded = padded.len() != pcm.len();
+        let mut result = recognize(padded)?;
+        // As in a take: a padded clip that comes back empty runs once more as spoken.
+        if was_padded && result.text.trim().is_empty() {
+            result = recognize(pcm.to_vec())?;
+        }
         let echo: &[String] = if on { &echo } else { &[] };
         Ok(dettivo_transcribe::guards::clean(&result, echo)
             .trim()
