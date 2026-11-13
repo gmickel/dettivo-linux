@@ -4,6 +4,14 @@ Every release of Dettivo for Linux is listed here in the [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-11-14
+
+The Omarchy bar plugin loads again on Omarchy 4.5.
+
+### Fixed
+
+- The bar widget and panel load on Omarchy 4.5, which loads plugins through `qs:///` URLs. There a plugin folder resolves only the types its `qmldir` lists, so the shell logged `Type DettivoState unavailable` and `DettivoFacts is not a type` and showed no Dettivo widget. The plugin's `qmldir` now declares every component, and the plugin lint fails when a component is missing from it. Run `dettivo setup omarchy` and then `omarchy restart shell` to pick it up; a hot reload keeps the old `qmldir`.
+
 ## [0.5.0] - 2026-11-08
 
 Dictation is quicker and more careful in 0.5.0. On a GPU a long Parakeet take's text arrives sooner after you let go, the vocabulary now works with Parakeet and can say how each term tends to be misheard, an empty or noisy take pastes nothing, and dictation keeps working after Hyprland or PipeWire restarts.

@@ -51,6 +51,21 @@ version="$(grep -m1 -E '^version = ' "${repo_root}/Cargo.toml" | sed -E 's/versi
 min_dettivo="$(jq -r '.omarchy.minDettivo' "${manifest}")"
 grep -qF "readonly property string minDettivo: \"${min_dettivo}\"" "${plugin}/DettivoState.qml" \
     || fail "DettivoState.qml minDettivo differs from manifest omarchy.minDettivo ${min_dettivo}"
+# The shell loads the plugin through qs:/// URLs, where the folder resolves
+# only the types its qmldir lists: every component must be declared there.
+# The entry points must not be, since their names are the shell's own types
+# (BarWidget, Panel) and a declaration would shadow them.
+qmldir="${plugin}/qmldir"
+mapfile -t entries < <(jq -r '.entryPoints[]' "${manifest}")
+for file in "${plugin}"/*.qml; do
+    name="$(basename "${file}")"
+    type="${name%.qml}"
+    if printf '%s\n' "${entries[@]}" | grep -qxF "${name}"; then
+        ! grep -qE "(^|[[:space:]])${name}$" "${qmldir}" || fail "qmldir declares the entry point ${name}, which shadows the shell's ${type}"
+    else
+        grep -qE "^(singleton )?${type} [0-9.]+ ${name}$" "${qmldir}" || fail "qmldir does not declare ${type} (${name}); the shell will not resolve it"
+    fi
+done
 link="$(find "${plugin}" -type l -print -quit)"
 [[ -z "${link}" ]] || fail "symlink inside the plugin folder: ${link}"
 

@@ -34,3 +34,7 @@ Omarchy setup now activates the Lua shortcuts and the shipped panel owns its con
 The plugin folder carries `qmldir` with its shared-state singleton declaration. Its loaded waveform explicitly counts as visible button content. The panel directory-imports `DettivoStyle` alongside `Dettivo`, making both packaged modules available without changing the shell environment. The panel uses explicit styled buttons and an inset, equal-width mode selector.
 
 The isolated plugin test uses a plain Qt host with no Dettivo libraries linked, no selected Dettivo control style and no module import-path override. Staging preserves the shipped singleton declaration. This catches the three assumptions that the old shim and linked test host hid. Native clean-install and dictation acceptance remain deferred while Gordon dogfoods; this amendment records implementation decisions, not a native QA verdict.
+
+## Correction for Omarchy 4.5, 2026-11-14
+
+Omarchy 4.5 loads plugins through `qs:///` URLs, and there a folder with a `qmldir` resolves only the types it declares, so the singleton alone left `DettivoState` unable to see its siblings. The plugin's `qmldir` declares every component in the folder except the two entry points, `BarWidget.qml` and `Panel.qml`, whose names are the shell's own types and would shadow them. `scripts/lint-omarchy-plugin.sh` enforces both halves.
