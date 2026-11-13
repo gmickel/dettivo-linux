@@ -1,2 +1,10 @@
 module DettivoPlugin
 singleton DettivoState 1.0 DettivoState.qml
+DettivoFacts 1.0 DettivoFacts.qml
+DettivoGlyph 1.0 DettivoGlyph.qml
+DettivoMeetingActions 1.0 DettivoMeetingActions.qml
+DettivoMeetingClock 1.0 DettivoMeetingClock.qml
+DettivoPanelContent 1.0 DettivoPanelContent.qml
+DettivoPill 1.0 DettivoPill.qml
+DettivoSnapshots 1.0 DettivoSnapshots.qml
+PanelPopup 1.0 PanelPopup.qml
