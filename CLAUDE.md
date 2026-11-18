@@ -44,7 +44,7 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
 
 Implementation stays on Claude Opus 5.5 (`claude-opus-5-5`): the conductor, the worker, the resolver and the quality auditor. Reviews go to gpt-6.1-sol at high effort, from the other model family, through Codex or Cursor, whichever has usage. Scouts keep the plugin's defaults, so the two scout tiers are deliberately left unset here. An explicit instruction in the moment still wins over this block.
 
-reviewer: gpt-6.1-sol at high
+reviewer: gpt-6.2-sol at high
 implementer: claude-opus-5-5
 <!-- fast scout: unset - the plugin's fast-tier default (inventory scanning) -->
 <!-- thinking scout: unset - the plugin's judgment-tier default (bounded analysis) -->
